@@ -1,0 +1,9 @@
+digraph flow4 {
+  a0 [shape=box];
+  a1 [shape=box];
+  a2 [shape=box];
+  a3 [shape=box];
+  a0 -> b0 -> a1 -> b1 -> a3 -> b3;
+  b0 -> a2 -> b2 -> a3;
+}
+

@@ -1,0 +1,53 @@
+#! /bin/csh -f
+#
+#   redo_from_scratch_cvs: a poor mans buildbot
+#
+#   simple example of installing ADMIT from scratch, but assuming you have preinstalled
+#   a CASA and the ADMIT testdata. 
+#   it does not build documentation, since that requires sphinx and that's just complicated 
+#
+#   If you put a file redo_from_scratch.set in your build directory, it will override
+#   the basic cvsroot/casaroot/testdata/admit variables set below.
+#
+#   20-jul-2015  PJT      Takes about 1.5 minutes on my laptop
+#   24-sep-2006  PJT      
+
+set version  = 24-sep-2016
+
+#  edit your basic settings here (or in the .set file)
+set defaults = redo_from_scratch.set
+set cvsroot  = :pserver:anonymous@cvs.astro.umd.edu:/home/cvsroot
+#set casaroot = /astromake/opt/casa/stable
+#set casaroot = /astromake/opt/casa/casa-stable-4.6.34
+#set casaroot = /astromake/opt/casa/casa-prerelease-4.5.0-43
+#set casaroot = /astromake/opt/casa/casa-release-4.5.0-el6
+set casaroot = /astromake/opt/casa/casa-release-4.5.3-el6
+set testdata = /chara/admit/testdata
+set admit    = admit
+set rerun    = 1
+
+#  override script defaults?
+if (-e $defaults) source $defaults
+
+#  delete the current $admit tree and build a new one
+echo $0 version $version
+echo "report what new files there are for this coming build:"
+(cd $admit ; cvs -nq up)
+echo "wiping old $admit tree" 
+rm -rf $admit
+cvs -d $cvsroot -Q co -d $admit gadmit
+#cvs -d $cvsroot -Q co -d $admit -r ADMIT_BRANCH_PLOT_CONTROL_MWP_2015_AUG_17 admit
+cd $admit
+autoconf
+./configure --with-casa-root=$casaroot --with-testdata=$testdata
+source admit_start.csh
+make data
+make unit0
+make unit
+make integration
+echo $0 version $version
+
+# continue with testdata, in $ADMIT/data (test21.fits was done in "make integration")
+cd data
+$ADMIT/admit/test/run_M3-bb.csh
+

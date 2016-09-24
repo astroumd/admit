@@ -1,0 +1,31 @@
+digraph flow5 {
+  a0 [shape=box,style=filled,color=green];
+  a1 [shape=box,style=filled,color=green];
+  a0 -> b0 -> a1 -> b1;
+  b1 -> a1s -> b1s;
+  a1s [shape=box,style=filled,color=green];
+  a2 [shape=box,style=filled,color=green];
+  a3 [shape=box,style=filled,color=green];
+  a5 [shape=box,style=filled,color=green];
+  a6 [shape=box,style=filled,color=green];
+  a60 [shape=box,style=filled,color=yellow];
+  b1 -> a2 -> b2;
+  b2 -> a3;
+  b1 -> a3 -> b3;
+  b1 -> a5 -> b5 -> a6;
+  b2 -> a5;
+
+  // Cubespectrum (and perhaps SpectrumMap)
+
+  b1 -> a6 [weight=8];
+  a6 -> b61;
+  a6 -> b62;
+  a6 -> b63;
+  a6 -> b64 [label="many line cubes..."];
+
+  b61 -> a60;
+  a60 -> b60m ;
+  a60 -> b61m;
+  a60 -> b62m [label="3 moments for many other line cubes...."];
+}
+

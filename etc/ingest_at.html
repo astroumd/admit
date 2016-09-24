@@ -1,0 +1,33 @@
+    <div class="accordion-group"> <div class="accordion-heading">
+            <a class="accordion-toggle %s" data-toggle="collapse" data-parent="#details-accordion" href="#collapse%d">
+<span class="ico-pull pull-right">
+%s
+</span>
+            %s (taskid=%d) &nbsp;&nbsp;&nbsp; <span style="color:black">%s</span>
+</a>
+       </div>
+
+        <div id="collapse%d" class="accordion-body collapse">
+           <h4>
+<a href="http://admit.astro.umd.edu/admit/module/admit.at/Ingest_AT.html" target="_blank">
+Ingest_AT</a> reads in a FITS image into ADMIT, creating a CASA image and extracting basic information.  It is usually the first step in any ADMIT flow.
+           </h4>
+            <br>
+            <table class="table table-bordered table-striped" width="50%%" >
+            <caption>Image Information</caption>
+            <tbody>
+            <tr><td>FITS image </td><td><a href="%s">%s</a> </td></tr>
+            <tr><td>CASA image </td><td><a href="%s">%s</a> </td></tr>
+            <tr><td>Object</td><td>%s</td></tr>
+            <tr><td>Rest frequency</td><td>%s</td></tr>
+            <tr><td>VLSR</td><td>%s</td></tr>
+            <tr><td>Beam</td><td>%s</td></tr>
+            <tr><td>Imsize</td><td>%s</td></tr>
+            <tr><td>Intensity unit</td><td>%s</td></tr>
+            <tr><td>Data min/max</td><td>%s&nbsp;&nbsp;/&nbsp;&nbsp;%s</td></tr>
+            <tr><td>Telescope</td><td>%s</td></tr>
+            <tr><td>Percentage bad pixels</td><td>%s%%</td></tr>
+            </tbody>
+            </table>
+        </div>
+    </div>

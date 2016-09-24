@@ -1,0 +1,164 @@
+
+
+For developers:  (only CASA 4.6 and above are supported)
+
+To grab the CVS based source code, e.g.  (git will be available shortly)
+
+  cvs -Q -d :pserver:anonymous@cvs.astro.umd.edu:/home/cvsroot checkout admit
+  git clone https://github.com/astroumd/admit.git
+
+There are some automated scripts in  $ADMIT/scripts/ that you can tailor for installation
+
+  setenv CASA_ROOT /your/casa      (or :  export CASA_ROOT=/your/casa)
+  make config                      (it needs $CASA_ROOT if you want to include that CASA via ADMIT)
+  source admit_start.csh           (or the .sh variant if your shell is not a csh variant)
+
+
+A few simple tests:
+
+  make python0              (should work without casa)
+  make python1   	    (needs CASA in the environment) - can hang on a mac?  try 'make python2'
+
+This last test is important, it will verify if you have properly
+integrated CASA in your shell. This is something that has changed
+over the lifetime of CASA. ($PATH, $LD_LIBRARY_PATH etc.)
+
+
+CASA requirements:
+    Without CASA you can currently do very little with ADMIT. 
+    http://casa.nrao.edu/casa_obtaining.shtml
+    http://casa.nrao.edu/installlinux.shtml
+    http://casa.nrao.edu/install xxx.shtml
+
+    e.g. the latest ones are
+    
+    https://svn.cv.nrao.edu/casa/distro/linux/release/el6/casa-release-4.6.0-el6.tar.gz
+    https://svn.cv.nrao.edu/casa/distro/linux/release/el6/casa-release-4.5.3-el6.tar.gz
+    https://svn.cv.nrao.edu/casa/distro/osx/release/10.11/casa-release-4.6.0-10.11.dmg
+    https://svn.cv.nrao.edu/casa/distro/osx/release/10.9/casa-release-4.5.3-10.9.dmg
+
+Programs you will need: (apart from the obvious things like python etc.)
+
+		         package names
+    program       ubuntu                redhat
+    -----------   -------------------   --------------------
+    autoconf      autoconf              autoconf
+    csh           tcsh                  tcsh
+    pdflatex      texlive-latex-base
+    dot           graphviz
+		  libgraphviz-dev
+    dia           dia
+    fig2dev       transfig
+    sphinx-build  python-sphinx         python-sphinx
+                  python-numpydoc       python-numpydoc
+    convert       imagemagick           ImageMagick
+
+If you want to use the non-CASA tests, you will also need
+
+    python        python                python
+    ipython       ipython               ipython
+    pip           python-pip
+    matplotlib    python-matplotlib     python-matplotlib
+    numpy         python-numpy          numpy
+    scipy         python-scipy          scipy
+
+Other recommended packages are:
+
+    pylint        pylint                pylint
+
+
+Reminder on package installation methods in a few Linux and Mac distro's:
+
+ubuntu:    apt-get install <package>
+redhat:    yum install <package>
+fedora22:  dnf install <package>
+openSUSE:  zypper install <package>
+
+macports:  port install <package>        (see also /opt/local/...)
+homebrew:  brew install <package>        (see also /usr/local/Cellar)
+
+
+Some known peculiar situations
+------------------------------
+
+fedora22: it needs libpng12
+
+Sample installation
+-------------------
+
+  Sample scripts:
+  $ADMIT/scripts/get_stable-casa_admit             install both casa and admit, only for linux
+
+# $CVSROOT has been set for your account (or use :pserver:anonymous@cvs.astro.umd.edu:/home/cvsroot)
+
+cvs -Q co admit
+cd admit
+autoconfig
+./configure --with-casa-root=/astromake/opt/casa/stable
+source admit_start.csh
+
+# unit tests (these are pure python tests, and not essential for ALMA)
+make unit0
+
+# unit tests (will need CASA in your environment)
+make unit
+
+# integratation tests (will need CASA)
+make integration
+
+# a DATA test (will need CASA)
+make foobar
+cd data
+../admit/test/admit1.py foobar.fits x
+
+# a new DTD should not leave modified or new files
+# we need CASA for this
+cd $ADMIT
+make dtd
+cvs -nq up
+
+
+
+
+
+How a developer needs to set up sphinx in their version of casa's python:
+=========================================================================
+cd $ADMIT/integration-test
+make pip                         (fails on FC22, try the old 'make pip1')
+rehash                           (if you're in a csh type shell)
+which pip                        (should now see the casa version)
+pip install --upgrade pip
+rehash
+pip install --upgrade setuptools
+pip install sphinx               (can have zlib error, install docutils manually)
+pip install numpydoc
+rehash
+which sphinx-build               (should see the casa version now)
+cd ..    
+make html
+make pdf
+
+The installation of sphinx is known to fail on some systems (e.g. redhat/SL),
+which was due to a failing docutils install in a compression library.
+The solution here was to manually install docutils,
+from http://docutils.sourceforge.net/
+
+Example
+    tar zxf docutils-0.12.tar.gz
+    cd docutils-0.12
+    python setup.py install
+or try the latest
+    svn checkout svn://svn.code.sf.net/p/docutils/code/trunk docutils-code
+    cd docutils-code/docutils
+    python setup.py install
+    
+after which the pip install should work again.
+
+Some rumors exist that the system version of sphinx-build may work on your
+system, but it's very easy to get shared libraries of cblas (which numpy
+uses) to trigger error messages if you use a sphinx not built with casa's
+python.   YMMV.
+
+
+Some notes on CASA installations
+================================

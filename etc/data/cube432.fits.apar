@@ -1,0 +1,3 @@
+#   cube432.fits is a really simple 4 x 3 x 2 x 1 cube, 
+#   which will ingest, but hasn't been certified beyond, so we stop right after ingest.
+stop = 'ingest'

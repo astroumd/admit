@@ -1,0 +1,17 @@
+# -*- python -*-
+#
+# last channel is masked
+# inedge = [0,1]
+
+#  two peaks in center , but no drastic difference
+# maxpos = [260, 252, 256, 248]
+
+
+#  at the default numsigma (5.0,4,3) line is not detected
+
+linepar = (4.0, 3, 2)
+
+#  normally the vlsr is given via vlsr.tab in MRC_0152-209 as 197166.0 km/s
+#  but here we show how we can use redshift z via an ADMIT function
+vlsr = admit.util.utils.ztovrad(1.9212)
+print "VLSR from z=1.9212:",vlsr

@@ -1,0 +1,205 @@
+This will be a list of optional packages you can install with ADMIT.
+Having them will greatly enhance the things you can do with your data,
+but they are technically not needed to get started.
+
+It is up to you to install them with the CASA version of python (if
+compatible), or your own system version, or some other third party
+version (e.g. Enthought), or even in your own PYTHONPATH.  ADMIT will
+generally not depend on these.
+
+For a number of these packages you will need a developers setup, tools
+like C/C++/Cython etc. Consult the "see also" link if your install
+fails in the simple way.
+
+For some of the packages, alternative installation methods will be
+available, check with your local system (.e.g. pip)
+
+0) Before you panic and think you need to install all of these, check
+   which ones your python already installed these modules.
+
+    cd $ADMIT/integration-test
+    make check
+
+   and see which versions your python (listed on the first line) has.
+
+   Although most tools should install using the
+
+	python setup.py install
+   or
+	python setup.py install --user
+
+   Another option is to use casa's environment modifier:
+
+
+        casa-config --exec python setup.py
+   or
+	casa-config --exec python setup.py install --user
+
+
+1) radio-astro-tools
+
+   See also https://github.com/radio-astro-tools/
+   These are a few FITS specific packages developed April 2014 onwards.
+
+   a) spectral-cube
+      =============
+    
+
+
+      To install:
+      -----------
+      git clone https://github.com/radio-astro-tools/spectral-cube
+      cd spectral-cube
+      python setup.py install
+
+      >> import spectral_cube
+
+   b) signal-id
+      =========
+
+      To install:
+      -----------
+      git clone https://github.com/radio-astro-tools/signal-id
+      cd signal-id
+      python setup.py install
+      
+      >> import signal_id
+
+   c) pvextractor
+      ===========
+
+      To install:
+      -----------
+      git clone https://github.com/radio-astro-tools/pvextractor
+      cd pvextractor
+      python setup.py install
+      
+
+      [sep 2014] You might now see an error
+	      AttributeError: 'NoneType' object has no attribute 'mkdtemp'
+      just run the install command again.
+
+      ->  this installs matplotlib and astropy?
+
+
+   d) https://github.com/radio-astro-tools/radio_beam
+
+      To install:
+      -----------
+      git clone https://github.com/radio-astro-tools/radio_beam
+      cd radio_beam
+      python setup.py install
+
+      >> import radio_beam
+
+from version import __version__
+
+
+2) astropy
+
+   See also http://www.astropy.org/
+
+   To install:  ('pip install astropy' should also work)
+   -----------
+
+    git clone git://github.com/astropy/astropy.git
+    cd astropy
+    python setup.py install
+
+
+2a) APLpy
+
+    pip install aplpy
+
+2b) ginga
+
+    See also https://ginga.readthedocs.org/en/latest/index.html
+   
+    To install:  ('pip install ginga' should also work)
+    -----------
+    git clone https://github.com/ejeschke/ginga.git
+    cd ginga
+    python setup.py install
+
+
+2c) astroquery
+
+    See also http://astroquery.readthedocs.org/en/latest/
+
+    To install:  ('pip install astroquery' should also work)
+    -----------
+    git clone https://github.com/astropy/astroquery.git
+    cd astroquery
+    python setup.py install
+
+    >> import astroquery
+
+2d) AstroML
+
+    See also http://www.astroml.org/
+    (needs  numpy, scipy, scikit-learn, matplotlib, and astropy)
+
+    To install: ('pip install astroML' should also work)
+    -----------
+    git clone https://github.com/astroML/astroML
+    cd astroML
+    python setup.py install
+
+    >> import astroML
+
+
+3)  scikit-learn
+
+    See also http://scikit-learn.org/stable/
+
+    To install: ('pip install scikit-learn' should also work)
+    -----------
+    git clone https://github.com/scikit-learn/scikit-learn.git
+    cd scikit-learn
+    python setup.py install
+    
+    >> import sklearn
+    
+
+4) r2py
+
+    Statistics package, interfaces to R.  Usefull if you are not happy with statsmodels.
+
+    See also https://bitbucket.org/lgautier/rpy2
+    and      http://statsmodels.sourceforge.net/  for an alternative
+
+
+    To install: ('pip install rpy2' should also work)
+    -----------
+    hg clone https://bitbucket.org/lgautier/rpy2
+    cd rpy2
+    python setup.py install
+
+    or:
+
+    pip install rpy2
+
+    >> import rpy2
+
+5)  GLUE aka glueviz
+
+    http://www.glueviz.org/
+
+    Multivariate data analysis and visualization
+
+
+
+    pip install glueviz
+
+6)  ds9
+
+    There appear to be several interfaces to ds9:
+
+    1)  pysao (
+
+    pip install pysao
+
+
+    2) pyds9 (Eric Mandel)   https://github.com/ericmandel/pyds9
+
+    pip install [--user] git+https://github.com/ericmandel/pyds9.git#egg=pyds9

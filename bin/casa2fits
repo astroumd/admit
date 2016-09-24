@@ -1,0 +1,46 @@
+#! /usr/bin/env casarun
+#-*- mode: python -*-
+#
+#   casa2fits   :   bulk conversion of casa images to fits files
+#
+#   Usage:      casa2fits  *.im
+#               casa2fits `cat file`
+#               ---------> file is a text file containing a bunch of fits files
+
+version  = '7-mar-2016'
+
+
+# =================================================================================================================
+# python system modules
+import sys, os, math
+import admit
+
+try:
+  import taskinit
+  import casa
+except:
+  print "WARNING: problem importing CASA modules"
+
+
+argv = admit.utils.casa_argv(sys.argv)
+
+total = len(argv)-1
+i       = 0
+verbose = False
+echop   = False
+
+for ff in argv[1:]:
+    i = i + 1
+
+    if ff=='-v':
+      verbose = True
+      continue
+    if ff=='-e':
+      echop = True
+
+    shape = str(casa.imhead(ff,mode='list')['shape'])
+
+    print "(%d/%d) %s %s" % (i,total,ff,shape)
+    casa.exportfits(ff,ff+'.fits',overwrite=True)
+    
+

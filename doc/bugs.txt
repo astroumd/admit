@@ -1,0 +1,334 @@
+known bugs and issues and wishlist
+----------------------------------
+
+check the various builtbots:
+
+code:    http://admit.astro.umd.edu/buildbot/waterfall
+	 (this has build, integration test, and daily lineid)
+	 
+M3-bb    http://admit.astro.umd.edu/admit-M3-buildbot/data.current
+         http://admit.astro.umd.edu/admit-M3-buildbot/data.previous
+
+data:    http://admit.astro.umd.edu/admit-data/
+
+
+===================================================================================================
+
+- Firefox bug:  
+  Issue: 
+
+  Firefox submits one or more bogus HTTP GET following an HTTP POST.
+  ADMIT uses POST to communicate between the browser and its python http
+  server (AdmitHTTP.py) in order to e.g. update keywords an re-run a flow. 
+  (The "Re-run" button).  The bogus GET sends empty data structures which
+  then (correctly) cause a cascade of validation errors in ADMIT.
+
+  Workaround: 
+    1) The do_POST method in AdmitHTTP.py looks for a string that
+       is likely a bogus GET and ignores it.
+    2) The javascript in etc/form_head.html detects the browser type.
+       If it is Firefox the user is instructed via pop-up to use
+       the dry-run button followed by typing "[project].run()" in the CASA  
+       python session.
+
+  Questions:
+    - Why is a GET even processed through doPOST?  The server should sort
+    these out and no call doPOST.
+    - Is this somehow related to the signal-handling workaround of the
+      TkInter bug?  "Re-run" is the only button that uses that workaround
+      and AFAIK the only button in which the Firefox bug manifests itself.
+
+- Signal handling workaround of TkInter bug
+  Issue:
+     When the user clicks re-run, the python call hits a bug in
+     TkInter having to do with multi-threading:  
+        "TclError: out of stack space (infinite loop?)"  
+     My understanding ot this TkInter bug is thatyou
+     can't instantiate a TkInter object in one thread and then operate on it
+     from another.  CASA's TkInter object is instantiated at startup
+     in the main thread via import matplotlib, while ADMIT 
+     The ADMIT python HTTP server which communicates with the 
+     browser is a separate thread.  Thus ADMIT has no way to control 
+     this unwanted behavior, because we can't let the server, which is
+     blocking,  run in the main thead.
+
+   Workaround:
+     Issue a SIGUSR1 signal to the main thread from the server thread
+     when re-run is requested.  The main thread catches SIGUSR1 and 
+     then calls Admit.run() in the main thread avoiding the TkInter bug.
+
+
+- re-run example with admit253.py [kevin]: it is ok when admit253 is re-run, but when the
+  corresponding admit0.py is rerun, it runs programs it shouldn't have to.
+
+- ContinuumSub:    pad= cannot go beyond edge, (bug)
+  [FIXED in 1.0.1 peter]
+
+- system exit: casa always makes it 0, so in casarun we don't have a good way to test for
+  failure
+
+- OverlapIntegral should clip the mom0's
+
+- MultiFlow will need self.dir() ->  self.baseDir() + ....
+  See PrincipalComponent_AT.py
+
+- Ingest doesn't smooth if input is not fits
+- one of the smooth options doesn't seem to work
+
+- util.image serialization (for summary) as was done for util.Table ? [marc]
+
+- refactoring of Summary.py _process() method.
+  the question is, can we think of a way where the task specific portions in summary.py are a
+  service function in the AT itself. 
+
+= LineID fails on egn-c2.fits with insmooth=[4,4,1], that quickly go away
+  when no smoothing is applied, or PolyFit is not 0 etc.etc.   [doug]
+
+= [important]  imval() cannot deal with 3D cubes, so Ingest_AT will try to convert to 4D.
+  it's	a known CASA bug. will be worked on, at some point (jun 2015 ; see CAS-7648)
+  Affected code:
+  Ingest_AT:        ia.fromfits() does the 4D ok, but importfits() is clumsy - see code comments
+  CubeStats_AT:     OK: imval -> getprofile
+  CubeSpectrum_AT:  OK: imval with region= works, getprofile would be better (also integrates regions)
+  Moment_AT:        FAIL: imval would need a fix, or another method needed
+
+  Conclusion - for now - fix it in Ingest or before, but the avalange of problems after that is bad.
+
+= [important] Aplot/matplotlib    This probably means that Tcl wasn't installed properly. (not finding init.tcl)
+     works ok wihtout casa
+     milestone2b works ok
+     but Aplot.py does not
+     is this a Xvfb problem?
+
+- [] After HelloWorld has been added, it's difficult to get rid of it. Under circumstances
+  dtdGenerator will die, and will need manual editing of some __init__.py file to get the
+  system back. yuck!
+
+- line-cubespectrum is in channels now, could now use velocities  (that's not resolved)
+  - could also plot the rms that was used from cubestats
+  - could also plot channel range that was deemed the line to be present under
+
+- (casa bug) noise cubes from miriad and using this in ingest with a LEL saying IM0 != 0.0
+  results in a few masked points. -> rounding error?
+  -> should be filed as a CASA bug
+
+- in re-run mode (which now sorta works in admit1.py - jul 9 ) plotmode becomes 1 (interactive) ... weird
+  also clearoutput() is broken in CubeSum, it doesn't delete the previous x.csm
+  -> this is a know issue because admit sets it, at's inherit it, no feedback.
+
+
+- LineID related things for the Dec 8-11 workshop?
+
+  - case1
+      test2.fits:   last channel is all 0.0, unless "inedge=[0,1]" is used, this will fail, if PVCorr is used.
+                    If you de-select PVC, it will be ok
+		    I suspect that the PVC didn't get the 0 treatment that CSP and CST got,
+		    the solution might be to share a mask, using np.ma, or not rely on the freq in one
+		    to the same as the other (better)
+		    -> related to an earlier reported bug?
+      [doug working on this]
+      
+  - case2:
+      ASAP mode now fails
+      ASAPLineFinder.py line 112 self.set_options()
+      TypeError: set_options() takes exactly 1 argument (2 given)
+
+  - case3:
+      noise100.fits noise cubes now fail in LineID if PVCorr didn't see any signal above the cutoff
+      [doug working on this]
+
+
+- symmetry of bdp file names in LineSegment vs. LineID
+  open test0.admit/x.lseg_statseg1.png    (twice the "seg" in the name?)
+  open test0.admit/x.ll_statspec1.png
+  [FIXED: peter] 1.0.1
+
+- (some logging.() was modified in LineID, but probably not in LineSegment)
+
+- ADMITSegmentFinder:   abs issue [doug/peter has non-working patch]
+  -> 1.1 ; needs documentation what the intent really is here and the use of abs
+  also:  LineSegment and LineID didn't give the same answer when the new (bad?) logic was tried.
+  	 check if this is still true in lineUID mode
+
+- ingest
+    - suggested work is to remove redundant axis, can this be done in CS instead of IA ?
+      -> problems for future polarization work
+    - dealing with non-1 pol axis is admit 2.0 (future.txt)
+    - notice CAS-7648 is blocking going to pure 3D cubes, so we keep 4D cubes
+    - pure 3D cubes should be able to use ia.adddegaxis, Mehringer thinks.  The code
+      is still disabled, no comment what was going wrong here. does it not work?
+      -> 1.1
+    
+- alias are in global namespace, don't know about directories. not nice.
+
+- SD noise is not gauss/normal [lee]
+  -> play with CubeStats' new maxvrms (max variation in RMS allowed)
+- export to fits
+  -> naming conventions
+- numsigma increases can cause re-run to crash [ok?]
+
+- pvslice_at       [peter]
+  - check on 1-pixel offset  (correct; mk_blob_miriad)
+  - allow multiple slices (future request)
+  - peak and center-of-mass discrepancy resolution (test21 is a good testcase, and several EDGE cases)
+
+- PVcorr_at : rms ok  ?   
+    frequently PVC seems to trigger a lot of false lines (e.g.NRAO testdata)
+
+- Ideally cubestats Peak/Noise is flat, and line segments are easily detected,
+  but there are cases with bad atmospheric "narrow" lines that cause a fake line
+  in both Peak and Noise, but they nicely cancel out in CubeStats. However, they
+  do not in CubeSpectrum. [cf. Todd/John]
+
+- better LineID plots now that we "think" we have a better RESTFREQ. We could label based on this
+  if VLSR != 0  Current default is the center, wihch is ok for scale.
+
+- casa 4.6.0 doesn't seem to build documentation on Ubuntu, it hangs at
+  highlighting module code... [ 75%] admit.Admit
+  Related to the xvfb problem?
+  This problem went briefly away with one of the new stables, but it still seems intermittend
+  (again, on Ubuntu)
+
+- convert to code from CVS to GIT ?  
+
+- admit1 flow with smooth-cube-masking as we do in BIMASONG/EDGE
+
+- can we have an option to not have thumbnails?
+
+- LineID: There is an N^k dependency in the pattern matching. known issue. [doug]
+
+
+- confirm everything runs at NRAO/CV    [peter]
+  timing:      real: ~32m17.477s  user: 10m30.658s    sys: 6m49.845s
+                       1m29.971s         0m28.011s         0m9.630s
+  checksum:    55379
+
+
+  cf chara:  854.996u 289.008s 33:23.12 57.1%	=> almost identical to NRAO
+     nemo2:  437.832u 234.900s 22:07.90 50.6%
+    subaru:  
+
+- Template_AT has a certain "new" style to which most AT's don't adhere.
+
+- admitN.py will also copy a txt file from $ADMIT/doc where it describes filename/conventions
+  kind of a README file.                       [peter]
+  -> should be in $ADMIT/etc, since doc may not been in distro
+  Right now the messy one is in file+dirnames.txt, we need a cleaned up one.
+  
+
+- imview's too small (but they do have a colorbar now)                           [peter]
+  - seem like a CASA bug, out={'file':png, 'scale':1.0}  should have worked...
+  - also:  the png IS bit bigger than the web thingy makes it pop open!!
+    some of that could just been your DPI screen resolution, high DPI will make them come out small
+  - chara M3 buildbot different from laptop, that's disconcerning too
+
+
+- if only one line detected in both CST and CSP, the PVC should not be used?
+  E.g. with wide lines, test22 for example, the PVC then winds up making the
+  segment crazy big.... OTOH, it doesn't matter since there is no other line,
+  so no real harm done?  
+
+- LineID issues?
+
+  - segments: in detail what you see is not what you get. 
+      1) fix the plot to it matches the algorithm described (WYSIWYG)
+      2) agree it's never going to match
+    Example in test1.fits CST with insmooth=[4,4,4],
+    which has 6 or 7 points > cutoff but is never called a line
+    cutoff depends on choice of minchan.
+    CSP does detect a line though.
+
+    as far as I can tell this is no longer a problem
+
+  - Do we allow overlapping segments in the final cut? Or control by a keyword True/False?
+    In N253 they're all bogus, triggered by a peakfinder mistake in cubestats,
+    where cubespectrum does it right.
+    ?
+
+  - caution: if LineID uses a continuum subtraction for cubespectrum, this is not passed
+    on to LineCube because we have assumed the continuum has been subtracted.....
+    ?
+
+  - EGNoG fluxes are (all but 1) down by 2; smoothing exposed an mlist[] bug in LineID [peter]
+    ?
+    should check EDGE fluxes
+
+  - minchan is apparently also used by PeakFinder.
+    Some desire of channels vs. km/s, but how would pipeline know what to take?
+    ?
+
+- a better method besides cubestats is to mask out everything below N-sigma,
+  where N is large. Supply this to computing cubestats. this would solve the
+  issue in e.g. test22 with broad lines confusing cubestats lineid.
+  > M3
+
+- users don't get to see much of what tier1 and the rest is. Can references=
+  or something like the old CARMA correllator tool be used to display more lines?
+  what about a dictionary?   e.g. references={"co":115.2, "hi":1.4}
+  the typechecking is killing this one
+
+- BUGS
+
+   - 0 channels not masked in CST ? [doug?]
+     look at CST in test13, the highest freq point is 0
+     and biases the slope
+
+   - PVC in test21 is an example of a line that seems to grow segments due to a     
+     conspiracy between minchan/maxgap.
+
+   - Aplot.py  : clipping error now, if you run it as "_main_"
+
+  - Overlap_Integral_AT:
+    - only png for M4, for RGB option [peter]
+    - correlate2d for all N*N-1 cross
+    - new getdata/putdata
+    - check with Smooth_AT
+
+  - PrincipalComponent_AT:
+    - only png for M4, for RGB option [kevin]
+    - new getdata/putdata
+
+  - SFind2D_AT
+    - test34.fits and test35.fits are for phase-1 (M4) and phase-2 (>m4) testing
+    - some issue with using is on a CubeSum (.csm) map in an admit1 flow
+      [KeyError: 'restoringbeam']  some pipeline (test5) have no restoring beam
+    
+  - Ingest:  source name in miriad files is blank, thus source name lookup fails and explicit
+    vlsr= is needed.   "out of scope"
+    -> 1.1
+
+  - Aplot.py (LineSegment_AT/LineID_AT) - refactor makespec and segplotter.  They have different 
+    assumptions about the sign of incoming data, and segplotter doesn't outputSVG.
+
+  - admit1-iter = if "nothing" is detected in a 4000 channel run, re-bin the cube and try again,
+    allow some iteration, e.e. 2x2x2 = 8   3x3x3=27   4x4x4=64,
+
+  - cubespectrum:  multiple ones give only 1 column in testCubeSpectrum
+    -> 1.1
+
+- previews from Felix (see also google photos https://goo.gl/photos/zWNABvBAoEUeQjJVA)
+  given some insight on the types of spectra we can expect. Some of them we have not
+  yet encountered.
+
+- Bottlenecks in CPU:  (need to redo our DTIME analysis)
+  - Ingest_AT is very slow when doing the pbcor*pb conversion
+  - CubeStats_AT takes 4 passes when robust is selected.  Also a full cube imstat, which
+    is arguably not needed, is very slow.
+  - CubeStats_AT:  the PeakPointPlot and PeakStats are pretty slow
+  - CubeSum_AT is very slow when RMS(freq) is used
+  - Smooth_AT can be slow when added to a flow
+  - ContinuumSub_AT can take long time on long cubes
+
+- Timing: why is subaru not faster than nemo2?
+  [WORKING:   wrote plot_cpu script to help in analysis]
+ 
+
+- How can admit, from the flow level, write something in the summary.
+
+- the OSTYPE environment variable can be mysteriously absent once inside CASA, but ok in shell
+  import os
+  print os.environ['OSTYPE']
+  
+  NRAO/CV:       linux-gnu ->
+  NRAO/AOC:      linux-gnu ->
+  UMD: centos6   linux -> linux

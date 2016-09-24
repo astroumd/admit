@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!-- ******************** START CSS INCLUDES ******************** -->
+
+<link href="resources/css/bootstrap.min.css" rel="stylesheet" media="screen"></link>
+<link rel="stylesheet" href="resources/fancybox/source/helpers/jquery.fancybox-thumbs.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="resources/fancybox/source/jquery.fancybox.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="resources/fancybox/source/helpers/jquery.fancybox-buttons.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="resources/css/pipeline.css" type="text/css" media="screen" />
+
+<!-- admit.css comes last so that we override what we want to -->
+<link href="resources/css/admit.css" rel="stylesheet" media="screen"></link>
+
+<!-- END CSS INCLUDES -->
+
+<!-- ******************** START JAVSCRIPT INCLUDES ******************** -->
+<!-- jQuery library.  This must be first!!  -->
+<script src="resources/js/jquery-1.11.3.min.js"></script>
+
+<!-- boostrap library -->
+<script src="resources/js/bootstrap.min.js"></script>
+
+<!-- fancybox for popping up images -->
+<script src="resources/fancybox/source/jquery.fancybox.pack.js"></script>
+<script src="resources/fancybox/source/helpers/jquery.fancybox-buttons.js"></script>
+<script src="resources/fancybox/source/helpers/jquery.fancybox-media.js"></script>
+<script src="resources/fancybox/source/helpers/jquery.fancybox-thumbs.js"></script>
+
+<!-- knockout for client side viewmodel manipulation -->
+<script type="text/javascript" src="resources/js/knockout-3.4.0.js"></script>
+<!-- amplify for browser storage -->
+<script type="text/javascript" src="resources/js/amplify.store.min.js"></script>
+<!-- admit specific javascript functions -->
+<script type="text/javascript" src="resources/js/admit.js"></script>
+
+<!-- live.js for auto-refresh of pages -->
+<script src="resources/js/live.js"></script>
+<!-- svg-pan-zoom for browser pan & zoom of SVG image -->
+<script type="text/javascript" src="resources/js/svg-pan-zoom.js"></script>
+
+<script type="text/javascript">
+
+//var viewModel = [];
+
+function loadData() {
+      // 0. Get the list of linelist table files from llfiles.json.
+      // 1. Loop over all linelist table files and load into  
+      //    an admit.LineIDTableViewModel
+      // 2. Bind each viewmodel to a specific document element in the page. 
+      //    LineID tables are tagged with <div id="lineidtable-taskid".
+   
+      // $.getJSON calls are asynchronous, so we must
+      // embed the for loop inside this getJSON("llfiles.json").
+      // If the for (filelist) loop was in a separate method, 
+      // filelist would likely not be defined when that loop was run.
+      // See also 
+      // http://stackoverflow.com/questions/13009755/getjson-synchronous
+      // i.e., $.ajaxSetup({ async: false }); could also be used.
+      $.getJSON("llfiles.json",function(data){
+          console.log("files = ",data);
+          var filelist = data;
+          console.log("filelist = ",filelist);
+          for (i=0; i<filelist.length; ++i) {
+              $.getJSON(filelist[i],function(data){
+                  console.log("i=",i,"data=",data);
+                  var dat2 = JSON.stringify(data);
+                  var vm = new admit.LineIDTableViewModel();
+                  vm.initialize(data);
+                  vm.delAFR();
+                  //viewModel.push(vm);
+                  elemid = 'lineidtable-' + vm.taskid.toString()
+                  console.log("applying bindings to ",elemid);
+                  console.log("which is ",document.getElementById(elemid));
+                  ko.applyBindings(vm,document.getElementById(elemid));
+                });
+          }
+      });
+}
+
+// see my comment about asynchronicity to understand why this does not work
+function applyData() {
+     for (i=0;i<viewModel.length;++i) {
+         elemid = 'lineidtable-' + viewModel[i].taskid.toString()
+         console.log("applying bindings to ",elemid);
+         console.log("which is ",document.getElementById(elemid));
+         ko.applyBindings(viewModel[i],document.getElementById(elemid));
+     }
+}
+
+
+/* Function to tell admit object to launch the casa imview on the input 
+ * image. Call by:
+ * <button class="livedisplay" id="relpath/to/image" onclick="viewimage(this.id)">View in CASA </button>
+ */
+
+function viewimage(image) {
+   var payload = {command : 'view', filename : image};
+   var jsonpayload = JSON.stringify(payload);
+   //alert(jsonpayload);
+   $.post(window.location.href,jsonpayload,responseMethod);
+   return false;
+}
+
+function exportimage(image) {
+   var cimage = image.substr(0,image.lastIndexOf("."));
+   var fitsout = image;
+   //fileElem = document.getElementById(image+".input");
+   var fileElem = document.createElement("INPUT");
+   fileElem.setAttribute("type","file");
+   fileElem.onchange = function(event) {
+         var fileList = fileElem.files;
+         fitsout = fileList[0].name;
+         console.log("fits=",fitsout,"casaimage=",cimage);
+         var payload = {command : 'exportfits', casaimage: cimage, fitsimage: fitsout};
+         var jsonpayload = JSON.stringify(payload);
+         //alert("sending: "+jsonpayload);
+         $.post(window.location.href,jsonpayload,responseMethod);
+   }
+   fileElem.click();
+   return false;
+}
+
+function responseMethod(response_code) { /* do nothing */ }
+
+$(document).ready(function(){
+    //===================================================
+    // show the live elements if we have an http connection,
+    // otherwise show the static elements.
+    //===================================================
+    if (document.location.protocol != "file:") {
+        loadData();
+        //applyData(); 
+        staticdiv = document.getElementsByClassName("staticdisplay");
+        for (i=0; i <  staticdiv.length; i++ ) {
+            staticdiv[i].style.display = "none";
+        }
+    } else {
+        livediv = document.getElementsByClassName("livedisplay");
+        for (i=0; i <  livediv.length; i++ ) {
+            livediv[i].style.display = "none";
+        }
+    }
+
+    //===================================================
+    // activate fancybox macros for all elements in that class
+    //===================================================
+    $(".fancybox").fancybox();
+
+    //===================================================
+    // Collapse button behavior is a toggle
+    //===================================================
+    $(".toggle-btn").click(function(){
+        $(".collapse").collapse('toggle');
+    });
+});
+</script>
+
+<!-- ******************** END JAVSCRIPT INCLUDES ******************** -->
+
+<title>ADMIT Output for %s</title>
+</head>
+<body>
+<div class='navbar navbar-fixed-top'>
+    <div class="navbar-inner">
+        <div class="nav-collapse collapse">
+            <a class="brand">ADMIT Output for %s</a><br><br>
+            <ul class="nav">
+                <li class="active"><a href="index.html">Flow View</a></li>
+                <li class=""><a href="form.html">Form View</a></li>
+                <li class=""><a href="lineIDedit.html">LineID Editor</a></li>
+                <li class=""><a href="log.html">ADMIT Log</a></li>
+                <li class="divider-vertical"></li>
+                <li class=""><a href="http://admit.astro.umd.edu/admit/"><i class="icon-home"></i>ADMIT documentation</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+<div id="app-container" class="container-fluid">
+    
+
+
+<br>
+<div class="nav-header">Tasks listed in ID number order - click on task name to see its outputs.   Colors and icons indicate the status of each task:<br>
+<span class="ico-pull pull-left">
+<i class="icon-ok"></i>&nbsp;Task ran normally (Green) &nbsp;|&nbsp;
+<i class="icon-warning-sign"></i>&nbsp;Task needs to be re-run (Orange) &nbsp;|&nbsp;
+<i class="icon-ban-circle"></i>&nbsp;Task is disabled (Pink)&nbsp;|&nbsp; 
+<i class="icon-fire"></i>&nbsp;Task has crashed (Red)
+</span>
+</div>
+<br>
+<div class="accordion" id="details-accordion">

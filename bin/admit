@@ -1,0 +1,66 @@
+#! /bin/csh -f
+#
+#  $ADMIT/bin/admit
+#
+#  one of these days it may do something more useful.... 
+#  for now it's just a placeholder so that typing "admit" tells you it's loaded
+#  displays the most commonly used old and new environment variables and the
+#  version ID's for ADMIT and CASA
+
+set sysname=`uname -s`
+
+if ($?ADMIT == 0) then
+  setenv ADMIT `admit_root`
+else
+  echo "ADMIT        = $ADMIT"
+endif
+echo "    version  = `python $ADMIT/admit/version.py`"
+
+set _acasa = 0
+
+if ($?CASAPATH) then
+  echo "CASAPATH     = $CASAPATH"
+  @ _acasa++
+endif
+
+if ($?CASA_PATH) then
+  echo "CASA_PATH   = $CASA_PATH"
+  @ _acasa++
+endif
+
+if ($?CASA_ROOT) then
+  echo "CASA_ROOT    = $CASA_ROOT"
+  echo "    version  = `casa-config --version`"
+  echo "    revision = `casa-config --revision`"
+  @ _acasa++
+endif
+
+if ($?CASAROOT) then
+  echo "CASAROOT     = $CASAROOT"
+  echo "    version  = `casa-config --version`"
+  echo "    revision = `casa-config --revision`"
+  @ _acasa++
+endif
+
+if ($_acasa == 0) then
+  echo "Warning: no CASA present? (could not find CASAPATH, CASA_PATH, CASAROOT or CASA_ROOT)"
+  set cp=(`which casa`)
+  if ($#cp == 1) then
+     echo "but found $cp"
+  else
+     echo 'also no casa found in your current $PATH'
+  endif  
+endif
+
+set init =  ~/.casa/init.py
+if ($sysname == Darwin) then
+  if (! -e $init) then
+    echo Warning: you are using MacOS and have no $init file. You may need this,
+    echo see $ADMIT/scripts/casa.init.py
+  else
+    echo Note: found $init,
+    echo make sure code from $ADMIT/scripts/casa.init.py is present
+  endif
+endif
+
+unset _acasa

@@ -1,0 +1,54 @@
+# -*- python -*-
+# maxlines = 0
+
+reflist = 'etc/hi_lines.list'
+
+#maxpos = [148,113,230,154,80,68,247,181,172,130]
+#maxpos = [148,113,230,154]
+
+#   T/T/F is the system default
+#linebdp = [True, True, True]
+#linebdp = [True, False, False]
+
+# vlsr = 0.0
+
+# contsub = []
+
+#
+#linepar = (10.0, 4, 3)
+
+# at numsigma=15  the high freq wing is a U line
+# the low one, not detected, and CST is the Hbeta
+#linepar = (15.0, 4, 3)
+
+# now both U, and middle is Hbeta
+#linepar = (15.0, 3, 3)
+
+# only one CSP detects, but CST still good
+#linepar = (20.0, 3, 3)
+
+#stop = 'contsub'
+
+#robust   = ['fit-half','mean']
+#robust   = ['fit-half','zero']
+#robust   = ['fit-half','median']
+#robust   = ['hin',1.5]
+#robust  = ['hinge',-1]               
+#robust  = ['classic','tiled']         
+#robust  = ['chauvenet',-1]
+#robust  = ['chauvenet',2]
+#robust  = []
+
+"""
+fit-h mean    0.000605300534517
+fit-h zero    0.000584326102398
+fit-h median  0.000589803035837
+MAD:          0.000594089510437
+classic:      0.000741866067983
+hinge 1.5:    0.000573711236939
+hinge -1:     0.000741866067983
+chauvenet:    0.000612799776718
+chauvenet 4:  0.00059883116046
+chauvenet 3:  0.000582274515182
+chauvenet 2:  0.000424257828854
+"""

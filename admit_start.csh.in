@@ -1,0 +1,39 @@
+# @EDIT_MSG@
+# for (t)csh: source this file
+
+setenv ADMIT @ADMIT@
+setenv CASA_ROOT @CASA_ROOT@
+
+if ( "x$CASA_ROOT" == "x" ) then
+   # CASA_ROOT was not specified in configure (since it's optional) 
+   # so clean up here.
+   unsetenv CASA_ROOT
+   set path=($ADMIT/bin $path)
+else
+   # CASA_ROOT has been deprecated as a bin by CASA
+   set path=($ADMIT/bin $CASA_ROOT/@CRB1@ $CASA_ROOT/@CRB2@ $CASA_ROOT/@CRB3@ $path)
+   setenv TCL_LIBRARY $CASA_ROOT/@TCLTK@/tcl
+   setenv TK_LIBRARY  $CASA_ROOT/@TCLTK@/tk
+   if ($?LD_LIBRARY_PATH) then
+       setenv LD_LIBRARY_PATH ${CASA_ROOT}/lib:${LD_LIBRARY_PATH}
+   else
+       setenv LD_LIBRARY_PATH ${CASA_ROOT}/lib
+   endif
+endif
+
+rehash
+
+#  fake a path, some code depends on it 
+if ($?CASAPATH == 0) then
+  setenv CASAPATH "$CASA_ROOT linux admit `hostname`"
+endif
+
+
+
+if ($?PYTHONPATH) then
+  setenv PYTHONPATH ${ADMIT}:${PYTHONPATH}
+else
+  setenv PYTHONPATH ${ADMIT}
+endif
+
+#setenv GDL_PATH /usr/share/gnudatalanguage/lib/:+$ADMIT/lib/clumpfind/:

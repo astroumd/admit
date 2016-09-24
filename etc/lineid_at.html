@@ -1,0 +1,58 @@
+    <div class="accordion-group">
+        <div class="accordion-heading">
+            <a class="accordion-toggle %s" data-toggle="collapse" data-parent="#details-accordion" href="#collapse%d">
+<span class="ico-pull pull-right">
+%s
+</span>
+            %s (taskid=%d) &nbsp;&nbsp;&nbsp; <span style="color:black">%s</span>
+</a>
+        </div>
+        <div id="collapse%d" class="accordion-body collapse">
+            <h4>
+<a href="http://admit.astro.umd.edu/admit/module/admit.at/LineID_AT.html" target="_blank">
+LineID_AT</a> identifies spectral lines in an input datacube, using
+either one or more input spectra from 
+<a href="http://admit.astro.umd.edu/admit/module/admit.at/CubeSpectrum_AT.html">
+CubeSpectrum_AT</a> or
+<a href="http://admit.astro.umd.edu/admit/module/admit.at/CubeStats_AT.html">
+CubeStats_AT</a>.
+
+</h4>
+<br>
+<div class="row-fluid livedisplay" id="lineidtable-%d">
+<h3>Identified Spectral Lines</h3>
+<table class="table table-admit table-striped table-bordered" id="linetable">
+<thead >
+<tr data-bind="foreach: lineIDTableHeader">
+<th><span data-bind="text: name"></span></th>
+</tr>
+<tr data-bind="foreach: lineIDTableHeader">
+<th> <span data-bind="text: unit"></span> </th>
+</tr>
+</thead>
+<tbody data-bind="foreach: rows">
+<tr>
+<td><span data-bind="text: frequency"</td>
+<td> <span data-bind="text: uid"</td>
+<td> <span data-bind="text: formula"></span></td>
+<td> <span data-bind="text: name"></span></td>
+<td><span data-bind="text: transition"></span></td>
+<td><span data-bind="text: velocity"></span></td>
+<td><span data-bind="text: elower"></span></td>
+<td><span data-bind="text: eupper"></span></td> 
+<td><span data-bind="text: linestrength"></span></td>
+<td> <span data-bind="text: peakintensity"></span></td>
+<td> <span data-bind="text: peakoffset"></span></td>
+<td> <span data-bind="text: fwhm"></span></td>
+<td> <span  data-bind="text: startchan"/></td>
+<td> <span  data-bind="text: endchan"/></td>
+<td><span data-bind="text: peakrms"></span></td>
+<td> <span data-bind="text: blend"></span></td>
+<td> <span data-bind="text: force"></span></td>
+
+</tr>
+</table>
+</div><!-- row-fluid livedisplay-->
+             %s
+    </div> <!-- collapse%d -->
+</div> <!-- accordian group -->

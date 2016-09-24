@@ -1,0 +1,43 @@
+#! /bin/csh -f
+#
+#   simple example (for NRAO presentation) of installing everything from scratch
+#
+# casa: 2.57 GB
+# n253: 0.55 GB
+
+set casa_tar = /astromake/opt/casa/casa-stable-4.5.37.tar.gz
+set admittar = admit-cvs.tar.gz
+set n253spw3 = /data1/teuben/ADMIT/4channel/ngc253_fullcube_compact_spw3_clean.ce.fits
+set cvsroot  = :pserver:anonymous@cvs.astro.umd.edu:/home/cvsroot
+
+# install casa, if not present
+set casa_root = `pwd`/$casa_tar:t:r:r
+if (! -d $casa_root) tar zxf $casa_tar
+
+# blow out old admit, pick the tar file or direct from CVS
+rm -rf admit
+if (-e $admittar) then
+  tar -zxf $admittar
+  cd admit
+else
+  cvs -d $cvsroot -Q co admit
+  cd admit
+  autoconf
+  make tar
+  echo "scp $admittar chara:public_html/admit/dist"
+endif
+./configure --with-casa-root=$casa_root
+source admit_start.csh
+make data
+if (! -e /data1/teuben/ADMIT/4channel/ngc253_fullcube_compact_spw3_clean.ce.fits) then
+  make n253
+endif
+cd data
+
+if (! -e $n253spw3:t) then
+  ln -s $n253spw3
+endif
+
+echo "Now running admit1.py on $n253spw3:t  (takes about 2 minutes)"
+time $ADMIT/admit/test/admit1.py $n253spw3:t x >& admit.log
+

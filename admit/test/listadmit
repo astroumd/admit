@@ -1,0 +1,52 @@
+#! /usr/bin/env casarun
+#-*- mode: python -*-
+#
+#   listadmit
+#
+#   Usage:      $ADMIT/admit/test/listadmit `cat file`
+
+version  = '15-jul-2015'
+
+# =================================================================================================================
+# python system modules
+import sys, os, math
+import admit.Admit as admit
+import admit.util.utils as utils
+
+
+argv = utils.casa_argv(sys.argv) #can be `cat file`
+total = len(argv)
+#print ("len = {0}").format(len(argv))
+#print ("argv = {0}").format(argv)
+counter = 0
+dt = utils.Dtime()
+
+verbose = True
+
+if True:
+    for ff in argv[1:]:
+      if '/' in ff:
+          fi = ff.rsplit('/', 1)[1]
+      else:
+          fi = ff
+      try:
+          a = admit.Admit(ff)
+      except ValueError:
+          print "Could not execute admit.Admit()."
+          continue
+      obj = a.summaryData.get('object')[0].getValue()[0]
+      nx  = a.summaryData.get('naxis1')[0].getValue()[0]
+      ny  = a.summaryData.get('naxis2')[0].getValue()[0]
+      nz  = a.summaryData.get('naxis3')[0].getValue()[0]
+      #lns = a.summaryData.get('linelist')[0].getValue()
+      lns = a.summaryData.getLinenames()
+      if verbose:
+          print "file = {0}".format(fi)
+          print "object = {0}".format(obj)
+          print "nx, ny, nz = {0}, {1}, {2}".format(nx,ny,nz)
+          print "#lines = {0}".format(len(lns))
+          print "line names = {0}".format(lns)
+      else:
+          print "{0} {1} {2} {3} {4} {5}".format(fi,obj,nx,ny,nz,len(lns))
+      print ""
+    

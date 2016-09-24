@@ -1,0 +1,41 @@
+# IRAS 62393 band 6 lines - see also 2011.0.00007.SV   (test91)
+#  mf = HCOOCH3   methyl formate a.k.a.   CH3OCHO
+#  ga = HCOCH2OH  glycolaldehyde a.k.a.   CH2OHCHO
+#  See also:  http://adsabs.harvard.edu/abs/2012ApJ...757L...4J
+220.1176 mf
+220.1669 mf
+#220.16681  a   # splatalogue
+220.1903 mf
+#220.19027  a   # splatalogue
+220.2472 mf
+220.2581 mf
+220.2585 mf
+220.3074 mf
+#
+220.1644 ga
+220.1966 ga
+220.1968 ga
+220.2040 ga
+220.2084 ga
+220.2433 ga
+220.3111 ga
+220.3113 ga
+# other lines from their Figure1 
+220.12492  CH3CHO
+220.14601  CH3COCH3   several exist nearby
+220.15478  C2H5OH     or CH3CH2OH = trans-Ethanol
+#220.1548 C2H5OH
+220.17757  CH2CO      or H2CCO = Ketene
+#220.1776 CH2CO
+#  could not find next one in splatalogue  ; could it be H2CN or H2CCCHCN
+220.185  CH3OCH3?  aka (CH3)2O  dimethyl ether
+220.23503  CH3CN
+# 220.25 can't find (CH2OH)2 in splatalogue,
+220.27204  C2H5CN 	a.k.a. CH3CH2CN
+#220.27420  CH3CHO      Acetaldehyde ???
+#?220.284  CH3CHO      Acetaldehyde
+220.29191  C2H5CN    a.k.a. CH3CH2CN Ethyl Cyanide
+# several
+220.29581    CH3-13CN   several lines
+220.29625    -   same
+220.29628    -   same

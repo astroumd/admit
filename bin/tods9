@@ -1,0 +1,41 @@
+#! /bin/csh -f
+#
+#
+
+if ($#argv == 0) then
+  echo "Usage: $0 fits-file(s)"
+  echo "Send fits files into ds9 display server"
+  echo "   (Notice you need to start 'ds9' before you use this command)"
+  echo "   Optionally with -title foobar, with 'setenv DS9_TITLE foobar'"
+  echo "Version:  1.0 23-jun-2016 PJT"
+  exit 0
+endif
+
+set bad=0
+
+if ($?DS9_TITLE) then
+  set title=$DS9_TITLE
+else
+  set title=ds9
+endif
+
+foreach f ($*)
+  if (-e $f) then
+    set name=$f
+    echo Assuming fits $name
+    cat $name | xpaset $title fits $name
+    set bad=$status
+  else if (-e $f.fits) then
+    set name=$f.fits
+    echo Found fits $name
+    cat $name | xpaset $title fits $name
+    set bad=$status
+  else
+    echo $f or $f.fits does not exist
+  endif
+end
+
+if ($bad) then
+  echo "Problems with ds9/xpa ?"
+  echo "You need to start the 'ds9' server before you use this command"
+endif

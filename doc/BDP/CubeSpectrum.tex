@@ -1,0 +1,34 @@
+\subsection{CubeSpectrum}
+\begin{description}
+\item[Type:] CubeSpectrum
+\item[Description:]
+
+CubeSpectrum will contain a table of a spectrum through the whole cube, at a
+single point (with optional averaging over a region or channels)?.
+
+This differs from the CubeStats where in theory one can also plot "a
+spectrum" where the brightest value "anywhere" in each channel is plotted
+vs. frequency.
+
+This was previously called PeakSpectrum.  This version has a keyword
+describing where this point was taken.
+
+NOTE: In principal, CubeSpectrum is redundant with SpectralMap. A CubeSpectrum
+is just a SpectralMap where N=1.  So we should consider deprecating CubeSpectrum.
+
+\item[Constituents:] BDP\_Table
+
+\item[ADMIT Task:] AT\_CubeSpectrum \\
+  Keywords: \\
+   - location where spectrum is to be taken \\
+   - [optional region/channels to average?]
+
+\item[CASA Task(s):]  TBD
+
+\item[Input BDP(s):] A spectral cube 
+
+\item[Output BDP(s):]
+
+A table composed of two columns: frequency (in GHz, middle of channel)
+   and intensity (Jy/Beam)
+\end{description}

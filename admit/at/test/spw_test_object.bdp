@@ -1,0 +1,97 @@
+<?xml version="1.0" ?>
+<!DOCTYPE BDP [
+
+<!ELEMENT BDP	(_updated,mous,_type,_baseDir,gous,image,xmlFile,project,alias,sous,_uid,_taskid,_date)>
+<!ATTLIST BDP type (SpwCube_BDP) #REQUIRED>
+<!ELEMENT _updated		(#PCDATA)>
+<!ATTLIST _updated type (BOOL) #REQUIRED>
+<!ELEMENT project		(#PCDATA)>
+<!ATTLIST project type (STRING) #REQUIRED>
+<!ELEMENT _type		(#PCDATA)>
+<!ATTLIST _type type (STRING) #REQUIRED>
+<!ELEMENT _baseDir		(#PCDATA)>
+<!ATTLIST _baseDir type (STRING) #REQUIRED>
+<!ELEMENT gous		(#PCDATA)>
+<!ATTLIST gous type (STRING) #REQUIRED>
+<!ELEMENT image	(images)>
+<!ATTLIST image type (MULTIIMAGE) #REQUIRED>
+<!ELEMENT images		(#PCDATA)>
+<!ATTLIST images ndarray (STRING) #REQUIRED>
+<!ATTLIST images set (STRING) #REQUIRED>
+<!ATTLIST images type (DICT) #REQUIRED>
+<!ELEMENT IMG	(images,thumbnail,thumbnailtype,aux,auxtype,description)>
+<!ATTLIST IMG type (IMAGE) #REQUIRED>
+<!ELEMENT auxiliary		(#PCDATA)>
+<!ATTLIST auxiliary type (STRING) #REQUIRED>
+<!ELEMENT description		(#PCDATA)>
+<!ATTLIST description type (STRING) #REQUIRED>
+<!ELEMENT thumbnail		(#PCDATA)>
+<!ATTLIST thumbnail type (STRING) #REQUIRED>
+<!ELEMENT thumbnailtype		(#PCDATA)>
+<!ATTLIST thumbnailtype type (STRING) #REQUIRED>
+<!ELEMENT images		(#PCDATA)>
+<!ATTLIST images ndarray (STRING) #REQUIRED>
+<!ATTLIST images set (STRING) #REQUIRED>
+<!ATTLIST images type (DICT) #REQUIRED>
+<!ELEMENT auxtype		(#PCDATA)>
+<!ATTLIST auxtype type (STRING) #REQUIRED>
+<!ELEMENT name		(#PCDATA)>
+<!ATTLIST name type (STRING) #REQUIRED>
+<!ELEMENT xmlFile		(#PCDATA)>
+<!ATTLIST xmlFile type (STRING) #REQUIRED>
+<!ELEMENT mous		(#PCDATA)>
+<!ATTLIST mous type (STRING) #REQUIRED>
+<!ELEMENT alias		(#PCDATA)>
+<!ATTLIST alias type (STRING) #REQUIRED>
+<!ELEMENT sous		(#PCDATA)>
+<!ATTLIST sous type (STRING) #REQUIRED>
+<!ELEMENT _uid		(#PCDATA)>
+<!ATTLIST _uid type (INT) #REQUIRED>
+<!ELEMENT _taskid		(#PCDATA)>
+<!ATTLIST _taskid type (INT) #REQUIRED>
+<!ELEMENT _date		(#PCDATA)>
+<!ATTLIST _date type (STRING) #REQUIRED>
+]>
+
+<BDP type="SpwCube_BDP">
+<_updated type="BOOL">
+0
+</_updated>
+<mous type="STRING" />
+<_type type="STRING">
+SpwCube_BDP
+</_type>
+<_baseDir type="STRING">
+/home/lisaxu/ADMIT/data/mom_integ_test_input.admit/
+</_baseDir>
+<gous type="STRING" />
+<image type="MULTIIMAGE">
+<IMG type="IMAGE">
+<name type="STRING" />
+<images ndarray="[]" set="[]" type="DICT">
+{'CASA': 'itest.im'}
+</images>
+<thumbnail type="STRING" />
+<thumbnailtype type="STRING" />
+<auxiliary type="STRING" />
+<auxtype type="STRING" />
+<description type="STRING" />
+
+</IMG>
+
+</image>
+<xmlFile type="STRING">
+itest.im
+</xmlFile>
+<project type="STRING" />
+<alias type="STRING" />
+<sous type="STRING" />
+<_uid type="INT">
+0
+</_uid>
+<_taskid type="INT">
+0
+</_taskid>
+<_date type="STRING" />
+
+</BDP>

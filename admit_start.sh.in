@@ -1,0 +1,19 @@
+# @EDIT_MSG@
+# for (ba)sh : source this file
+
+export  ADMIT=@ADMIT@
+export  CASA_ROOT=@CASA_ROOT@
+if test "x$CASA_ROOT" = "x"; then
+    unset CASA_ROOT
+    export PATH=${ADMIT}/bin:${PATH}
+else
+    # CASA_ROOT has been deprecated as a bin by CASA
+    export PATH=${ADMIT}/bin:${CASA_ROOT}/@CRB1@:${CASA_ROOT}/@CRB2@:${CASA_ROOT}/@CRB3@:${PATH}
+    export TCL_LIBRARY=${CASA_ROOT}/@TCLTK@/tcl
+    export TK_LIBRARY=${CASA_ROOT}/@TCLTK@/tk
+    export LD_LIBRARY_PATH=${CASA_ROOT}/lib:${LD_LIBRARY_PATH}
+fi
+
+export CASA_PATH="$CASA_ROOT linux admit `hostname`"
+
+export PYTHONPATH=${ADMIT}:${PYTHONPATH}

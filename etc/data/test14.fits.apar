@@ -1,0 +1,16 @@
+#  TOPO frame, in this case we need to override "wrong" vlsr=
+#  this vlsr value has been empirically determined
+vlsr = 6.0
+reflist = 'etc/irc_lines.list'
+
+#  there is too much continuum in this dataset, so we can either do
+
+# manual in Ingest_AT:
+#incontsub = [(0,15),(280,300),(410,450)]
+
+# manual in ContinuumSub_AT:
+# contsub = [(0,15),(280,300),(410,450)]
+
+
+# or automated using the new LineSegments method
+contsub = []

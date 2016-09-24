@@ -1,0 +1,104 @@
+% now in RST, don't edit here
+
+\subsection{CubeSpectrum\_AT}
+
+\subsubsection{Description}
+
+CubeSpectrum\_AT will compute one (or more) typical spectra
+from a spectral line cube.
+They are stored in a CubeSpectrum\_BDP, which also contains 
+a graph of intensity versus frequency.
+For certain types of cubes,
+these can be effectively used in LineID\_AT to identify
+spectral lines. 
+
+The selection of which point will be used for the spectrum is of course
+subject to user input, but some automated options can be given.
+For example, the brightest point in the cube
+can be used. The reference pixel can be used. The size around this point
+can also be choosen, but this is not a recommended procedure, as it can
+affect the LineID\_AT procedure, since it will smooth out (but increase S/N)
+the spectrum if large velocity gradients are present. If more S/N is needed, 
+CubeStats\_AT or PVCorr\_AT can be used.
+
+Note in an earlier version, the SpectralMap\_AT would allow multiple
+points to be used. We deprecated this, in favor of allowing this AT
+to create multiple points instead of just one. Having multiple spectra,
+much like what is done in PVCorr\_AT,  cross-correlations could be made
+to increase the line detection success rate.
+
+This AT used to be called PeakSpectrum in an earlier revision.
+
+\subsubsection{Use Case}
+
+This task is probably one of the first to run after ingestion, and will
+quickly be able to produce a representative spectrum through the cube,
+giving the user ideas how to process these data.  If spectra are taken 
+through multiple points, a diagram can be combined with a CubeSum 
+centered around a few spectra.
+
+
+\subsubsection{Input BDPs}
+
+\begin{description}
+
+\item[SpwCube\_BDP] The cube through from which the spectra are drawn. Required.
+Special values {\bf xpeak,ypeak} are taken from this cube.
+
+\item[CubeSum\_BDP] An optional BDP describing the image that represents the sum
+of all emission. The peak(s) in this map can be selected for the spectra drawn.
+This can also be a moment-0 map from a LineCube.
+
+\item[FeatureList\_BDP] An optional BDP describing features in an image or cube,
+from which the RA,DEC positions can be used to draw the spectra.
+
+
+\end{description}
+
+
+\subsubsection{Input Keywords}
+
+\begin{description}
+
+\item[points] One (or more) points where the spectrum is computed.
+Special names are for special points:  {\bf xpeak,ypeak} are for using 
+the position where the peak in the cube occurs.  {\bf xref,yref} are the
+reference position (CRPIX in FITS parlor).
+
+\item[size] Size of region to sample over. Pixels/Arcsec.  Square/Round.  
+By default a single pixel is used. No CASA regions allowed here, keep
+it simple for now.
+
+\item[smooth] Some smoothing option applied to the spectrum. Use with
+caution if you want to use this BDP for LineID.
+
+\end{description}
+
+\subsubsection{Output BDPs}
+
+\begin{description}
+
+\item[CubeSpectrum\_BDP] A table containing one or more spectra. For a single
+spectrum the intensity vs. frequency is graphically saved. For multiple
+spectra (the original intent of the deprecated SpectralMap\_AT) it should
+combine the representation of a CubeSum\_BDP with those of the Spectra
+around it, with lines drawn to the points where the spectra were taken.
+
+\end{description}
+
+
+\subsubsection{Procedure}
+
+After making a selection through which point the spectrum is taken,
+grabbing the values is straightforward. For example, the imval task
+in CASA will do this.
+
+\subsubsection{CASA tasks used}
+
+\begin{description}
+
+\item[imval] to extract a spectrum around a given position 
+
+\end{description}
+
+\clearpage

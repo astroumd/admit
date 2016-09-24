@@ -1,0 +1,209 @@
+$Id: README,v 1.6 2016/02/10 16:30:00 teuben Exp $
+
+This directory contains information related to the buildbot setup for ADMIT.
+Currently, an ADMIT checkout & build is run via buildbot on slave
+eris.astro.umd.edu with master chara.astro.umd.edu.  This machine also
+serves as the master for CARMA software build slaves. The results are
+displayed on http://carma.astro.umd.edu/buildbot.  The htaccess requires
+a user/password to display the page.  The linux account
+is carmaweb, in the passwd files on eris and chara only (local account).
+The buildbot backing store is by default sqlite, however that proved
+unstable so we switched to mysql (see Notes below).
+
+Files:
+
+   httpd.conf - apache configuration file so that buildbot results are
+                updated on our web server (also chara.astro.umd.edu)
+
+   master.cfg - buildbot configuration file, lives in
+                $BUILDBOT/masters/$MASTER/master.cfg, e.g.
+                /home/carmaweb/buildbot/masters/chara.astro.umd.edu/master.cfg
+
+   cvs-update.bash - Script to be invoked on a CVS checkin via CVS loginfo
+                     mechanism.
+
+   cvs-update.carma - Original version of the script for carma source code
+
+   loginfo  - CVS loginfo file, copy to $CVSROOT/loginfo
+
+   buildbot_cvs_mail.py - an alternate way to send cvs update info to 
+                          buildbot. Not currently used.
+
+   buildbot.tac.master - this file should be copied to 
+                         $BUILDBOT/masters/$MASTER/buildbot.tac
+
+   buildbot.tac.slave- this file should be copied to 
+                         $BUILDBOT/masters/$SLAVE/buildbot.tac
+
+   templates  - This directory contains html files used for the 'cover page'
+                for the carma.astro.umd.edu buildbot. They belong in  
+                $BUILDBOT/masters/$MASTER/templates
+
+   logs.html  - modified version to fix javascript scrolling.  This goes in
+                $HOME/buildbot/sandboxes/chara.astro.umd.edu/lib/python2.6/site-packages/buildbot/status/web/templates/logs.html
+
+Buildbot keeps its own version of Python in $BUILDBOT/sandboxes/[machine]/lib, 
+so you have to pip-install Python modules required to compile your code
+on the slave's buildbot Python (NOT on the system Python) using virtualenv
+(example in Notes).  For ADMIT:
+
+ pip install numpy 
+ pip install matplotlib 
+ pip install sphinx 
+ pip install numpydoc
+
+(sphinx can fail on some machines due to a zlib issue on docutils,
+see the $ADMIT/INSTALL for details how to get around this)
+
+==============================================================
+Notes
+==============================================================
+
+These are my notes from the eris/chara buildbot installation. - MWP
+
+
+To start the buildbot master: On chara, run ~/bin/buildbot-start-master
+To start the buildbot slave: On eris, run ~/bin/buildbot-start-slave
+To stop the buildbot slave: On eris, run ~/bin/buildbot-stop-slave
+
+The above needs to be done on master or any slave machine that has been
+rebooted recently.  Master machine is chara, correlator-x86_64 and
+carma-full-x86_64 slave machine is eris.  Ask Marc for the ssh passphrase.
+
+*** Make sure you don't start the above processes in a screen because
+after you log out of screen, cvs checkout will fail with:
+
+  gnome-ssh-askpass:2177): Gtk-WARNING **: cannot open display: localhost:10.0
+  Permission denied (publickey,gssapi-keyex,gssapi-with-mic,password).
+  cvs [checkout aborted]: end of file from server (consult above messages if any)
+
+
+To add or change builds edit the file:
+buildbot/masters/chara.astro.umd.edu/master.cfg
+and restart master and slave.
+
+These packages are required
+yum install keychain
+yum install blas-devel
+yum install lapack-devel
+yum install python-pip
+yum install python-virtualenv
+
+
+Mon Jun  4 10:23:25 EDT 2012 - MWP
+chara OS upgrade to SL6.2
+
+Required re-installing buildbot for python 2.6,
+this upgraded buildbot to version 0.8.6p1.
+
+1. Remove (or move) old sandboxes, then
+
+ virtualenv --no-site-packages $HOME/buildbot/sandboxes/`hostname`
+ echo $HOSTNAME
+ source $HOME/buildbot/sandboxes/$HOSTNAME/bin/activate
+ pip install MySQL-python  [Order matters here, Mysql THEN buildbot!]
+ pip install buildbot 
+
+For slaves:
+ buildbod-stop-slave
+ buildslave create-slave /eris/carmaweb/buildbot/slaves/$HOSTNAME
+ pip install buildbot-slave
+ pip install numpy
+ pip install matplotlib
+ pip install sphinx
+ pip install numpydoc
+
+
+cp /n/eris/carmaweb/buildbot/masters/chara.astro.umd.edu/master.cfg $HOME/master.cfg.save
+mv /n/eris/carmaweb/buildbot/masters/chara.astro.umd.edu /n/eris/carmaweb/buildbot/masters/chara.astro.umd.eduOLD
+
+
+buildbot create-master --db="mysql://buildbotuser:1amaB0t@localhost/buildbot" /n/eris/carmaweb/buildbot/masters/chara.astro.umd.edu
+buildbot upgrade-master /n/eris/carmaweb/buildbot/masters/chara.astro.umd.edu
+
+Template files may have changed, which will give python errors displayed to the web page.
+e.g.
+sandboxes/chara.astro.umd.edu/lib/python2.6/site-packages/buildbot/status/web/templates/root.html
+
+differs from masters/chara.astro.umd.edu/templates/root.html so copy over new template
+and re-add carma-specific changes.
+
+** CARMA specific templates are saved in $HOME/templates.save
+
+
+Wed Jun  6 18:10:00 EDT 2012
+
+Switching from sqlite to mysql since sqlite was giving us problems under SL6.2;
+constant database locking hangs up the buildbot master.
+Note: mysql-python must be installed BEFORE buildbot.
+
+See:
+
+http://readthedocs.org/docs/buildbot/en/v0.8.6/manual/cfg-global.html
+http://16degrees.com.au/roller5/gmcdonald/entry/upgrade_buildbot_from_0_7
+
+0. Edit /etc/my.cnf , add utf8 lines. Do NOT add InnoDB.
+
+[mysqld]
+default-character-set   = utf8
+default-collation       = utf8_general_ci
+character-set-client    = utf8
+
+[mysql]
+default-character-set   = utf8
+
+1. Create buildbot database in our existing mysql
+$ mysql -u root -p
+Enter password:  [Ask Peter or Marc]
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 22431
+Server version: 5.1.61 Source distribution
+
+Copyright (c) 2000, 2011, Oracle and/or its affiliates. All rights reserved
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql> CREATE DATABASE buildbot CHARACTER SET utf8 COLLATE utf8_general_ci;;
+Query OK, 1 row affected (0.11 sec)
+
+mysql> GRANT ALL PRIVILEGES ON buildbot.* TO 'buildbotuser'@'localhost' IDENTIFIED BY '1ama
+B0t';
+Query OK, 0 rows affected (0.03 sec)
+
+mysql> flush privileges;
+Query OK, 0 rows affected (0.04 sec)
+
+mysql> exit
+
+Edit buildbot/masters/chara.astro.umd.edu/master.cfg
+Change db :
+ c['db_url'] = "mysql://buildbotuser:1amaB0t@localhost/buildbot"
+
+
+buildbot upgrade-master /n/eris/carmaweb/buildbot/masters/chara.astro.umd.edu
+
+
+
+
+Restarting:
+===========
+May 2015: The current master (chara) seems to reboot itself more than is expected,
+    in which case the local MD gurus will need to manually restart it for 
+    service:
+
+
+ssh carmaweb@eris: "(buildbot-stop-slave && rm -rf /eris/carmaweb/buildbot/slaves/eris.astro.umd.edu/ADMIT/build)"
+
+ssh carmaweb@chara buildbot-start-master  (there is no "stop master")
+
+carmaweb@eris buildbot-start-slave  
+
+You may be asked the ssh key passphrase: 1....t  (ask around what this passphrase is)
+
+Normally one does not need the "rm" command but chara rebooting
+unexpectedly seems to live the directory in a funny state that
+prevents the slave from writing.

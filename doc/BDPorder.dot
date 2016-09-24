@@ -1,0 +1,35 @@
+digraph masterflow {
+  Input [shape=box];
+  CubeStats [shape=box];
+  CubeSum [shape=box];
+  Summary [shape=box];
+  CubeSpectrum [shape=box];
+  DescriptionVector [shape=box];
+  PeakPointPlot [shape=box];
+  SpectralMap [shape=box];
+  LineList [shape=box];
+  LineCube [shape=box];
+  ContinuumMap [shape=box];
+  PVSlice [shape=box];
+  PVCorr [shape=box];
+  FeatureList [shape=box];
+  Moment [shape=box];
+  OverlapIntegral [shape=box];
+  Input -> CubeStats -> PeakPointPlot -> SpectralMap;
+  Input -> CubeSum -> PVSlice -> PVCorr;
+  Input -> SpectralMap;
+  CubeStats -> PVSlice;
+  CubeStats -> LineCube;
+  Input -> CubeSpectrum -> LineList -> ContinuumMap;
+  CubeStats -> LineList;
+  Input -> ContinuumMap;
+  Input -> LineCube;
+  LineList -> LineCube;
+  LineCube -> PVSlice;
+  LineCube -> FeatureList -> Moment;
+  LineCube -> Moment -> OverlapIntegral;
+  LineCube -> OverlapIntegral;
+  Input -> Summary;
+  Input -> DescriptionVector;
+}
+

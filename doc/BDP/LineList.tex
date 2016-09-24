@@ -1,0 +1,28 @@
+\subsection{Line List}
+\begin{description}
+\item[Type:] LineList\_BDP
+
+\item[Description:]
+A table of spectral lines detected in a spectrum, map, or cube. Output from the LineID\_AT.
+
+\item[Constituents:]:
+The items of the BDP will be a table with the following columns:
+
+\begin{description}
+\item[frequency] in GHz, precise to 5 significant figures
+\item[unique identifier] ANAME-FFF.FFF ; e.g.  CO-115.271,   N2HP-93.173,   U-98.76
+%\item[likelihood] a number scaled 0...1 of detection probability, with 1 being most probable
+\item[formula] CO, CO\_v1, C2H, H13CO+
+\item[fullname] Carbon monoxide, formaldehyde
+\item[transition] Quantum numbers
+\item[velocity] v$_{lsr}$ or offset velocity (based on rest frequency)
+\item[energies] lower and upper state energies in K
+\item[line strength] spectral line strength in D$^2$
+\item[peak] the peak intensity of the line in Jy/bm
+\item[peakoffset] the offset of the peak from the rest frequency in MHz
+\item[fwhm] the FWHM of the line in km/s
+\item[channels] the channels the line spans (typically FWHM)
+\end{description}
+Additionally an item to denote whether the velocity is v$_{lsr}$ or offset velocity. The offset velocity will only be used when the v$_{lsr}$ is not known and cannot be determined. The coordinates of where the line list applies along with units will also be stored.
+
+\end{description}

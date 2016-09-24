@@ -1,0 +1,28 @@
+# -*- python -*-
+#
+# example .apar file for running admit4.py on test0551.tab
+# Derived from EDGE's  NGC0551, with a VLSR = 5113.0 and VLSRc = 5023.8
+#
+vlsr = 5113.0
+#                        #  LineSegment    LineID
+#linepar = (2.0, 5, 3)    # trying to see if iterate=True finds it
+#linepar = (3.0, 1, 3)    #     CRASHES (it should not, should it???)
+#linepar = (2.0, 3, 3)    #       yes         yes
+#linepar = (3.0, 2, 3)    #       yes         yes
+#linepar = (3.0, 3, 3)    #       yes         yes
+linepar = (4.0, 3, 3)    #       yes         no       this is the weird case, but it needs csub=0 (None will work)
+
+csub = 1    # yes yes
+csub = 2    # yes yes
+csub = 3    # no  no
+csub = None # yes yes
+csub = 0    # yes no
+
+
+#iterate = False
+#lineUID = True
+
+# aopen test0551.admit/Genspec.ll_spec000.png
+# aopen test0551.admit/Genspec.lseg_seg000.png
+# /usr/bin/montage test0551.admit/Genspec.lseg_seg000.png test0551.admit/Genspec.ll_spec000.png -tile 1x2 -geometry +0+0 test0551.png
+# aopen test0551.png

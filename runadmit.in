@@ -1,0 +1,18 @@
+#! /bin/csh -f
+#
+
+
+set admit = @ADMIT@
+
+
+if ($#argv == 0) then
+   echo Usage:  $0 fits_file
+   echo ""
+   echo "This is just a very simple example of an admit recipe running on one fits file"
+   echo "ADMIT = $admit"
+   exit 0
+endif
+
+
+source $admit/admit_start.csh
+runa1 $1

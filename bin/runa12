@@ -1,0 +1,54 @@
+#! /bin/csh -f
+#
+#  $ADMIT/bin/runa12
+#
+#  process a few ALMA projects with a super simplified interface 
+#  that will automagically detect it's intent
+#  Has some historic knowledge of evolution of ALMA names...
+#  This one assumes a fits cube, no continuum support (see runa2)
+#
+#  @todo
+#  In working the longname.{cube,cont,mfs}.I.{pbcor,pb}.fits
+#              is longname.cont.I.findcont.residual
+#  but the {POL,FREQ} are in axis {2,3}, reversed from the normal order.
+
+if ($?ADMIT == 0) then
+    setenv ADMIT `admit_root`
+endif
+
+set a = $ADMIT/admit/test/admit1.py
+
+set sysname = `uname -s`      # needed until casapy doesn't hang children with parents
+
+set nb = $#argv
+set ib = 0
+
+foreach base ($*)
+  @ ib++
+  echo "### ($ib/$nb) : processing $base"
+
+  # case 0: the apparent default of the pipeline
+  #         longname.{cube,mfs}.I.{pbcor,pb}.fits
+  #         <---    basename   ---->
+  #         but also catch when basename is full
+  set im = $base.cube.pbcor.fits
+  set pb = $base.cube.pb.fits
+  set cm = $base.mfs.pbcor.fits
+
+  set log = $base.log
+  if (-e $im && -e $pb && -e $cm) then
+    listfitsa $im
+    echo $a  --pb $pb -c $cm --basename x $im
+    if ($sysname == Darwin) exec $a  --pb $pb -c $cm --basename x $im >& $log
+    time $a  --pb $pb -c $cm -basename x $im >& $log
+    echo Logfile: $log
+    continue
+  endif
+
+
+  if (! -e $base) then
+      echo No method to parse $base and $base does not exist
+  else
+      echo No method to parse $base
+  endif
+end

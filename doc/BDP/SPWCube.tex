@@ -1,0 +1,23 @@
+\subsection{Spectral Window Cube}
+\begin{description}
+\item[Type:] SPWCube
+\item[Description:]
+
+This is a simple container that points to the input spectral window cube,
+which is normally in FITS format and the final output from the ALMA pipeline
+As a second step, the CASA image may be created from the FITS file.
+
+\item[Constituents:]: BDP\_Image
+
+\item[ADMIT Task:]  AT\_Ingest
+
+\item[CASA Task(s):] importfits
+
+\item[Input BDP(s):] none
+
+\item[Output BDP(s):]  
+ \begin{itemize}
+ \item one BDP that contains links to image and thumbnail, of any format.
+ \end{itemize}
+
+\end{description}

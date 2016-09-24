@@ -1,0 +1,6 @@
+These "scripts" are under control of the admit_recipe script, and provide
+a convenient way to access thenm from the unix shell.
+
+Typical usage:
+
+	admit_recipe Line_Moment test0.fits

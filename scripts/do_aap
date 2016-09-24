@@ -1,0 +1,71 @@
+#! /bin/csh -f
+#
+
+#   run ADMIT AFTER PIPELINE (AAP = dutch monkey, not an aips banana)
+
+#
+
+set a1 = $ADMIT/admit/test/admit1.py
+set a2 = $ADMIT/admit/test/admit2.py
+
+# allow a dry run to see what's there, it will run "listfitsa" on just the "pbcor" files
+set dry = 1
+
+# 
+# set dir = /lustre/naasc/PipelineTestData/cycle3/products_only
+# C3R4 (jan 2016)
+set dir = /lustre/naasc/sciops/PipelineTestData/cycle3/pipeline_imaging/
+# set files = (`cd $dir ; find . -name \*_sci\*pbcor.fits`)
+
+# alternate method to select a file in which directories are listed
+set dirlist = test2.dir
+set files = ()
+set nd = 0
+foreach d (`cat $dirlist | awk '{print $1}'`)
+  if ($d == "#") continue
+  @ nd++
+  set f = (`cd $dir ; find $d  -name \*_sci\*pbcor.fits`)
+  set nf = $#f
+  echo $nd $nf $d
+  set files = ($files $f)
+end
+echo Total of $#files fits files to process
+
+if (0) then
+  foreach f ($files)
+    echo $f
+    (cd $dir; listfitsa $f)
+  end
+endif
+
+
+foreach f ($files)
+   # e.g. 2013.1.00356.S_2015_10_29T15_31_11.627/products/uid___A001_X145_X164.ACT-CLJ0102-4915_sci.spw20.cube.I.pbcor.fits
+   set pbtype = $f:r:e                    # needs to be "pbcor"
+   set pbfile = ${f:r:r}.pb.fits          # the correspoding "pb" file
+   set pol    = ${f:r:r:e}                # we only expect I now
+   set type   = ${f:r:r:r:e}              # we expect 'cube' or 'mfs' or 'cont'
+   set uid    = ${f:r:r:r:r:t}            # UID and the source is in here
+   set log    = ${f:t}.log                # our log file
+   if (! -e $dir/$pbfile) then
+      echo pbfile missing: $pbfile
+      continue
+   endif
+   ln -sf $dir/$f
+   ln -sf $dir/$pbfile
+   set f1 = $f:t
+   set f2 = $pbfile:t
+   listfitsa $f1
+   if ($dry) continue
+   if ($type == 'cube') then
+      echo ADMIT1  $uid  $type  $pbtype
+      echo $a1 $f1 --pbcor `pwd`/$f2 --alias x 
+           $a1 $f1 --pbcor `pwd`/$f2 --alias x >& $log
+   else if ($type == 'mfs' || $type == 'cont') then
+      echo ADMIT2  $uid  $type  $pbtype
+      echo $a2 $f1 x 
+      # $a2 $f1 x >& $log
+   else 
+      echo UNKNOWN $uid  $type  $pbtype
+   endif
+end

@@ -1,0 +1,35 @@
+#! /bin/csh -f
+#
+#  $ADMIT/bin/runa4
+#
+#  Simple interface to admit4.py - read an ascii table spectrum and run LineID on this
+#
+
+if ($?ADMIT == 0) then
+    setenv ADMIT `admit_root`
+endif
+
+set a = $ADMIT/admit/test/admit4.py
+
+set sysname = `uname -s`      # needed until casapy doesn't hang children with parents
+
+foreach base ($*)
+
+
+  # case 0: single table
+  set tbl = $base
+  set log = $base.log
+  if (-e $tbl) then
+    echo $a $tbl
+    if ($sysname == Darwin) exec $a $tbl  >& $log
+    time $a $tbl  >& $log
+    echo Logfile: $log
+    continue
+  endif
+
+  if (! -e $base) then
+      echo No method to parse $base and $base does not exist
+  else
+      echo No method to parse $base
+  endif  
+end

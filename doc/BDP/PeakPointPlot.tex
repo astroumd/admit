@@ -1,0 +1,24 @@
+\subsection{Peak Point Plot}
+\begin{description}
+\item[Type:] PeakPointPlot
+\item[Description:]
+
+PeakPointPlot takes a list of positions (x,y) and intensities (the maximum
+through the cube at each given point) and plots each with a symbol size
+related to the intensity value. The list is created by CubeStats as an option
+(though will become default). The plot should be an interesting bubble diagram,
+also good input for moment of inertia to get the initial condition for
+a PVSlice.
+
+\item[Constituents:]: BDP\_Image + BDP\_Table
+
+\item[ADMIT Task:] AT\_PeakPointPlot \\
+    Keywords: list of [x,y,intensity] 
+
+\item[CASA Task(s):] TBD
+
+\item[Input BDP(s):] CubeStats
+
+\item[Output BDP(s):] A PNG diagram (and thumbnail?), and the
+original data as a table.
+\end{description}

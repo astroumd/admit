@@ -1,0 +1,32 @@
+#! /bin/csh -f 
+#
+# in case your resources link points to an ADMIT that was upgraded, this will fix
+# the links back to the currently active one
+
+
+if ($#argv == 0) then
+  echo Usage: $0 "admit_directories"
+  echo Assuming you have ADMIT loaded, the resources link will be fixed
+  exit 0
+endif
+    
+set new = $ADMIT/resources
+if (! -d $new) then
+    echo "No $new"
+    exit 1
+endif	
+    
+    
+
+# loop over all ADMIT projects listed on the command line
+foreach d ($*)
+    set dr = $d/resources
+    if (-l $dr || -e $dr) then
+        echo Fixing $d to $ADMIT
+        rm $dr
+        echo ln -s $new $dr
+	ln -s $new $dr
+    else
+        echo No $dr
+    endif
+end    

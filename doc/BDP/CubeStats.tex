@@ -1,0 +1,98 @@
+\subsection{CubeSpectrum}
+\begin{description}
+\item[Type:] CubeSpectrum
+\item[Description:]
+
+Produces per channel statistics on an input image cube. Output
+format is a table with data described below.  In addition to
+per channel output, (optional?) per cube values can also be
+computed.
+
+\item[ADMIT Task:] AT\_CubeStats \\
+
+  Keywords: TBD
+
+\item[Constituents:] BDP\_Table
+
+\item[CASA Task(s):]  imstat
+
+\item[Input BDP(s):]
+Spectral cube (1 or more planes) 
+
+\item[Output BDP(s):]
+\begin{verbatim}
+- a table with channel dependent values:
+    channel number
+    freq in middle of channel
+    mean 
+    sigma (not rms, sigma is around the mean)
+    max value (i.e. peak)
+    maxposx (optional)
+    maxposy (optional)
+
+- a global value for the cube
+    mean
+    sigma
+    max
+    maxposx 
+    maxposy 
+    maxposz
+
+   This global value may be needed for CubeSpectrum
+
+Note the difference between sigma and rms.  rms contains a bias, sigma
+is N-1 normalized, rms is N normalized
+
+######################################################################
+OTHER NOTES:
+
+# confirmed help(imstat) and this list are the same.
+# ia.statistics() will by default give 17 (robust=F is default)
+# is will not do median, medabsdevmed, quartile
+# imstat produces a dictionary of 20 items
+# (used to be 16; the minpos[f],maxpos[f] were added recently)
+# !! Note that currently minpos[f],maxpos[f] are only available per cube,
+#    not per slice
+
+  CASA                      MIRIAD         NEMO
+rms
+medabsdevmed  "MADM"
+minpos        (new)
+min                         Minimum        min
+max                         Maximum        max
+sum                         Sum            sum
+minposf       (new)
+median                                     med
+flux
+sumsq
+maxposf
+trcf
+quartile
+npts                        Npoints        N
+maxpos
+mean                        Mean           mean
+sigma                       rms            sigma
+trc
+blc
+blcf
+
+
+channel       -             plane          iz
+velocity      -             Velocity       z
+frequency     -             -              z
+skewness      -             -              skew
+kurtosis      -             -              kurt
+
+
+imstat() and ia.statistics() will have new options to compute
+statistics based on "robustly" removing signal, or finding
+the normal part of the noise distribution, by using a new 
+filter= keyword.
+Three methods ("hinges-fences", "fit-half", "chauvenet") will
+initially be implemented.
+
+
+Q: do we need to check the header for a beam, and do a proper
+points-per-beam correction?
+\end{verbatim}
+\end{description}

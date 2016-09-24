@@ -1,0 +1,231 @@
+#! /usr/bin/env python
+#           -*- python -*-
+#
+#
+#  Example ADMIT processing on the imaging pipeline "products" tree
+#
+#
+#  admit_pipeline project_directories
+#    e.g.
+#  admit_pipeline /somewhere/almadata/2016*
+#    with the assumption you are allowed to write into those directories
+#  (for testing you can use "cp -al" to create your own shadow tree)
+
+import os,sys,glob,time
+
+# uid___A001_X869_X9.ELAISS1_sci.spw19.cube.I.pbcor.fits
+
+def catlist(alist, sep=""):
+   """
+   alist is a python list of strings, returns them with a separator between
+   successive list elements
+   """
+   if len(alist) == 0:
+      return ""
+   if len(alist) == 1:
+      return alist[0]
+   f = alist[0]
+   for p in alist[1:]:
+      f = f + sep + p
+   return f
+
+def pfile(plist):
+   """
+   return the full path of a list of file name components
+   e.g.  ['a/b','c','d'] ->  'a/b/c/d'
+   """
+   return catlist(plist,'/')
+
+def elist(cmds):
+   """
+   return a ; list of commands from a list of commands
+   e.g.  ['cmd1','cmd2','cmd3'] -> ['cmd1;cmd2;cmd3']
+   """
+   return catlist(cmds,';')
+
+def process_dir(dname):
+   """
+   looks for the "cube" and "mfs" "pbcor" files in the ALMA hierarchy, starting at
+   the project directory level
+   Then searches for the corresponding "pb" files
+   
+   Does not deal with the composite "cont" file yet, since they are named differently:
+   ...spw16_18_20_22.cont.I.alpha.error.fits
+   ...spw16_18_20_22.cont.I.alpha.fits
+   ...spw16_18_20_22.cont.I.pb.tt0.fits
+   ...spw16_18_20_22.cont.I.tt0.pbcor.fits 
+   ...spw16_18_20_22.cont.I.tt1.pbcor.fits
+
+   This is specifically written for Archive_Pipeline.py
+
+   Returns (dirname, sgm, f1, f2, f1b, f2b)
+   or      (dirname, sgm, f1, f1b) if no continuum present
+   where 1=line 2=cont and 'b' means the primary beam
+   """
+
+   files = glob.glob('%s/SOUS*/GOUS*/MOUS*/products/uid_*_sci.spw*.cube.I.pbcor.fits' % dname)
+   #                   n-1    n    n+1   n+1     n+3
+   nlevel = len(dname.strip('/').split('/'))-1
+   print 'Found',len(files),' cube+mfs pairs in',dname
+   out = []
+   no_mfs = 0
+   for f in files:
+      sgm = f.split('/')[nlevel+1:nlevel+4]     # 
+      f1  = f.split('/')[nlevel+5]
+      f2  = f1.replace('.cube.','.mfs.',1)
+      f1b = f1.replace('.pbcor.','.pb.',1)
+      f2b = f2.replace('.pbcor.','.pb.',1)
+      e1  = os.path.exists(pfile([dname,sgm[0],sgm[1],sgm[2],'products',f1]))
+      e2  = os.path.exists(pfile([dname,sgm[0],sgm[1],sgm[2],'products',f2]))
+      e1b = os.path.exists(pfile([dname,sgm[0],sgm[1],sgm[2],'products',f1b]))
+      e2b = os.path.exists(pfile([dname,sgm[0],sgm[1],sgm[2],'products',f2b]))
+      # @todo  if only e1 and e1b found, should allow to continue
+      #        perhaps other modes as well
+      if e1 and e2 and e1b and e2b:
+         out.append((dname,sgm,f1,f2,f1b,f2b))    # cube and mfs
+      if e1 and e1b and not e2 and not e2b:       
+         out.append((dname,sgm,f1,f1b))           # just cube
+         no_mfs = no_mfs + 1
+   if no_mfs:
+      print 'Found',no_mfs,' cube with no mfs'
+   return out
+
+def run_pipe1(ap, dryrun, oldstyle):
+   """
+   ap = (directory, [sous, gous, mous], f1, f2, f1b, f2b)
+   or
+   ap = (directory, [sous, gous, mous], f1, f1b)   
+   """
+   if len(ap) == 6:
+      (d,sgm,f1,f2,f1b,f2b) = ap
+      have_mfs = True
+      files = [f1,f2,f1b,f2b]
+   elif len(ap) == 4:
+      (d,sgm,f1,f1b) = ap
+      have_mfs = False
+      files = [f1,f1b]
+   else:
+      return 
+   if oldstyle:
+      admit_dir = pfile([d,sgm[0],sgm[1],sgm[2],'admit_old'])
+   else:
+      admit_dir = pfile([d,sgm[0],sgm[1],sgm[2],'admit'])
+   cmd = []
+   cmd.append('mkdir -p %s' % admit_dir)
+   cmd.append('cd %s ' % admit_dir)
+   for f in files:
+      cmd.append('ln -sf ../products/%s' % f)
+   if oldstyle:
+      # old style 'runa1' needs the .pbcor.fits removed  (does not deal with mfs)
+      f = f1[:f1[:f1.rindex('.')].rindex('.')]
+      cmd.append('runa1 %s' % f)
+   else:      
+      # new style recipe
+      if have_mfs:
+         cmd.append('$ADMIT/admit/scripts/Archive_Pipeline.py %s %s specpb=%s contpb=%s >> %s.log 2>&1' % (f1,f2,f1b,f2b,f1))
+      else:
+         cmd.append('$ADMIT/admit/scripts/Archive_Pipeline.py %s    specpb=%s           >> %s.log 2>&1' % (f1,f1b,f1))
+   cmd = elist(cmd)
+   if not dryrun:
+      print cmd
+      os.system(cmd)
+   else:
+      print cmd
+   return admit_dir
+
+def run_export(admit_dir, dryrun):
+   """ 
+   """
+   cmds = []
+   cmds.append("cd %s" % admit_dir)
+   cmds.append("admit_export -s *.admit")
+   cmds.append("mv admit.tar.gz ../products")
+   cmd = elist(cmds)
+   if not dryrun:
+      os.system(cmd)
+   else:
+      print cmd
+
+def usage(cmd):
+   """ the usage message
+   """
+   print cmd,"[options] [project(s)]"
+   print "  "
+   print "Options:"
+   print "   -h    help"
+   print "   -n    dryrun"
+   print "   -o    old style (runa1)"
+   print "   -s    use shadow tree to write (not implemented)"
+   print "   -v    verbose (not implemented)"
+   print "   -c    clean up admit working directory (i.e. no re-run)"
+   print "  "
+   print "Example:"
+   print "    %s -n /somewhere/bigdata/2016.*" % cmd
+   print "  "
+   print "If no projects are listed, it will use all directories in the current directory"
+   sys.exit(0)
+
+if __name__ == '__main__':
+   dryrun   = False
+   oldstyle = False
+   verbose  = False
+   clea     = False
+   projects = []
+   for dirname in sys.argv[1:]:                   
+      if dirname == '-h':
+         usage(sys.argv[0])
+         continue
+      if dirname == '-n':
+         dryrun = True
+         continue
+      if dirname == '-o':
+         oldstyle = True
+         continue
+      if dirname == '-v':
+         verbose = True
+         continue
+      if dirname == '-c':
+         clean = True
+         continue
+      projects.append(dirname)
+
+   if len(projects) == 0:
+      # special option for extremely lazy and dangerous people:
+      # assume they mean everything in this directory is a project
+      files = glob.glob('*')
+      for p in files:
+         if os.path.isdir(p):
+            projects.append(p)
+      if len(projects) > 0:
+         sleep = 5
+         print "In %d seconds the following %d projects will be processed:" % (sleep,len(projects))
+         for p in projects:
+            print p
+         time.sleep(sleep)
+      else:
+         usage(sys.argv[0])
+         
+   for dirname in projects:
+      aps = process_dir(dirname)
+      if len(aps) == 0:
+         continue
+      sgm0 = aps[0][1]
+      for ap in aps:
+         if ap[1] != sgm0:
+            # for now it is assumed here that all the SGM's are the same !!!!
+            print "ERROR: SOUS/GOUS/MOUS differ:",sgm0
+            print "ERROR: SOUS/GOUS/MOUS differ:",ap[1]
+         admit_dir = run_pipe1(ap, dryrun, oldstyle)
+      run_export(admit_dir,dryrun)
+      print "admit.tar.gz in ",admit_dir
+      if os.path.exists(admit_dir):
+         # @todo 
+         cmd = "rm -rf %s" % admit_dir
+         # os.system(cmd)
+         #
+         cmd = "cd %s; admit_summary *.admit" % admit_dir
+         os.system(cmd)
+      else:
+         print "WARNING: %s does not exist yet" % admit_dir
+   # all done.
+

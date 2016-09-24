@@ -1,0 +1,50 @@
+#! /bin/csh -f
+#
+#  this emulates the mac 'open' command, which figures out from the
+#  file how to 'display' a file
+#
+#  On linux the following equivalents can be useful
+#  gnome-open   kde-open    xdg-open
+#
+#  Original version:     ~2010     Peter Teuben
+#
+#  Interesting environment variables:
+#  $BROWSER              the default browser
+#
+#  Issues:
+#  - on a lustre file system nautilus is known to be unstable (and just die)
+
+
+if (-e /usr/bin/nemo) then
+   set n = /usr/bin/nemo
+else if (-e /usr/bin/nautilus) then
+   set n = nautilus
+else if (-e /usr/bin/dolphin) then
+   set n = dolphin
+else if (-d /Applications/Utilities) then
+   # need a mac solution here
+   set n = /usr/bin/open
+endif
+
+
+if ($#argv > 0) then
+  if (-d "$1") then
+    if (-d $1/logtable && -e $1/table.dat) then
+      casaviewer $1
+    else
+      $n "$1"
+    endif
+  else
+    set e=$1:e
+    # work around evince bug (was fixed by june 2014)
+    if ($e == "ps~" || $e == "PS~") then
+       gv $*
+    else
+       xdg-open "$*"
+    endif
+  endif
+else
+  $n .
+endif
+
+

@@ -1,0 +1,41 @@
+#! /usr/bin/env python
+#
+#   list a fits header, although "listfitsa -v"  does the same
+
+# python system modules
+import sys, os, math
+#
+try:
+  import astropy.io.fits as fits
+except:
+  import pyfits as fits
+
+argv = sys.argv
+
+total = len(argv)-1
+counter = 0
+
+def cube_size(ss):
+    size = 1
+    for s in ss:
+        size = s * size
+    return size
+
+
+for ff in argv[1:]:
+    if ff=='-v':
+      verbose = True
+      continue
+
+    if '/' in ff:
+        fn = ff.rsplit('/', 1)[1]
+    else:
+        fn = ff
+
+    print "### FITS FILE ",ff
+    f = fits.open(ff)
+    hdu = f[0]
+    print hdu.header
+    f.close()
+
+

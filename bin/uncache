@@ -1,0 +1,11 @@
+#! /bin/csh -f 
+#
+#  you probably need to run this via sudo or as root
+#
+# @todo   on a mac, the command should be purge, but somebody should test this
+
+
+echo -n "HIT ENTER TO CONTINUE:"
+set ans=$<
+
+echo 1 > /proc/sys/vm/drop_caches

@@ -1,0 +1,12 @@
+A number of AT's print out a line starting with the word REGRESSION, which
+can be used to compare different versions of flow procession.
+
+In this file we document what those REGRESSION numbers and string refer to.
+You should find them in the code in lines
+    	   logging.regression("XXX: ... ...")
+
+
+REGRESSION : CUBE:     datamin datamax rms  nx ny nz pbad
+REGRESSION : LINEID:   formulae frequency chan0 chan1
+REGRESSION : MOM0FLUX: line_freq flux1 flux0 beamarea vmean vmean|vlsr vsigma       (vlsr if it's a U line)
+REGRESSION : CONTFLUX: nsources sumflux

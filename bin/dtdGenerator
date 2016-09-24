@@ -1,0 +1,24 @@
+#! /usr/bin/env casarun
+#! /usr/bin/env python
+#
+#   this appears to be magic command you need to run
+#   to generate various files that need to be updated
+#   if you have a new AT and/or BDP.
+#
+#   It's a bit awkward in the sense that it still depends on CASA
+#   as the AT's are CASA AT's.
+#
+# @todo: catch-22 for new BDP types
+#
+
+
+try:
+    import admit.xmlio.dtdGenerator as dg
+    dg.generate()
+except:
+    print 'There was an error from dtdGenerator....'
+    print 'Perhaps that catch-22 when adding a new BDP type?'
+    print 'Running again, and have a look at the error message:'
+    import admit.xmlio.dtdGenerator as dg
+    dg.generate()
+    

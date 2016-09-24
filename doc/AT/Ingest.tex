@@ -1,0 +1,138 @@
+% converted to RST now, don't edit this anymore.
+
+\subsection{Ingest\_AT}
+
+\subsubsection{Description}
+
+Ingest\_AT converts a FITS file into a CASA Image.
+It is possible to instead keep this a
+symlink to the FITS file, as some CASA tasks are able to deal with
+FITS files directly, potentially cutting down on the I/O overhead.
+During the conversion to a CASA Image a few extra processing
+steps are possible, e.g.
+primary beam correction and taking a subcube instead of the
+full cube. Some of these steps may add I/O overhead.
+
+
+\subsubsection{Use Case}
+
+
+Normally this is the first step that any ADMIT needs to do
+to set up a flow for a project, and this is done by ingesting
+a FITS file into a CASA Image. The SpwCube\_BDP contains
+merely the filename of this CASA Image.
+
+
+
+\subsubsection{Input BDPs}
+
+none. This is an exceptional case (for bootstrapping) where a (FITS) filename
+is turned into a BDP.
+
+\subsubsection{Input Keywords:}
+
+\begin{description}
+
+\item[file] The filename of the  FITS file. No default, this is the only required
+keyword. Normally 
+with extension ``.fits'', we will refer to this as ``basename.fits''. 
+% We leave the issue of absolute/relative/symlinked names up to the caller.
+We will allow this to be a casa image as well.
+
+\item[pbcorr] Apply a primary beam correction to the input FITS file? If true,
+in CASA convention, a ``basename.flux.fits'' needs to be present. Normally,
+single pointings from ALMA are not primary beam corrected, but mosaiced pointings
+are and thus would need such a correction to make a noise flat image.
+{\it We should probably allow a way to set another filename }
+
+\item[region] Select a subcube for conversion, using the CASA region notation. By
+default the whole cube is converted. See also {\bf edge=} below.
+
+\item[box] Instead of the more complex ``region'' selection described above, a
+much simpler ``blc,trc'' type description is more effective.
+
+{\it Discussion about region= vs. box=, and is edge= still needed?}
+
+\item[edge] Edge channel rejections. Two numbers can be given, removing the first
+and last selected number of channel. Default: 0,0  {\it This keyword could
+interfere with {\bf region=}, but is likely the most common one used}
+
+\item[mask] If True a mask also needs to be created. 
+% need some discussion on the background of this curious option
+% importfits also has a somewhat related zeroblanks= keyword
+
+\item[symlink]  True/False: if True, a symlink is kept to the fitsfile,
+  instead of conversion to a CASA Image.
+  This may be used in those rare cases where your whole flow can work
+  with the fits file, without need to convert to a CASA Image
+  Setting to True, also disables all other processing
+  (mask/region/pbcorr). This keyword should be used with caution,
+  because existing flows will then break if another task is added that
+  cannot use a FITS file.
+  [False]
+% theoretically File_AT can also be used to create a File_BDP with 
+% a symlinked FITS file, but will subsequent AT's recognize this
+% underloaded BDP ?
+
+\item[type]  If you ingest an ``alien'' object of which the origin
+  is not clear, there must be a way to set the type of image
+  (line, continuum, moment, alpha, ...)
+
+\end{description}
+
+
+\subsubsection{Output BDPs:}
+
+\begin{description}
+
+\item[SpwCube\_BDP] the spectral window cube.
+The default filename for this CASA Image is ``cim''.
+There are no associated graphical cues for this BDP. Subsequent steps,
+such as CubeSpectrum\_AT and CubeStats\_AT. In the case that the input
+file was already a CASA image, and no subselection or PB correction
+was done, this can be a symlink to the input filename.
+
+\end{description}
+
+\subsubsection{Procedure}
+
+Ignoring the symlink option (which has limited use in a full flow),
+CASA's importfits will first need to create a full copy of the FITS
+file into a CASA Image, since there are no options to process a
+subregion. In the case of multiple CASA programs processing (e.g. when
+region selection plus primary beam correction), it may be useful to
+check the performance difference between using tools and tasks.
+
+Although using {\bf edge=} can be a useful operation to cut down the
+filesize a little bit, the catch-22 here is that - unless the user
+knows - the bad channels are not known yet until CubeStats\_AT has
+been run, which is the next step after Ingest\_AT. Potentially one can
+re-run Ingest\_AT.
+
+\subsubsection{CASA tasks used}
+
+\begin{description}
+
+\item[importfits] if just a conversion is done. No region selection
+  can be done here, only some masking operation to replace masked
+  values with 0s.
+
+\item[imsubimage] only if region processing is done.  Note box= and
+  region= and chans= have common methods, our Ingest\_AT should keep
+  that simpler.  For example, chans="11~89" for a 100 channel cube
+  would be same as edge=11,10
+
+\item[immath] if a primary beam correction is needed, to get noise
+  flat images.
+
+\end{description}
+
+Alternatively, AT's can also use the CASA tools. Especially this can be
+a more efficient way to chain a number of small image operations, as
+for example Ingest\_AT would do if region selection and primary beam
+correction are used. 
+
+
+
+
+\clearpage

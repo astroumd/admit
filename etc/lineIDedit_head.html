@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!-- ******************** START CSS INCLUDES ******************** -->
+
+<link href="resources/css/bootstrap.min.css" rel="stylesheet" media="screen"></link>
+<link href="resources/css/admit.css" rel="stylesheet" media="screen"></link>
+<link rel="stylesheet" href="resources/fancybox/source/helpers/jquery.fancybox-thumbs.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="resources/fancybox/source/jquery.fancybox.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="resources/fancybox/source/helpers/jquery.fancybox-buttons.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="resources/css/pipeline.css" type="text/css" media="screen" />
+
+<!-- END CSS INCLUDES -->
+
+<!-- ******************** START JAVSCRIPT INCLUDES ******************** -->
+<!-- jQuery library.  This must be first!!  -->
+<script type="text/javascript" src="resources/js/jquery-1.11.3.min.js"></script>
+
+
+<!-- boostrap library -->
+<!-- ** Include BEFORE jquery.serialize-object!! -->
+<script type="text/javascript" src="resources/js/bootstrap.min.js"></script>
+
+<!-- serialize-object allows form data to be encapsulated in an object  -->
+<!-- that is more sophisticated than jQuery's serializeArray() -->
+<!-- *** Include AFTER bootstrap or collapse stops working!!!! -->
+<script type="text/javascript" src="resources/js/jquery.serializejson.js"></script> 
+
+
+<!-- fancybox for popping up images -->
+<script type="text/javascript" src="resources/fancybox/source/jquery.fancybox.pack.js"></script>
+<script type="text/javascript" src="resources/fancybox/source/helpers/jquery.fancybox-buttons.js"></script>
+<script type="text/javascript" src="resources/fancybox/source/helpers/jquery.fancybox-media.js"></script>
+<script type="text/javascript" src="resources/fancybox/source/helpers/jquery.fancybox-thumbs.js"></script>
+
+<!-- knockout for client side viewmodel manipulation -->
+<script type="text/javascript" src="resources/js/knockout-3.4.0.js"></script>
+
+<!-- amplify for browser storage -->
+<script type="text/javascript" src="resources/js/amplify.store.min.js"></script>
+
+<!-- admit specific javascript functions -->
+<script type="text/javascript" src="resources/js/admit.js"></script>
+
+<!-- live.js for auto-refresh of pages -->
+<script src="resources/js/live.js"></script>
+
+<!-- svg-pan-zoom for browser pan & zoom of SVG image -->
+<script type="text/javascript" src="resources/js/svg-pan-zoom.js"></script>
+
+<script type="text/javascript">
+
+//*********************************************
+// Load line list data from server. Called in
+// document.ready().
+//*********************************************
+
+function loadData() {
+      // 0. Get the list of linelist table files from llfiles.json.
+      //    There will be one lltable.<taskid>.json for each instance 
+      //    of LineID_AT.
+      // 1. Loop over all linelist table files and load into  
+      //    an admit.LineIDTableViewModel
+      // 2. In order to represent multiple line list tables (i.e., separate
+      //    LineID tasks in a given flow), bind each viewmodel to a specific 
+      //    document element in the page so they don't step on each other. 
+      //    LineID tables are tagged with <div id="lineidtable-taskid">.
+   
+      // $.getJSON calls are asynchronous, so we must
+      // embed the for loop inside this getJSON("llfiles.json").
+      // If the for (filelist) loop was in a separate method, 
+      // filelist would likely not be defined when that loop was run.
+      // See also 
+      // http://stackoverflow.com/questions/13009755/getjson-synchronous
+      // i.e., $.ajaxSetup({ async: false }); could also be used.
+      $.getJSON("llfiles.json",function(data){
+          console.log("files = ",data);
+          var filelist = data;
+          console.log("filelist = ",filelist);
+          for (i=0; i<filelist.length; ++i) {
+              $.getJSON(filelist[i],function(data){
+                  console.log("i=",i,"data=",data);
+                  var dat2 = JSON.stringify(data);
+                  var vm = new admit.LineIDTableViewModel();
+                  vm.initialize(data);
+                  //viewModel.push(vm);
+                  elemid = 'lineidtable-' + vm.taskid.toString()
+                  console.log("applying bindings to ",elemid, " which is ",document.getElementById(elemid));
+                  ko.applyBindings(vm,document.getElementById(elemid));
+                });
+          }
+      });
+}
+
+
+$(document).ready(function() {   
+    //===================================================
+    // show the live elements if we have an http connection,
+    // otherwise show the static elements.
+    //===================================================
+    if (document.location.protocol != "file:") {
+        //getuuid();
+        loadData();
+        // make static divs invisible.
+        staticdiv = document.getElementsByClassName("staticdisplay");
+        for (i=0; i <  staticdiv.length; i++ ) {
+            staticdiv[i].style.display = "none";
+        }
+    } else {
+        livediv = document.getElementsByClassName("livedisplay");
+        // make live divs invisible.
+        for (i=0; i <  livediv.length; i++ ) {
+            livediv[i].style.display = "none";
+        }
+    }
+
+    //===================================================
+    // activate fancybox macros for all elements in that class
+    //===================================================
+    $(".fancybox").fancybox();
+
+});
+
+</script>
+
+
+<!-- ******************** END JAVSCRIPT INCLUDES ******************** -->
+
+<title>ADMIT LineID Editor for %s</title>
+</head>
+
+<body>
+<div class='navbar navbar-fixed-top'>
+    <div class="navbar-inner">
+        <div class="nav-collapse collapse">
+            <a class="brand" href="#">ADMIT LineID Editor for %s</a><br><br>
+            <ul class="nav">
+                <li class=""><a href="index.html">Flow View</a></li>
+                <li class=""><a href="form.html">Form View</a></li>
+                <li class="active"><a href="lineIDedit.html">LineID Editor</a></li>
+                <li class=""><a href="log.html">ADMIT Log</a></li>
+                <li class="divider-vertical"></li>
+                <li class=""><a href="http://admit.astro.umd.edu/admit/"><i class="icon-home"></i>ADMIT documentation</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+<div id="app-container" class="container-fluid">
+<br>
+<div class="nav-header">List of LineID tasks run - click on task to edit its Line List.   Colors and icons indicate the status of each task:<br>
+<span class="ico-pull pull-left">
+<i class="icon-ok"></i>&nbsp;Task ran normally (Green) &nbsp;|&nbsp;
+<i class="icon-warning-sign"></i>&nbsp;Task needs to be re-run (Orange) &nbsp;|&nbsp;
+<i class="icon-ban-circle"></i>&nbsp;Task is disabled (Pink)&nbsp;|&nbsp; 
+<i class="icon-fire"></i>&nbsp;Task has crashed (Red)
+</div>
+
+<br>
+<br>
+<div class="panel panel-primary">
+<div class="panel-heading">
+<h3 class="panel-title">Line list Editor</h3>
+</div>
+<div class="panel-body" id="explanation">
+<p>
+Click on each LineID_AT taskbar to see the table of spectral lines identified by that task.  All lines with the same number
+in the <i>blend</i> column are part of a blended line (e.g., with hyperfine components), the principal component
+of which will have non-zero <i>startchan</i> and <i>endchan</i> that indicate
+the full range of the emission.
+You can edit the spectral line table to
+either feed back into <a href="http://admit.astro.umd.edu/admit/module/admit.at/LineID_AT.html">LineID_AT</a> or to supercede its output <a href="http://admit.astro.umd.edu/admit/module/admit.bdp/LineList_BDP.html">LineList_BDP</a>.
+The radio buttons on each row control the disposition of that spectral line:
+<ul>
+<li><b>accept</b> -- Accept this line identification, but don't force it. When LineID_AT is re-run, it will likely identify the same line in the same channel range, assuming not too much else has changed in your inputs. Choosing 'accept' will disregard any edits you make to the line identification.</li>
+<li><b>force</b> -- Force LineID_AT to identify the selected channel range with the line you specify. Choosing 'force' enables editting of the text boxes. Note that force is <i>cumulative</i>, so that each time you press "Set LineID Force/Reject Keywords", the new forces are added to the previous forces.</li>
+<li><b>reject</b> -- Reject LineID_AT's identification at the selected channel
+range, so it can search for a different identification there. LineID_AT will not repeat this identification for this (but not another) channel range. Choosing 'reject' will disregard any edits you make to the line identification. You can not reject an Unidentified line.</li>
+</ul>
+</p>
+
+<p>The buttons at the bottom are as follows:
+<ul>
+<li><b>Reset</b> -- Undo your edits and restore the table to its original version. Note, if you have already overwritten the LineID Output BDP, the only way to get back the full version is to re-run LineID_AT with no force/reject keywords set.</li>
+<li><b>Add Line</b> -- Add a row to the table for a new spectral line.</li>
+<li><b>Set LineID Input Keywords</b> -- Create the <i>force</i> and <i>reject</i> keyword strings based on your edits, and tell <a href="http://admit.astro.umd.edu/admit/module/admit.at/LineID_AT.html">LineID_AT</a>. If you re-run the flow, LineID_AT will be rerun using these keywords.</li>
+<li><b>Overwrite LineList Output BDP</b> -- Skip re-running LineID and just overwrite its output BDP.  Use this if you are just going to proceed on with LineCube_AT, etc, and not re-run LineID_AT</li>
+</ul>
+</p>
+</div> <!-- panel-body -->
+</div> <!-- panel-heading -->
+
+<div class="accordion" id="details-accordion">
+

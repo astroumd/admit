@@ -1,0 +1,59 @@
+#! /bin/csh -f
+#
+#   redo_from_scratch_cvs: a poor mans buildbot
+#
+#   simple example of installing ADMIT from scratch, but assuming you have preinstalled
+#   a CASA and the ADMIT testdata. 
+#   it does not build documentation, since that requires sphinx and that's just complicated 
+#
+#   If you put a file redo_from_scratch_cvs.set in your build directory, it will override
+#   the basic cvsroot/casaroot/testdata/admit variables set below.
+#
+#   wget ftp://ftp.astro.umd.edu/pub/admit/data/cycle1/test0.fits
+#   wget ftp://ftp.astro.umd.edu/pub/admit/data/cycle1/test1.fits
+#   wget ftp://ftp.astro.umd.edu/pub/admit/data/cycle1/test2.fits
+#   wget ftp://ftp.astro.umd.edu/pub/admit/data/cycle1/test21.fits
+#
+#   20-jul-2015  PJT      Takes about 1.5 minutes on my laptop
+
+set version  = 22-dec-2015
+
+#  edit your basic settings here
+set defaults = redo_from_scratch_cvs.set
+set cvsroot  = :pserver:anonymous@cvs.astro.umd.edu:/home/cvsroot
+set casaroot = /astromake/opt/casa/stable
+set testdata = /data1/teuben/ADMIT/testdata
+set admit    = admit_redo
+
+#  override script defaults?
+if (-e $defaults) source $defaults
+
+# check file locations
+if (! -d $testdata) then
+  echo testdata=$testdata does not exist yet
+  exit 1
+endif
+if (! -d $casaroot) then
+  echo casaroot=$casaroot does not exist yet
+  exit 1
+endif
+
+
+#  it should not depend on X being run
+unsetenv DISPLAY
+
+#  delete the current $admit tree and build a new one
+echo $0 version $version
+rm -rf $admit
+cvs -d $cvsroot -Q co -d $admit admit
+cd $admit
+autoconf
+./configure --with-casa-root=$casaroot --with-testdata=$testdata
+source admit_start.csh
+make data
+make unit0
+make unit
+make integration
+echo $0 version $version
+
+# NOTICE: The script "casapy" is deprecated.  Please use "casa" to launch CASA.

@@ -1,0 +1,86 @@
+% in RST now, don't edit here
+
+\subsection{PVCorr\_AT}
+
+\subsubsection{Description}
+
+PVCorr\_AT uses a position-velocity slice to correlate distinct repeating
+structures in this slice along the velocity (frequency) direction to find
+emission or absorbtion lines.
+
+Caveat: if the object of interest has very different types of emission regions,
+e.g a nuclear and disk component which do not overlap, the detection may not work
+as well.
+
+\subsubsection{Use Case}
+
+For weak lines (NGC253 has nice examples of this) none of the CubeStats or CubeSpectrum give
+a reliable way to detect such lines, because they are essentially 1-dimensional cuts through the
+cube and become essentially like noise.  
+When looking at a Position-Velocity slice, weak lines show up quite clearly to the eye,
+because they are coherent 2D structures which mimick those of more obvious and stronger lines
+in the same PVSlice. The idea is to cross-correlated an area around such strong lines along the
+frequency axis and compute a cross-correlation coefficient.
+
+There is also an interesting use case for virtual projects: imagine a PV slice with only
+a weak line, but in another related ADMIT object (i.e. a PVslice from another spectrum window) it 
+is clearly detected. Formally a cross correlation can only be done in velocity space when the
+VLSR is known, but within a spectral window the non-linear effects are small. Borrowing a
+template from another spw with widely different frequencies should be used with caution.
+
+\subsubsection{Input BDPs:}
+
+\begin{description}
+
+\item[PVSlice] The input PVSlice
+
+\item[PVslice-2] Alternative PVSlice (presumably from another virtual project)
+
+\item[CubeStats] Statistics on the parent cube
+
+\end{description}
+
+
+\subsubsection{Input keywords}
+
+\begin{description}
+
+\item[cutoff] a conservative cutoff above which an area is defined for the N-th strongest line.
+Can also be given in terms of sigma in the parent cube.
+
+\item[order]  Pick the N-th strongest line in this PV slice as the template.
+Default:1 
+
+\end{description}
+
+\subsubsection{Output BDPs}
+
+\begin{description}
+
+\item[PVCorr\_BDP] Table with cross-correlation coefficients
+
+\end{description}
+
+
+\subsubsection{Procedure}
+
+After a template line is identified  (usually the strongest line in the PV Slice), a conservative 
+polygon (not too low a cutoff) 
+is defined around this, and cross correlated along the frequency axis. Currently this 
+needs to be a single polygon (really?)
+
+Given the odd shape of the emission in a PVSlice, the correlation coefficient is not
+exactly at the correct ``velocity''.  A correction factor needs to be determined
+based on identifying the template line with a known line frequency, and VLSR. Since
+line identifaction is the next step after this, this catch-22 situation needs to
+be resolved, otherwise a small systemic offset can be present.
+
+
+
+\subsubsection{CASA tasks used}
+
+none exist yet that can do this. NEMO has a program written in C, and the idea in there will
+need to be ported to python.
+
+
+\clearpage

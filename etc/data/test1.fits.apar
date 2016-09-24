@@ -1,0 +1,9 @@
+#
+# vlsr = 7.0
+# lineUID = True
+
+
+# 
+# there is no signal here without a smooth, but
+# using maxpos we just to test out if that works
+maxpos = [246,238,249,243]

@@ -1,0 +1,92 @@
+% in RST now, don't edit here.
+
+\subsection{FeatureList\_AT}
+
+\subsubsection{Description}
+
+FeatureList\_AT takes a LineCube, and describes the three-dimensional structure
+of the emission (and/or absorbtion)
+
+% should we allow 2D maps as well?
+
+\subsubsection{Use Case}
+
+\subsubsection{Input BDPs:}
+
+Depending on which BDP(s) is/are given, and a choice of keywords, line
+identification can take place.  For example, one can use both a
+CubeSpectrum and CubeStats and use a conservative AND or a more
+liberal OR where either both or any have ``detected'' a line.
+
+\begin{description}
+\item[CubeSpectrum] just a spectrum through a selected point. For some cubes this is perfectly ok.
+\item[CubeStats] Peak/RMS. Since this table analyzed each plane of a cube, it will more likely pick 
+up weaker lines, which a CubeSpectrum will miss.
+\item[PVCorr] an autocorrelation table from a PVSlice\_AT. This has the potential of detecting even
+weaker lines, but its creation via PVSlice\_AT is a fine tuneable process.
+%\item[SpectralMap]  this may actually be absorbed in CubeSpectrum, where there is more than one spectrum, where every spectrum is tied to a location and size over which the spectrum is computed.
+\end{description}
+
+
+\subsubsection{Input keywords}
+
+\begin{description}
+\item[vlsr] If VLSR is not know, it can be specified here. Currently must be known, either via
+this keyword, or via ADMIT (header). % is that in Summary_BDP ?   And what about VLSR vs. z
+\item[pmin]  Minimum likelyhood needed for line detection. This is a number between 0 and 1.
+[0.90]
+\item[minchan] Minimum number of continguous channels that need to contain a signal, 
+to combine into a line. Note this means that each channel much exceed {\bf pmin}.
+[5]
+\end{description}
+
+\subsubsection{Output BDPs}
+
+\begin{description}
+\item[LineList\_BDP] A single LineList is produced, which is typically used by LineCube\_AT
+to cut a large spectral window cube into smaller LineCube's.
+\end{description}
+
+% why would you need multiple linelists, doesn't make sense. Only one goes into the next stage
+% the LineCube_AT
+%The AT will produce a single LineList\_BDP (with the exception of a SpectralMap as input, in this case a LineList\_BDP for each spectrum will be created). The items of the BDP will be a table with the following columns:
+
+% No need to describe the BDP here, that's done in the BDP listings.
+%\begin{description}
+%\item[frequency] in GHz, precise to 5 digits
+%\item[unique identifier] ANAME-FFF.FFF ; e.g.  CO-115.27,   N2HP-93.173,   U-98.76
+%\item[likelihood] a number scaled 0...1 of detection probability, with 1 being most probable
+%\item[full name] CO, CO\_v1, C2H, H13CO+
+%\item[transition] Quantum numbers
+%\item[velocity] v$_{lsr}$ or offset velocity (based on rest frequency)
+%\item[energies] lower and upper state energies in K
+%\item[line strength] spectral line strength in D$^2$
+%\item[peak] the peak intensity of the line in Jy/bm
+%\item[fwhm] the FWHM of the line in km/s
+%\end{description}
+%%Additionally an item to denote whether the velocity is v$_{lsr}$ or offset velocity. The offset velocity will only be used when the v$_{lsr}$ is not known and cannot be determined. The coordinates of where the line list applies along with units will also be stored.
+
+\subsubsection{Line List Database}
+
+The line list database will be the splatalogue subset that is already included with the CASA distribution.
+This one can be used offline, e.g. via the slsearch() call in CASA.
+Currently astropy's {\tt astroquery.splatalogue} module has a {\tt query\_lines()} function to query the
+full online WEB interface.
+
+Once LineID\_AT is enabled to attempt actual line identifications, one of those methods will
+be selected, together with possible selections based on the astrophysical source. This will
+likely need a few more keywords.
+
+
+\subsubsection{Procedure}
+
+A few words about likelyhoods.   Each procedure that creates a table is either supposed to deliver 
+a probability, or LineID\_AT must be able to compute it.   Let's say for a computed RMS noise
+$\sigma$, a $3\sigma$ peak in a particular channel would have a likelyhood
+of 0.991 (or whatever value) for CubeStats .
+
+\subsubsection{CASA tasks used}
+
+There are currently no tasks in CASA that can handle this. 
+
+\clearpage

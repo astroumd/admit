@@ -1,0 +1,62 @@
+% now in RST, don't edit this.
+
+\subsection{File\_AT}
+
+
+\subsubsection{Description}
+
+
+File\_AT creates a File\_BDP that contains a reference to an arbitrary file. 
+It has no real use (yet), except for bootstrapping a Flow\_AT series, 
+where it can be used to test the (large scale) system performance.
+See also Ingest\_AT for a real task that bootstraps a flow.
+
+\subsubsection{Use Case}
+
+
+Currently only used by Flow\_AT for testing purposes, and thus useful
+to bootstap a flow, since it can start from an empty directory, and
+create a zero length file.  This means you can create realistic flows,
+in the same sense as full science flows, and measure the overhead
+of ADMIT and the FlowManager.
+
+\subsubsection{Input BDPs}
+
+There are no input BDPs for this bootstrap AT. A filename is required to
+create an output BDP, using an input keyword (see below).
+
+\subsubsection{Input Keywords:}
+
+\begin{description}
+
+\item[file] The filename of the object. File does not have to exist yet.
+  There is no default.
+
+\item[touch]  Update timestamp (or create zero length file 
+  if file did not exist yet)? Default: False.
+
+\end{description}
+
+\subsubsection{Output BDPs:}
+
+\begin{description}
+
+\item[File\_BDP] containing the string pointing to the file, following
+  the same convention the other file containers (Image\_BDP,
+  Table\_BDP) do, except their overhead.  There is no formal
+  requirement this should be a relative or absolute address.  A
+  symlink is allowed where the OS allows this, a zero length file is
+  also allowed.
+
+\end{description}
+
+\subsubsection{Procedure}
+
+Simple Unix tools, such as {\bf touch}, are used. No file existence test done.
+There are no CASA dependencies, and thus no CASA tasks used.
+
+% \subsubsection{CASA tasks used}
+% none
+
+
+\clearpage

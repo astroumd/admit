@@ -1,0 +1,149 @@
+%$Id: AdmitProgramming.tex,v 1.3 2014/10/02 13:45:35 pteuben Exp $
+
+\documentclass[preprint]{aastex}
+\usepackage{epsfig}
+\usepackage{graphicx}
+\title{ADMIT Programmers Guide}
+\begin{document}
+\maketitle
+\section{Overview}
+
+In this guide you will learn how to write python programs in ADMIT style.
+
+\subsection{pipeline}
+
+A general pipeline can be as complex as any scripting language allows,
+including various loops, decisions, state changes of variables
+and datasets. However, we desire to have a pipeline where the user
+can recompute selected BDP, but also replace a BDP with a different
+
+For ADMIT we are setting up a pipeline with a few
+restrictions:
+
+\begin{itemize}
+
+\item
+
+The pipeline products (the BDP's) must have a clear lineage and be
+recomputed via a single ADMIT task
+
+% not quite directed acyclic graph (DAG) as this:
+% en.wikipedia.org/wiki/Directed_acyclic_graph
+
+\item
+An ADMIT task has input BDPs and output BDPs, but an output BDP is not
+allowed to change its state, therefore adding complexity to the dependancy
+of the BDP
+
+\end{itemize}
+
+\footnotesize
+\begin{verbatim}
+
+b1:
+	echo B1 > b1
+
+b2:	b1
+	echo B1-2 > b2
+
+b3:	b1 b2
+	echo B1+B2 > b3
+
+b4 b5:	b3
+	echo B3-4 > b4
+	echo B3-5 > b5
+\end{verbatim}
+\normalsize
+
+\subsection{Single FITS}
+
+
+\section{Simple Table}
+
+\footnotesize
+\begin{verbatim}
+> a=atable.ATable()
+> t=a.pload('cubestats.bin')
+> t.show()
+table: 5 cols x 246 rows
+col_names:  ['channel', 'frequency', 'max', 'sigma', 'medabsdevmed']
+col_types:  []
+col_units:  []
+
+
+> atable.ATable(filename="cubestats.bin").show()
+table: 5 cols x 246 rows
+col_names:  ['channel', 'frequency', 'max', 'sigma', 'medabsdevmed']
+col_types:  []
+col_units:  []
+
+
+\end{verbatim}
+\normalsize
+
+\section{Use Cases}
+ 
+\subsection{upgrading your own tools to be part of the admit pipeline}
+
+First, why would you spend the energy to do this? It can be painful. If your
+output data don't fit in one of the standard BDP's (the BDP\_buckett fits anything
+though) you would have to write a new BDP\_foobar, and of course wrap your
+code in an AT\_foobar, create a DTD if you do have a BDB\_foobar.
+
+\section{Installation}
+
+\begin{verbatim}
+
+See also $ASTUTE/INSTALL
+
+1) 
+      wget https://bootstrap.pypa.io/get-pip.py
+      python get-pip.py      
+      pip install astropy
+
+
+2)
+
+\end{verbatim}
+
+
+\section{Glossary}
+
+\begin{itemize}
+
+\item {\bf AT}
+see: {\it ADMIT Task}
+
+\item {\bf ADMIT Task}
+
+\item {\bf Basic Data Product}
+
+\item {\bf BDP}
+see: {\it Basic Data Product}
+
+\item {\bf line}
+
+The word ``line'' is often used to refer to a Molecular Line or Line Transition
+that ADMIT attempts to isolate from the SPWcube.
+We have ADMIT products such as {\it LineList} and {\it LineCube}.
+The ADMIT pipeline encodes line names (optionally) in the filename, once lines have 
+been identified.  Examples are for CO(1-0) would be {\tt CO-115.27} and 
+N$_2$H$^+$ would be {\tt N2HP-93.17}. Unidentified lines will go by
+names such as {\tt U-98.75}.
+
+
+\item {\bf BDP}
+see: {\it Basic Data Product}
+
+\item {\bf CARTA}
+Visualization system
+
+\item {\bf CASA}
+
+\end{itemize}
+
+
+
+\end{document}
+ 
+% http://www.eso.org/reflex

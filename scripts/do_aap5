@@ -1,0 +1,87 @@
+#! /bin/csh -f
+#
+
+#   run ADMIT AFTER PIPELINE (AAP = dutch monkey, not an aips banana)
+
+#
+
+set a1 = $ADMIT/admit/test/admit1.py
+set a2 = $ADMIT/admit/test/admit2.py
+
+# allow a dry run to see what's there, it will run "listfitsa" on just the "pbcor" files
+set dry = 1
+
+# 
+# set dir = /lustre/naasc/PipelineTestData/cycle3/products_only
+# C3R4 (jan 2016)
+#set dir = /lustre/naasc/sciops/PipelineTestData/cycle3/pipeline_imaging/
+
+#   symlink to where the project directories are
+set dir = pipeline_imaging
+# set files = (`cd $dir ; find . -name \*_sci\*pbcor.fits`)
+
+# alternate method to select a file in which directories are listed
+set dirlist = test5a.dir
+set obslog  = test5.log
+set lislog  = test5.lis
+set files = ()
+set nd = 0
+rm -rf $obslog $lislog
+foreach d (`cat $dirlist | awk '{print $1}'`)
+  if ($d == "#") continue
+  @ nd++
+  set f = (`cd $dir ; find $d  -type d -name \*_sci\*findcont.residual`)
+  set nf = $#f
+  echo $nd $nf $d
+  set files = ($files $f)
+  echo "##### $d " >> $obslog
+  #egrep '(Velocity|sourceName)' $dir/$d/OBS_*.xml | sort | uniq >> $obslog
+  $ADMIT/scripts/obs_xml.py $dir/$d/OBS_*.xml >> $obslog
+  foreach f0 ($f)
+    echo $d $f0 >> $lislog
+  end
+end
+echo Total of $#files fits files to process
+
+if (0) then
+  foreach f ($files)
+    echo $f
+    (cd $dir; listfitsa $f)
+  end
+endif
+
+foreach f ($files)
+   # e.g. 2013.1.00356.S_2015_10_29T15_31_11.627/...SGM.../products/uid___A001_X145_X164.ACT-CLJ0102-4915_sci.spw20.cube.I.pbcor.fits
+   # e.g. 2015.1.01034.S_2016_02_05T18_54_15.751/...SGM.../working/uid___A001_X2d8_X93.s22_0.LBQS1434-0038_sci.spw21.cont.I.findcont.residual
+
+   if (0) then    
+     set pbtype = $f:r:e                    # needs to be "pbcor"
+     set pbfile = ${f:r:r}.pb.fits          # the correspoding "pb" file
+     set pol    = ${f:r:r:e}                # we only expect I now
+     set type   = ${f:r:r:r:e}              # we expect 'cube' or 'mfs' or 'cont'
+     set uid    = ${f:r:r:r:r:t}            # UID and the source is in here
+     set log    = ${f:t}.log                # our log file
+   endif
+
+   set uid    = ${f:r:r:r:r:t}            # UID and the source is in here
+   echo $uid
+   ln -sf $dir/$f
+   if ($dry) continue
+
+   ln -sf $dir/$pbfile
+   set f1 = $f:t
+   set f2 = $pbfile:t
+   listfitsa $f1
+
+   if ($type == 'cube') then
+      echo ADMIT1  $uid  $type  $pbtype
+      echo $a1 $f1 --pbcor `pwd`/$f2 --alias x 
+           $a1 $f1 --pbcor `pwd`/$f2 --alias x >& $log
+   else if ($type == 'mfs' || $type == 'cont') then
+      echo ADMIT2  $uid  $type  $pbtype
+      echo $a2 $f1 x 
+      # $a2 $f1 x >& $log
+   else 
+      echo UNKNOWN $uid  $type  $pbtype
+   endif
+end

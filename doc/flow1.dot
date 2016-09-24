@@ -1,0 +1,6 @@
+digraph flow1 {
+  a1 [shape=box, label="a1  \n       p1"];
+  // a1 [shape=record, label="<f0> a1 | <f2> p1"];
+  b0 -> a1 -> b1;
+}
+

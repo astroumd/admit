@@ -1,0 +1,100 @@
+% in RST now, don't edit here
+
+\subsection{PVSlice\_AT}
+
+\subsubsection{Description}
+
+PVSlice\_AT creates a position-velocity slice through a spectral
+window cube, which
+should be a representative version showing all the spectral lines.
+
+\subsubsection{Use Case}
+
+A position-velocity slice is a great way to visualize all the emission
+in a spectral window cube, next to CubeSum.
+
+\subsubsection{Input BDPs:}
+
+
+\begin{description}
+
+\item[SpwCube] Spectral Window Cube to take the slice through.  We normally
+mean this to be a Position-Position-Velocity (or Frequency) cube.
+
+\item[CubeSum]  Optional. One of CubeSum or PeakPointPlot can be used to
+estimate the best slit.
+It will use a moment of inertia analysis to decipher the best line 
+in RA-DEC for the slice.
+
+\item[PeakPointPlot]  Optional.
+
+
+\end{description}
+
+
+\subsubsection{Input keywords}
+
+\begin{description}
+
+\item[center]
+Center and Position angle of the line in RA/DEC.  E.g.   129,129,30
+Optional length?  Else full slice through cube is taken.\\
+*** NEED TO DESCRIBE HOW POSITION ANGLE IS DEFINED.  EAST OF NORTH? ***
+
+\item[line]
+Begin and End points of the line in RA/DEC.  E.g.   30,30,140,140\\
+*** WHAT ARE THE UNITS? COULD THIS BE DONE WITH A REGION KEYWORD? ***
+
+\item[major]
+Place the slit along the major axis?  Optionally the minor axis slit can
+be taken. For rotation flow the major axis makes more  sense, for outflows
+the minor axis makes more sense.  Default: True.
+
+\item[width]
+Width of the slit. By default sampling through the cube is
+done, which equals a zero thickness, but a finite number of
+pixels can be choosen as well, in which case the signal within
+that width is averaged.
+Default: 0.0
+
+\item[minval]
+Minimum intensity value below which no data from CubeSum or PeakPointPlot are
+used to determine the best slit.
+
+\item[gamma] 
+The factor by which intensities are weighed (intensity**gamma) to compute
+the moments of inertia from which the slit line is computed.
+Default: 1
+
+
+
+
+\end{description}
+
+\subsubsection{Output BDPs}
+
+\begin{description}
+
+\item[PVSlice\_BDP] 
+
+\end{description}
+
+
+\subsubsection{Procedure}
+
+Either a specific line is given manually, or it can be derived from a reference map (or table).
+By this it computes a (intensity weighted) moment of inertia, which then defines a major and minor
+axis. Spatial sampling on output is the same as on input (this means if there ever
+is a map with unequal sampling in RA and DEC, there is an issue, WSRT data?).
+
+
+\subsubsection{CASA tasks used}
+
+\begin{description}
+
+\item[impv]
+
+\end{description}
+
+
+\clearpage

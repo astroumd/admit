@@ -1,0 +1,37 @@
+digraph flow6AT {
+  a1 [shape=box,style=filled,color=green,label="a1\n(ingest)"];
+  a1 -> a1s [fontsize=10,label="0"];
+  a1 -> a2  [fontsize=10,label="0"];
+  a1 -> a6  [fontsize=10,label="0"];
+  a1 -> a3  [fontsize=10,label="0"];
+  
+  a1s [shape=box,style=filled,color=green,label="a1s\n(summary)"];
+
+  a2 [shape=box,style=filled,color=green,label="a2\n(cubestats)"];
+  a2 -> a5  [fontsize=10,label="0"];
+
+  a3 [shape=box,style=filled,color=green,label="a3\n(cubespectrum)"];
+  a3 -> a5  [fontsize=10,label="0"];
+
+  a5 [shape=box,style=filled,color=green,label="a5\n(lineid)"];
+  a5 -> a6  [fontsize=10,label="0"];
+
+  a6 [shape=box,style=filled,color=green,label="a6\n(linecube)"];
+  a6 -> a60  [fontsize=10,label="0"];
+  a6 -> a61  [fontsize=10,label="1"];
+  a6 -> a62  [fontsize=10,label="2"];
+  a6 -> a63  [fontsize=10,label="3"];
+
+  a60 [shape=box,style=filled,color=yellow,label="a60\n(moment)"];
+  a61 [shape=box,style=filled,color=yellow,label="a61\n(moment)"];
+  a62 [shape=box,style=filled,color=yellow,label="a62\n(moment)"];
+  a63 [shape=box,style=filled,color=yellow,label="a63\n(moment)"];
+
+  a60 -> a60_0  [fontsize=10,label="0"];
+  a60 -> a60_1  [fontsize=10,label="1"];
+  a60 -> a60_2  [fontsize=10,label="2"];
+
+  a60_0 [label="a60[0]\n(BDP image)"];
+  a60_1 [label="a60[1]\n(BDP image)"];
+  a60_2 [label="a60[2]\n(BDP image)"];
+}

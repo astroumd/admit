@@ -1,0 +1,32 @@
+
+    <div class="accordion-group">
+        <div class="accordion-heading">
+            <a class="accordion-toggle %s" data-toggle="collapse" data-parent="#details-accordion" href="#collapse%d">
+<span class="ico-pull pull-right">
+%s
+</span>
+            %s (taskid=%d) &nbsp;&nbsp;&nbsp; <span style="color:black">%s</span>
+</a>
+        </div>
+        <div id="collapse%d" class="accordion-body collapse">
+        <h4>
+<a href="http://admit.astro.umd.edu/admit/module/admit.at/CubeStats_AT.html" target="_blank">CubeStats_AT</a> computes image-plane robust statistics on datacubes.  These statistics are particularly useful for identifying spectral lines in images where
+the noise varies as a funnction of frequency.
+        </h4>
+            <div class="row-fluid">
+            <div class="span4">
+            <table class="table table-bordered table-striped" width="50%%" >
+            <tbody>
+            <tr><td>CASA image </td><td><a href="%s">%s</a> </td></tr>
+            <tr><td>RMS method</td><td>%s</td></tr>
+            <tr><td>RMS value</td><td>%s</td></tr>
+            <tr><td>Dynamic range</td><td>%s</td></tr>
+            <tr><td>Data mean</td><td>%s</td></tr>
+            </tbody>
+            </table>
+            </div><!-- span4 -->
+                    %s
+            </div><!-- row-fluid -->
+        </div> <!-- collapse%d -->
+    </div> <!-- accordian group -->
+

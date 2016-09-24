@@ -1,0 +1,71 @@
+#! /usr/bin/env casarun
+#-*- mode: python -*-
+#
+#   listfits
+#
+#   Usage:      $ADMIT/admit/test/listfits  *.fits
+#               $ADMIT/admit/test/listfits `cat file`
+#               ---------> file is a text file containing a bunch of fits files
+
+version  = '22-jul-2015'
+
+
+# =================================================================================================================
+# python system modules
+import sys, os, math
+import admit.Admit as admit
+import admit.util.utils as utils
+
+try:
+  import taskinit
+  import casa
+except:
+  print "WARNING: No CASA; Ingest task cannot function."
+
+
+verbose = False
+verbose = True
+
+argv = utils.casa_argv(sys.argv)
+
+total = len(argv)-1
+counter = 0
+
+dt = utils.Dtime()
+
+for ff in argv[1:]:
+    if '/' in ff:
+        fn = ff.rsplit('/', 1)[1]
+    else:
+        fn = ff
+    
+    taskinit.ia.open(ff)
+    dt.tag("ia.open")
+    s = taskinit.ia.summary()
+    dt.tag("ia.summary")
+ 
+
+    stat = taskinit.ia.statistics()
+    dt.tag("ia.stats")
+    goodpix = stat['npts'][0]
+
+
+    allpix = 1
+    for n in s['shape']:
+      allpix = n*allpix
+
+
+    badpix = allpix - goodpix
+    percentbad = (badpix/allpix)*100.0
+
+    counter += 1
+
+    if verbose: 
+      print fn
+      print ("shape: {0}").format(s['shape']) 
+      print ("{0}% masked").format(percentbad)
+      print ("file {0}/{1}").format(counter,total)
+    
+    if not verbose:
+      print fn,s['shape'],percentbad
+    

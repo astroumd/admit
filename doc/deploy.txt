@@ -1,0 +1,53 @@
+Deployment of ADMIT:
+--------------------
+
+There are various models on how ADMIT can be installed and distributed., we
+concentrate on the two obvious ones:
+
+
+1) completely outside of CASA, we use $ADMIT and initialize things by
+   sourcing the appropriate "admit_start.csh" file.  The $ADMIT
+   directory can live anywhere, and users will see a $ADMIT in their
+   shell environment.
+
+   This can be a useful environment for developers, and we call this
+   the developer environment.
+
+
+2) Use the setup.py file so the command
+
+   casa-config --exec python setup.py install [--user]
+
+   would work. This essentially just copies the admit/admit and admit/etc
+   tree into the right location in the site-packages tree inside of CASA's
+   python.
+
+   With the --user option one should be able to install admit without the
+   need for write permission into the casa tree.
+
+   However, casa is not just (i)python, this will probably not work without
+   modifications to .casa's init.py and/or prelude.py files.
+
+
+2a) At NRAO the casa-admit command will give access to the ADMIT enabled
+    version of casa, with the usual '-ls' command line option to find out
+    which versions were installed, and the '-r' option to access another
+    version.
+
+    However, this approach does not make it easy to access the ADMIT unix
+    scripts. Short of following NRAO's approach of making shadow copies,
+    you can also enable your $PATH for this casa, and thus enable more
+    commands.
+   
+    The recipe for this is in BASH is as follows:
+
+    casa_root=`casa-config-admit --prefix`
+    export PATH=$casa_root/bin:$casa_root:$PATH
+    export ADMIT=`admit_root`
+
+    The setting of $ADMIT is optional, but will save a lot of time
+    re-computing it each time.
+
+
+    See the script in $ADMIT/scripts/redo_deploy to see how this deployment
+    works in practice.

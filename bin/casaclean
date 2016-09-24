@@ -1,0 +1,59 @@
+#! /bin/csh -f
+#
+#   clean casa files
+#
+#   @todo   TempLattice18579_0  from ia.transpose()
+#           tab<PID>_0
+
+set dirs = (_immath __tmp_fromTFmask __tmp_outputmask __tmp_frominmask)
+
+
+if ($#argv == 0) then
+  echo 'For cleaning suspect casa temporary files:'
+  echo "    "$dirs
+  echo '     and casapy*.log ipython-*.log files'
+  echo 'Use any argument to clean local directory.'
+  echo 'Use -r for recursive clean of log files.'
+  exit 0
+endif
+
+#  these are files with a fixed name (no $$ or tmpfile() usage)
+#  that need to be cleaned up if a CASA script crashes in certain ways
+#  @todo should be filed as a CASA bug, we shouldn't need to do this
+foreach dir ($dirs)
+   if (-d $dir) then
+      echo Removing suspect directory $dir
+      rm -rf $dir
+   endif
+end
+
+
+set temp=(`getopt -s csh -o r -- $argv:q`)
+eval set argv=\($temp:q\)
+
+switch ($1:q)
+    case -r:
+      echo "recursive clean"
+      find . -name casapy-\*.log -exec rm {} \;
+      find . -name ipython-\*.log -exec rm {} \;
+      breaksw
+
+    default:
+        echo -n "Checking casapy log files "
+        set log1 = (`echo casapy*.log`)
+        echo Found $#log1
+        echo -n "Checking ipython log files "
+        set log2 = (`echo ipython-*.log`)
+        echo Found $#log2
+
+        if ($#log1) then
+          echo Cleaning $#log1 ' casapy*.log files'
+          rm -f $log1
+        endif
+
+        if ($#log2) then
+          echo Cleaning $#log2 'ipython-*.log files'
+          rm -f $log2
+        endif
+
+endsw

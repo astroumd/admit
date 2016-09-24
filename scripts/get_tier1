@@ -1,0 +1,31 @@
+#! /usr/bin/env casarun
+#   -*- python -*-
+#
+#   this produces an ASCII list of all tier1 lines so you can
+#   use them for LineID's references=
+#
+#   You'll have to capture the output and cull on the non-list stuff
+#   See $ADMIT/etc/tier1_lines.list for the full list
+
+
+# freq (in GHz) range to search for 
+f0 = 31.0
+f1 = 950.0
+
+from admit.util.Tier1DB import Tier1DB
+# connect to the DB
+t1db = Tier1DB()
+# query for all primary transitions between 90.0 and 90.1 GHz
+t1db.searchtransitions(freq=[f0,f1])
+# get the results as LineData objects
+results = t1db.getall()
+print "# Primary transitions"
+for line in results:
+    print line.frequency,line.formula
+print "# Hyperfine transitions"
+for line in results:
+  if line.getkey("hfnum") > 0:
+    t1db.searchhfs(line.getkey("hfnum"))
+    hfsresults = t1db.getall()
+    for hfs in hfsresults:
+	print hfs.frequency,line.formula,"   #",line.hfnum

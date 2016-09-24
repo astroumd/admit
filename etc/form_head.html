@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!-- ******************** START CSS INCLUDES ******************** -->
+
+<link href="resources/css/bootstrap.min.css" rel="stylesheet" media="screen"></link>
+<link rel="stylesheet" href="resources/fancybox/source/helpers/jquery.fancybox-thumbs.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="resources/fancybox/source/jquery.fancybox.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="resources/fancybox/source/helpers/jquery.fancybox-buttons.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="resources/css/pipeline.css" type="text/css" media="screen" />
+<link rel="stylesheet" href="resources/css/sweetalert.css" type="text/css" media="screen" />
+
+<!-- admit.css comes last so that we override what we want to -->
+<link href="resources/css/admit.css" rel="stylesheet" media="screen"></link>
+<!-- END CSS INCLUDES -->
+
+<!-- ******************** START JAVSCRIPT INCLUDES ******************** -->
+<!-- jQuery library.  This must be first!!  -->
+<script src="resources/js/jquery-1.11.3.min.js"></script>
+
+<!-- boostrap library -->
+<!-- ** Include BEFORE jquery.serializejson! -->
+<script src="resources/js/bootstrap.min.js"></script>
+
+
+<!-- fancybox for popping up images -->
+<script src="resources/fancybox/source/jquery.fancybox.pack.js"></script>
+<script src="resources/fancybox/source/helpers/jquery.fancybox-buttons.js"></script>
+<script src="resources/fancybox/source/helpers/jquery.fancybox-media.js"></script>
+<script src="resources/fancybox/source/helpers/jquery.fancybox-thumbs.js"></script>
+
+<!-- serializejson allows form data to be encapsulated in an object  -->
+<!-- that is more sophisticated than jQuery's serializeArray() -->
+<!-- *** Include AFTER bootstrap or collapse stops working!!!! -->
+<!-- *** Include AFTER fancybox or get javascript errors !!!! -->
+<script src="resources/js/jquery.serializejson.js"></script> 
+
+<!-- Fancy alert boxes. -->
+<script src="resources/js/sweetalert.min.js"></script> 
+
+<!-- knockout for client side viewmodel manipulation -->
+<script type="text/javascript" src="resources/js/knockout-3.4.0.js"></script>
+<!-- amplify for browser storage -->
+<script type="text/javascript" src="resources/js/amplify.store.min.js"></script>
+<!-- admit specific javascript functions -->
+<script type="text/javascript" src="resources/js/admit.js"></script>
+
+
+<!-- live.js for auto-refresh of pages -->
+<script src="resources/js/live.js"></script>
+
+<!-- todo: possibly move this to admit.js -->
+<script type="text/javascript">
+
+//===================================================
+// SUBMIT KEYWORD UPDATES VIA JSON
+// These are decoded by ADMIT http request handler,
+// to update the ADMIT object and re-run.
+//===================================================
+
+    function admitformsubmit() {
+       var aform = $(document.admitform);
+       var dat2 = JSON.stringify(aform.serializeJSON());
+
+       // debug, show the json string 
+       //console.log(dat2);
+       // disable the button so they can't hit it while already running
+       var run_button = document.getElementById('runadmitbutton');
+       run_button.innerHTML = '<center>Submitted...<br>Please wait</center>';
+       run_button.disabled=true;
+
+       $.post(
+         aform.attr("action"),
+         dat2,
+         responseMethod
+       );
+
+
+       return false;
+    }
+
+    function responseMethod(response_code) {
+       //document.getElementById('response').innerHTML = response_code;
+       //if we succeeded clear the session storage associated with lineEdit
+       sessionStorage.clear();
+       var run_button = document.getElementById('runadmitbutton');
+       run_button.disabled=false;
+       run_button.innerHTML = 'Re-run ADMIT flow';
+       //document.getElementById('response').innerHTML = "responded";
+    }
+
+    function updateflowstate() {
+       // need to change the value from run to dryrun so that
+       // python code knows what to do.
+       document.getElementById("input-admit").value = "dryrun";
+       var aform = $(document.admitform);
+       var dat2 = JSON.stringify(aform.serializeJSON());
+
+       // debug, show the json string 
+       console.log(dat2);
+       // disable the button so they can't hit it while already running
+       var run_button = document.getElementById('updateflowbutton');
+       run_button.innerHTML = '<center>Submitted...<br>Please wait</center>';
+       run_button.disabled=true;
+
+       $.post(
+         aform.attr("action"),
+         dat2,
+         flowresponseMethod
+       );
+
+
+       return false;
+    }
+
+    function flowresponseMethod(response_code) {
+       var run_button = document.getElementById('updateflowbutton');
+       run_button.disabled=false;
+       run_button.innerHTML = 'Update ADMIT flow state (dry run)';
+    }
+
+
+$(document).ready(function(){
+    //===================================================
+    // show the live elements if we have an http connection,
+    // otherwise show the static elements.
+    //===================================================
+    if (document.location.protocol != "file:") {
+        staticdiv = document.getElementsByClassName("staticdisplay");
+        for (i=0; i <  staticdiv.length; i++ ) {
+            staticdiv[i].style.display = "none";
+        }
+    } else {
+        livediv = document.getElementsByClassName("livedisplay");
+        for (i=0; i <  livediv.length; i++ ) {
+            livediv[i].style.display = "none";
+        }
+    }
+
+    //===================================================
+    // activate fancybox macros for all elements in that class
+    //===================================================
+    $(".fancybox").fancybox(); 
+
+    //===================================================
+    // Collapse button behavior is a toggle
+    //===================================================
+    $(".toggle-btn").click(function(){
+        $(".collapse").collapse('toggle');
+    });
+
+    //===================================================
+    // Don't let "enter" in a textbox submit the form.
+    // See http://stackoverflow.com/a/1977126
+    //===================================================
+    $(document).on("keypress", "input:not(textarea):not([type=submit])", function(event) {
+        if (event.keyCode == 13) {
+            //alert("nothing happens");
+            event.preventDefault();
+        }
+    });
+
+    /* Check for browser type since we currently have problems with Firefox,
+     * and alert user how to mitigate
+     */
+    var thisbrowser = admit.browser();
+    if ( thisbrowser != 'Chrome' && thisbrowser != 'Safari' ) {
+       /* Show users an alert about how sucky Firefox is, unless they've seen it already */
+       if (admit.getCookie("browseralert") == "" ) {
+           swal({ title: "Incomplete Browser Support",
+                  html: true, 
+                  text: "Your browser <b>" + thisbrowser + "</b> is not fully supported by ADMIT.  This page will still function, but you will briefly see a 'server disconnected' page after you press the 'dry run' or 're-run' button below.  This is a bug in Firefox, and we have implemented a workaround to minimize your annoyance factor. <br><br>ADMIT currently fully supports browsers Chrome and Safari.",
+                  type: "warning",
+                  confirmButtonText: "OK"
+                }
+               );
+           /* Set a cookie so they don't see this alert every time they visit the page.
+            * The cookie expires with the browser session or in 10 days, whichever comes first.
+            */
+           admit.setCookie("browseralert","shown",10)
+       }
+    }
+
+});
+</script>
+
+<!-- ******************** END JAVSCRIPT INCLUDES ******************** -->
+
+<title>ADMIT Task Inputs for %s</title>
+</head>
+
+<body>
+<div class='navbar navbar-fixed-top'>
+    <div class="navbar-inner">
+        <div class="nav-collapse collapse">
+            <a class="brand" href="#">ADMIT Task Inputs for %s</a><br><br>
+            <ul class="nav">
+                <li class=""><a href="index.html">Flow View</a></li>
+                <li class="active"><a href="form.html">Form View</a></li>
+                <li class=""><a href="lineIDedit.html">LineID Editor</a></li>
+                <li class=""><a href="log.html">ADMIT Log</a></li>
+                <li class="divider-vertical"></li>
+                <li class=""><a href="http://admit.astro.umd.edu/admit/"><i class="icon-home"></i>ADMIT documentation</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+<div id="app-container" class="container-fluid">
+<br>
+<div class="nav-header">Tasks listed in execution order - click on task name to see its outputs.   Colors and icons indicate the status of each task:<br>
+<span class="ico-pull pull-left">
+<i class="icon-ok"></i>&nbsp;Task ran normally (Green) &nbsp;|&nbsp;
+<i class="icon-warning-sign"></i>&nbsp;Task needs to be re-run (Orange) &nbsp;|&nbsp;
+<i class="icon-ban-circle"></i>&nbsp;Task is disabled (Pink)&nbsp;|&nbsp; 
+<i class="icon-fire"></i>&nbsp;Task has crashed (Red)
+</span>
+</div>
+
+<div class="accordion" id="details-accordion">
+<form id="admitform" name="admitform" method="post">
+<input id="input-admit" class="input-admitform" type="hidden" value="run" name="command"><br>

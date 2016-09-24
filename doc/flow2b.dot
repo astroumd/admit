@@ -1,0 +1,11 @@
+digraph flow2 {
+  a0 [shape=box];
+  a1 [shape=box];
+  a2 [shape=box];
+  a0 -> b0 -> a1 -> b11;
+  a1 -> b12;
+  b11 -> a2 -> b2;
+  // now feed this one back into an earlier product
+  b2 -> a1;
+}
+

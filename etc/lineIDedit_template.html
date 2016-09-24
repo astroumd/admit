@@ -1,0 +1,148 @@
+
+
+    <div class="accordion-group">
+        <div class="accordion-heading">
+            <a class="accordion-toggle %s" data-toggle="collapse" data-parent="#details-accordion" href="#collapse%d">
+<span class="ico-pull pull-right">
+%s
+</span>
+            %s (taskid=%d) &nbsp;&nbsp;&nbsp; <span style="color:black">%s</span>
+</a>
+        </div>
+        <div id="collapse%d" class="accordion-body collapse">
+
+<div id="lineidtable-%d"> 
+<br>
+<!-- images will go here -->
+<div id="images-%d">
+    <h2>Plots of Identified Spectral Lines</h2>
+    %s
+</div><!-- images-%d -->
+
+<div> <!-- table editor -->
+<hr>
+    <div class="staticdisplay">
+        <b>
+        If you had used the localhost: instead of file: protocol, you'd see
+        a table you could edit here.
+        </b>
+    </div><!-- staticdisplay -->
+
+<div class="livedisplay" id="table-%d">
+    <table class="table table-admit table-striped table-bordered" id="linetable-%d">
+    <thead >
+    <tr data-bind="foreach: lineIDTableHeader">
+    <!--
+    <th data-bind="style: {display : xhidden ? 'none': 'table-cell'}">
+    -->
+    <th data-bind="visible: $root.visible()[$element.cellIndex]">
+    <span data-bind="text: name"></span></th>
+    </tr>
+    <tr data-bind="foreach: lineIDTableHeader">
+    <th data-bind="style: {display : xhidden ? 'none': 'table-cell'}">
+    <span data-bind="text: unit"></span>
+    </th>
+    </tr>
+    </thead>
+    <tbody data-bind="foreach: rows">
+    <tr>
+    <td data-bind="style: {backgroundColor : disposition() == 'accept' ? 'green' : 'orange'}"> 
+    <center>
+    <!-- the buttonGroup viewmodel attribute ensures each row has a unique radiobutton group name -->
+    <input type="radio" value="accept" data-bind="attr: {name: buttonGroup}, checked: disposition"> 
+    </center>
+    </td>
+    <td data-bind="style: {backgroundColor : disposition() == 'force'? 'green' : 'orange'}"> 
+    <center>
+    <input type="radio" value="force" data-bind="attr: {name: buttonGroup}, checked: disposition"> 
+    </center>
+    </td>
+    <td data-bind="style: {backgroundColor : disposition() == 'reject' ? 'red' : 'orange'}"> 
+    <center>
+    <input type="radio" value="reject" data-bind="attr: {name: buttonGroup}, checked: disposition"> 
+    </center>
+    </td>
+    <!--if the user rejected an ID, we don't want them to edit it. -->
+    <!-- of course, then could have editted it first...hmmm -->
+    <td data-bind="visible: $root.visible()[$element.cellIndex]">
+    <input size="10" data-bind="value: frequency, disable: !isForced()"/></td>
+
+    <td data-bind="visible: $root.visible()[$element.cellIndex]">
+    <input size="20" data-bind="value: uid, disable: !isForced()"/></td>
+
+    <td data-bind="visible: $root.visible()[$element.cellIndex]">
+    <input size="16" data-bind="value: formula, disable: !isForced()"/></td>
+    <!--
+    <span data-bind="text: formula"></span></td>
+    -->
+
+    <td data-bind="visible: $root.visible()[$element.cellIndex]">
+    <input size="16" data-bind="value: name, disable: !isForced()"/></td>
+    <!--
+    <span data-bind="text: name"></span></td>
+    -->
+
+    <td data-bind="visible: $root.visible()[$element.cellIndex]">
+    <input size="20" data-bind="value: transition, disable: !isForced()"/></td>
+
+    <td data-bind="visible: $root.visible()[$element.cellIndex]">
+    <input size="6"  data-bind="value: velocity, disable: !isForced()"/></td>
+
+    <td data-bind="visible: $root.visible()[$element.cellIndex]">
+    <span data-bind="text: elower"></span></td>
+
+    <td data-bind="visible: $root.visible()[$element.cellIndex]">
+    <span data-bind="text: eupper"></span></td>
+
+    <td data-bind="visible: $root.visible()[$element.cellIndex]">
+    <span data-bind="text: linestrength"></span></td>
+
+    <td data-bind="visible: $root.visible()[$element.cellIndex]">
+    <span data-bind="text: peakintensity"></span></td>
+
+    <td data-bind="visible: $root.visible()[$element.cellIndex]">
+    <span data-bind="text: peakoffset"></span></td>
+
+    <td data-bind="visible: $root.visible()[$element.cellIndex]">
+    <span data-bind="text: fwhm"></span></td>
+
+    <td data-bind="visible: $root.visible()[$element.cellIndex]">
+    <input size="5"  data-bind="value: startchan, disable: !isForced()"/></td>
+
+    <td data-bind="visible: $root.visible()[$element.cellIndex]">
+    <input size="5"  data-bind="value: endchan, disable: !isForced()"/></td>
+
+
+    <td data-bind="visible: $root.visible()[$element.cellIndex]">
+    <span data-bind="text: peakrms"></span></td>
+
+    <td data-bind="visible: $root.visible()[$element.cellIndex]">
+    <span data-bind="text: blend"></span></td>
+
+    <td data-bind="visible: $root.visible()[$element.cellIndex]">
+    <span data-bind="text: force"></span></td>
+    </tr>
+    </table>
+</div> <!-- table-%d -->
+
+<div id="formdiv-%d"> <!--form -->
+    <form id="admitform-%d" name="admitform-%d" method="post">
+    <input class="input-admitform" type="hidden" value="linelistbdp" name="command">
+    </form>
+
+    <div class="livedisplay" id="buttonsdiv-%d">
+        <button class="btn btn-primary" data-bind="click: reset">Reset</button>
+        <button class="btn btn-primary" data-bind="click: add">Add Line</button>
+        <button class="btn btn-primary" data-bind="click: setforcereject">Set LineID Force/Reject Keywords</button>
+        <button class="btn btn-primary" id="writebdpbutton" name="writebdpbutton" data-bind="click: writebdp">Overwrite LineID Output BDP</button>
+        <!--
+        <button data-bind="click: togglehidden">Toggle Hidden Columns</button>
+        -->
+    </div> <!-- buttonsdiv-%d -->
+</div> <!-- for-%d  -->
+
+</div> <!-- table editor -->
+</div> <!-- linetable-%d  -->
+</div> <!-- collapse-%d-->
+</div> <!-- accordion group -->
+

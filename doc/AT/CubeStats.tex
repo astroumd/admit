@@ -1,0 +1,73 @@
+% in RST now, don't edit here
+
+\subsection{CubeStats\_AT}
+
+\subsubsection{Description}
+
+CubeStats\_AT will compute per-channel statistics, and can help
+visualize what spectral lines there are in a cube. 
+They are stored in a CubeStats\_BDP.
+For certain types of cubes, these can be effectively used in LineID\_AT to identify
+spectral lines. In addition, tasks such as CubeSum\_AT and LineCube\_AT can use this if the noise
+depends on the channel.
+
+
+\subsubsection{Use Case}
+
+Many programs needs to know (channel dependent) statistics from a cube in order to be able to
+clip out the noise and get as much signal in the processing pipeline. In addition, the analysis
+to compute channel based statistics needs to include some robustness, to remove signal. This
+will become progressively hard if there is a lot of signal in the cube.
+
+\subsubsection{Input BDPs}
+
+\begin{description}
+
+\item[SpwCube\_BDP] input spectral window cube, for example as created with Ingest\_AT.
+
+\end{description}
+
+
+\subsubsection{Input Keywords}
+
+\begin{description}
+
+\item[robustness] Several options can be given here, to select the robust RMS.
+(negative half gauss fit, robust, ...)
+
+\end{description}
+
+\subsubsection{Output BDPs}
+
+\begin{description}
+
+\item[CubeStats\_BDP] A table containing various quantities (min,max,median,rms) on a per channel basis.
+A global statistics can (optionally?) also be recorded. The graphical output contains at least two plots:
+1) histogram of the distribution of Peak (P), Noise (N), and P/N, typically logarithmically; 
+2) A line diagram shows the P, N and P/N (again logarithmically) as function of frequency.
+As a good diagnostic, the P/N should now not depend on frequency if only line-free channels
+are compared. It can also be a good input BDP to LineID\_AT.
+
+\end{description}
+
+
+
+\subsubsection{Procedure}
+
+The imstat task (or the ia.statistics tool) in CASA can compute plane based statistics. Although
+the  {\it medabsdevmed} output key is much better than just looking at {\it sigma}, 
+a signal clipping robust option may soon be available to select a more robust way to compute what
+we call the Noise column in our BDP. Line detection (if this BDP is used) is all based
+on log(P/N).
+
+\subsubsection{CASA tasks used}
+
+\begin{description}
+
+\item[imstat] extract the statistics per channel, and per cube. Note that
+the tool and task have different capabilities, for us, we need to the tool,
+but this does not have the new robust option yet.
+
+\end{description}
+
+\clearpage

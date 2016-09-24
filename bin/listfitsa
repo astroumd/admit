@@ -1,0 +1,73 @@
+#! /usr/bin/env python
+#
+#    pyfits/astropy version of ADMIT's listfits
+#    100 files on listfits take ~44", 4" with listfitsa
+#    ~1900 files with listfitsa take about ...
+#
+#    -v         print header instead of one line summary
+
+# python system modules
+import sys, os, math
+#
+
+
+#  import astropy.io.fits as fits
+import pyfits as fits
+
+argv = sys.argv
+
+total = len(argv)-1
+counter = 0
+verbose = False
+
+def cube_size(ss):
+    size = 1
+    for s in ss:
+        size = s * size
+    return size
+
+def grab(hdu, key, default):
+    if hdu.header.has_key(key):
+        return hdu.header[key]
+    return default
+
+def dim(dimt):
+    """convert a tuple into a list, and reverse the elements
+    """
+    n = len(dimt)
+    dimrl = range(n)
+    for i in range(n):
+        dimrl[i] = dimt[n-i-1]
+    return dimrl
+
+for ff in argv[1:]:
+    if ff=='-v':
+      verbose = True
+      continue
+
+    if '/' in ff:
+        fn = ff.rsplit('/', 1)[1]
+    else:
+        fn = ff
+    if not os.path.isfile(ff):
+        continue
+
+    f = fits.open(ff)
+    hdu = f[0]
+    if verbose:
+        print "### FITS FILE ",ff
+        print hdu.header
+        f.close()
+        continue
+    s = hdu.shape
+    srcname = grab(hdu,'object',' ')
+    if srcname == ' ':
+        srcname = grab(hdu,'field','Unknown')
+    c1 = grab(hdu,'crval1', 0.0)
+    c2 = grab(hdu,'crval2', 0.0)
+    c3 = grab(hdu,'crval3', 0.0) / 1e9
+    f.close()
+    size = cube_size(s)*4.0/1024.0/1024.0/1024.0
+    print fn,dim(s),srcname,c1,c2,c3,"%.3f" % size
+
+

@@ -1,0 +1,30 @@
+Some of the surprising features of CASA that may need a reminder from time to time
+
+
+1)  aborting a casarun script with ^C doesn't always kill python. Check with top if it's still
+    running.   "kill -9 PID" it explictly.   
+    Also check for remnant temp files (some are described in the casaclean script)
+
+2)  memory usage:   some tasks explode in memory, will eventually give it back, but
+    two tasks competing for these resources do not handle this process always equally 
+    gracefully.  One of them (or worse: both) will bomb out with a "malloc" error.
+
+3)  resizing a terminal can result in your scollbar not working anymore. CASA takes control
+    of your screen curses. Solution would be to ^Z your casa, issue the "reset" command,
+    "fg" back to casa, and hopefully scolling works again.
+    The symptom is the your scrollbar (or scolling the mouse) results in just the command
+    line in CASA to scroll through its history, but the regular output is stuck where it
+    was on the terminal screen.
+    -> no, reset, clear isn't solving this
+
+4)  scratch space.... many tasks use a large amount of scratch space. immoment() when using
+    with a channel dependant beam, will want to make a copy (two in fact) of the cube before
+    it can take the proper sum, using convolve2d().
+    
+5)  Avoid using the casa boolean T and F, use the python True and False.
+
+6)  CASA images are cdata(x,y), numpy arrays are ndata[y,x], both start counting at 0
+    cdata.shape returns (nx,ny)
+    ndata.shape return  (ny,nx)
+    Masked values True in CASA means the data is good
+    Masked values True in numpy.ma means the data is bad

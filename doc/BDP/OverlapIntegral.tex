@@ -1,0 +1,30 @@
+\subsection{Overlap Integral}
+\begin{description}
+\item[Type:] OverlapIntegral
+\item[Description:]
+
+This map shows regions of the field where emission of various spectral
+lines overlaps (or doesn't overlap). This map (FITS or JPG) can only be
+constructed after a set of zero moments has been created.  
+
+One can either create RGB type combinations of a selected set of lines
+or by assigning a different bit in a bitmask of emission if that line is
+present (over a cliplevel).
+
+The number of zero moments is between 2 and 8, with a typical number
+being 3 for RGB output and up to 8 for bitmask output.
+
+The OverlapIntegral could be generalized to Cubes as well but that
+is beyond the scope of our initial deliverable.
+
+\item[Constituents:]: BDP\_Image
+
+\item[ADMIT Task:]  AT\_OverlapIntegral
+
+\item[CASA Task(s):] TBD
+
+\item[Input BDP(s):] At least two Moment0 maps
+
+\item[Output BDP(s):]  Image (JPG or other format) representation of where
+emission from each input moment map overlaps.
+\end{description}

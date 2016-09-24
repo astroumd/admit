@@ -1,0 +1,27 @@
+\subsection{CubeSum}
+\begin{description}
+\item[Type:] CubeSum
+
+\item[Description:]
+
+A CubeSum is a moment map that is computed before any line
+identification/line cube is created.  That is, it is a sum over all
+emission lines in the cube.  It serves as a reference map where reliable
+signal is located, simply adding up all signal more than factor * sigma.
+
+sigma can be a single number for the cube.  or can vary as function of
+frequency, and/or a polynomial fit can be used to subtract it as a continuum
+like signal, and only the positive numbers are added into the moment map.
+
+\item[Constituents:]  BDP\_Image
+
+\item[ADMIT Task:] AT\_CubeSum \\
+   Keywords - moment to compute - 0,1,2
+
+\item[CASA Task(s):] immoments
+
+\item[Input BDP(s):] Spectral window cube
+
+\item[Output BDP(s):] Two-dimensional image
+\end{description}
+

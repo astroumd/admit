@@ -1,0 +1,37 @@
+#! /bin/csh -f
+#
+#
+#   this gets the "latest" CASA stable and installs a fresh ADMIT, plus pip/sphinx
+#   so you can build documentation
+#
+#   you'll need to setenv your CVSROOT, otherwise "cvs" will probably fail
+#   otherwise this can't be any much simpler
+#   Caveat: on my Ubuntu "make html pdf"  can hang and need <RET> ???
+
+set version  = 4.7.48       # May 7, 2016
+
+set url_base = https://svn.cv.nrao.edu/casa/distro/linux/stable/el6
+set root     = casa-stable-$version
+set tar      = $root.tar.gz
+
+if ($?CVSROOT == 0) then
+  echo No CVSROOT environment variable present for ADMIT
+  exit 1
+endif
+
+if (! -e $tar) wget $url_base/$tar
+rm -rf $root
+tar xf $tar
+
+setenv CASA_ROOT `pwd`/$root
+cd $root
+cvs -Q co admit
+cd admit
+make config
+source admit_start.csh
+admit
+make pip
+rehash
+# make docs
+# ln -s /chara/admit/testdata; make integration >& LOG1
+

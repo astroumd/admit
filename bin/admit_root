@@ -1,0 +1,44 @@
+#! /bin/sh
+#
+#   $ADMIT/bin/admit_root
+#
+#   return $ADMIT (admit_root) for those who don't have it in a
+#   CASA environment. To speed up your scripts, you are adviced to
+#         setenv ADMIT `admit_root`
+#   or
+#         export ADMIT=`admit_root`
+#
+#   Since admit_root.py is very verbose (despite --quiet and --nologger)
+#   this front-end is needed that filters out the last line "leaving casapy..."
+#   and the very last line should be the real admit_root
+#
+#   On my ubuntu (casa 4.6 is very verbose) this adds a 9 second overhead
+#   to calling an admit recipe!!!  Hence you are adviced to use $ADMIT
+#   In the developer environment $ADMIT is already known, and the overhead
+#   is a mere 0.01 sec
+#   $ADMIT:     36.100u 10.052s 1:06.98 68.9%	0+0k 48704+39144io 143pf+0w
+#               36.436u  2.672s 1:01.46 63.6%	0+0k 120952+39120io 565pf+0w
+#               36.028u  2.360s 0:54.03 71.0%	0+0k 14784+39120io 7pf+0w
+#               35.616u  2.072s 0:52.77 71.4%	0+0k 2704+39120io 17pf+0w
+#
+#   CASA-ADMIT: 35.480u  2.672s 0:57.25 66.6%	0+0k 22200+38120io 105pf+0w
+#               40.632u  3.224s 1:14.49 58.8%	0+0k 294920+38232io 938pf+0w
+#
+#               35.500u  2.308s 0:54.72 69.0%	0+0k 672+38128io 9pf+0w
+#               40.096u  2.780s 1:03.36 67.6%	0+0k 15472+38240io 131pf+0w
+#
+#               35.432u  2.040s 0:52.43 71.4%	0+0k 392+38160io 11pf+0w
+#               40.124u  2.452s 1:00.77 70.0%	0+0k 4664+38272io 43pf+0w
+
+
+# if $ADMIT exists, return that, otherwise compute it the expensive way
+if [ $ADMIT ]
+then
+  echo $ADMIT
+else  
+  admit_root.py  2>/dev/null |  grep -v ^leaving  | tail -1
+fi
+
+# @todo    do we need a sanity test here, if that directory exists?
+#   admit_root = `admit_root ......`
+#   if not exist $admit_root:  raise alarms

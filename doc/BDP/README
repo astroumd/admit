@@ -1,0 +1,23 @@
+Here you will find a description of all the BDP we use or plan to use:
+Ignoring all the inter-related hierarchies of 
+      "projects/sources/fields/sous/gous/mous"
+we drill down to a series of BandCube's per one of those
+
+BandCube[nbands]              normally in freq space
+  Summary
+  CubeStats
+  CubeSum                     a mom0 like map of all emission (for PV)
+  CubeSpectrum   
+  SpectralMap
+  PVSlice
+  PVCorr 
+  ContinuumMap                what about spectral index ?
+  LineList                    
+    LineCube                  normally in doppler space and regridded
+    LineCubeMom0
+    LineCubeMom1
+    LineCubeMom2
+    FeatureList               for selected feature extraction method
+OverlapIntegral               for selected lines
+DescriptionVector             for selected algorithm/hash
+

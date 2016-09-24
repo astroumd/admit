@@ -1,0 +1,41 @@
+#! /bin/csh -f
+#
+#  Report the result of an ADMIT run
+#
+
+if ($?ADMIT == 0) then
+  echo 'No $ADMIT solution yet'
+  # this is also where the non-developer environment needs to go
+  exit 1
+  setenv ADMIT ...
+endif
+
+
+if ($#argv == 0) goto usage
+
+
+foreach arg ($*)
+  if (! -e $arg) then
+    echo Warning: skipping $arg, does not exist
+    continue
+  endif
+
+  if (-f $arg) then
+    echo -n "ADMIT_RESULT $arg : "
+    tail -2 $arg | head -1
+    continue
+  endif
+
+  if (-d $arg) then
+    echo -n "ADMIT_RESULT $arg : "
+    set admit_log = $arg/admit.log
+    tail -1 $admit_log
+    continue
+  endif
+end
+
+exit 0
+
+usage:
+    echo Usage:
+    echo "$0 admit.logfile(s)"

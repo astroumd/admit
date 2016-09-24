@@ -1,0 +1,46 @@
+\subsection{LineList Design}
+
+\subsubsection{Description}
+An table of spectral lines detected in a spectrum, map, or cube.
+Lines detected are an outcome of the procedure to take something
+like a CubeSpectrum, CubeStats or PVCorr, with a known or unknown VLSR.
+Cubes normally are references by frequency, but if already by velocity,
+procedures are needed to find/identity aliases lines in the same band.
+
+\subsubsection{Use Case}
+
+\subsubsection{Inputs}
+{\bf BDPs}\\
+This AT will take one of the following input BDP's:
+\begin{description}
+\item[CubeSpectrum] with or without a CubeStats, if no CubseStats is supplied then a basic rms is computed from the input spectrum
+\item[CubeStats] Peak/RMS
+\item[PVSlice]
+\item[SpectralMap]
+\end{description}
+
+{\bf Parameters}\\
+\begin{description}
+\item[]
+\end{description}
+
+\subsubsection{Products (LineList\_BDP)}
+The AT will produce a single LineList\_BDP (with the exception of a SpectralMap as input, in this case a LineList\_BDP for each spectrum will be created). The items of the BDP will be a table with the following columns:
+\begin{description}
+\item[frequency] in GHz, precise to 5 digits
+\item[unique identifier] ANAME-FFF.FFF ; e.g.  CO-115.27,   N2HP-93.173,   U-98.76
+\item[likelihood] a number scaled 0...1 of detection probability, with 1 being most probable
+\item[full name] CO, CO\_v1, C2H, H13CO+
+\item[transition] Quantum numbers
+\item[velocity] v$_{lsr}$ or offset velocity (based on rest frequency)
+\item[energies] lower and upper state energies in K
+\item[line strength] spectral line strength in D$^2$
+\item[peak] the peak intensity of the line in Jy/bm
+\item[fwhm] the FWHM of the line in km/s
+\end{description}
+Additionally an item to denote whether the velocity is v$_{lsr}$ or offset velocity. The offset velocity will only be used when the v$_{lsr}$ is not known and cannot be determined. The coordinates of where the line list applies along with units will also be stored.
+
+\subsubsection{Line List Database}
+The line list database will be the splatalogue subset that is already included with the CASA distribution.
+\subsubsection{Proceedure}
+\clearpage

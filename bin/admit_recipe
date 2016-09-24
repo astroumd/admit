@@ -1,0 +1,41 @@
+#! /bin/csh -f
+#
+#  run an ADMIT recipe from the Unix commandline:
+#  Instead of CASA's python style
+#         admit.recipe("Line_Moment","abc.fits",key="value")
+#  you can then do
+#         admit_recipe Line_Moment abc.fits key="value"
+
+
+if ($?ADMIT == 0) then
+  setenv ADMIT `admit_root`
+endif
+echo "ADMIT version `python $ADMIT/admit/version.py`"
+
+set ar = $0
+
+set scripts = $ADMIT/admit/recipes
+
+if ($#argv == 0) goto usage
+
+if (-d $scripts) then
+    set r = $scripts/$1.py
+    set sname = $1
+    shift argv
+    # the exec is for the MAC hanging if no exec
+    exec $r "$argv"
+else
+    echo You have an outdated ADMIT, the $scripts directory does not exist
+endif
+
+exit 0
+
+usage:
+    echo "Available recipes: (see also $scripts)"
+    echo ------------------
+    set all = `(cd $scripts; ls *.py | sed s/.py// | grep -v __init__ | grep -v recipe)`
+    foreach a ( $all )
+       echo $a
+    end
+    echo "For help on a recipe, type 'admit_recipe Recipe_Name help'"
+    exit 1

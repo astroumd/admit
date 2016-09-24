@@ -1,0 +1,102 @@
+
+\documentclass[10pt]{article}
+\usepackage{hyperref}
+\title{ADMIT Code Testing}
+\author{Marc Pound}
+\oddsidemargin 0.0 pt
+\textwidth 6.5in
+\textheight 9in
+\topmargin -0.25in
+\begin{document}
+\maketitle
+
+\section{Unit Tests}\label{s-unittests}
+
+A unit test should test only the functionality and correctness of a class
+and not rely too heavily on external classes.  The AT and BDP base classes
+can be used in most cases where an AT or BDP is needed for the unit test.
+Unit tests should aim to cover as much of the code as possible, even
+if for trivial tests.
+
+We have adopted the Python
+\href{http://docs.python.org/2/library/unittest.html}{\tt unittest}
+module as our unit testing framework.  This module is the incorporation
+fo the PyUnit package into the Python main line.   The structure and use
+of {\tt unittest} is similar to cppunit and JUnit that we are already
+familiar with through CARMA development.  Furthermore, since it is in
+the Python main line, we do not have to worry about relying on external
+packages with uncertain future support.
+
+Use of {\tt unittest} is straightforward. Unit test classes derive
+from {\tt unittest.TestCase} and define setUp() and tearDown() methods
+for initialization and clean up.   Any method with name prefix {\tt test\_}
+automatically gets run by unittest.main().   Note that the test methods
+are run in alphabetical order, so use method naming to control test order
+if you need to or set up a suite following the web page instructions. 
+Various assert methods are provided to test conditions, which the test
+runner will collect and report at the end of the run.  Note the {\tt
+assertRaises()} method provided: it is important for us to test that
+exceptions are raised under exceptional conditions. See the unittest web
+page and unittest\_FM.py for further examples.
+
+
+\section{Integration Tests}\label{s-integrationtests}
+
+The purpose of integration testing is to verify that individual tasks
+and classes work correctly as a group.   For example, an integration
+test might insert several ATs into the FlowManager, then run the flow
+verifying the output at each stage against fiducial data. The {\tt unittest}
+infrastructure should also work well for conducting integration tests. Using
+it also means we only have to learn one package for all of our testing.
+
+
+\section{Guidelines For Writing Tests}\label{s-guidelines}
+
+Below are some simple guidelines for creating unit and integration tests.  
+Following these guidelines will make automated testing easier as well 
+as help us to understand each others' tests.
+
+\noindent Requirements for unit and integration tests:
+\begin{enumerate}
+\item All unit and integration tests must live in a {\tt test} subdirectory.
+\item All unit test file names must have the prefix {\tt unittest\_}, e.g. ``unittest\_FM.py'' is the Flow Manager unit test.
+\item All integration test file names must have a prefix {\tt integrationtest\_}.
+\item All data required for integration testing must reside either in
+the test subdirectory in which the test code resides or in \$ADMIT/admit/data.
+\item Unit tests should minimize clutter to stdout so that the PASS/FAIL output is easy to see.
+\end{enumerate}
+
+The top-level Makefile now has a target `make unit' which will run
+unit tests and `make integration' to run integration tests.  Both use
+a simple {\it find} command to just-in-time generate the list of tests to
+be run, e.g.
+
+\begin{verbatim}
+find . -path \*test/unittest_\* -print -exec python {} \;
+find . -path \*test/unittest_\* -print -exec casarun {} \;
+\end{verbatim}
+
+
+%\section{Code Coverage}\label{s-codecoverage}
+%
+%Code coverage measurements indicate the effectiveness
+%of tests by showing which code is and isn't actually
+%executed by the tests.  The coverage tool most recommended is
+%\href{http://nedbatchelder.com/code/coverage}{coverage.py}.
+%Currently, our codebase is not so large that we need coverage measurements,
+%but we can think about whether this is something we want.
+%
+\section{Automated Build and Testing}\label{s-automated}
+
+Automatic compiling and running of unit and integration tests is
+managed by buildbot (\url{http://www.buildbot.net}).  We have leveraged
+the buildbot master that was set up on chara.astro.umd.edu for CARMA, 
+and added an ADMIT buildbot slave on eris.astro.umd.edu.  The build
+checks out a full CVS tree, builds source and documentation, and
+runs unit and integration tests.  This is done once per hour, but
+can also occur in response to checkins or a build requested submitted
+on the web page.  Built documentation is viewable at \url{http://carma.astro.umd.edu/admit}.
+Instructions on how to set up buildbot and the files needed for our
+particular installation are in \$ADMIT/buildbot.
+
+\end{document}

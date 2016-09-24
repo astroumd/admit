@@ -1,0 +1,16 @@
+#! /usr/bin/env python
+#
+#  watch out for the usage of  
+#       python2.7/site-packages/
+#  vs.
+#       python2.7/dist-packages/
+#
+#  Debian (e.g. ubuntu) uses dist-packages/
+
+import sys, os 
+
+# import site; site.getsitepackages()
+
+from pprint import pprint as pp
+pp(sys.path)
+

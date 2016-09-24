@@ -1,0 +1,30 @@
+\subsection{Position-Velocity Slice}
+\begin{description}
+\item[Type:] PVSlice
+\item[Description:]
+
+This is a position-velocity slice through a section of the cube that has
+been selected in a deterministic way.  How the slice is cut in RA-DEC
+is determined from either CubeSum's moments of inertia, or a map of the
+CubeStats::maxpos column, again via a moments of inertia.
+
+Other than another nice diagnostic for people to look at (notably the JPG
+version), the PVSlice can be used by PVCorr to create a cross-correlation
+in the V direction to compute the input for a LineList generator. Since
+the selected emission for this is limited to where the strongest (or 
+a selected) line in PV space is, this generally increases the detection
+likelihood for weak lines and also convolves out any velocity (frequency)
+uncertainties in the line identification process.
+
+\item[Constituents:]: BDP\_Image
+
+\item[ADMIT Task:] AT\_PVslice \\
+  Keywords: TBD
+
+\item[CASA Task(s):] impv
+
+\item[Input BDP(s):] CubeSum or CubeStats
+
+\item[Output BDP(s):] Two-dimensional image
+\end{description}
+ 

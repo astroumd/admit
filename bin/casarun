@@ -1,0 +1,59 @@
+#! /bin/csh -f
+#
+#   $ADMIT/bin/casarun
+#
+#   this peculiar script allows one to write executable
+#   python scripts and place them in your $PATH with a top
+#   line
+#          #! /usr/bin/env casarun
+#
+#   It really is nothing more than
+#          exec casapy --quiet --nogui -c $*
+#
+#   But for convenience a few extra bells and whistles were added:
+#
+#   When invoked with  -c   if gives the count of the arguments
+#   in sys.argv[] that can be ignored if to be converted for
+#   classic post-casa argv processing.
+#   E.g.
+#   argv = admit.casa_argv(sys.argv)
+#   argv[0] is now the script name when you did
+#  
+# @todo  if don't see --nogui, return regular sys.argv?
+#        this way it can be used with with and without casa
+#
+# See also: http://ascl.net/1504.006 (drive-casa)
+
+
+#echo  CASARUN: $#argv  $*
+
+# noglob required so that $* is not interpreted before passing to casa -c.
+set noglob
+
+set casapy=(casa --quiet --nogui -c)
+
+if ($#argv == 0) then
+   echo "Usage:  $0 -c"
+   echo "        $0 scriptname [ARGS]"
+   echo ""
+   echo "Helper script to run admit recipes, e.g."
+   echo "   casarun hello.py 1 2 3"
+else if ("X$1" == "X-c") then
+   echo $#casapy
+else
+   # do the real work
+   #echo "doing exec $casapy $*"
+   exec $casapy $*
+endif
+
+
+#
+# The following python code can also be found in the admit module:
+#
+# def casa_argv(argv):
+#     lines = os.popen("casarun -c","r").readlines()
+#     n = int(lines[len(lines)-1].strip())
+#     return argv[n:]
+
+
+## if __name__ == '__main__':

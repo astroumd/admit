@@ -1,0 +1,103 @@
+ADMIT pre-installed
+-------------------
+
+If ADMIT has been installed on your system already, the only thing you
+need to do is source the appropriate **admit_start** script in your Unix shell.
+Use the **.sh**
+or **.csh** version depending on what flavor shell you are
+using. On most Linux and Mac systems these days give you **bash** as
+the default shell, so this would be
+
+.. code-block:: bash
+
+    source /path/to/admit_start.sh
+
+but the csh/tcsh version is also fully functional.
+Then test if the basics work with the command
+
+.. code-block:: bash
+
+     admit
+
+You should now also be able to **import admit** from within your CASA session
+and/or run an appropriate ADMIT script.
+Note that typing "admit" does not put you into an "admit" shell; it just prints
+out path definitions to show you that ADMIT is set-up for use.
+
+
+ADMIT install from scratch
+--------------------------
+
+If you do not have ADMIT installed, or want a fresh install, grab the
+latest export version of the source code and install it. This will typically
+not even take a minute, as no compilation is needed! It just assumes you have
+CASA pre-installed, and know of its location on the system.
+Or head over to http://casa.nrao.edu/casa_obtaining.shtml to install this
+for your system. ADMIT should work with CASA V4.5 and up.
+
+
+
+Grab a version of the source code, 
+pick one of many ways to do this:
+
+.. code-block:: bash
+
+    wget http://admit.astro.umd.edu/admit.tar.gz
+    
+    curl http://admit.astro.umd.edu/admit.tar.gz  | tar -zxf -
+    
+    
+and untar this file, then execute the configure step to create the
+two admit_start scripts. You will need to know where on your system
+the casa root directory is located. Here is a sample session for
+both Linux and Darwin:
+
+.. code-block:: bash
+
+    tar zxf admit.tar.gz
+    ls
+    cd admit_0.X.x
+    ./configure --with-casa-root=/path/to/casa-release-4.5.2-el6
+
+    ./configure --with-casa-root=/Applications/CASA.app/Contents
+
+where a CASA release had been placed in the /path/to/casa-release-4.5.2-el6
+(a typical Linux example) or /Applications/CASA.app/Contents (the common Darwin
+example)
+and admit_0.X.x is the downloaded version of ADMIT. You can also *wget* that
+fully named version, but the latest is always available under the generic name.
+
+Now you can source the startup file and you are set:
+
+.. code-block:: bash
+
+    source admit_start.sh
+
+If you want to check that ADMIT is set-up you can type:
+
+.. code-block:: bash
+
+    admit
+
+and will now see the directory paths and versions. Congratulations!
+
+Documentation
+-------------
+
+Your export version should come with an html as well as PDF version of the manual.
+Point your favorite tool at one of the following
+
+.. code-block:: bash
+
+    $ADMIT/docs/latex/ADMIT.pdf
+
+    $ADMIT/docs/html/index.html
+
+ADMIT mailing list
+------------------
+
+It is highly recommended you subscribe to the  ADMIT mailing list to hear
+about ADMIT updates, bug fixes, discussions etc. The address is
+**admit-users@googlegroups.com** and you can subscribe via
+https://groups.google.com/forum/#!forum/admit-users 
+

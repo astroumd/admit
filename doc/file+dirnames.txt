@@ -1,0 +1,214 @@
+This document outlines the naming convention of files (and directories) within an ADMIT tree, as well as the use of aliases.
+
+Currently the admit1.py script can be run as follows:
+	  $ADMIT/admit/test/admit1.py  --basename x X.fits
+
+where 'X.fits' is relative or full path to a (possibly long name) FITS cube, and 'x' an optional convenient shorter basename,
+also used below. This will result in an X.admit directory, within which all ADMIT files are located.
+
+
+Convention 1:    x.y -> x.y.bdp           (i.e. appending new .bdp extension, that's the default action in FooBar_BDP(xmlFile=...))
+Convention 2:    x.y -> x.bdp             (i.e. replacing extension with .bdp; deprecated)
+Convention 3:    x.png -> x_y.png         (i.e. appending _y to the rootname,   e.g. with thumbnails y=_thumb
+
+BDP names have a filename:     x.BTA.bdp
+  x   = basename (ALMA:  x1.x2.x3.x4.x5.x6, but can be renamed via Ingest_AT's basename=)
+  BTA = BDP Type Abbreviation (currently: im, cst, csm, csp, pv, pvc, ll, lseg, mom_0, mom_1, mom_2)
+  bdp = the required extension
+
+                        input        ->       output                    
+                        -----                 ------                    
+Ingest_AT               [X.fits]              x.im.bdp  (and x.im)                    basename= used to convert 'X' to 'x'
+
+ContinuumSub_AT         x.im                  x.cim   (and x.cim.bdp)
+                                              x.lim   (and x.lim.bdp)
+
+CubeStats_AT            x.im.bdp              x.cst.bdp                               alias='a' would result in x-a.cst.bdp
+                                              x.cst.png                 
+                                                                    
+                                              imstat0.log (debugging)
+                                              imstat1.log (debugging)
+
+CubeSum_AT              x.im.bdp              x.csm.bdp (and x.csm)
+                        x.cst.bdp
+
+
+CubeSpectrum_AT         x.im.bdp              x.csp.bdp
+                                              x.csp_0.png
+                                              x.csp_1.png
+
+PVSlice_AT              x.im.bdp              x.pv.bdp
+
+PVCorr_AT               x.pv.bdp              x.pvc.bdp
+
+LineSegment_AT          x.csp.bdp             x.lseg.bdp                                x.lseg_seg000.png
+                        x.cst.bdp                                                       x.lseg_statseg0.png
+                                                                                        x.lseg_segsummary.png
+											
+LineID_AT               x.csp.bdp             x.ll.bdp                                  x.ll_spec000.png
+                        x.cst.bdp             x.ll.png                                  x.ll_spec000.svg
+			                                                                x.ll_statspec0.png
+											x.ll_summary.png
+
+
+LineCube_AT             x.im.bdp              x.m1/lc.im.bdp                            !! Note we currently have 'm1/m1.lc.bdp' !!
+                        x.ll.bdp              x.m2/lc.im.bdp                            !!                   and  'm1/m1.lc.im'  !!
+                                              x.m3/lc.im.bdp                            !! normally 'bdp' comes after 'im'       !!
+
+Moment_AT               x.m1/lc.im.bdp        x.m1/lc.mom_0.bdp (and x.m1/lc.mom_0)     !! now:  m1/m1.lc.mom_0                  !! 
+                                              x.m1/lc.mom_1.bdp (and x.m1/lc.mom_1)     
+                                              x.m1/lc.mom_2.bdp (and x.m1/lc.mom_2)     
+                                                                                        
+                                                                                        
+Examples of names (keep in mind ALMA has evolved in their nomenclature a few times)
+
+X     = uid___A001_X74_X243.vv114_sci.spw2
+        N253_spw3
+        foobar
+
+	uid___A002_X758152_Xa._G0.25+0.02__sci.spw16.cube.I.pbcor.fits                   (fits file, in products)
+	uid___A002_X758152_Xa._G0.25+0.02__sci.spw16.cube.I.pb.fits
+
+	uid___A001_X2f7_X2d5.s22_0.NGC_4451_sci.spw25.cont.I.findcont.residual/          (casa image, in working)
+
+m1    = CO_115.27120          transition name + "_" + freq. to 5 digits     [3 digits for U lines]
+        (CH2OH)2_115.19297    there is no good alternative to rid the () but names were sanitized
+	U_220.236             3 digits for U lines
+
+	In the LineList_BDP 'm1' is called the "uid"
+	
+Convention is that any main external (e.g. image) file    X ->   X.bdp
+If you need file='x.e1' -> 'x.e2'       AT.mkext(file,'e2')
+
+Comments/Conflicts:
+- obviously convention 1 and 2 conflict, the safe approach is #1 (and the default in BDP name construction)
+- Ingest() has a basename keyword where a long name 'X" can be shortened by the user to 'x', 
+  by default 'x' will be 'X' if left blank. 
+  An alias is normally not given in a single ingest flow, but can make this 'x-a.fits' if you so desire.
+  Normally X.fits is a symlink (or copy of) the input X.fits file somewhere else on the filesystem, but there
+  is an option to copy this for exports (now removed from Ingest)
+- ALIAS conventions: (see AT.mkext(filename, extension, alias="",  replace=False))
+        ("x"  ,"z"    )               -> "x.z"
+        ("x.y","z"    )               -> "x.z"
+        ("x.y","z","a")               -> "x-a.z" 
+        ("x.y","z","a",replace=True)  -> "a.z"
+  Given the evolution of basename and alias in Ingest, the replace argument can probably be removed.
+
+- currently AT.mkext() does the following if aliases are added to aliases
+
+        ("x-a.y", "z", "b")           -> "x-a-b.z"   which does not scale well or is undesirable
+	                                 "x-b.z"     would be the better solution
+
+
+AT Programming Patterns  (based on current, but meant for the proposed)
+-----------------------  ----------------------------------------------
+
+**TODO** : check with Template_AT.py
+
+(In this:   f=filename  d=directory,    b=bdp,   t=table, i=image, l=line)
+
+Below is the simple self.mkdir() plus filename inheritance model as we
+currently have it in ADMIT. This will continue to work, as I am not
+proposing to remove self.mkdir(). With the new usage of proposed
+_admDir and _subDir attributes, a new function might be needed that
+adds or combines to the mkdir() and/or mknewext() mentioned below.
+They may be able to clean up the construction of directories and
+names, TBD.
+
+
+# Example from e.g. CubeStats and CubeSpectrum and PVSlice
+# --------------------------------------------------------
+#    input bpd and name
+b1 = self._bdp_in[0]
+f1 = b1.getimagefile(bt.CASA)
+f1 = b1.xmlFile                      # both should work, lets say this is 'x.im' 
+#    output name
+f2 = self.mkext(f1,'cst')            # f2 is the new name, 'x.cst' in this case.
+# bdp work
+b2 = CubeStats_BDP(f2)
+self.addoutput(b2)
+t2 = Table(...)
+i2 = Image(...)                      # f2 is used here (or f2_0, f2_1, ..)
+b2.setkey('image',i2)                # TBD how to add multiple images
+b2.setkey('table',t2)                #
+
+
+# Example from LineID
+# -------------------
+#    input name
+b1 = self._bdp_in[0]
+f1 = b1.xmlFile                      # pure tables don't have gettablefile()
+#    output name
+f2 = self.mkext(f1,'ll')
+b2 = LineList_BDP(f2)
+self.addoutput(b2)
+t2 = Table(...)       
+i2 = Image(...)                      # f2 or f2_0,f2_1 is used in here ?
+b2.setkey('image',i2)
+b2.setkey('table',t2)
+
+# Example from LineCube
+# ---------------------
+b1 = self._bdp_in[0]
+f1 = b1.getimagefile(bt.CASA)
+b2 = self._bdp_in[1]
+t2 = b2.table
+#    output name (loops over rows with molecular name mi=row[cols.index("uid")]
+d3 = self.mkext(f1,'mi')
+self.mkdir(d3)                           # d3 inherited from f1, wihch can also contain directories
+f3 = d3 + os.sep() + "lc.im"
+b3 = LineCube_bdp(f3)
+self.addoutput(b3)
+l3 = Line(...)
+i3 = Image(...)                          # f3 is used here
+b3.setkey('image',i3)
+b3.setkey('line',t3)
+
+
+# Example from Moment
+# -------------------
+#    input name
+b1 = self._bdp_in[0]
+f1 = b1.getimagefile(bt.CASA)
+#    output name (loops over mom=0,1,2...)
+f2 = self.mkext(f1,'mom_%d' % mom)
+b2 = LineList_BDP(f2)
+self.addoutput(b2)
+l2 = Line(...)
+i2 = Image(...)                           # f2 is used here
+b2.setkey('image',i2)
+b2.setkey('line',l2)
+
+
+
+# Example from the planned OverlapIntegral, taking 3 input maps from deep within admit
+# results are back at the top level 
+
+#    input
+b1 = self._bdp_in[0]
+b2 = self._bdp_in[1]
+b3 = self._bdp_in[2]
+f1 = b1.getimagefile(bt.CASA)      # something like 'x.m1/lc.mom_0'
+f2 = b2.getimagefile(bt.CASA)      #                   m2
+f3 = b3.getimagefile(bt.CASA)      #                   m3
+#    output
+f4 = self.getkey('out')            # defaults to 'oi'?
+b4 = OverlapIntegral_BDP(f4)
+i4 = Image(...)
+b4.setkey('image',i4)
+
+
+
+
+Line + Continuum:
+
+1)  admit1.py does:   X.fits -> X.admit/{x.im,x-cont.im}
+2)  what about mfs vs. all spw's ?
+    uid___A002_X628157_X2d.Serpens_Main_sci.spw16_18_20_22.cont.I.fits
+    uid___A002_X628157_X2d.Serpens_Main_sci.spw16.mfs.I.fits
+    uid___A002_X628157_X2d.Serpens_Main_sci.spw18.mfs.I.fits
+    uid___A002_X628157_X2d.Serpens_Main_sci.spw20.mfs.I.fits
+    uid___A002_X628157_X2d.Serpens_Main_sci.spw22.mfs.I.fits
+    -> we've been told the mfs files disappear from pipeline, only the 'cont' survives,
+       but of course, this dataset will not have a well matched resolution
+       and Smooth_AT will be needed.

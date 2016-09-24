@@ -1,0 +1,88 @@
+% in RST now, don't edit here.
+
+\subsection{LineCube\_AT}
+
+\subsubsection{Description}
+
+A LineCube is a small spectral cube cut from the full spectral window cube,
+typically centered in frequency/velocity on a given spectral line.
+LineCube\_AT creates one (or more) of such cubes. It is done
+after line identification (using a LineList\_BDP), so the appropriate channel ranges are
+known.  Optionally this AT can be used without the line identification, and
+just channel ranges are given (and thus the line will be designated as something
+like ``U-115.27''.
+The line cubes are normally re-gridded onto a
+common velocity (km/s) scale, for later comparison,
+and thus the CubeStats\_AT will need to be re-run
+on these cubes. Also, normally the continuum will have been subtracted
+these should only be the line emission, possibly with contamination from
+other nearby lines. This is a big issue if there is a forest of lines,
+and proper separation of such lines is a topic for the future and may be 
+documented here as well with a method.
+
+One of the goals of LineCube\_AT is to creates identically sized cubes of
+different molecular transitions for easy comparison and cross referenced analysis.
+
+\subsubsection{Use Case}
+A LineCube would be used to isolate a single molecular component in frequency dimensions. The produced subimage would be one of the natural inputs for the Moment\_AT task.
+
+\subsubsection{Input BDPs}
+
+\begin{description}
+\item[SpwCube\_BDP] a (continuum subtracted) spectral window cube
+
+\item[LineList\_BDP] a LineList, as created with LineID\_AT. This LineList does not need
+to have identified lines. In the simple version of LineID will just designate
+channel ranges as ``U'' lines.
+
+\item[CubeStats\_BDP]  (optional) CubeStats associated with the input spectral cube.
+this is useful if the RMS noise would depend on the channel, which can happen for wider cubes,
+especially near the spectral window edges. Otherwise the keyword {\bf cutoff=} will suffice.
+\end{description}
+
+\subsubsection{Input Keywords:}
+
+\begin{description}
+\item[regrid]* The velocity to regrid the output cube channels to, units: can be specified as other CASA values are (3.0kms), but defaults to km/s [None] (i.e. no regridding)
+\item[cutoff]* The cutoff value in sigma to use when generating the subcube(s), all values below this will be masked [5.0]
+\end{description}
+* denotes an optional keyword and [] gives the default value
+
+\subsubsection{Output BDPs:}
+
+\begin{description}
+\item[LineCube\_BDP]
+The output from this AT will be a line cube for each input spectral line.
+Each spectral cube will be centered on the spectral line and regridded to a common velocity scale, if requested. 
+\end{description}
+
+% this is a new section. Either we separate them, or we fold them into each output BDP.
+% but this is where we describe what kind of visual outputs for the GUI it will create
+\subsubsection{Output Graphics:}
+
+none.
+
+In some sense LineCube\_AT is like Ingest\_AT, it creates one (or more) SpwCube\_BDP's, 
+and they typically do not have a visual cue for the GUI (currently).
+
+
+\subsubsection{Procedure}
+For each line found in the input LineList\_BDP this AT will grab a subcube based on the input parameters.
+
+This AT will use the following CASA tasks:
+\begin{description}
+\item[imsubimage] to extract the final subcube from the main cube, including any masking
+\item[imregrid] if regridding in velocity is needed
+\end{description}
+
+%A discussion on the need for regridding to velocity space ({\bf regrid=} keyword)
+%is in place here: for comparing nearby lines in the 
+%same spectral window probably not. Accross a 2 GHz window, marginal at 100GHz.
+%Between spectral windows, probably yes.  It should also be noted that, given that {\bf clean}
+%is a (not well understood) non-linear process, the best way to create cubes that can be
+%compared is an iterative process. Find out where the lines are from the first iteration,
+%go back to the visibility data, and clean those with the requested choice of 
+%channels in velocity space.  This would then create LineCube's that can be compared.
+%This is beyond the scope of the current ADMIT.
+
+\clearpage

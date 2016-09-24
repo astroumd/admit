@@ -1,0 +1,18 @@
+
+\subsection{Summary}
+\begin{description}
+\item[Type:] Summary
+\item[Description:] 
+The first thing the ADMIT pipeline does is summarize the spectral window cube.  Items in the initial table might be RA, DEC, VLSR, field of view, spectral range, formal source name.  
+
+As the ADMIT pipeline progresses, any results should be stored in summary.
+This suggests that every AT should have an "update summary" method
+and perhaps the Summary should be considered an output BDP of all ATs.
+
+\item[Constituents:] BDP\_Table+BDP\_Image
+\item[ADMIT Task:] AT\_Summary
+\item[CASA Task(s):]  TBD
+\item[Input BDP(s):] FITS or CASA cube
+\item[Output BDP(s):] Initially, a table of properties of the cube.  As more ADMIT tasks run, things like moment map thumbnail images would be added.
+\end{description}
+

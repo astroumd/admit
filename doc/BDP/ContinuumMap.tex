@@ -1,0 +1,26 @@
+\subsection{ContinuumMap}
+\begin{description}
+\item[Type:] ContinuumMap
+\item[Description:] 
+This is an image (2D or 3D) of the continuum level of the field in question.
+It is computed where there is no spectral line emission present.  
+
+For the subsequent case of continuum subtraction from a spectral line cube,
+we should compute some confidence level there is continuum in this data.
+Note the RMS can depend on the channel across the band, and this should
+be taken into account as well.
+
+\item[Constituents:] BDP\_Image
+
+\item[ADMIT Task:] AT\_ContinuumMap
+
+\item[CASA Task(s):] TBD
+
+\item[Input BDP(s):] Spectral Cube. Optionally, LineList, if it is known that
+the cube contains line emission, to exclude such.
+
+\item[Output BDP(s):]  
+  2D or 3D image of continuum.  
+  An summary indication of the continuum level. Should we automatically
+  run CubeStats on the image?
+\end{description}

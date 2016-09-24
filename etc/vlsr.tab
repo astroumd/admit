@@ -1,0 +1,261 @@
+#
+#     This simple VLSR catalog can be used (right now it has to) in case ADMIT cannot
+#     figure out the VLSR of a source to aid the LineID.
+#     It is suggested that source names are in upper case, although the default in
+#     ADMIT is now (nov 2015) that we compare in upper case.
+#
+#     There is a alternate (NED based) method in VLSR.py as well, but that only works
+#     for galaxies of course.
+#
+#     We are using the RADIO convention of radial velocity, ie.
+#                  vrad = c * z / (1 + z)
+#     with c = 299792.458
+#
+# Name             VLSR
+# !UPPER_CASE!     km/s
+NGC253            236.0     # test253_spw*
+NGC1097          1256.0     # 2012.1.00001.S
+NGC3256          2794.2     # test0 (foobar.fits)
+NGC4038          1639.0     # test4
+NGC4945           558.0
+NGC6503            25.0     # test6503 (HELIO=25 LSR=40)   Greisen:   28.5 \pm 0.3
+M83               514.0     # test6 
+185                 4.0     # test201
+188                 4.0     # test202
+SERPENS_MAIN        8.0     # CLASSy
+SERPSNW             8.0     # CLASSy
+'L1551 NE'          7.0     # test1 (should be 6.9 ???)
+"L1551 SE"          7.0     #
+B1S                 6.5     # CLASSy
+L1451               4.0     # CLASSy, aka B1E
+SERPM               8.0     # CLASSy
+SVS13               8.0     # CLASSy, in N1333
+SERPS               8.0     # CLASSy
+ST11              280.0     # in the LMC, but not sure if the VLSR to close enough
+AS_209              4.3     # 2013.1.00226.S    'IM Lup'
+HD163296            6.6     # -4.0 (helio) + 10.6      2010.....    SV     
+HD_163296           6.6     # same, but in 2012.1.00681.S, it's in LSRK frame !!
+'IRAS 16293-2422-a' 3.0     # <3.0> for A, and <2.7> for B  (err ~ 0.1-0.2)
+IRAS16293_AB        3.0     # 2013.1.00061.S
+IRAS_16293-2422     3.0     # 2012.1.00712.S
+IRC+10216         -26.0     # aka CW Leo
+'DM TAU'            6.0     # 2011.0.00629.S source3   ??? SIMBAD: a 1949 reference claims -18 km/s ???
+'MWC 480'           5.0     # 2011.0.00629.S source4  (see also 2013.1.00226)
+MRC_0152-209   197166.0     # 2013.1.00521.S z=1.9212 (test13)
+MRC_1138-262   204801.0     # 2012.1.01087.S z=2.156
+Cha-MMS1            4.4     # test3.fits
+H-ATLAS_J090740.0-004200    183459.0       # test7.fits: zlens=0.6129 zsource=1.577
+W_Aql              -5.6     #  HELIO -18.0 dVlsr=12.4
+#
+#  EGNoG survey (only used 9 strongest detections)
+#  Notice they fake the CO RESTFREQ and put VRAD=0 at the catalog redshift
+#  Here we then use vrad = c*z/(1+z)  where z is the optical z from their catalog
+#
+LSTB2       22458.0    # 0.080978   # =A5
+REPSAM15    23104.0    # 0.083503   # =A13
+B2          48240.0    # 0.191773 
+B3          42623.0    # 0.165737 
+B4          44232.0    # 0.173078 
+B5          46303.0    # 0.182661 
+B7          44906.0    # 0.176180 
+B10         47914.0    # 0.190227 
+C2          69293.0    # 0.300622
+#
+#  EDGE survey (125 galaxies)
+#  NGC 0444 is a dubious case, should not be in sample, but included for reference, making the sample 126
+ARP220       5341.0
+IC0480       4493.0
+IC0540       2057.0
+IC0944       6843.0
+IC1151       2160.0
+IC1199       4663.0
+IC1683       4775.0
+IC2247       4262.0
+IC2487       4292.0
+IC4566       5479.0
+IC5376       4951.0
+NGC0444      4839.0
+NGC0447      5490.0
+NGC0477      5751.0
+NGC0496      5894.0
+NGC0523      4786.0
+NGC0528      4746.0
+NGC0551      5113.0
+NGC1167      4851.0
+NGC2253      3542.0
+NGC2347      4389.0
+NGC2410      4602.0
+NGC2480      2321.0
+NGC2481      2172.0
+NGC2486      4570.0
+NGC2487      4759.0
+NGC2623      5438.0
+NGC2639      3219.0
+NGC2730      3795.0
+NGC2880      1530.0
+NGC2906      2125.0
+NGC2916      3684.0
+NGC2918      6615.0
+NGC3303      6278.0     # 5878.0 was in the original catalog, appears to be wrong
+NGC3381      1615.0
+NGC3687      2480.0
+NGC3811      3041.0
+NGC3815      3668.0
+NGC3994      3058.0
+NGC4047      3402.0
+NGC4149      3048.0
+NGC4185      3834.0
+NGC4210      2693.0
+NGC4211N     6543.0
+NGC4470      2340.0
+NGC4644      4853.0
+NGC4676A     6504.0
+NGC4711      4020.0
+NGC4961      2541.0
+NGC5000      5493.0
+NGC5016      2592.0
+NGC5056      5454.0
+NGC5205      1760.0
+NGC5218      2869.0
+NGC5394      3370.0
+NGC5406      5302.0
+NGC5480      1881.0
+NGC5485      1900.0
+NGC5520      1865.0
+NGC5614      3839.0
+NGC5633      2308.0
+NGC5657      3871.0
+NGC5682      2254.0
+NGC5732      3722.0
+NGC5784      5337.0
+NGC5876      3232.0
+NGC5908      3311.0
+NGC5930      2601.0
+NGC5934      5480.0
+NGC5947      5777.0
+NGC5953      1966.0
+NGC5980      4031.0
+NGC6004      3785.0
+NGC6021      4675.0
+NGC6027      4370.0
+NGC6060      4449.0
+NGC6063      2831.0
+NGC6081      5032.0
+NGC6125      4556.0
+NGC6146      8506.0
+NGC6155      2400.0
+NGC6168      2555.0
+NGC6186      2917.0
+NGC6301      8148.0
+NGC6310      3371.0
+NGC6314      6483.0
+NGC6361      3777.0
+NGC6394      8285.0
+NGC6478      6645.0
+NGC7819      4918.0
+UGC00809     4142.0
+UGC03253     4071.0
+UGC03539     3271.0
+UGC03969     8023.0
+UGC03973     6453.0
+UGC04029     4383.0
+UGC04132     5119.0
+UGC04280     3470.0
+UGC04461     4906.0
+UGC05108     7913.0
+UGC05111     6596.0
+UGC05244     2982.0
+UGC05359     8250.0
+UGC05498     6174.0
+UGC05598     5520.0
+UGC06312     6201.0
+UGC07012     3032.0
+UGC08107     8077.0
+UGC08250     5184.0
+UGC08267     7079.0
+UGC09067     7646.0
+UGC09476     3236.0
+UGC09537     8576.0
+UGC09542     5387.0
+UGC09665     2536.0
+UGC09759     3408.0
+UGC09873     5528.0
+UGC09892     5570.0
+UGC09919     3151.0
+UGC10043     2153.0
+UGC10123     3720.0
+UGC10205     6433.0
+UGC10331     4485.0
+UGC10380     8511.0
+UGC10384     4869.0
+UGC10710     8154.0
+#
+#  ADMIT testing for NRAO
+#
+3C454.3                138527.0   # z=0.859000           
+ACT-CLJ0102-4915       139476.0   # z=0.87
+ALESS_122.1            201821.0   # z=2.06
+ALESS73.1              247704.0   # z=4.7555
+C/2012K1(PanSTARRS)         0.0   # comet
+G0.25+0.02                  0.0 
+G331.372-00.116           -88.1
+HD_142527                   1.0   # helio: -3.1(0.8) radec=15:53:16.27,-42:10:41.9  dVlsr = 4.1  
+hd_163296                   8.3   # helio: -4.0(3.3) radec=17:56:21.28803,-21:57:21.8700 uvw=10.3,15.3,7.7  dVlsr=12.341418
+HD_34282                    0.0   # 0.0 is good enough
+IRAS18293-3413           5458.0
+IRDC_C                     78.0   # 
+NGC_1068                 1135.1   # NED: 1126.0
+NGC6334I                   -7.0   # nebulae
+NGC6357_SE                 -3.0   # open cluster
+Orion_KL                    8.8   # proto star  see also http://arxiv.org/pdf/1502.01280v1.pdf
+PCC_11546                 236.0   # helio: 236
+SGP3_39                198477.0   # z=1.959
+SPT0346-52             254751.0   # z=5.655940032
+W0116-0505             227951.0   # z=3.173
+GG_TAU                      1.2   # helio: 12.0
+UX_TAU                     12.3   # helio: 22.9
+TW_Hya                      2.9   # helio: 13.4    11 01 51.90671 -34 42 17.0323 dVlsr=-3.0  -> -6.9     -9.5 uvw=10.3,15.3,7.7
+"TW Hya"                    2.9   # from band 7 SV data
+LupusIII_53                10.0
+LupusIV_153                10.0
+# two ESO_2013 product trees
+HH46                        5.0
+# TW_Hya
+# --test5--
+Aztec-3  252197.28780885247  # km/s doppler: RADIO  ref: lsrk
+Fomalhaut  6.5  # km/s doppler: RELATIVISTIC  ref: hel
+G286_1  -20.0  # km/s doppler: RADIO  ref: lsrk
+G286_2  -20.0  # km/s doppler: RADIO  ref: lsrk
+G286_3  -20.0  # km/s doppler: RADIO  ref: lsrk
+G286_4  -20.0  # km/s doppler: RADIO  ref: lsrk
+G286_5  -20.0  # km/s doppler: RADIO  ref: lsrk
+HD_15115  0.0  # km/s doppler: RADIO  ref: lsrk
+HD_32297  23.0  # km/s doppler: RELATIVISTIC  ref: hel
+HD_61005  21.98  # km/s doppler: RELATIVISTIC  ref: hel
+HZ10  254771.81556119537  # km/s doppler: RADIO  ref: lsrk
+IC_2520  1248.4236675777966  # km/s doppler: RELATIVISTIC  ref: hel
+LBG-1  252168.55680857823  # km/s doppler: RADIO  ref: lsrk
+LBQS_0058+0155  183622.88052500004  # km/s doppler: OPTICAL  ref: hel
+LBQS1434-0038  221156.89626660006  # km/s doppler: OPTICAL  ref: hel
+NGC_1012  975.0  # km/s doppler: RELATIVISTIC  ref: hel
+NGC_1035  1248.5  # km/s doppler: RELATIVISTIC  ref: hel
+NGC_4150  234.0  # km/s doppler: RELATIVISTIC  ref: hel
+NGC_4310  911.0  # km/s doppler: RELATIVISTIC  ref: hel
+NGC_4376  1150.0  # km/s doppler: RELATIVISTIC  ref: hel
+NGC_4396  -127.0  # km/s doppler: RELATIVISTIC  ref: hel
+NGC_4451  864.0  # km/s doppler: RELATIVISTIC  ref: hel
+NGC_4632  1720.7  # km/s doppler: RELATIVISTIC  ref: hel
+NGC_4701  723.0  # km/s doppler: RELATIVISTIC  ref: hel
+NGC4945  538.2  # km/s doppler: OPTICAL  ref: hel
+NGC_5692  1634.0  # km/s doppler: RELATIVISTIC  ref: hel
+NGC_6106  1450.0  # km/s doppler: RELATIVISTIC  ref: hel
+NGC_853  1533.4  # km/s doppler: RELATIVISTIC  ref: hel
+PSS_J1443+2724  278599.1372865981  # km/s doppler: RELATIVISTIC  ref: hel
+QSO_0138-0005  234467.6814018  # km/s doppler: OPTICAL  ref: hel
+QSO_1629+120  159279.7329354  # km/s doppler: OPTICAL  ref: hel
+QSO_B0827+2421  157301.10271260003  # km/s doppler: OPTICAL  ref: hel
+QSO_J0817+1351  242780.35203620876  # km/s doppler: RADIO  ref: hel
+QSO_J1201+2117  237303.14940177175  # km/s doppler: RADIO  ref: lsrk
+QSO_J2335+1501  203798.9129484  # km/s doppler: OPTICAL  ref: hel
+UGC8516  1013.0  # km/s doppler: RELATIVISTIC  ref: hel
+

@@ -1,0 +1,14 @@
+<!-- ############ generic accordian for a failed task ############ -->
+    <div class="accordion-group"> <div class="accordion-heading">
+            <a class="accordion-toggle %s" data-toggle="collapse" data-parent="#details-accordion" href="#collapse%d">
+<span class="ico-pull pull-right">
+%s
+</span>
+            %s (taskid=%d) 
+</a>
+       </div>
+
+        <div id="collapse%d" class="accordion-body collapse">
+           <h4>This task failed to complete. Check <a href="log.html">ADMIT Log file</a> for error messages.</h4>
+        </div> <!-- collapse%d -->
+    </div> <!-- accordian group -->

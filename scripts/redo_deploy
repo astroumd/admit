@@ -1,0 +1,70 @@
+#! /bin/csh -f
+#
+#   ADMIT/scripts/redo_deploy
+#
+#   Example of installing "casa-admit" (ADMIT within CASA)
+#   using setup.py -
+#   takes about 3' on Peter's Ubuntu laptop, and a mere 15" on chara
+
+set version  = 11-jun-2016
+
+#  this file is where you can override the default settings here
+set defaults = redo_deploy.set
+
+#  the defaults
+set cvsroot  = :pserver:anonymous@cvs.astro.umd.edu:/home/cvsroot
+set casatar  = /data2/teuben/ADMIT/casa/casa-release-4.5.3-el6.tar.gz
+set tmpca    = casa_admit
+set cvstag   = HEAD
+set ubuntu   = 0
+
+#  override script defaults?
+if (-e $defaults) source $defaults
+
+#  CVSPASS entry ("echo $cvspass >> ~/.cvspass")
+set cvspass = "/1 :pserver:anonymous@cvs.astro.umd.edu:2401/home/cvsroot A"
+
+#  announce
+echo "DEPLOY: version $version"
+
+#  start from a completely clean working directory
+rm -rf $tmpca
+mkdir  $tmpca
+set casaroot = ${casatar:t:r:r}
+echo "TAR CASA (1/4) $casaroot"
+tar -C $tmpca -zxf $casatar
+
+cd $tmpca
+
+
+# Ubuntu: make it shut up about shlib versioning
+if ($ubuntu && -e /lib/x86_64-linux-gnu/libtinfo.so.5.9) then
+  echo Ubuntu patch...
+  (cd $casaroot/lib; ln -sf  /lib/x86_64-linux-gnu/libtinfo.so.5.9  libtinfo.so.5)
+endif  
+
+echo "CVS CHECKOUT (2/4)"
+
+cvs -d $cvsroot -Q co -r $cvstag admit
+cd admit
+#autoconf
+#./configure --with-casa-root=$casaroot --with-testdata=$testdata
+#source admit_start.csh
+
+# need to remove these, or else package_data won't deal with it properly
+echo "CLEAN CVS/ (3/4)"
+find . -name CVS | xargs rm -rf
+
+echo "PYTHON SETUP (4/4)"
+if (-e ../$casaroot/bin/casa-config) then
+  # newer 4.6 and up
+  ../$casaroot/bin/casa-config     --exec python setup.py install
+else
+  # older 4.5 and below had this located in the root
+  ../$casaroot/casa-config         --exec python setup.py install
+endif
+
+# now you should be able to do the following in casa:
+#
+# import admit
+# a = admit.Project('test0.admit',dataserver=True)

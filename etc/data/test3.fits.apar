@@ -1,0 +1,16 @@
+# OBJECT: Cha-MMS1
+#
+# data suffer from peaks (PB?) near edges, but there is also emission there
+# look at PPP and the PVSlice
+#
+
+
+# excellent case to re-run from a default, because in 5,4,3 it doesn't see much
+# linepar = (5.0, 4, 3)
+# to
+linepar = (4.0, 3, 2)
+# to find the true HFC's
+
+
+# PVC does very well here, it could also be turned on to get better segments
+linebdp = [True, True, True]

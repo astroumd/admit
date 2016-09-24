@@ -1,0 +1,28 @@
+Your ADMIT directory comes with many files, which are normally nicely
+organized in your web view once you point at the index.html file, e.g.
+
+	  chrome your_data.admit/index.html
+
+This will show the ADMIT flow.   If you want to recompute a flow with
+new settings, open up CASA, and issue the following commands
+
+    import admit
+    p = admit.Project('your_data.admit',dataserver=True)
+
+In this document we describe in some details the naming conventions
+of the files you might see.  The naming structure will be something like:
+
+
+      x.<bdp_abbreviation_name>
+
+
+
+admit.xml    state of ADMIT (all registered BDP's and AT's, Summary etc.)
+admit.log    cumulative log file from ADMIT runs (flowcount 1,2,3....)
+admit0.py    latest python script for re-run
+admitN.py    optional pipeline-based recepi script (N=1,2,3....)
+*.apar       any optional apar files that were used by an admit recipe on flowcount=1
+admit.dot    flow graph in DOT format
+admit.png    flow graph in PNG format
+index.html   base 
+resources/   helper resources

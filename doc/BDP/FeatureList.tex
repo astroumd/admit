@@ -1,0 +1,46 @@
+\subsection{Feature List}
+\begin{description}
+\item[Type:] FeatureList
+\item[Description:]
+
+This is a table describing any of the (un)parameterized methods for
+discovering and characterizing the emission in a cube.  Examples of
+such procedures are:
+
+- ClumpFind \\
+- GaussClump \\
+- Dendrogram (binary, as well as non-binary) \\
+
+The output BDP could be an image cube matched in axes to the input LineCube,
+where the intensity values are enumerated from a membership of Features. But
+not all procedures use this intermediary format.
+
+The final output from this is a table of features in the input LineCube.
+
+Here's an example described as Gaussian clumps, e.g. from a moment
+of inertia description of the Features
+\begin{verbatim}
+X
+Y
+V
+sX
+sY
+sV
+PA        (if sX != sY, a position angle describes the orientation)
+dVdP      (any residual correlation can be described as velocity gradient)
+Peak      
+Sum       normally in Jy.km/s
+\end{verbatim}
+
+\item[Constituents:] BDP\_Table+BDP\_Image
+
+\item[ADMIT Task:] AT\_FeatureList
+
+\item[CASA Task(s):] TBD
+
+\item[Input BDP(s):] LineCube
+
+\item[Output BDP(s):]  Table of feature properties (position, line width,
+ peak temperature, number of pixels, etc).  In the case of dendrogram,
+ there may also be a JPG image of the dendrogram tree.
+\end{description}

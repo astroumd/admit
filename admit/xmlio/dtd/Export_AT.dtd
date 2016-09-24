@@ -1,0 +1,42 @@
+<!ELEMENT EXPORT_AT	(_loglevel,_running,_variflow,_bdp_out_map,_link,_plot_mode,_enabled,_needToSave,_loggername,_bdp_in_map,_stale,_baseDir,_version,_alias,_plot_type,_taskid,_keys)>
+<!-- child nodes #PCDATA indicates parsable character data-->
+<!ELEMENT _loglevel		(#PCDATA)>
+<!ATTLIST _loglevel type (INT) #REQUIRED>
+<!ELEMENT _running		(#PCDATA)>
+<!ATTLIST _running type (BOOL) #REQUIRED>
+<!ELEMENT _baseDir		(#PCDATA)>
+<!ATTLIST _baseDir type (STRING) #REQUIRED>
+<!ELEMENT _alias		(#PCDATA)>
+<!ATTLIST _alias type (STRING) #REQUIRED>
+<!ELEMENT _bdp_out_map		(#PCDATA)>
+<!ATTLIST _bdp_out_map ndarray (STRING) #REQUIRED>
+<!ATTLIST _bdp_out_map set (STRING) #REQUIRED>
+<!ATTLIST _bdp_out_map type (LIST) #REQUIRED>
+<!ELEMENT _link		(#PCDATA)>
+<!ATTLIST _link type (INT) #REQUIRED>
+<!ELEMENT _version		(#PCDATA)>
+<!ATTLIST _version type (STRING) #REQUIRED>
+<!ELEMENT _needToSave		(#PCDATA)>
+<!ATTLIST _needToSave type (BOOL) #REQUIRED>
+<!ELEMENT _loggername		(#PCDATA)>
+<!ATTLIST _loggername type (STRING) #REQUIRED>
+<!ELEMENT _plot_mode		(#PCDATA)>
+<!ATTLIST _plot_mode type (INT) #REQUIRED>
+<!ELEMENT _bdp_in_map		(#PCDATA)>
+<!ATTLIST _bdp_in_map ndarray (STRING) #REQUIRED>
+<!ATTLIST _bdp_in_map set (STRING) #REQUIRED>
+<!ATTLIST _bdp_in_map type (LIST) #REQUIRED>
+<!ELEMENT _stale		(#PCDATA)>
+<!ATTLIST _stale type (BOOL) #REQUIRED>
+<!ELEMENT _variflow		(#PCDATA)>
+<!ATTLIST _variflow type (BOOL) #REQUIRED>
+<!ELEMENT _plot_type		(#PCDATA)>
+<!ATTLIST _plot_type type (INT) #REQUIRED>
+<!ELEMENT _taskid		(#PCDATA)>
+<!ATTLIST _taskid type (INT) #REQUIRED>
+<!ELEMENT _enabled		(#PCDATA)>
+<!ATTLIST _enabled type (BOOL) #REQUIRED>
+<!ELEMENT _keys	(basename)>
+<!ATTLIST _keys type (DICT) #REQUIRED>
+<!ELEMENT basename		(#PCDATA)>
+<!ATTLIST basename type (STRING) #REQUIRED>

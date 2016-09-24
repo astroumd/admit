@@ -1,0 +1,77 @@
+% in RST now, don't edit here.
+
+\subsection{LineID\_AT}
+
+\subsubsection{Description}
+
+LineID\_AT creates a LineList\_BDP, a table of spectral lines discovered or
+detected in a spectral window cube. 
+It does not need a spectral window cube for this, instead it
+uses derived products (currently all tables) such a 
+CubeSpectrum\_BDP, CubeStats\_BDP or PVCorr\_BDP.  It is possible
+to have the program determine the VLSR if this is not known or specified
+(in the current version it needs to be known), but this procedure
+is not well determined if only a few lines are present.  Note that
+other spectral windows may then be needed to add more lines to make this
+fit un-ambigious.
+
+Cubes normally are referenced by frequency, but if already by velocity then the rest frequency and vlsr/z must be given.
+
+For milestone 2 we will use the slsearch CASA task, a more complete database tool is under
+development in CASA and will be implemented here when complete.
+
+\subsubsection{Use Case}
+In most cases the user will want to identify any spectral lines found in their data cube. This task
+will determine what is/is not a line and attempt to identify it from a catalog.
+
+\subsubsection{Input BDPs:}
+
+
+\begin{description}
+\item[CubeSpectrum] just a spectrum through a selected point.
+\item[CubeStats] Peak/RMS. Since this table analyses each plane of a cube, it will more likely pick 
+up weaker lines, which a CubeSpectrum will miss.
+\item[PVCorr] an autocorrelation table from a PVSlice\_AT. This has the potential of detecting even
+weaker lines, but its creation via PVSlice\_AT is a fine tuneable process.
+\end{description}
+
+
+\subsubsection{Input keywords}
+
+\begin{description}
+\item[vlsr] If VLSR is not known, it can be specified here. Currently must be known, either via this keyword, or via ADMIT (header). This could also be {\it z}, but this could be problematic for nearby sources, or for sources moving toward us.
+\item[rfeq] Rest frequency of the vlsr, units should be specified in CASA format (95.0GHz) [None]. Only required if the cube is specified in velocity rather than frequency.
+\item[pmin] Minimum sigma level needed for detection [3], based on calculated rms noise
+\item[minchan] Minimum number of contiguous channels that need to contain
+a signal, to combine into a line. Note this means that each channel much
+exceed {\bf pmin}.  [5]
+\end{description}
+
+\subsubsection{Output BDPs}
+
+\begin{description}
+\item[LineList\_BDP] A single LineList is produced, which is typically used by LineCube\_AT
+to cut a large spectral window cube into smaller LineCube's.
+\end{description}
+
+\subsubsection{Line List Database}
+
+The line list database will be the splatalogue subset that is already included with the CASA distribution.
+This one can be used offline, e.g. via the slsearch() call in CASA.
+A more complete interface to the full splatalogue database is under development by the CASA team and will be implemented here once it is complete. The new method may require the user to be online, so in the case of an offline user the slsearch() will be a fallback mechanism.
+
+\subsubsection{Output Graphics:}
+
+none.
+
+\subsubsection{Procedure}
+Depending on which BDP(s) is/are given, and a choice of keywords, the procedure may vary slightly.  For example, one can use both a CubeSpectrum and CubeStats and use a conservative AND or a more
+liberal OR where either both or any have ``detected'' a line. The method employed to detect a line will be based on the line finding mechanisms found in the pipeline. The method will be robust for spectra with sparse lines, but may not be for spectra that are a forest of lines. Once lines are found the properties of each line will be determined (rest frequency, width, peak intensity, etc.). Using the parameters (rest frequency and width) the database will be searched to find any possible line identifications.
+This AT will use the following CASA tasks:
+\begin{description}
+\item[slsearch] to attempt to identify the spectral line(s)
+%\item[imregrid] if regridding in velocity is needed
+\end{description}
+
+
+\clearpage

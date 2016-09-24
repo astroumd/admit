@@ -1,0 +1,11 @@
+#! /bin/csh -f
+#
+foreach file ($*)
+  if (-e $file) then
+    mv $file /tmp
+    cvs remove $file
+    cvs commit -m "$file removed from cvs" $file
+  else
+    echo $file does not exist
+  endif
+end

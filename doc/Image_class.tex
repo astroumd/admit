@@ -1,0 +1,54 @@
+\documentclass[preprint]{aastex}
+%\usepackage{epsfig}
+%\usepackage{graphicx}
+%\usepackage{float}
+%\usepackage{fancyvrb}
+\title{ADMIT Image Class Definition\\
+\today
+}
+\begin{document}
+\maketitle
+
+The purpose of the ADMIT Image Class is the be a container for image items in ADMIT Basic Data Products (BDP). The Image class is to hold a single image, of which there can be several representations (e.g. FITS, CASA, png, etc.), a thumbnail of the image (optional), and a histogram of the data in the image (optional). This document describes the basic ADMIT Image class data nodes and methods.
+
+\section{Data Members}
+\begin{center}
+    \begin{tabular}{ | l | l | l | p{7cm} |}
+    \hline
+    \bf{Name}     & \bf{Type}  & \bf{Default} & \bf{Description} \\ \hline
+	images        & Dict.      & \{\}           & The key of the dictionary is the file format (see formats below) and the value is the file name. This allows for multiple format representations of the given image.\\ \hline
+    thumbnail     & Str.       & None         & Text is the file name of the thumbnail image \\ \hline
+    thumbnailtype & Str.       & None         & Text gives the format of the thumbnail image (see formats below)\\ \hline
+    auxiliary     & Str.       & None         & Text gives the file name for the histogram image (format is locked to png)\\ \hline
+    auxtype       & Str.       & None         & Text gives the format of the auxiliary image (see formats below)\\ \hline
+    description   & Str.       & ""           & Caption or description of the image\\
+    \hline
+    \end{tabular}
+\end{center}
+
+Current values for the image format are: FITS, CASA, Miriad, jpg, png, ps, eps, gif, pdf, ... These values are "enumerated" in bdp\_types.py for ease of programming.
+
+\section{Methods}
+The following methods will be provided:
+\begin{itemize}
+\item addimage(imagedescriptor): imagedescriptor is either a single instance of the class or a dictionary of class instances. The class is defined below.
+\item getimage(type): type is either bdp\_types.AUX (for the auxiliary image), bdp\_types.THUMB (for the thumbnail image), or one of the acceptable image formats. This method returns an imagedescriptor of the designated file, or None if there is no matching format.
+\item removeimage(type,delete): type is either bdp\_types.AUX (for the auxiliary image), bdp\_types.THUMB (for the thumbnail image), or one of the acceptable image format types and delete is whether or not to delete the file on disk (defualt is True). This method deletes the specified image from the class.
+\item delete(delfile): delfile is whether or not to delete the file on disk (defualt is True). This method deletes all images (thumbnail, auxiliary, and data) from the class along with their files on disk if specified.
+\item getaux(): This method returns an imagedescriptor of the auxiliary file, or None if there is no auxiliary image.
+\item getthumbnail(): This method returns an imagedescriptor of the thumbnail file, or None if there is no thumbnail image.
+\end{itemize}
+
+\noindent imagedescriptor class definition
+\begin{verbatim}
+class imagedescriptor(object) :
+    __slots__ = ["file","format","type"]
+    def __init__(self,file,format,type=ut.DATA) :
+        if(not format in ut.FORMATS):
+            raise Exception,"Format %s is not an acceptable format type" % (format)
+        self.file = file
+        self.format = format
+        self.type = type
+\end{verbatim} 
+This light weight class holds the basic information for a specific image. The file contains the file name, the format gives the image format for the specific file, and type gives the type of file (DATA, THUMB/THUMBNAIL, or AUX).
+\end{document}

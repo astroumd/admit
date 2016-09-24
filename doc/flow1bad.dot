@@ -1,0 +1,10 @@
+digraph flow1bad {
+  a1 [shape=box];
+  b1m [label="b1"];
+  b1 -> a1 -> b1m;
+  a2 [shape=box];
+  b2 -> a2 -> b3;
+  b1 -> a2;
+
+}
+

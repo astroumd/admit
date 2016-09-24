@@ -1,0 +1,27 @@
+\subsection{Spectral Map}
+\begin{description}
+\item[Type:] SpectralMap
+\item[Description:]
+
+This will contain a series of tables, each representing a spectrum at a
+point in the cube, single point (with optional averaging over a region
+or channels)?.  The task to create a Spectral map may have an interactive 
+counterpart where points can be added.
+
+\item[Constituents:]: BDP\_Table
+
+\item[ADMIT Task:] AT\_SpectralMap \\
+   - locations where spectra are to be taken \\
+   - [optional region/channels to average?] 
+
+\item[CASA Task(s):]  TBD
+
+\item[Input BDP(s):]
+A spectral cube 
+
+\item[Output BDP(s):]
+
+For each spatial location, a table composed of two columns: \\
+   frequency (in GHz, middle of channel) \\
+   data      intensity, Jy/Beam 
+\end{description}

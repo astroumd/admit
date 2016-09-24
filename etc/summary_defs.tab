@@ -1,0 +1,71 @@
+# Entries that will go in the Summary object.
+# These should be treated as reserved keywords
+#
+# *** In order to be compatible with FITS, 
+# *** keywords should not exceed 8 characters 
+#
+#Key          Type        Description                    
+#------      -------     ----------------                
+fitsname     string      Pathless filename of FITS cube
+casaname     string      Pathless filename of CASA cube
+object       string      Object name
+naxis        integer     Number of axes
+naxis1       integer     size of axis 1
+naxis2       integer     size of axis 2
+naxis3       integer     size of axis 3
+naxis4       integer     size of axis 4
+crpix1       float       Reference pixel axis 1
+crpix2       float       Reference pixel axis 2
+crpix3       float       Reference pixel axis 3
+crpix4       float       Reference pixel axis 4
+crval1       float       axis value at CRPIX1
+crval2       float       axis value at CRPIX2
+crval3       float       axis value at CRPIX3
+crval4       float       axis value at CRPIX4
+ctype1       string      axis type 1
+ctype2       string      axis type 2
+ctype3       string      axis type 3
+ctype4       string      axis type 4
+cdelt1       float       axis increment 1
+cdelt2       float       axis increment 2
+cdelt3       float       axis increment 3
+cdelt4       float       axis increment 4
+cunit1       string      axis unit 1
+cunit2       string      axis unit 2
+cunit3       string      axis unit 3
+cunit4       string      axis unit 4
+equinox      string      equinox
+restfreq     float       rest frequency, Hz
+bmaj         float       beam major axis, radians
+bmin         float       beam minor axis, radians
+bpa          float       beam position angle, deg
+bunit        string      units of pixel values
+telescop     string      telescope name
+observer     string      observer name
+date-obs     string      date of observation
+datamax      float       maximum data value
+datamin      float       minimum data value
+datamean     float       mean data value
+dynrange     float       Estimation of Dynamic range of interferometer data. Equal to datamax/chanrms
+chanrms      float       one-sigma noise in cube
+rmsmethd     list        method and parameters used to compute chanrms
+badpixel     float       fraction of bad pixels in cube
+vlsr         float       Object line-of-sight velocity (km/s).
+spectra      list        Spectra produced or extracted by any method  
+linelist     table       Table of parameters of identified spectral lines. 
+moments      table       Table of moments computed from  the original cube.
+pvslices     table       Table of position-velocity slices computed from original cube.
+pvcorr       list        List of PV correlation diagrams computed from input cube.
+veldef       list        User or ASDM/source.xml derived source velocity information (value, reference frame, etc)
+peakpnt      list        Peak Point Plot optionally produced by CubeStats_AT
+cubesum      list        Info about any CubeSum produced.
+continuumsub list        Info about ContinuumSub
+linecube     list        Info about any LineCubes produced (name, channel range, image name).
+sources      table       Table of sources found by a feature-finding algorithm
+smooth       list        Info about any smoothing done to cube. 
+overlap      list        Overlap integral input and output images information
+pca          table       Principal Component Analysis statistics and covariance data.
+template     table       Template data product statistics.
+regrid       list        Info about any regridding (new pix scales, image dimensions, reference directions,etc.)
+segments     list        Segments of line emission found by LineSegment_AT.
+bdpingest    table       Information about an BDP read in with BDPIngest_AT.

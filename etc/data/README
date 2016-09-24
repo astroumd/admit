@@ -1,0 +1,17 @@
+Small (!) sample data for testing or examples can be placed here.
+
+Big test data are normally in $ADMIT/testdata, which is normally also 
+a link to a place on your system where you have obtained these general
+testdata from. 
+We do keep commented apar files here, to guide you through experiments
+with these fits files.
+
+*.apar                admitX.py parameter files
+*.rout                REGRESSION output to be tested against
+
+
+cube432.fits          a 4 x 3 x 2 x 1 fits cube; testing row/column major (data=i+10j+100k)
+cube432.admit.tar.gz  ADMIT project (only an ingest) for a very basic test
+test0551.tab          a testCubeSpectrum.tab file from EDGE, for testing
+test0551.tab.apar     the corresponding apar file for admit4.py
+fluxes.tab            final fluxed from the M3-bb regression

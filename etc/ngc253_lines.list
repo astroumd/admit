@@ -1,0 +1,77 @@
+#   These are the lines present in the ALMA C0/C1 N253 data
+#   as determined after some iterations between the various experts
+#   You can use these to check on your own ADMIT results.
+#   See Table 1 in  http://adsabs.harvard.edu/abs/2015ApJ...801...63M
+#   Notes:     3 digits are their tentative ones
+#              appended [A] from admit? not all are added here, but apparent in PV maps
+85.76050  ch3ch2cn[A]
+86.054    HC15N*
+86.09395  so_1
+86.34016  h13cn 
+86.67076  hco
+86.75429  h13co+
+86.84696  sio
+87.09085  hn13c
+87.31690  c2h_1
+87.40199  c2h_2
+87.567    U
+87.785    CH3NH2
+87.853    NH2CHO
+87.92524  hnco
+88.40569  h52b
+88.63160  hcn
+89.18852  hco+
+97.720    34SO
+97.98095  cs
+98.525    CH3CH2CN
+98.667    U
+99.02295  h40a
+99.16675  ch3ocho[A]
+99.22521  h50b
+99.29987  so_2
+99.669    U
+99.86651  c2s
+100.07640 hc3n
+100.542   U
+100.612   U
+# next two probably the same? 20 km/s different
+#100.632   U
+100.63890 ch3oh[A/U]
+100.992   U
+101.13916 ch3sh
+101.180   CH3SH
+101.47788 h2cs_1
+101.892   CH2CO*
+# next two maybe same ?  20 km/s different
+101.98143 H2CCO[A/U]
+# 101.988   U
+102.070   NH2CHO*
+102.54798 ch3c2h
+103.04054 h2cs_2
+103.64075 C2S
+112.247   CH3CHO
+112.35928 c17o
+# 112.37550 13ch3oh[A]   ? off by 40km/s  from c17o, check PV diagram
+112.459   HCOOH
+113.19128 cn_1
+113.49097 cn_2
+# next two probably the same?  10 km/s different - could it be co_v1?
+114.218   U
+114.22174  U
+114.605   U
+114.94019 ch3cho[A]
+114.952   CH3CHO
+115.15394 ns_1
+115.27120 co
+115.55625 ns_2
+#
+#
+#
+#
+#    H213CO 3(12)-2(11) at 219.90852 GHz
+#    HNCO 10( 0,10)- 9( 0, 9) at 219.79827 GHz
+#
+219.90852   H213CO 
+219.79827   HNCO
+219.56036   C18O
+220.39868   13CO

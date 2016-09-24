@@ -1,0 +1,37 @@
+<html>
+  <head>
+    <title> %s/%s </title>
+    <script src="resources/js/svg-pan-zoom.js"></script>
+  </head>
+  <body>
+<h1> %s </h1>
+<p>
+This is a zoom and pan interface. 
+You can zoom with the +/- buttons in the lower right corner or with
+your mouse wheel.  Panning is done by holding left mouse button down
+and moving mouse.
+As you zoom, you will see grid lines and channel numbers appear below
+the x-axis which will help you figure out channel ranges of spectral
+segments.
+</p>
+<br>
+<center>
+ <embed id="admit-svg" type="image/svg+xml" src="%s"
+style="width: 1100px; height: 800px; border:2px solid black;"
+/>
+ <script>
+      window.onload= function() {
+        svgPanZoom('#admit-svg', {
+          zoomEnabled: true,
+          controlIconsEnabled: true,
+          minZoom: 0.1,
+          maxZoom: 20
+        });
+      };
+ </script>
+</center>
+<br>
+
+<!-- updated: %s -->
+</body>
+</html>

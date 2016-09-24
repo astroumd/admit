@@ -1,0 +1,8 @@
+# A1/2 = 118,108    B=136,128
+#maxpos   = [118,108, 136,128]
+#
+#maxpos   = [118,108]
+#vlsr     = 3.0    # A (Jorgensen 2012)
+maxpos  = [136,128]
+vlsr    = 2.7    # B (Jorgensen 2012)
+reflist = 'etc/iras_lines.list'

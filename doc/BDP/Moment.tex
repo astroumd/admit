@@ -1,0 +1,35 @@
+\subsection{Moment}
+\begin{description}
+\item[Type:] Moment
+\item[Description:]
+ A moment of emission computed from a spectral map.  Available moments 
+ are:
+ \begin{itemize}
+ \item Zeroth Moment : Integrated emission over some channel range
+ \item First Moment :  Centroid velocity over some channel range
+ \item Second Moment : Velocity dispersion over some channel range
+ \end{itemize}
+
+\item[Constituents:]: BDP\_Image
+
+\item[ADMIT Task:] AT\_Moment
+  Keywords:  \\
+     - moment to compute - 0,1,2 \\
+     - channel (velocity, frequency) range over which to compute \\
+     - method to compute, possible methods include:\\
+           simple clip  \\
+           primary beam weighted clip \\
+           Gaussian fit  \\
+           Using emission features from FeatureList BDP \\
+     - optionally correct velocity dispersion for mean motion \\
+    
+\item[CASA Task(s):]  TBD
+
+\item[Input BDP(s):]
+A spectral cube.  Optional: FeatureList if using that method
+
+\item[Output BDP(s):]
+
+Two-dimensional image of the requested moment of emission, and thumbnail image
+
+\end{description}

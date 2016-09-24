@@ -1,0 +1,135 @@
+#! /usr/bin/env python
+#
+#   timing analysis on one (or more) logfiles
+#   by selecting 'task' and/or 'key' you can grab
+#   sophisticated dictionaries and plot up CPU summaries
+#
+#   Note: in order to get the logging.timing() output, you need
+#         loglevel=15 or lower
+
+
+import sys, os
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+def timing(logfile=None, task='', key='END'):
+    """ grabs timing info for given task and key
+
+             <task> <key>
+    TIMING : Ingest ADMIT [  2.45641300e+00   1.46297368e+09]
+    TIMING : Ingest BEGIN [ 0.  0.]
+    TIMING : Ingest start  [  3.55850000e-02   3.90489101e-02   1.01044141e+03   1.86320312e+02]
+    TIMING : Ingest fromfits  [  7.81340000e-02   1.48875308e+00   1.01184766e+03   1.90503906e+02]
+    TIMING : Ingest summary-0  [  1.43870000e-02   2.48320818e-01   1.01184766e+03   1.90503906e+02]
+    TIMING : Ingest mask  [  1.71090000e-02   4.31034088e-01   1.01184766e+03   1.91343750e+02]
+    TIMING : Ingest summary-1  [  6.77000000e-03   6.77299500e-03   1.01184766e+03   1.91863281e+02]
+    TIMING : Ingest statistics  [  2.47060000e-02   5.66730499e-02   1.01178516e+03   1.92996094e+02]
+    TIMING : Ingest done  [  1.71950000e-01   3.00009966e-01   1.01180859e+03   1.94179688e+02]
+    TIMING : Ingest END [ 0.355425    2.57739186]
+    ...
+    TIMING : CubeStats ADMIT [  2.84249700e+00   1.46297368e+09]
+    ...
+    """
+
+    if logfile == None: return
+    
+    f = open(logfile,'r')
+    lines = f.readlines()
+    retval = []
+    for line in lines:
+        if line[0:6] != 'TIMING': continue
+        #  also rid the annoying [ and ]
+        w = line.replace('[',' ').strip().strip(']').split()
+        if task != '' and w[2] != task: continue
+        if key  != '' and w[3] != key:  continue
+        retval.append((w[2],w[3],float(w[4]),float(w[5])))
+        print w[2],w[3],w[4],w[5]
+    return retval
+
+tasks = {'Ingest' : "In",
+         'CubeStats' : "CST",
+         'CubeSum'   : "CSM",
+         'CubeSpectrum' : "CSP",
+         'LineSegment' : 'Lseg',
+         'PVSlice' : "PVs",
+         'PVCorr'  : "PVC",
+         'LineID'  : "Lid",
+         'LineCube' : "LC",
+         'Moment' : "MOM",
+         'SFind2D' : "SFi",
+         }
+
+def task_label(task):
+    global tasks
+    if tasks.has_key(task): return tasks[task]
+    return task[0:3]
+
+# here's a simple example, they should go into functions and commandline parsing will
+# select graph types
+
+if __name__ == '__main__':
+    merge = False
+    task = []
+    time0 = []
+    time1 = []
+    time2 = []
+    sum0 = 0.0
+    sum1 = 0.0
+    for logfile in sys.argv[1:]:
+        t = timing(logfile,'','END')
+        n = len(t)
+        for i in range(n):
+            task.append(task_label(t[i][0]))
+            time0.append(t[i][2])
+            time1.append(t[i][3])
+            time2.append(t[i][3]-t[i][2])
+            sum0 += t[i][2]
+            sum1 += t[i][3]
+    if len(time0) == 0:
+        print "No TIMING information found"
+        sys.exit(0)
+
+    if merge:
+        utask = {}
+        for tn,t0,t1,t2 in zip(task,time0,time1,time2):
+            if utask.has_key(tn):
+                t = utask[tn]
+                t[0] = t[0] + t0
+                t[1] = t[1] + t1
+                t[2] = t[2] + t2
+                utask[tn] = t
+            else:
+                utask[tn] = [t0,t1,t2]
+
+        # repopulate
+        task = []
+        time0 = []
+        time1 = []
+        time2 = []
+        for tn in utask.keys():
+            print tn,utask[tn]
+            task.append(tn)
+            time0.append(utask[tn][0])
+            time1.append(utask[tn][1])
+            time2.append(utask[tn][2])
+
+    print task
+    print time0
+    print time1
+    print time2
+    n = len(task)
+
+    if True:
+        fig = plt.figure(figsize=(10,8))
+        ax = fig.add_subplot(111)
+        width = 0.35
+        ind = np.arange(n)
+        p1 = plt.bar(ind,time0,width,color='r')
+        p2 = plt.bar(ind,time2,width,color='y',bottom=time0)
+        title = "%s : %.1f/%.1f = %.1f%%" % (sys.argv[1],sum0,sum1,sum0/sum1*100.0)
+        plt.title(title)
+        plt.ylabel('cpu/wall clock time')
+        plt.xticks(ind+width/2.0,task)
+        plt.legend((p1[0],p2[0]), ('CPU','Clock'),loc='best')  
+        plt.show()

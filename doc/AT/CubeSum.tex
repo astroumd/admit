@@ -1,0 +1,49 @@
+% in RST now,don't edit here
+
+\subsection{CubeSum\_AT}
+
+\subsubsection{Description}
+
+CubeSum\_AT tries to create a representative ``moment-0'' map of a whole cube,
+by adding up all the emission, irrespective
+
+
+\subsubsection{Use Case}
+
+A simple ``moment-0'' map early in a flow can be used to select a good location
+for selecting a slice through the spectral window cube.  See PVSlice\_AT.
+
+\subsubsection{Input BDPs:}
+
+
+\begin{description}
+
+\item[SpwCube] input cube
+
+\item[CubeStats] Peak/RMS. Optional. Useful to be more liberal and allow cutoff to depend on
+the RMS, which may be channel dependent.
+
+\end{description}
+
+
+\subsubsection{Input keywords}
+
+\begin{description}
+\item[cutoff] Above which emission (or below which, in case of absorbtion features).
+
+\item[absorbtion]  True/False
+
+
+\end{description}
+
+\subsubsection{Output BDPs}
+
+\begin{description}
+\item[CubeSum\_BDP] An image, 
+
+\end{description}
+
+
+\subsubsection{Procedure}
+
+\clearpage

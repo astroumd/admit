@@ -1,2 +1,3 @@
 1.0.0   Released as 1.0 (CVS tag name:  Release1_0) on May 9, 2016
-1.0.1   <patches>
+1.0.1   <patches> in CVS as "admit" as well as culling files into "gadmit"
+1.0.2   Conversion to git (github/astroumd/admit)

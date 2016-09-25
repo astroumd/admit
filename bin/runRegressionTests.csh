@@ -21,8 +21,12 @@ endif
 # The work is done in $ADMIT/data
 
 if (! -e $ADMIT/testdata) then
-  echo 'No $ADMIT/testdata/'
-  echo Symlink this to your testdata repo, it can be read-only
+  echo "There is no $ADMIT/testdata directory"
+  echo "Symlink this to your testdata repo, or grab what you need from"
+  echo "      ftp://ftp.astro.umd.edu/pub/admit/testdata"
+  echo "or use the "
+  echo "      make testdata"
+  echo "make target to grab the important ones for the tests"
   exit 1
 else
   echo OK, $ADMIT/testdata exists

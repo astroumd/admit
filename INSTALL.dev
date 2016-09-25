@@ -2,9 +2,8 @@
 
 For developers:  (only CASA 4.6 and above are supported)
 
-To grab the CVS based source code, e.g.  (git will be available shortly)
+To grab the git based source code
 
-  cvs -Q -d :pserver:anonymous@cvs.astro.umd.edu:/home/cvsroot checkout admit
   git clone https://github.com/astroumd/admit.git
 
 There are some automated scripts in  $ADMIT/scripts/ that you can tailor for installation
@@ -89,9 +88,9 @@ Sample installation
   Sample scripts:
   $ADMIT/scripts/get_stable-casa_admit             install both casa and admit, only for linux
 
-# $CVSROOT has been set for your account (or use :pserver:anonymous@cvs.astro.umd.edu:/home/cvsroot)
+# 
 
-cvs -Q co admit
+git clone ....
 cd admit
 autoconfig
 ./configure --with-casa-root=/astromake/opt/casa/stable
@@ -115,7 +114,7 @@ cd data
 # we need CASA for this
 cd $ADMIT
 make dtd
-cvs -nq up
+git status
 
 
 

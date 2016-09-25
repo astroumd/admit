@@ -5,7 +5,7 @@
 onintr cleanup
 
 set out=/tmp/admitregressiontest.log$$
-set EXPECTEDOK = 1
+set EXPECTEDOK = 2
 
 echo "Running ADMIT regression tests."
 echo "Detailed output will be written to $out"
@@ -36,7 +36,6 @@ echo Working in $ADMIT/data
 set runnables = ( `find $ADMIT -path \*test/regressiontest_\*.csh ` )
 @ result = 0
 foreach r ( $runnables  )
-   echo PJT $r
    $r >>& $out
    @ result += $?
    echo -n .

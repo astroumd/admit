@@ -221,24 +221,6 @@ unit00:
 	-(cd data; ../admit/at/test/test_file.py foobar.fits)
 	-(cd data; ../admit/at/test/test_ingest.py foobar.fits)
 
-my_unit:
-	-(bin/runUnitTests.csh              > admit_UT.log 2>&1;\
-		grep -c OK   admit_UT.log;\
-		grep -c FAIL admit_UT.log)
-
-my_integration:
-	-(bin/runIntegrationTests.csh       > admit_IT.log 2>&1;\
-		grep -c OK   admit_IT.log;\
-		grep -c FAIL admit_IT.log)
-
-
-my_regression:
-	-(cd data; runRegressionTests.csh   > admit_RT.log 2>&1;\
-		grep -c OK   admit_RT.log;\
-		grep -c FAIL admit_RT.log)
-
-
-
 # supposed to roughly do what buildbot does 
 buildbot: unit integration docs
 

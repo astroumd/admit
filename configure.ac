@@ -3,7 +3,7 @@ dnl ----------------------------------------------------------------------------
 
 # non-affective change to see if it fires off a new build immediately.
 
-AC_INIT(README)
+AC_INIT(README.md)
 
 AC_MSG_CHECKING([ADMIT config])
 

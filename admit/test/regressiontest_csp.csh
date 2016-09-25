@@ -1,13 +1,16 @@
 #!/bin/csh -f
 #
 
-#set tests = (test0.fits)
-set tests = (test253_spw3.fits)
+set tests = (test0551.tab)
 
 if ($#argv > 0) then
   echo Running $* instead of $tests
   set tests = ($*)
-endif  
+endif
+
+# *.apar *.rout and small *.tab files are here
+# fits files are in $ADMIT/testdata
+set etc = $ADMIT/etc/data
 
 # normally this is a symlink to where you have the fits files
 set testdata = $ADMIT/testdata
@@ -17,26 +20,22 @@ if (! -e $testdata) then
 else
   @ bad = 0
   foreach test ($tests)
-    if (! -e $testdata/$test) then
-      echo FAIL: $test does not exist in $testdata
+    if (! -e $etc/$test) then
+      echo FAIL: $test does not exist in $etc
       @ bad++
     endif
   end
   if ($bad) exit 1
 endif
 
-# *.apar *.rout and small *.tab files are here
-# fits files are in $ADMIT/testdata
-set etc = $ADMIT/etc/data
-
 @ bad = 0
 
 foreach test ($tests)
-   if (! -e $test) ln -sf $testdata/$test
+   cp $etc/$test .
    if (-e $etc/$test.apar) cp $etc/$test.apar .
-   runa1 $test
+   runa4 $test
    if ($?) then
-     echo FAIL runa1 $test
+     echo FAIL runa4 $test
      @ bad++
      continue
    endif

@@ -19,7 +19,7 @@ set out=/tmp/admitintegtest.log$$
 set EXPECTEDOK = 8
 
 echo "Running ADMIT integration tests."
-echo "Detailed output will be written to $out."
+echo "Detailed output will be written to $out"
 echo > $out
 
 set runnables = ( ` find . -path \*test/integrationtest_\*.\*  | grep -v \~` )

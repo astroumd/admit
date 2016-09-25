@@ -8,7 +8,7 @@ set out=/tmp/admitunittest.log$$
 set EXPECTEDOK = 21
 
 echo "Running ADMIT unit tests."
-echo "Detailed output will be written to $out."
+echo "Detailed output will be written to $out"
 echo > $out
 
 if ($?ADMIT == 0) then

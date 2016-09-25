@@ -8,11 +8,11 @@ URL  = http://www.astro.umd.edu/~teuben/admit/dist
 VERSION = `python admit/version.py`
 PY = 2.7
 
-# locally at UMD:  /local/ftp/pub/carma/data/admit/  
-FTP = ftp.astro.umd.edu:pub/carma/data/admit/
+# locally at UMD:  /local/ftp/pub/admit/testdata
+FTP = ftp.astro.umd.edu:pub/admit/testdata
 
 # sample testdata
-N253 = ftp://ftp.astro.umd.edu/pub/admit/data/TEST/test253_spw3.fits
+DATA = test0.fits test21.fits test253_spw3.fits
 
 help:
 	@echo Reminders/Helpers to build/distribute ADMIT:
@@ -39,10 +39,10 @@ help:
 	@echo "  make buildbot                       run what the buildbot does,but in your environment"
 	@echo ""
 	@echo "Data:"
-	@echo "  N253 = $(N253)"
+	@echo "  DATA = $(DATA)"
 
 
-.PHONY:  build dist doc testdata
+.PHONY:  build dist doc
 
 clean: cleanpyc
 	@echo No real clean yet ...
@@ -141,10 +141,12 @@ admit_start.sh: admit_start.sh.in
 data:
 	mkdir -p data
 
-# testdata itself is a symbolic link to where you keep test0.fits etc.
-testdata:
-	admit/test/integrationtest_data.csh
-
+# testdata itself is normally symbolic link to where you keep test0.fits etc.
+# this way you can force getting some data
+testdata: data
+	@mkdir -p testdata
+	-@for f in $(DATA); do\
+	(cd testdata; wget $(FTP)/$$f); done
 # 
 
 bench1:	data data/bench1

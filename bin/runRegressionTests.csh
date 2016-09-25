@@ -1,88 +1,55 @@
 #!/bin/csh -f
-#
-#
-#
-# Script to run all existing regression tests.
-# Regression tests file names MUST begin with regressiontest_
+# Script to run all existing regression tests. Unit tests file names MUST begin
+# with regressiontest_
+
+onintr cleanup
+
+set out=/tmp/admitregressiontest.log$$
+set EXPECTEDOK = 1
+
+echo "Running ADMIT regression tests."
+echo "Detailed output will be written to $out"
+echo > $out
 
 if ($?ADMIT == 0) then
   source admit_start.csh
-  echo python is "("`which python`")"
-  echo "PYTHONPATH is ($PYTHONPATH)"
-endif  
-
-set tests1 = (test0.fits)
-set tests2 = ()
-set tests4 = (test0551.tab)
-
-
-# normally this is a symlink to where you have the fits files
-set testdata = $ADMIT/testdata
-if (! -e $testdata) then
-  echo FAIL:  the $testdata directory does not exist
-  exit 1
-else
-  @ bad = 0
-  foreach test ($tests1 $tests2)
-    if (! -e $test) then
-      echo FAIL: $test does not exist in $testdata
-      @ bad++
-    endif
-  end
-  if ($bad) exit 1
 endif
 
-# *.apar *.rout and small *.tab files are here
-# fits files are in $ADMIT/testdata
-set etc = $ADMIT/etc/data
+# regression tests need big data, they need to be in $ADMIT/testdata
+# (or this needs to be a symlink)
+# See also the --with-testdata flag to configure
+# The work is done in $ADMIT/data
 
-@ bad = 0
+if (! -e $ADMIT/testdata) then
+  echo 'No $ADMIT/testdata/'
+  echo Symlink this to your testdata repo, it can be read-only
+  exit 1
+else
+  echo OK, $ADMIT/testdata exists
+endif
 
-foreach test ($tests1)
-   if (! -e $test) ln -sf $testdata/$test
-   if (-e $etc/$test.apar) cp $etc/$test.apar .
-   runa1 $test
-   grep REGRESSION $test.log > $test.rout
-   diff $test.rout $etc
-   if ($?) then
-      echo FAIL for $test
-      @ bad++
-   else
-      echo OK for $test
-   endif
+# ensure working directory exist
+mkdir -p $ADMIT/data
+cd $ADMIT/data
+echo Working in $ADMIT/data
+
+set runnables = ( `find $ADMIT -path \*test/regressiontest_\*.csh ` )
+@ result = 0
+foreach r ( $runnables  )
+   echo PJT $r
+   $r >>& $out
+   @ result += $?
+   echo -n .
 end
-
-foreach test ($tests2)
-   if (! -e $test) ln -sf $testdata/$test
-   if (-e $etc/$test.apar) cp $etc/$test.apar .
-   runa2 $test
-   grep REGRESSION $test.log > $test.rout
-   diff $test.rout $etc
-   if ($?) then
-      echo FAIL for $test
-      @ bad++
-   else
-      echo OK for $test
-   endif
-end
-
-foreach test ($tests4)
-   if (! -e $test)         cp $etc/$test      .
-   if (-e $etc/$test.apar) cp $etc/$test.apar .
-   runa4 $test
-   grep REGRESSION $test.log > $test.rout
-   diff $test.rout $etc
-   if ($?) then
-      echo FAIL for $test
-      @ bad++
-   else
-      echo OK for $test
-   endif
-end
-
-
-
   
-echo "return with result ($bad)"
-exit $bad
+set numok=`grep -cs OK $out`
+set numfail=`grep -cs FAIL $out`
 
+echo 
+echo "$numok out of $EXPECTEDOK tests PASSED."
+echo "$numfail tests FAILED."
+#echo "return with result ($result)"
+exit $result
+
+cleanup:
+/bin/rm -rf $out

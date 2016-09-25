@@ -4,6 +4,10 @@
 #set tests = (test0.fits)
 set tests = (test253_spw3.fits)
 
+if ($#argv > 0) then
+  echo Running $* instead of $tests
+  set tests = ($*)
+endif  
 
 # normally this is a symlink to where you have the fits files
 set testdata = $ADMIT/testdata

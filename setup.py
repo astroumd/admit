@@ -49,7 +49,7 @@ setup(
              'bin/runa1','bin/runa2','bin/runa4','bin/admit_recipe','bin/admit_export'],
     # packages=['admit', 'admit/at', 'admit/bdp','admit/gui', 'admit/util','admit/xmlio','etc'],
     packages=['etc', 'admit', 'admit/at', 'admit/bdp', 'admit/xmlio',
-              'admit/scripts',
+              'admit/recipes',
               'admit/test',
               'admit/util',
               'admit/util/continuumsubtraction',

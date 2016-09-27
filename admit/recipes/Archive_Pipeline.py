@@ -181,7 +181,7 @@ def _run(argv):
         p.run()
 
         if p['contsfind'][0] != None and len(p['contsfind'][0]) > 0:
-            Tasks.append(p.addtask(admit.CubeSpectrum_AT (alias='contspec'),                                                           ['contsfind']))
+            Tasks.append(p.addtask(admit.CubeSpectrum_AT (alias='contspec'),                                                           ['cutcubes','contsfind']))
 
     #
     #  Execute ADMIT flow

@@ -48,7 +48,7 @@ setup(
     scripts=['bin/admit','bin/casarun','bin/admit_root','bin/admit_root.py',
              'bin/runa1','bin/runa2','bin/runa4','bin/admit_recipe','bin/admit_export'],
     # packages=['admit', 'admit/at', 'admit/bdp','admit/gui', 'admit/util','admit/xmlio','etc'],
-    packages=['etc', 'admit', 'admit/at', 'admit/bdp', 'admit/gui', 'admit/xmlio',
+    packages=['etc', 'admit', 'admit/at', 'admit/bdp', 'admit/xmlio',
               'admit/scripts',
               'admit/test',
               'admit/util',
@@ -60,7 +60,7 @@ setup(
               'admit/util/segmentfinder'],
 
     include_package_data = True,
-    package_data = {'admit': ['xmlio/dtd/*.dtd', 'gui/*.html', 'util/*.json'],
+    package_data = {'admit': ['xmlio/dtd/*.dtd', 'util/*.json'],
                     'etc': ['*.*', 'data/*',
                             'resources/css/*.*',
                             'resources/fancybox/source/*.*',

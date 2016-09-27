@@ -169,7 +169,7 @@ def _run(argv):
     # If given, add continuum map processing to flow
     if contfile != None:
         if KEYS["contpb"] == None:
-            Tasks.append(p.addtask(admit.Ingest_AT (alias='incont',     file=contfileg)))
+            Tasks.append(p.addtask(admit.Ingest_AT (alias='incont',     file=contfile)))
         else:
             Tasks.append(p.addtask(admit.Ingest_AT (alias='incont',     file=contfile, pb=KEYS["contpb"])))
 

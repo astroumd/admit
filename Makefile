@@ -12,7 +12,7 @@ PY = 2.7
 FTP = ftp.astro.umd.edu:pub/admit/testdata
 
 # sample testdata
-DATA = test0.fits test21.fits test253_spw3.fits
+DATA = test0.fits test21.fits test253_spw3.fits test253_cont.fits
 
 help:
 	@echo Reminders/Helpers to build/distribute ADMIT:

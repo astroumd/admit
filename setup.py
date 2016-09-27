@@ -68,7 +68,7 @@ setup(
                             'resources/img/*.*',
                             'resources/js/*.js']},
 
-    long_description=read('README'),
+    long_description=read('README.md'),
     classifiers=[
         "Development Status :: 1 - Beta",
         "Topic :: Astronomy :: Scientific/Engineering :: Utilities",

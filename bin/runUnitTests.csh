@@ -1,4 +1,5 @@
 #!/bin/csh -f
+#
 # Script to run all existing unit tests. Unit tests file names MUST begin
 # with unittest_
 
@@ -19,7 +20,10 @@ echo "Running ADMIT unit tests."
 echo "Detailed output will be written to $out"
 echo > $out
 
-set runnables = ( `find . -path \*test/unittest_\*.py ` )
+
+cd $ADMIT
+set runnables = ( `find admit -path \*test/unittest_\*.py ` )
+
 @ result = 0
 foreach r ( $runnables  )
    $r >>& $out

@@ -26,7 +26,9 @@ echo "Running ADMIT integration tests."
 echo "Detailed output will be written to $out"
 echo > $out
 
-set runnables = ( ` find . -path \*test/integrationtest_\*.\*  | grep -v \~` )
+cd $ADMIT
+set runnables = ( ` find admit -path \*test/integrationtest_\*.\*  | grep -v \~` )
+
 @ result = 0
 @ numok = 0
 foreach r ( $runnables  )

@@ -1,19 +1,25 @@
 #!/bin/csh -f
-# Script to run all existing regression tests. Unit tests file names MUST begin
+#
+# Script to run all existing regression tests. Tests file names MUST begin
 # with regressiontest_
 
 onintr cleanup
 
-set out=/tmp/admitregressiontest.log$$
+if ($?ADMIT == 0) then
+  source admit_start.csh
+endif
+
+if ( ! -e $ADMIT/tmp ) then
+    mkdir $ADMIT/tmp
+endif
+
+set out=$ADMIT/tmp/admitregressiontest.log$$
 set EXPECTEDOK = 2
 
 echo "Running ADMIT regression tests."
 echo "Detailed output will be written to $out"
 echo > $out
 
-if ($?ADMIT == 0) then
-  source admit_start.csh
-endif
 
 # regression tests need big data, they need to be in $ADMIT/testdata
 # (or this needs to be a symlink)
@@ -32,12 +38,9 @@ else
   echo OK, $ADMIT/testdata exists
 endif
 
-# ensure working directory exist
-mkdir -p $ADMIT/data
+set runnables = ( `find $ADMIT/admit -path \*test/regressiontest_\*.csh ` )
 cd $ADMIT/data
-echo Working in $ADMIT/data
 
-set runnables = ( `find $ADMIT -path \*test/regressiontest_\*.csh ` )
 @ result = 0
 foreach r ( $runnables  )
    $r >>& $out

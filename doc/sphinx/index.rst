@@ -25,7 +25,7 @@ derived products. The goals of the package are to:
 ADMIT is funded as an `ALMA Development Project,
 <https://science.nrao.edu/facilities/alma/alma-development-2015/alma-development/alma-development-north-america>`_
 and was introduced as version 1.0 in May 2016, with
-a final delivery to NRAO in November 2016.
+a final delivery to NRAO in October 2016 as version 1.1
 
 Beginners' User Guide
 ---------------------

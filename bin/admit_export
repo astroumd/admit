@@ -41,7 +41,7 @@ foreach arg ($*)
     continue
   endif
 
-  if ($tgz) then
+  if ($tgz == 1) then
      set projects=($projects $arg)
      continue
   endif
@@ -63,7 +63,7 @@ foreach arg ($*)
   endif
 end
 
-if ($tgz) then
+if ($tgz == 1) then
   set tgz = admit.tar.gz
   if ($brief) then
     # @todo what about .cim and .lim files 

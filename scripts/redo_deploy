@@ -5,32 +5,31 @@
 #   Example of installing "casa-admit" (ADMIT within CASA)
 #   using setup.py -
 #   takes about 3' on Peter's Ubuntu laptop, and a mere 15" on chara
+#
 
-set version  = 11-jun-2016
+set version  = 28-sep-2016
 
 #  this file is where you can override the default settings here
 set defaults = redo_deploy.set
 
 #  the defaults
-set cvsroot  = :pserver:anonymous@cvs.astro.umd.edu:/home/cvsroot
+set gitroot  = https://github.com/astroumd/admit.git
 set casatar  = /data2/teuben/ADMIT/casa/casa-release-4.5.3-el6.tar.gz
 set tmpca    = casa_admit
-set cvstag   = HEAD
 set ubuntu   = 0
 
 #  override script defaults?
 if (-e $defaults) source $defaults
 
-#  CVSPASS entry ("echo $cvspass >> ~/.cvspass")
-set cvspass = "/1 :pserver:anonymous@cvs.astro.umd.edu:2401/home/cvsroot A"
 
 #  announce
 echo "DEPLOY: version $version"
 
 #  start from a completely clean working directory
+#  set casaroot to be something like "casa-release-4.5.3-el6"
 rm -rf $tmpca
 mkdir  $tmpca
-set casaroot = ${casatar:t:r:r}
+set casaroot = ${casatar:t:r:r}              
 echo "TAR CASA (1/4) $casaroot"
 tar -C $tmpca -zxf $casatar
 
@@ -43,17 +42,19 @@ if ($ubuntu && -e /lib/x86_64-linux-gnu/libtinfo.so.5.9) then
   (cd $casaroot/lib; ln -sf  /lib/x86_64-linux-gnu/libtinfo.so.5.9  libtinfo.so.5)
 endif  
 
-echo "CVS CHECKOUT (2/4)"
+echo "GIT CHECKOUT (2/4)"
 
-cvs -d $cvsroot -Q co -r $cvstag admit
+git clone $gitroot
 cd admit
+#          developer lines are not needed here
 #autoconf
 #./configure --with-casa-root=$casaroot --with-testdata=$testdata
 #source admit_start.csh
 
-# need to remove these, or else package_data won't deal with it properly
-echo "CLEAN CVS/ (3/4)"
-find . -name CVS | xargs rm -rf
+# need to remove these
+# (in principle you can also work from a clean "git archive")
+echo "CLEAN GIT/ (3/4)"
+rm -rf .git
 
 echo "PYTHON SETUP (4/4)"
 if (-e ../$casaroot/bin/casa-config) then

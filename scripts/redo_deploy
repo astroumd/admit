@@ -26,9 +26,10 @@ if (-e $defaults) source $defaults
 echo "DEPLOY: version $version"
 
 #  start from a completely clean working directory
+#  set casaroot to be something like "casa-release-4.5.3-el6"
 rm -rf $tmpca
 mkdir  $tmpca
-set casaroot = ${casatar:t:r:r}
+set casaroot = ${casatar:t:r:r}              
 echo "TAR CASA (1/4) $casaroot"
 tar -C $tmpca -zxf $casatar
 
@@ -43,9 +44,9 @@ endif
 
 echo "GIT CHECKOUT (2/4)"
 
-echo git clone $gitroot
 git clone $gitroot
 cd admit
+#          developer lines are not needed here
 #autoconf
 #./configure --with-casa-root=$casaroot --with-testdata=$testdata
 #source admit_start.csh

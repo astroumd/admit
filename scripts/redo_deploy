@@ -4,7 +4,7 @@
 #
 #   Example of installing "casa-admit" (ADMIT within CASA)
 #   using setup.py -
-#   takes about 3' on Peter's Ubuntu laptop, and a mere 15" on chara
+#   takes about 30" on Peter's Ubuntu laptop, and a mere 15" on chara
 #
 
 set version  = 28-sep-2016

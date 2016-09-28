@@ -15,8 +15,12 @@ setenv MPLBACKEND "module://Agg"
 set resultsfile = "$ADMIT/INTEGTESTRESULT"
 /bin/rm -rf resultsfile
 
-set out=/tmp/admitintegtest.log$$
-set EXPECTEDOK = 8
+if ( ! -e $ADMIT/tmp ) then
+    mkdir $ADMIT/tmp
+endif
+
+set out=$ADMIT/tmp/admitintegtest.log$$
+set EXPECTEDOK = 9
 
 echo "Running ADMIT integration tests."
 echo "Detailed output will be written to $out"

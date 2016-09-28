@@ -46,10 +46,7 @@ echo "GIT CHECKOUT (2/4)"
 
 git clone $gitroot
 cd admit
-#          developer lines are not needed here
-#autoconf
-#./configure --with-casa-root=$casaroot --with-testdata=$testdata
-#source admit_start.csh
+autoconf
 
 # need to remove these
 # (in principle you can also work from a clean "git archive")

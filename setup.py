@@ -46,7 +46,7 @@ setup(
     keywords = "example documentation tutorial",
     url = "http://admit.astro.umd.edu/wiki/index.php/ADMIT",
     scripts=['bin/admit','bin/casarun','bin/admit_root','bin/admit_root.py',
-             'bin/runa1','bin/runa2','bin/runa4','bin/admit_recipe','bin/admit_export'],
+             'bin/runa1','bin/runa2','bin/runa4','bin/admit_recipe','bin/admit_export','bin/admit_pipeline'],
     # packages=['admit', 'admit/at', 'admit/bdp','admit/gui', 'admit/util','admit/xmlio','etc'],
     packages=['etc', 'admit', 'admit/at', 'admit/bdp', 'admit/xmlio',
               'admit/recipes',

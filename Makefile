@@ -12,7 +12,7 @@ PY = 2.7
 GITROOT = https://github.com/astroumd/admit.git
 
 # locally at UMD:  /local/ftp/pub/admit/testdata
-FTP = ftp.astro.umd.edu:pub/admit/testdata
+FTP = ftp://ftp.astro.umd.edu/pub/admit/testdata
 
 # sample testdata needed for a mininum integration and regression test
 DATA = test0.fits test253_spw3.fits test253_cont.fits
@@ -149,17 +149,21 @@ data:
 testdata: data
 	@mkdir -p testdata
 	-@for f in $(DATA); do\
-	(cd testdata; wget $(FTP)/$$f); done
+	(cd testdata; ../bin/wget1 $(FTP)/$$f); done
 # 
 
+# deprecate
 bench1:	data data/bench1
 
+# deprecate
 data/bench1:
 	(cd data; wget -O - $(FTP)/bench1.tar.gz | tar zxf -)
 
+# deprecate
 test1: bench1
 	python tests/test1.py
 
+# deprecate
 n253: 
 	(cd data; wget $(N253))
 
@@ -173,20 +177,23 @@ python1:
 python2:
 	casa-config --exec bin/python-env
 
-# 
+# deprecate 
 bench2:	data data/bench2
 
+# deprecate
 data/bench2:
 	(cd data; wget -O - $(FTP)/bench2.tar.gz | tar zxf -)
 
+# deprecate
 test2: bench2
 	python tests/test2.py
 
 # test0.fits is the same as foobar.fits
-
+# deprecate
 test0: data
 	(cd data; wget $(FTP)/test0.fits)
 
+# deprecate
 foobar:	data 
 	(cd data; wget $(FTP)/foobar.fits; sed s/NGC3256/ngc3256/ foobar.fits > foobar2.fits)
 

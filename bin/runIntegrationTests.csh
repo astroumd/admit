@@ -13,7 +13,7 @@ setenv MPLBACKEND "module://Agg"
 # All integration tests write a single line to this $ADMIT/INTEGTESTRESULT.
 # (Hardcoded in the test scripts).
 set resultsfile = "$ADMIT/INTEGTESTRESULT"
-/bin/rm -rf resultsfile
+/bin/rm -rf $resultsfile
 
 if ( ! -e $ADMIT/tmp ) then
     mkdir $ADMIT/tmp

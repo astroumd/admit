@@ -1,0 +1,41 @@
+#! /bin/csh -f
+#
+#  $ADMIT/bin/wget1 url(s)
+#
+#  This is a simple wget
+#  - be a replacement for wget
+#  - hide the fact that mac doesn't come with wget and uses curl
+#  - skip any files that are already present
+#
+
+
+set wget = `which wget`
+if ($?) then
+   unset wget
+   set curl = `which curl`
+   if ($?) then
+      echo No wget or curl... i give up
+      exit 1
+   endif
+endif
+
+if (0) then
+  unset wget
+  set curl=1
+endif
+
+foreach url ($*)
+   set file = $url:t
+   echo $file
+   if (-e $file) then
+      echo Skipping $file
+   else
+      if ($?wget) then
+         wget $url
+      else if ($?curl) then
+         curl $url > $file
+      else
+         echo Cannot fetch $url
+      endif
+   endif
+end

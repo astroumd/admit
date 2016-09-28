@@ -1,18 +1,21 @@
 #
 # reminders how to compile and install ADMIT related things
 # WARNING:  VERSION is defined twice:  admit/version.py and historically in VERSIONS
-#       cvs ci admit/version.py VERSIONS
+#       git ci admit/version.py VERSIONS
 
 SITE = teuben@chara.astro.umd.edu:public_html/admit/dist
 URL  = http://www.astro.umd.edu/~teuben/admit/dist
 VERSION = `python admit/version.py`
 PY = 2.7
 
+#
+GITROOT = https://github.com/astroumd/admit.git
+
 # locally at UMD:  /local/ftp/pub/admit/testdata
 FTP = ftp.astro.umd.edu:pub/admit/testdata
 
-# sample testdata
-DATA = test0.fits test21.fits test253_spw3.fits test253_cont.fits
+# sample testdata needed for a mininum integration and regression test
+DATA = test0.fits test253_spw3.fits test253_cont.fits
 
 help:
 	@echo Reminders/Helpers to build/distribute ADMIT:
@@ -34,7 +37,7 @@ help:
 	@echo "  source admit_start.csh"
 	@echo " "
 	@echo "Maintenance targets:"
-	@echo "  make version                        cvs checkin the files needed when version number changed"
+	@echo "  make version                        git checkin the files needed when version number changed"
 	@echo "  make dtd                            run dtdGenerator when new AT's or BDP's were added"
 	@echo "  make buildbot                       run what the buildbot does,but in your environment"
 	@echo ""
@@ -59,13 +62,13 @@ dist:
 
 tar-old:
 	autoconf
-	(cd ..; tar zcf admit-cvs.tar.gz admit)
+	(cd ..; tar zcf admit-git.tar.gz admit)
 
 ADIR = admit_$(VERSION)
 EDIR = /chara/bimawww/docs/
 export:
 	rm -rf $(ADIR)
-	(cvs -Q export -Dnow -d $(ADIR) admit; cd $(ADIR); autoconf; make docs2rm; cd ..; tar zcf $(ADIR).tar.gz $(ADIR))
+	(git clone $(GITROOT) $(ADIR); cd $(ADIR); autoconf; make docs2rm; cd ..; tar zcf $(ADIR).tar.gz $(ADIR))
 	@echo "FOR AN OFFICIAL EXPORT RUN:"
 	@echo "RUN: cp $(ADIR).tar.gz $(EDIR)"
 	@echo "RUN: (cd $(EDIR); ln -sf $(ADIR).tar.gz admit.tar.gz)"
@@ -188,16 +191,16 @@ foobar:	data
 	(cd data; wget $(FTP)/foobar.fits; sed s/NGC3256/ngc3256/ foobar.fits > foobar2.fits)
 
 # do a new version check in
-# All 3 files need the same version number.
+# These files have version info
 version:
-	cvs ci Makefile setup.py admit/version.py VERSIONS
+	git admit/version.py VERSIONS
 
 # when new AT's or BDP's were added; there is also a module to do
 # this from within python, but this is a quick command line version
 # if you have bad code in your AT or BDP directory, it can also fail
 dtd:
 	bin/dtdGenerator
-	cvs -nq update
+	git status
 
 # here's a cheat/reminder. You currently need pip and sphinx to build documentation
 # if this fails, look at the INSTALL.dev file for possible options

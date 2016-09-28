@@ -26,7 +26,7 @@ set runnables = ( ` find . -path \*test/integrationtest_\*.\*  | grep -v \~` )
 @ result = 0
 @ numok = 0
 foreach r ( $runnables  )
-   $r >& $out
+   $r >>& $out
    echo -n .
 end
   

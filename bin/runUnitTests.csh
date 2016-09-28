@@ -4,16 +4,20 @@
 
 onintr cleanup
 
-set out=/tmp/admitunittest.log$$
+if ($?ADMIT == 0) then
+  source admit_start.csh
+endif
+
+if ( ! -e $ADMIT/tmp ) then
+    mkdir $ADMIT/tmp
+endif
+
+set out=$ADMIT/tmp/admitunittest.log$$
 set EXPECTEDOK = 21
 
 echo "Running ADMIT unit tests."
 echo "Detailed output will be written to $out"
 echo > $out
-
-if ($?ADMIT == 0) then
-  source admit_start.csh
-endif
 
 set runnables = ( `find . -path \*test/unittest_\*.py ` )
 @ result = 0

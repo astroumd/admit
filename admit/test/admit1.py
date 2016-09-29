@@ -530,7 +530,7 @@ if usePV:
         # the PPP method didn't seem to work so well yet, and is slow, so still commented out here
         #slice1 = a.addtask(PVSlice_AT(width=5),[bandcube1,csttab1])     <--  BUG with summary needed a figure CSM style input makes
         slice1 = a.addtask(admit.PVSlice_AT(width=pvwidth),[bandcube1,csmom0])
-    a[slice1].setkey('clip',0.3)            # TODO: this is an absolute number for mom0
+    a[slice1].setkey('clip',2.0)            
     a[slice1].setkey('gamma',1.0)           # SB185 works better with gamma=4
     a[slice1].setkey('pvsmooth',pvSmooth)   # pvsmooth, in pixel numbers
     pvslice1 = (slice1,0)

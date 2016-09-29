@@ -85,7 +85,8 @@ class Moment_AT(AT):
 
           **mom0clip**: float
             The clip level in the mom0 map below which other moment maps will
-            be masked, but not to the mom0 map. This is in sigma units.
+            be masked, but not to the mom0 map. This is in sigma units
+            of that moment-0 map.
             Default: 0.0 (not applied).
 
         **Input BDPs**
@@ -120,7 +121,7 @@ class Moment_AT(AT):
             "variflow" : False,        # default to manual sub-flow management
         }
         AT.__init__(self, keys, keyval)
-        self._version = "1.0.2"
+        self._version = "1.0.3"
         # set input types
         self.set_bdp_in([(Image_BDP,     1, bt.REQUIRED),
                          (CubeStats_BDP, 1, bt.OPTIONAL)])
@@ -219,10 +220,10 @@ class Moment_AT(AT):
         # error check the mom0clip input
         if mom0clip > 0.0 and not 0 in moments:
             logging.warning("mom0clip given, but no moment0 map was requested. One will be generated anyway.")
-            # add moment0 to the list of computed moments
-            moments.append(0)
+            # add moment0 to the list of computed moments, but it has to be first
+            moments.insert(0,0)
             if not allsame:
-                numsigma.append(2.0 * sigma)
+                numsigma.insert(0, 2.0*sigma)
 
         if allsame:
             # this is only executed now if len(moments) > 1 and len(cutoff)==1
@@ -252,6 +253,7 @@ class Moment_AT(AT):
         # generate the mask to be applied to all but moment 0
         if mom0clip > 0.0:
             # get the statistics from mom0 map
+            # this is usually a very biased map, so unclear if mom0sigma is all that reliable
             args = {"imagename": self.dir(infile)}
             stat = casa.imstat(imagename=self.dir(basename + momentFileExtensions[0]))
             mom0sigma = float(stat["sigma"][0])
@@ -397,7 +399,7 @@ class Moment_AT(AT):
             # grab the X coordinates for the histogram, we want them in km/s
             # restfreq should also be in summary
             restfreq = casa.imhead(self.dir(infile),mode="get",hdkey="restfreq")['value']/1e9    # in GHz
-            print "PJT  %.10f %.10f" % (restfreq,s_rest)
+            # print "PJT  %.10f %.10f" % (restfreq,s_rest)
             imval0 = casa.imval(self.dir(infile))
             freqs = imval0['coords'].transpose()[2]/1e9
             x = (1-freqs/restfreq)*utils.c

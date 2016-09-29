@@ -2366,7 +2366,7 @@ line cubes, and derives moments. Everything is stored in an ADMIT
 object, ready for recomputation and tuning of the results.
 
 
-.. literalinclude:: ../../admit/test/milestone2.py
+.. literalinclude:: ../../admit/test/admit4.py
    :language: python
    :linenos:
 

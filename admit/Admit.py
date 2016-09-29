@@ -147,6 +147,12 @@ class Admit(object):
 
     def __init__(self, baseDir=None, name='none', basefile=None, create=True, dataserver=False,
                  loglevel=logging.INFO, commit=True):
+        #
+        # IMPORTANT note for dtd's:   if you add items for admit.xml here,
+        # don't forget to edit dtdGenerator.py and run bin/dtdGenerator
+        #
+
+        
         # baseDir  : should be a directory, always needed
         # name     : some ID, deprecate?
         # basefile : should be admit.xml, why change it?
@@ -180,6 +186,7 @@ class Admit(object):
         self.fm = admit.Flow()            # flow manager
         self.pm = admit.Manager()         # project manager
         self.new = False                  # is this a new admit object or are we building it from an xml
+        self.astale = 0                   # export hack (will be True if lightweight tar file is built)
         self.count = 0                    # keep track how many times this admit has been run
         self._server = None               # data HTTP server
         # location information
@@ -1334,6 +1341,8 @@ class Admit(object):
         and decide which items are going to copied over to admit.userData{}, as admit.xml
         is the only file external agents should have to look at.
 
+        See also the script "admit_export" which is currently doing this work.
+
         Parameters
         ----------
         mode : str
@@ -1444,6 +1453,10 @@ class Admit(object):
         llnode = et.SubElement(root, "loglevel")
         llnode.set("type", bt.INT)
         llnode.text = str(self.loglevel)
+
+        llnode = et.SubElement(root, "astale")
+        llnode.set("type", bt.INT)
+        llnode.text = str(self.astale)
 
         lnnode = et.SubElement(root, "_loggername")
         lnnode.set("type", bt.STRING)

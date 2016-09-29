@@ -30,6 +30,9 @@ for ff in argv[1:]:
       stale = False
       continue
 
+    if verbose:
+        print stale,ff
+
     p = admit.Project(ff,commit=False)
     p.setAstale(stale)
     p.writeXML(script=False)

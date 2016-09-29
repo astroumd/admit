@@ -1927,11 +1927,11 @@ class Admit(object):
 
     def setAstale(self, astale):
         if astale:
-            print "PJT: astale: changing ",self.astale," to 0"
-            self.astale = 0
-        else:
             print "PJT: astale: changing ",self.astale," to 1"
             self.astale = 1
+        else:
+            print "PJT: astale: changing ",self.astale," to 0"
+            self.astale = 0
 
 if __name__ == "__main__":
     print "MAIN not active yet, but this is where it will go"

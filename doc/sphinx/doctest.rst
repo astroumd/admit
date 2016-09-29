@@ -27,7 +27,7 @@ end example.
 Include a python file:
 
 
-.. literalinclude:: ../../admit/test/milestone1.py
+.. literalinclude:: ../../admit/test/admit4.py
    :language: python
    :linenos:
 

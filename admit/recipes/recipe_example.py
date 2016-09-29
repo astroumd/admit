@@ -21,7 +21,7 @@
 
 import os, sys
 import admit
-import admit.scripts.recipeutils
+import admit.recipes.recipeutils
 
 # Give a descriptive name to required optional keyless arguments 
 # to be used in help string.

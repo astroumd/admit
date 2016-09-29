@@ -65,7 +65,10 @@ class PVSlice_AT(AT):
 
       **clip**: float
         Clip value applied to input Moment_BDP map in case the slice/slit is to
-        be derived from an automated moment of inertia analysis.
+        be derived from an automated moment of inertia analysis. It is interpreted
+        as a "numsigma", i.e. how many times over the noise in the map it should
+        use. If no signal is found, it iteratively lowers this value until some
+        signal is found (but probably creating a lousy PV Slice)
         **Default:**  0.0.
 
       **gamma**: float
@@ -110,13 +113,13 @@ class PVSlice_AT(AT):
         keys = {"slice"    : [],            # x0,y0,x1,y1    ? could be line= ?
                 "slit"     : [],            # xc,yc,len,pa   pick one of slice= or slit=
                 "width"    : 1,             # odd integer!
-                "clip"     : 0.0,           # clip value 
-                "gamma"    : 1.0,           # gamma factor for displaying map
+                "clip"     : 0.0,           # clip value (in terms of sigma)
+                "gamma"    : 1.0,           # gamma factor for analyzing map MOI
                 "pvsmooth" : [],            # P and V smoothing (in pixel)
                 #"major"   : True,          # (TODO) major or minor axis, not used yet
                 }
         AT.__init__(self,keys,keyval)
-        self._version       = "1.0.1"
+        self._version       = "1.0.2"
         self.set_bdp_in([(Image_BDP,     1, bt.REQUIRED),      # SpwCube
                          (Moment_BDP,    1, bt.OPTIONAL),      # Moment0 or CubeSum
                          (CubeStats_BDP, 1, bt.OPTIONAL)])     # was: PeakPointPlot
@@ -192,7 +195,7 @@ class PVSlice_AT(AT):
 
         if b11 != None and len(pvslice) == 0 and len(pvslit) == 0:
             # if a map (e.g. cubesum ) given, and no slice/slit, get a best pvslice from that
-            pvslice = map_to_slit(self.dir(b11.getimagefile(bt.CASA)),clip=clip,gamma=gamma)
+            (pvslice,clip) = map_to_slit(self.dir(b11.getimagefile(bt.CASA)),clip=clip,gamma=gamma)
         elif b12 != None and len(pvslice) == 0 and len(pvslit) == 0:
             # PPP doesn't seem to work too well yet
             logging.debug("testing new slice computation from a PPP")
@@ -201,7 +204,7 @@ class PVSlice_AT(AT):
             maxposy = b12.table.getColumnByName("maxposy")
             if maxposx == None:
               raise Exception,"PPP was not enabled in your CubeStats"
-            pvslice = tab_to_slit([maxposx,maxposy,max],clip=clip,gamma=gamma)
+            (pvslice,clip) = tab_to_slit([maxposx,maxposy,max],clip=clip,gamma=gamma)
         sliceargs = deepcopy(pvslice)
         if len(sliceargs)==0:
             logging.warning("no slice for plot yet")
@@ -299,7 +302,7 @@ class PVSlice_AT(AT):
             logging.info("MAP1 segm %s %s" % (str(segm),str(pvslice)))
             if d1.max() < clip:
               logging.warning("datamax=%g,  clip=%g" % (d1.max(), clip))
-              title = title + ' (no signal?)'
+              title = title + ' (no signal over %g?)' % clip
               myplot.map1(d1,title,overlay,segments=segm,thumbnail=True)
             else:
               myplot.map1(d1,title,overlay,segments=segm,range=[clip],thumbnail=True)
@@ -371,18 +374,35 @@ def map_to_slit(fname, clip=0.0, gamma=1.0):
     """
     taskinit.ia.open(fname)
     imshape = taskinit.ia.shape()
-    pix = taskinit.ia.getchunk().squeeze()     # this should now be a pix[ix][iy] map
+    pix = taskinit.ia.getchunk().squeeze()     # this should now be a numpy pix[ix][iy] map
+    pixmax = pix.max()
+    pixrms = pix.std()
+    if False:
+        pix1 = pix.flatten()
+        rpix = stats.robust(pix1)
+        logging.debug("stats: mean: %g %g" % (pix1.mean(), rpix.mean()))
+        logging.debug("stats: rms: %g %g" % (pix1.std(), rpix.std()))
+        logging.debug("stats: max: %g %g" % (pix1.max(), rpix.max()))
+        logging.debug('shape: %s %s %s' % (str(pix.shape),str(pix1.shape),str(imshape)))
     taskinit.ia.close()
-    #logging.debug('shape: %s %s' % (str(pix.shape),str(imshape)))
-    logging.debug('shape: %s %s' % (str(pix.shape),str(imshape)))
     nx = pix.shape[0]
     ny = pix.shape[1]
     x=np.arange(pix.shape[0]).reshape( (nx,1) )
     y=np.arange(pix.shape[1]).reshape( (1,ny) )
     if clip > 0.0:
+        nmax = nx*ny
+        clip = clip * pixrms
+        logging.debug("Using initial clip=%g for rms=%g" % (clip,pixrms))
         m=ma.masked_less(pix,clip)
+        while m.count() == 0:
+          clip = 0.5 * clip
+          logging.debug("no masking...trying lower clip=%g" % clip)
+          m=ma.masked_less(pix,clip)
+        else:
+          logging.debug("Clip=%g now found %d/%d points" % (clip,m.count(),nmax))
+        
     else:
-        #@ todo   sigma-clpping with iterations?  see also astropy.stats.sigma_clip()
+        #@ todo   sigma-clipping with iterations?  see also astropy.stats.sigma_clip()
         rpix = stats.robust(pix.flatten())
         r_mean = rpix.mean()
         r_std  = rpix.std()
@@ -397,7 +417,7 @@ def map_to_slit(fname, clip=0.0, gamma=1.0):
         slit = [edge,0.5*ny-0.1,nx-1.0-edge,0.5*ny+0.1]
     else:
         slit = convert_to_slit(m,x,y,nx,ny,gamma)
-    return slit
+    return (slit,clip)
 
 def tab_to_slit(xym, clip=0.0, gamma=1.0):
     """take all values from a map over clip, compute best slit for PV Slice
@@ -409,7 +429,7 @@ def tab_to_slit(xym, clip=0.0, gamma=1.0):
     logging.debug("CLIP %g" % clip)
 
     slit = convert_to_slit(m,x,y,0,0,gamma,expand=2.0)
-    return slit
+    return (slit,clip)
 
 def convert_to_slit(m,x,y,nx,ny,gamma=1.0,expand=1.0):
     """compute best slit for PV Slice from set of points or masked array

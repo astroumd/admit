@@ -530,7 +530,7 @@ if usePV:
         # the PPP method didn't seem to work so well yet, and is slow, so still commented out here
         #slice1 = a.addtask(PVSlice_AT(width=5),[bandcube1,csttab1])     <--  BUG with summary needed a figure CSM style input makes
         slice1 = a.addtask(admit.PVSlice_AT(width=pvwidth),[bandcube1,csmom0])
-    a[slice1].setkey('clip',2.0)            
+    a[slice1].setkey('clip',2.0)            # this is like a numsigma factor (sigma determined internally)
     a[slice1].setkey('gamma',1.0)           # SB185 works better with gamma=4
     a[slice1].setkey('pvsmooth',pvSmooth)   # pvsmooth, in pixel numbers
     pvslice1 = (slice1,0)
@@ -632,7 +632,7 @@ for i in range(nlines):
     #a[m[x[i]]].setkey('moments',[0])
     #a[m[x[i]]].setkey('cutoff',[2.0,3.0,3.0])
     a[m[x[i]]].setkey('numsigma',[2.0])
-    a[m[x[i]]].setkey('mom0clip',2.0)       # TODO: this is still an absolute value
+    a[m[x[i]]].setkey('mom0clip',2.0)
     if usePeak:
         if useCSM:
             momenti0 = csmom0               # CubeSum mom0

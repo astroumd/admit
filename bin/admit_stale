@@ -1,0 +1,35 @@
+#! /usr/bin/env casarun
+#
+#    -v         verbose
+#    -
+
+# python system modules
+import sys, os, math
+#
+import admit
+import admit.util.utils as utils
+
+argv = admit.utils.casa_argv(sys.argv)
+
+total = len(argv)-1
+counter = 0
+verbose = False
+stale = True
+
+
+for ff in argv[1:]:
+    if ff=='-v':
+      verbose = True
+      continue
+
+    if ff=='-s':
+      stale = True
+      continue
+
+    if ff=='-u':
+      stale = False
+      continue
+
+    p = admit.Project(ff,commit=False)
+    p.setAstale(stale)
+    p.writeXML(script=False)

@@ -314,7 +314,7 @@ class Admit(object):
         else:
             self.count = 1
         self.userData['flowcount'] = self.count
-        print "ADMIT flowcount = %d" % (self.count)
+        print "ADMIT flowcount = %d stale = %d" % (self.count,self.astale)
 
     def __str__(self):
         print bt.format.BOLD + bt.color.GREEN + "ADMIT :" + bt.format.END
@@ -1374,7 +1374,7 @@ class Admit(object):
         self.writeXML()
         self.updateHTML()
 
-    def writeXML(self):
+    def writeXML(self, script = True):
         """ Writes out the admit.xml file and admit0.py script.
 
             Reading the XML file occurs in the constructor.
@@ -1527,8 +1527,9 @@ class Admit(object):
 
         outFile.close()
 
-        # Don't name script 'admit.py' to avoid confusing 'import admit'.
-        self.script(self.dir() + 'admit0.py')
+        if script:
+            # Don't name script 'admit.py' to avoid confusing 'import admit'.
+            self.script(self.dir() + 'admit0.py')
 
     def clean(self):
         """ Method to delete orphan bdp's (files and underlying data)
@@ -1924,7 +1925,13 @@ class Admit(object):
         """
         self._server.serve_forever()
 
-
+    def setAstale(self, astale):
+        if astale:
+            print "PJT: astale: changing ",self.astale," to 0"
+            self.astale = 0
+        else:
+            print "PJT: astale: changing ",self.astale," to 1"
+            self.astale = 1
 
 if __name__ == "__main__":
     print "MAIN not active yet, but this is where it will go"

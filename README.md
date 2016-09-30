@@ -1,4 +1,4 @@
-# admitADMIT = ALMA Data Mining Toolkit 
+#  ADMIT = ALMA Data Mining Toolkit 
 
 
 The ADMIT WIKI:  http://admit.astro.umd.edu/wiki/index.php/ADMIT

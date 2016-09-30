@@ -1,7 +1,8 @@
 #! /usr/bin/env casarun
 #
 #    -v         verbose
-#    -
+#    -s         mark all as stale
+#    -u         mark all as "un"stale
 
 # python system modules
 import sys, os, math
@@ -16,8 +17,27 @@ counter = 0
 verbose = False
 stale = True
 
+def usage(exit):
+    print "Usage:   admit_stale [-h] [-v] [-s admit_dirs] [-u admit_dirs]"
+    print ""
+    print "  -h    this help"
+    print "  -v    verbose"
+    print "  -s    set stale flag for all tasks in the following admit directories"
+    print "  -u    unset stale flag for all tasks in the following admit directories"
+    print ""
+    print "Use with care, as this applied to all stale flags. "
+    print "You can corrupt an ADMIT datatree if there were a mixed number of stales"
+    if exit:
+        sys.exit(0)
+    
+
+if len(argv) == 1:
+    usage()
 
 for ff in argv[1:]:
+    if ff=='-h':
+      usage(0)
+      
     if ff=='-v':
       verbose = True
       continue
@@ -34,5 +54,6 @@ for ff in argv[1:]:
         print stale,ff
 
     p = admit.Project(ff,commit=False)
-    p.setAstale(stale)
+    p.mergeFlow(False)
+    p.setAstale(stale,verbose)
     p.writeXML(script=False)

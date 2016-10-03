@@ -1,4 +1,3 @@
-$Id: README,v 1.6 2016/02/10 16:30:00 teuben Exp $
 
 This directory contains information related to the buildbot setup for ADMIT.
 Currently, an ADMIT checkout & build is run via buildbot on slave
@@ -19,15 +18,6 @@ Files:
                 $BUILDBOT/masters/$MASTER/master.cfg, e.g.
                 /home/carmaweb/buildbot/masters/chara.astro.umd.edu/master.cfg
 
-   cvs-update.bash - Script to be invoked on a CVS checkin via CVS loginfo
-                     mechanism.
-
-   cvs-update.carma - Original version of the script for carma source code
-
-   loginfo  - CVS loginfo file, copy to $CVSROOT/loginfo
-
-   buildbot_cvs_mail.py - an alternate way to send cvs update info to 
-                          buildbot. Not currently used.
 
    buildbot.tac.master - this file should be copied to 
                          $BUILDBOT/masters/$MASTER/buildbot.tac
@@ -41,6 +31,19 @@ Files:
 
    logs.html  - modified version to fix javascript scrolling.  This goes in
                 $HOME/buildbot/sandboxes/chara.astro.umd.edu/lib/python2.6/site-packages/buildbot/status/web/templates/logs.html
+
+################################################
+# No longer used  since we switched to git.
+#   cvs-update.bash - Script to be invoked on a CVS checkin via CVS loginfo
+#                     mechanism.  
+#
+#   cvs-update.carma - Original version of the script for carma source code
+#
+#   loginfo  - CVS loginfo file, copy to $CVSROOT/loginfo
+#
+#   buildbot_cvs_mail.py - an alternate way to send cvs update info to 
+#                          buildbot. Not currently used.
+################################################
 
 Buildbot keeps its own version of Python in $BUILDBOT/sandboxes/[machine]/lib, 
 so you have to pip-install Python modules required to compile your code

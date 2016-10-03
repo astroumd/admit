@@ -2,3 +2,4 @@
 1.0.1   <patches> in CVS as "admit" as well as culling files into "gadmit"
 1.0.2   Conversion to git (github/astroumd/admit)
 1.0.3   Adding stale flag (branchname: stale)
+1.0.4   Stale added back on master

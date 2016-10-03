@@ -75,7 +75,7 @@ class APlot(AbstractPlot):
             plt.ioff()
             plt.show()
 
-    def scatter(self,x,y,title=None,figname=None,xlab=None,ylab=None,color=None,size=None,cmds=None,thumbnail=True):
+    def scatter(self,x,y,title=None,figname=None,xlab=None,ylab=None,color=None,size=None,cmds=None,thumbnail=True, xrange=[], yrange=[]):
         """Scatter plot of multiple columns against one column
 
            Parameters
@@ -117,6 +117,13 @@ class APlot(AbstractPlot):
               For instance, if the output file is 'fig.jpg', the thumbnail
               will be 'fig_thumb.jpg'
 
+           xrange : list
+               list of length 2 giving [xmin,xmax]
+
+           yrange : list
+               list of length 2 giving [ymin,ymax]
+
+
            Returns
            -------
            None
@@ -148,6 +155,12 @@ class APlot(AbstractPlot):
             self._figurefiles[APlot.figno] = figname + PlotControl.mkext(self._plot_type,True)
             fig.savefig(self._figurefiles[APlot.figno])
             if thumbnail: self.makeThumbnail(APlot.figno, fig=fig)
+
+        if len(xrange) == 2:
+            plt.xlim(xrange[0],xrange[1])
+
+        if len(yrange) == 2:
+            plt.ylim(yrange[0],yrange[1])
 
         if self._plot_mode==PlotControl.INTERACTIVE:
             plt.show()

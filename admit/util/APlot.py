@@ -118,10 +118,10 @@ class APlot(AbstractPlot):
               will be 'fig_thumb.jpg'
 
            xrange : list
-               list of length 2 giving [xmin,xmax]
+               list of length 2 giving [xmin,xmax]. Default:[] meaning show full range of data
 
            yrange : list
-               list of length 2 giving [ymin,ymax]
+               list of length 2 giving [ymin,ymax]. Default:[] meaning show full range of data
 
 
            Returns

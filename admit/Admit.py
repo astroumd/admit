@@ -1925,7 +1925,7 @@ class Admit(object):
         """
         self._server.serve_forever()
 
-    def setAstale(self, astale, verbose=False):
+    def setAstale(self, astale, verbose=False, dryrun = False):
         """
         Method to toggle the stale flags on all tasks based on a global admit stale
         for the sole purpose of admit_export to work.  It is dangerous to call this
@@ -1935,22 +1935,24 @@ class Admit(object):
         """
         cnt1 = len(self.fm._tasks.keys())
         cnt0 = 0
-        for t in self.fm._tasks.keys():
-            if self.fm[t].isstale():
+        for t in self:
+            if self[t].isstale():
                 cnt0 += 1
         if cnt0>0 and cnt0<cnt1:
             logging.warning("Potential bad usage of setAstale. Not all tasks are (un)stale [%d/%d] " % (cnt0,cnt1))
             
         if verbose:
             print "ADMIT_STALE: %d/%d were stale ; setting to %d" % (cnt0,cnt1,astale)
+        if dryrun:
+            print "ADMIT_STALE: %d/%d were stale ; current setting is %d" % (cnt0,cnt1,self.astale)
         if astale:
             self.astale = 1
-            for t in self.fm._tasks.keys():
-                self.fm[t].markChanged()
+            for t in self:
+                self[t].markChanged()
         else:
             self.astale = 0
-            for t in self.fm._tasks.keys():
-                self.fm[t].markUpToDate()
+            for t in self:
+                self[t].markUpToDate()
 
 if __name__ == "__main__":
     print "MAIN not active yet, but this is where it will go"

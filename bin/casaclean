@@ -4,6 +4,8 @@
 #
 #   @todo   TempLattice18579_0  from ia.transpose()
 #           tab<PID>_0
+#
+#   @todo   Since integration tests also need to clean, better have something in python
 
 set dirs = (_immath __tmp_fromTFmask __tmp_outputmask __tmp_frominmask)
 
@@ -45,6 +47,9 @@ switch ($1:q)
         echo -n "Checking ipython log files "
         set log2 = (`echo ipython-*.log`)
         echo Found $#log2
+        echo -n "Checking casa log files "
+        set log3 = (`echo casa-*.log`)
+        echo Found $#log3
 
         if ($#log1) then
           echo Cleaning $#log1 ' casapy*.log files'
@@ -56,4 +61,8 @@ switch ($1:q)
           rm -f $log2
         endif
 
+        if ($#log3) then
+          echo Cleaning $#log3 ' casa-*.log files'
+          rm -f $log3
+        endif
 endsw

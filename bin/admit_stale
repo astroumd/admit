@@ -1,0 +1,68 @@
+#! /usr/bin/env casarun
+#  -*- python -*-
+#
+#    -v         verbose
+#    -s         mark all as stale
+#    -u         mark all as "un"stale
+
+# python system modules
+import sys, os, math
+#
+import admit
+import admit.util.utils as utils
+
+argv = admit.utils.casa_argv(sys.argv)
+
+total = len(argv)-1
+counter = 0
+verbose = False
+stale = True
+dryrun = False
+
+def usage(exit):
+    print "Usage:   admit_stale [-h] [-v] [-s admit_dirs] [-u admit_dirs]"
+    print ""
+    print "  -h    this help"
+    print "  -v    verbose"
+    print "  -s    set stale flag for all tasks in the following admit directories"
+    print "  -u    unset stale flag for all tasks in the following admit directories"
+    print "  -n    dryrun, just report, but does not apply the stale flags"
+    print ""
+    print ""
+    print "Use with care, as this applied to all stale flags. "
+    print "You can corrupt an ADMIT datatree if there were a mixed number of stales"
+    if exit:
+        sys.exit(0)
+    
+
+if len(argv) == 1:
+    usage(1)
+
+for ff in argv[1:]:
+    if ff=='-h':
+      usage(0)
+      
+    if ff=='-v':
+      verbose = True
+      continue
+
+    if ff=='-s':
+      stale = True
+      continue
+
+    if ff=='-u':
+      stale = False
+      continue
+
+    if ff=='-n':
+      dryrun = True
+      continue
+
+    if verbose:
+        print stale,ff
+
+    p = admit.Project(ff,commit=False)
+    p.mergeFlow(False)
+    p.setAstale(stale,verbose,dryrun)
+    p.writeXML(script=False)      
+    p.updateHTML()

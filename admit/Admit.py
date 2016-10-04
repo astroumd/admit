@@ -147,6 +147,12 @@ class Admit(object):
 
     def __init__(self, baseDir=None, name='none', basefile=None, create=True, dataserver=False,
                  loglevel=logging.INFO, commit=True):
+        #
+        # IMPORTANT note for dtd's:   if you add items for admit.xml here,
+        # don't forget to edit dtdGenerator.py and run bin/dtdGenerator
+        #
+
+        
         # baseDir  : should be a directory, always needed
         # name     : some ID, deprecate?
         # basefile : should be admit.xml, why change it?
@@ -180,6 +186,7 @@ class Admit(object):
         self.fm = admit.Flow()            # flow manager
         self.pm = admit.Manager()         # project manager
         self.new = False                  # is this a new admit object or are we building it from an xml
+        self.astale = 0                   # export hack (will be True if lightweight tar file is built)
         self.count = 0                    # keep track how many times this admit has been run
         self._server = None               # data HTTP server
         # location information
@@ -307,7 +314,7 @@ class Admit(object):
         else:
             self.count = 1
         self.userData['flowcount'] = self.count
-        print "ADMIT flowcount = %d" % (self.count)
+        print "ADMIT flowcount = %d stale = %d" % (self.count,self.astale)
 
     def __str__(self):
         print bt.format.BOLD + bt.color.GREEN + "ADMIT :" + bt.format.END
@@ -1334,6 +1341,8 @@ class Admit(object):
         and decide which items are going to copied over to admit.userData{}, as admit.xml
         is the only file external agents should have to look at.
 
+        See also the script "admit_export" which is currently doing this work.
+
         Parameters
         ----------
         mode : str
@@ -1365,7 +1374,7 @@ class Admit(object):
         self.writeXML()
         self.updateHTML()
 
-    def writeXML(self):
+    def writeXML(self, script = True):
         """ Writes out the admit.xml file and admit0.py script.
 
             Reading the XML file occurs in the constructor.
@@ -1445,6 +1454,10 @@ class Admit(object):
         llnode.set("type", bt.INT)
         llnode.text = str(self.loglevel)
 
+        llnode = et.SubElement(root, "astale")
+        llnode.set("type", bt.INT)
+        llnode.text = str(self.astale)
+
         lnnode = et.SubElement(root, "_loggername")
         lnnode.set("type", bt.STRING)
         temptext = self._loggername
@@ -1514,8 +1527,9 @@ class Admit(object):
 
         outFile.close()
 
-        # Don't name script 'admit.py' to avoid confusing 'import admit'.
-        self.script(self.dir() + 'admit0.py')
+        if script:
+            # Don't name script 'admit.py' to avoid confusing 'import admit'.
+            self.script(self.dir() + 'admit0.py')
 
     def clean(self):
         """ Method to delete orphan bdp's (files and underlying data)
@@ -1911,7 +1925,34 @@ class Admit(object):
         """
         self._server.serve_forever()
 
-
+    def setAstale(self, astale, verbose=False, dryrun = False):
+        """
+        Method to toggle the stale flags on all tasks based on a global admit stale
+        for the sole purpose of admit_export to work.  It is dangerous to call this
+        routine when not all tasks are either stale or not stale.
+        
+        @todo This is a patch solution for admit 1.1 - general solution needed
+        """
+        cnt1 = len(self.fm._tasks.keys())
+        cnt0 = 0
+        for t in self:
+            if self[t].isstale():
+                cnt0 += 1
+        if cnt0>0 and cnt0<cnt1:
+            logging.warning("Potential bad usage of setAstale. Not all tasks are (un)stale [%d/%d] " % (cnt0,cnt1))
+            
+        if verbose:
+            print "ADMIT_STALE: %d/%d were stale ; setting to %d" % (cnt0,cnt1,astale)
+        if dryrun:
+            print "ADMIT_STALE: %d/%d were stale ; current setting is %d" % (cnt0,cnt1,self.astale)
+        if astale:
+            self.astale = 1
+            for t in self:
+                self[t].markChanged()
+        else:
+            self.astale = 0
+            for t in self:
+                self[t].markUpToDate()
 
 if __name__ == "__main__":
     print "MAIN not active yet, but this is where it will go"

@@ -2,6 +2,9 @@
 #
 #  run an ADMIT project export from the unix commandline
 #
+#  in brief mode it will need to set the stale flag using admit_stale,
+#  and after the tar file was created, unset the stale flag again.
+#
 
 if ($?ADMIT == 0) then
   echo 'No $ADMIT solution yet'
@@ -51,12 +54,14 @@ foreach arg ($*)
     # @todo what about .cim and .lim files 
     set dim=(`find $arg -type d -name \*.im -o -name \*.lim`)
     set excludes = ()
+    admit_stale -s $arg
     foreach d ($dim)
       set excludes=($excludes --exclude=$d)
     end
     echo Writing brief $tgz
     echo Excluding: $dim
     tar -zcf $tgz $excludes $arg
+    admit_stale -u $arg    
   else
     echo Writing all in $tgz
     tar zcf $tgz $arg
@@ -74,7 +79,9 @@ if ($tgz == 1) then
     end
     echo Writing brief $tgz
     echo Excluding: $dim
+    admit_stale -s $projects
     tar -zcf $tgz $excludes $projects
+    admit_stale -u $projects
   else
     echo Writing all in $tgz
     tar zcf $tgz $projects
@@ -90,4 +97,5 @@ usage:
     echo ""
     echo " -a      export all files inside the project"
     echo " -b      brief export (the default)"
-    echo " -s      single admit.tar.gz with all admit projects"
+    echo " -s      single admit.tar.gz with all admit projects listed"
+    echo "         (do not use interspersed -a/b flags)"

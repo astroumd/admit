@@ -462,7 +462,7 @@ class DtdGenerator(object):
         admit = open(os.path.dirname(os.path.realpath(__file__)) + os.sep + "dtd" + os.sep + "admit.dtd", 'w')
         admit.write("<!-- " + AUTOGEN + "\n-->\n")
         admit.write(HEADER)
-        admit.write(START + "ADMIT (userData,summaryData,project_id,name,pmode,ptype,flowmanager,projmanager,loglevel,_loggername," + ATTYPES + ")>\n")
+        admit.write(START + "ADMIT (userData,summaryData,project_id,name,pmode,ptype,flowmanager,projmanager,loglevel,astale,_loggername," + ATTYPES + ")>\n")
         admit.write(START + "userData " + END)
         admit.write(ATSTART + "userData type (DICT" + ATEND)
         admit.write(ATSTART + "userData ndarray (" + bt.STRING + ") #REQUIRED>\n")
@@ -510,6 +510,8 @@ class DtdGenerator(object):
         admit.write(ATSTART + "projmanager set (" + bt.STRING + ") #REQUIRED>\n")
         admit.write(START + "loglevel " + END)
         admit.write(ATSTART + "loglevel type (INT" + ATEND)
+        admit.write(START + "astale " + END)
+        admit.write(ATSTART + "astale type (INT" + ATEND)
         admit.write(START + "_loggername " + END)
         admit.write(ATSTART + "_loggername type (STRING" + ATEND)
 

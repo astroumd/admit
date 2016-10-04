@@ -149,6 +149,10 @@ class APlot(AbstractPlot):
         if title:    ax1.set_title(title)
         if xlab:     ax1.set_xlabel(xlab)
         if ylab:     ax1.set_ylabel(ylab)
+        if len(xrange) == 2:
+            plt.xlim(xrange[0],xrange[1])
+        if len(yrange) == 2:
+            plt.ylim(yrange[0],yrange[1])
         if cmds != None:
               self.parse(cmds)
         if figname:
@@ -156,11 +160,6 @@ class APlot(AbstractPlot):
             fig.savefig(self._figurefiles[APlot.figno])
             if thumbnail: self.makeThumbnail(APlot.figno, fig=fig)
 
-        if len(xrange) == 2:
-            plt.xlim(xrange[0],xrange[1])
-
-        if len(yrange) == 2:
-            plt.ylim(yrange[0],yrange[1])
 
         if self._plot_mode==PlotControl.INTERACTIVE:
             plt.show()

@@ -1,6 +1,18 @@
 # emacs backup files
 *~
 
+# configure created
+configure
+admit_start.sh
+admit_start.csh
+config.status
+autom4te.cache
+
+# unit test
+admit/xmlio/dtd/HelloWorld_AT.dtd
+admit/xmlio/dtd/HelloWorld_BDP.dtd
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

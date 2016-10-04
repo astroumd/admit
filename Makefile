@@ -72,6 +72,9 @@ export:
 	@echo "FOR AN OFFICIAL EXPORT RUN:"
 	@echo "RUN: cp $(ADIR).tar.gz $(EDIR)"
 	@echo "RUN: (cd $(EDIR); ln -sf $(ADIR).tar.gz admit.tar.gz)"
+	@echo "or"
+	@echo "RUN: scp $(ADIR).tar.gz chara.astro.umd.edu:$(EDIR)"
+	@echo "RUN: ssh chara.astro.umd.edu ln -sf $(EDIR)/$(ADIR).tar.gz $(EDIR)/admit.tar.gz"
 
 # only for export !!
 docs2rm:	docs
@@ -216,6 +219,9 @@ pip:
 
 # some commands can go here that will eventually go in "unit"
 # to check if all tests can be re-run, "make unit0" twice in a row
+
+# Note added Sep 2016:  unit0 now fails, due to a casa dependency that slipped into Admit.py ?
+#                       @todo this casa dependency should be fixed in 1.2+ or 2.0+
 
 unit0_clean:
 	(cd admit/test ; rm -rf test1 test2 test3 test4 test5 test6 test7)

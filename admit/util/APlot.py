@@ -75,7 +75,7 @@ class APlot(AbstractPlot):
             plt.ioff()
             plt.show()
 
-    def scatter(self,x,y,title=None,figname=None,xlab=None,ylab=None,color=None,size=None,cmds=None,thumbnail=True):
+    def scatter(self,x,y,title=None,figname=None,xlab=None,ylab=None,color=None,size=None,cmds=None,thumbnail=True, xrange=[], yrange=[]):
         """Scatter plot of multiple columns against one column
 
            Parameters
@@ -117,6 +117,13 @@ class APlot(AbstractPlot):
               For instance, if the output file is 'fig.jpg', the thumbnail
               will be 'fig_thumb.jpg'
 
+           xrange : list
+               list of length 2 giving [xmin,xmax]. Default:[] meaning show full range of data
+
+           yrange : list
+               list of length 2 giving [ymin,ymax]. Default:[] meaning show full range of data
+
+
            Returns
            -------
            None
@@ -142,12 +149,17 @@ class APlot(AbstractPlot):
         if title:    ax1.set_title(title)
         if xlab:     ax1.set_xlabel(xlab)
         if ylab:     ax1.set_ylabel(ylab)
+        if len(xrange) == 2:
+            plt.xlim(xrange[0],xrange[1])
+        if len(yrange) == 2:
+            plt.ylim(yrange[0],yrange[1])
         if cmds != None:
               self.parse(cmds)
         if figname:
             self._figurefiles[APlot.figno] = figname + PlotControl.mkext(self._plot_type,True)
             fig.savefig(self._figurefiles[APlot.figno])
             if thumbnail: self.makeThumbnail(APlot.figno, fig=fig)
+
 
         if self._plot_mode==PlotControl.INTERACTIVE:
             plt.show()

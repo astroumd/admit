@@ -117,7 +117,7 @@ OPTARGS = ["Spectral-Primary-Beam"]
 
 # Keywords recognized by this program and their default values.
 # Non-matching keywords given on command line will be ignored.
-KEYS = {"minchan" :5, "numsigma": 6.0, "cutoff":[1.5,3.0,3.0], "width":5, "pad":50 }
+KEYS = {"minchan" :5, "numsigma": 6.0, "cutoff":[1.5,3.0,3.0], "width":5, "pad":50, "box":[] }
 
 # Brief description of accepted keywords
 KEYDESC = { 
@@ -126,6 +126,7 @@ KEYDESC = {
            "pad"     : "number of extra channels added to either end of LineCubes. Default: %s" % str(KEYS['pad']),
            "cutoff"  : "list giving number of sigma for cut levels for output moment maps. Default:%s" % str(KEYS['cutoff']),
            "width"   : "width in channels of position-velocity slice in PVSlice_AT. Default:%s" % str(KEYS['width']),
+           "box"     : "Select a box region in when ingesting the cube. blc,tlc (a list of 2, 4 or 6 integers). Default: %s" % str(KEYS['box'])
           }
 
 
@@ -153,6 +154,7 @@ def _run(argv):
         KEYS["numsigma"] = float(KEYS["numsigma"])
         KEYS["pad"]      = int(KEYS["pad"])
         KEYS["cutoff"]   = ast.literal_eval(str(KEYS["cutoff"]))
+        KEYS["box"]      = ast.literal_eval(str(KEYS["box"]))
     except Exception, e:
         print("Exception converting keyword value to number:",e)
         return
@@ -165,9 +167,9 @@ def _run(argv):
     # list object for Tasks so we don't have to individually name them
     Tasks = []
     if pbcorfile == None:
-        Tasks.append(p.addtask(admit.Ingest_AT(alias='incube',file=cubefile)))
+        Tasks.append(p.addtask(admit.Ingest_AT(alias='incube',file=cubefile,box=KEYS["box"])))
     else:
-        Tasks.append(p.addtask(admit.Ingest_AT(alias='incube',file=cubefile, pb=pbcorfile)))
+        Tasks.append(p.addtask(admit.Ingest_AT(alias='incube',file=cubefile, pb=pbcorfile,box=KEYS["box"])))
 
     Tasks.append(p.addtask(admit.CubeStats_AT(alias='instats'), ['incube']))
     Tasks.append(p.addtask(admit.CubeSum_AT(sigma=1, numsigma=3.0, alias='insum'), ['incube', 'instats']))

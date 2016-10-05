@@ -122,9 +122,9 @@ def run_pipe1(ap, dryrun, oldstyle):
    else:      
       # new style recipe
       if have_mfs:
-         cmd.append('$ADMIT/admit/scripts/Archive_Pipeline.py %s %s specpb=%s contpb=%s >> %s.log 2>&1' % (f1,f2,f1b,f2b,f1))
+         cmd.append('$ADMIT/admit/recipes/Archive_Pipeline.py %s %s specpb=%s contpb=%s >> %s.log 2>&1' % (f1,f2,f1b,f2b,f1))
       else:
-         cmd.append('$ADMIT/admit/scripts/Archive_Pipeline.py %s    specpb=%s           >> %s.log 2>&1' % (f1,f1b,f1))
+         cmd.append('$ADMIT/admit/recipes/Archive_Pipeline.py %s    specpb=%s           >> %s.log 2>&1' % (f1,f1b,f1))
    cmd = elist(cmd)
    if not dryrun:
       print cmd

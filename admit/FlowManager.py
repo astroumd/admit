@@ -1268,6 +1268,11 @@ class FlowManager():
           dl = list(dl)
           dl.sort(key=lambda tid0: self._tasklevs[tid0])
 
+          # These colors are intended to match those
+          # in the cascading style sheet for the html view
+          # in etc/resources/css/admit.css.  They can be slightly
+          # different shades if the flow is variadic or not (which is
+          # not tracked in html view).
           for tid in dl:
             task  = self._tasks[tid]
             if task.id() in self._varimap:

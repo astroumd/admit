@@ -244,7 +244,7 @@ class Ingest_AT(AT):
             # 'logscale': 0.0,     # log(1+x/logscale) scaling as final step in Ingest_AT
         }
         AT.__init__(self,keys,keyval)
-        self._version = "1.0.6"
+        self._version = "1.0.7"
         self.set_bdp_in()                            # no input BDP
         self.set_bdp_out([(SpwCube_BDP,1)])          # one output BDP
 
@@ -779,7 +779,7 @@ class Ingest_AT(AT):
         h['vlsr']     = vlsr
         logging.info("VLSR = %f (from source catalog)" % vlsr)
         
-        taskargs = "file=" + basename+'.fits'
+        taskargs = "file=" + fitsfile
         if create_mask == True:
             taskargs = taskargs + " mask=True" 
         if len(box) > 0:
@@ -842,7 +842,7 @@ class Ingest_AT(AT):
             utils.rename('_ingest.im',fno)
             dt.tag("logscale")
 
-        self._summarize(basename+'.fits', bdpfile, h, shape, taskargs)
+        self._summarize(fitsfile, bdpfile, h, shape, taskargs)
 
         dt.tag("done")
         dt.end()

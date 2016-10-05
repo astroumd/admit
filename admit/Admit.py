@@ -1933,18 +1933,22 @@ class Admit(object):
         
         @todo This is a patch solution for admit 1.1 - general solution needed
         """
-        cnt1 = len(self.fm._tasks.keys())
-        cnt0 = 0
+        cnt0 = len(self.fm._tasks.keys())
+        cnt1 = 0  # stale
+        cnt2 = 0  # running? (if it did, those crashed)
+        cnt3 = 0  # enabled
         for t in self:
-            if self[t].isstale():
-                cnt0 += 1
-        if cnt0>0 and cnt0<cnt1:
-            logging.warning("Potential bad usage of setAstale. Not all tasks are (un)stale [%d/%d] " % (cnt0,cnt1))
+            if self[t].isstale():  cnt1 += 1
+            if self[t].running():  cnt2 += 1
+            if self[t].enabled():  cnt3 += 1    
+        if cnt1>0 and cnt1<cnt0:
+            logging.warning("Potential bad usage of setAstale. Not all tasks are (un)stale [%d/%d] " % (cnt1,cnt0))
             
-        if verbose:
-            print "ADMIT_STALE: %d/%d were stale ; setting to %d" % (cnt0,cnt1,astale)
         if dryrun:
-            print "ADMIT_STALE: %d/%d were stale ; current setting is %d" % (cnt0,cnt1,self.astale)
+            print "ADMIT_STALE: %d/%d were stale ; %d running, %d enabled, current setting is %d" % (cnt1,cnt0,cnt2,cnt3,self.astale)
+            return
+        if verbose:
+            print "ADMIT_STALE: %d/%d were stale ; setting to %d" % (cnt1,cnt0,astale)
         if astale:
             self.astale = 1
             for t in self:

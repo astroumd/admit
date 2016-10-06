@@ -3,6 +3,8 @@
 #
 #
 #  Example ADMIT processing on the imaging pipeline "products" tree
+#  There are some assumptions about naming conventions, see code and comments below
+#  how to adjust this.
 #
 #
 #  admit_pipeline project_directories
@@ -33,8 +35,8 @@ def usage(cmd):
    print "Options:"
    print "   -h    help"
    print "   -n    dryrun"
-   print "   -p    print out Project/Sous/Gous/Mous trees"
-   print "   -o    old style (runa1)"
+   print "   -p    only print out Project/Sous/Gous/Mous trees"
+   print "   -o    old style (runa1) with optional apar files"
    print "   -s    use shadow tree to write (not implemented)"
    print "   -v    verbose (not implemented)"
    print "   -c    clean up admit working directory (i.e. no re-run)"
@@ -43,6 +45,7 @@ def usage(cmd):
    print "    %s -n /somewhere/bigdata/2016.*" % cmd
    print "  "
    print "If no projects are listed, it will use all directories in the current directory"
+   print "However it is adviced to run with -p first and then decide which projects to run"
    sys.exit(0)
 
 
@@ -96,9 +99,22 @@ def process_dir(dname):
    Returns (dirname, sgm, f1, f2, f1b, f2b)
    or      (dirname, sgm, f1, f1b) if no continuum present
    where 1=line 2=cont and 'b' means the primary beam
-   """
 
-   files = glob.glob('%s/SOUS*/GOUS*/MOUS*/products/uid_*_sci.spw*.cube.I.pbcor.fits' % dname)
+
+   Warning: directory tries with actual OUS id's in their name could be renamed at JAO, viz.
+   GOUS_uid___A001_X865_X2e     =>   group_ouss_id/
+   If so, the glob.glob() needs to be adjusted
+   Ah, at JAO the names appear to become
+   2015.A.00021.S/science_goal.uid___A001_X85a_X2a/group.uid___A001_X85a_X2b/member.uid___A001_X85a_X2c/
+   which is pretty close to
+   2015.A.00021.S/SOUS_uid___A001_X85a_X2a/GOUS_uid___A001_X85a_X2b/MOUS_uid___A001_X85a_X2c/
+   """
+   if True:
+      # pipeline convention
+      files = glob.glob('%s/SOUS*/GOUS*/MOUS*/products/uid_*_sci.spw*.cube.I.pbcor.fits' % dname)
+   else:
+      # ? JAO convention ?
+      files = glob.glob('%s/science_goal.*/group.*/member.*/products/uid_*_sci.spw*.cube.I.pbcor.fits' % dname)
    #                   n-1    n    n+1   n+1     n+3
    nlevel = len(dname.strip('/').split('/'))-1
    print 'Found',len(files),' cube+mfs pairs in',dname
@@ -108,12 +124,12 @@ def process_dir(dname):
       sgm = f.split('/')[nlevel+1:nlevel+4]     # 
       f1  = f.split('/')[nlevel+5]
       f2  = f1.replace('.cube.','.mfs.',1)
-      f1b = f1.replace('.pbcor.','.pb.',1)
-      f2b = f2.replace('.pbcor.','.pb.',1)
-      e1  = os.path.exists(pfile([dname,sgm[0],sgm[1],sgm[2],'products',f1]))
-      e2  = os.path.exists(pfile([dname,sgm[0],sgm[1],sgm[2],'products',f2]))
-      e1b = os.path.exists(pfile([dname,sgm[0],sgm[1],sgm[2],'products',f1b]))
-      e2b = os.path.exists(pfile([dname,sgm[0],sgm[1],sgm[2],'products',f2b]))
+      f1b = f1.replace('.pbcor.','.pb.',1)                                       # older ones may be '.flux'
+      f2b = f2.replace('.pbcor.','.pb.',1)                                       # older ones may be '.flux'
+      e1  = os.path.exists(pfile([dname,sgm[0],sgm[1],sgm[2],'products',f1]))    # older ones may be '.product'
+      e2  = os.path.exists(pfile([dname,sgm[0],sgm[1],sgm[2],'products',f2]))    # older ones may be '.product'
+      e1b = os.path.exists(pfile([dname,sgm[0],sgm[1],sgm[2],'products',f1b]))   # older ones may be '.product'
+      e2b = os.path.exists(pfile([dname,sgm[0],sgm[1],sgm[2],'products',f2b]))   # older ones may be '.product'
       # @todo  if only e1 and e1b found, should allow to continue
       #        perhaps other modes as well
       if e1 and e2 and e1b and e2b:
@@ -153,6 +169,8 @@ def run_pipe1(ap, dryrun, oldstyle):
    if oldstyle:
       # old style 'runa1' needs the .pbcor.fits removed  (does not deal with mfs)
       f = f1[:f1[:f1.rindex('.')].rindex('.')]
+      # un-comment next line if you want a faster run for testing 
+      # cmd.append('echo stop=\\"ingest\\" > admit1.apar')
       cmd.append('runa1 %s' % f)
    else:      
       # new style recipe
@@ -243,7 +261,8 @@ if __name__ == '__main__':
       if len(aps) == 0:
          continue
       sgm0 = aps[0][1]
-      mous = sgm0[2]
+      mous = sgm0[2]                   # e.g. MOUS_uid___A001_X865_X2f
+      mous = mous[mous.find('_')+1:]   # e.g.      uid___A001_X865_X2f
       if pshow:
          proj = aps[0][0]
          sous = dn2ous(aps[0][1][0])

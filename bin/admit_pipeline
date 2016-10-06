@@ -8,8 +8,20 @@
 #  admit_pipeline project_directories
 #    e.g.
 #  admit_pipeline /somewhere/almadata/2016*
+#
 #    with the assumption you are allowed to write into those directories
 #  (for testing you can use "cp -al" to create your own shadow tree)
+#
+# Example tree:
+# 2016.1.00022.CSV_2016_09_09T19_16_06.636/
+#  SOUS_uid___A001_X865_X2d/
+#   GOUS_uid___A001_X865_X2e/
+#    MOUS_uid___A001_X865_X2f/
+#     products/
+#      uid___A001_X865_X2f.Pillar_22_sci.spw16.cube.I.pbcor.fits
+#
+#
+# 
 
 import os,sys,glob,time
 
@@ -33,6 +45,8 @@ def pfile(plist):
    """
    return the full path of a list of file name components
    e.g.  ['a/b','c','d'] ->  'a/b/c/d'
+
+   os.path.join() does the same 
    """
    return catlist(plist,'/')
 
@@ -133,13 +147,13 @@ def run_pipe1(ap, dryrun, oldstyle):
       print cmd
    return admit_dir
 
-def run_export(admit_dir, dryrun):
+def run_export(admit_dir, mous, dryrun):
    """ 
    """
    cmds = []
    cmds.append("cd %s" % admit_dir)
-   cmds.append("admit_export -s *.admit")
-   cmds.append("mv admit.tar.gz ../products")
+   cmds.append("admit_export -s -p %s *.admit" % mous)
+   cmds.append("mv %s.admit.tar.gz ../products" % mous)
    cmd = elist(cmds)
    if not dryrun:
       os.system(cmd)
@@ -210,14 +224,15 @@ if __name__ == '__main__':
       if len(aps) == 0:
          continue
       sgm0 = aps[0][1]
+      mous = sgm0[2]
       for ap in aps:
          if ap[1] != sgm0:
             # for now it is assumed here that all the SGM's are the same !!!!
             print "ERROR: SOUS/GOUS/MOUS differ:",sgm0
             print "ERROR: SOUS/GOUS/MOUS differ:",ap[1]
          admit_dir = run_pipe1(ap, dryrun, oldstyle)
-      run_export(admit_dir,dryrun)
-      print "admit.tar.gz in ",admit_dir
+      run_export(admit_dir,mous,dryrun)
+      print "%s.admit.tar.gz in %s " % (mous, admit_dir)
       if os.path.exists(admit_dir):
          # @todo 
          cmd = "rm -rf %s" % admit_dir

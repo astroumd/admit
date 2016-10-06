@@ -25,6 +25,27 @@
 
 import os,sys,glob,time
 
+def usage(cmd):
+   """ the usage message
+   """
+   print cmd,"[options] [project(s)]"
+   print "  "
+   print "Options:"
+   print "   -h    help"
+   print "   -n    dryrun"
+   print "   -p    print out Project/Sous/Gous/Mous trees"
+   print "   -o    old style (runa1)"
+   print "   -s    use shadow tree to write (not implemented)"
+   print "   -v    verbose (not implemented)"
+   print "   -c    clean up admit working directory (i.e. no re-run)"
+   print "  "
+   print "Example:"
+   print "    %s -n /somewhere/bigdata/2016.*" % cmd
+   print "  "
+   print "If no projects are listed, it will use all directories in the current directory"
+   sys.exit(0)
+
+
 # uid___A001_X869_X9.ELAISS1_sci.spw19.cube.I.pbcor.fits
 
 def catlist(alist, sep=""):
@@ -160,30 +181,25 @@ def run_export(admit_dir, mous, dryrun):
    else:
       print cmd
 
-def usage(cmd):
-   """ the usage message
+
+def dn2ous(dn):
+   """ convert a long directory name to an OUS, e.g.
+   input  : SOUS_uid___A001_X865_X2d
+   output : A001_X865_X2d
    """
-   print cmd,"[options] [project(s)]"
-   print "  "
-   print "Options:"
-   print "   -h    help"
-   print "   -n    dryrun"
-   print "   -o    old style (runa1)"
-   print "   -s    use shadow tree to write (not implemented)"
-   print "   -v    verbose (not implemented)"
-   print "   -c    clean up admit working directory (i.e. no re-run)"
-   print "  "
-   print "Example:"
-   print "    %s -n /somewhere/bigdata/2016.*" % cmd
-   print "  "
-   print "If no projects are listed, it will use all directories in the current directory"
-   sys.exit(0)
+   ous = dn.split("_")
+   if len(ous) == 7:
+      return "%s_%s_%s" % (ous[4],ous[5],ous[6])
+   # not a properly formatted OUS
+   return dn
 
 if __name__ == '__main__':
    dryrun   = False
    oldstyle = False
    verbose  = False
-   clea     = False
+   clean    = False
+   pshow    = False
+   
    projects = []
    for dirname in sys.argv[1:]:                   
       if dirname == '-h':
@@ -200,6 +216,9 @@ if __name__ == '__main__':
          continue
       if dirname == '-c':
          clean = True
+         continue
+      if dirname == '-p':
+         pshow = True
          continue
       projects.append(dirname)
 
@@ -225,6 +244,13 @@ if __name__ == '__main__':
          continue
       sgm0 = aps[0][1]
       mous = sgm0[2]
+      if pshow:
+         proj = aps[0][0]
+         sous = dn2ous(aps[0][1][0])
+         gous = dn2ous(aps[0][1][1])
+         mous = dn2ous(aps[0][1][2])
+         print proj,sous,gous,mous
+         continue
       for ap in aps:
          if ap[1] != sgm0:
             # for now it is assumed here that all the SGM's are the same !!!!

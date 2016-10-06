@@ -1930,6 +1930,9 @@ class Admit(object):
         Method to toggle the stale flags on all tasks based on a global admit stale
         for the sole purpose of admit_export to work.  It is dangerous to call this
         routine when not all tasks are either stale or not stale.
+
+        This function needs to be called with True first, so it makes a stale backup,
+        then during the 2nd False call, the stale backup is pushed back.
         
         @todo This is a patch solution for admit 1.1 - general solution needed
         """
@@ -1937,12 +1940,14 @@ class Admit(object):
         cnt1 = 0  # stale
         cnt2 = 0  # running? (if it did, those crashed)
         cnt3 = 0  # enabled
+        if astale:
+            self.old = {}
         for t in self:
             if self[t].isstale():  cnt1 += 1
             if self[t].running():  cnt2 += 1
-            if self[t].enabled():  cnt3 += 1    
-        if cnt1>0 and cnt1<cnt0:
-            logging.warning("Potential bad usage of setAstale. Not all tasks are (un)stale [%d/%d] " % (cnt1,cnt0))
+            if self[t].enabled():  cnt3 += 1
+            if astale:
+                self.old[t] = self[t].isstale()
             
         if dryrun:
             print "ADMIT_STALE: %d/%d were stale ; %d running, %d enabled, current setting is %d" % (cnt1,cnt0,cnt2,cnt3,self.astale)
@@ -1956,7 +1961,10 @@ class Admit(object):
         else:
             self.astale = 0
             for t in self:
-                self[t].markUpToDate()
+                if self.old[t]:
+                    self[t].markChanged()
+                else:
+                    self[t].markUpToDate()
 
 if __name__ == "__main__":
     print "MAIN not active yet, but this is where it will go"

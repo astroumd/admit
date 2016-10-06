@@ -1,101 +1,162 @@
-#! /bin/csh -f
+#! /usr/bin/env casarun
+#! /usr/bin/env python
+#  -*- python -*-
 #
 #  run an ADMIT project export from the unix commandline
 #
-#  in brief mode it will need to set the stale flag using admit_stale,
-#  and after the tar file was created, unset the stale flag again.
 #
 
-if ($?ADMIT == 0) then
-  echo 'No $ADMIT solution yet'
-  # this is also where the non-developer environment needs to go
-  exit 1
-  setenv ADMIT ...
-else
-  echo "ADMIT version `python $ADMIT/admit/version.py`"
-endif
+# python system modules
+import sys, os, fnmatch, math
+
+#have_casa = False
+have_casa = True
+if have_casa:
+    # this also needs to run via casarun
+    # since casarun has a huge overhead, testing is a lot fast in PurePython
+    import admit
+    import admit.util.utils as utils
+
+def usage():
+    print "Usage: admit_export [-h] [-v] [-n] [-s] [-a] [-p OUS] admit_project(s)"
+    print ""
+    print "-h      this help"
+    print "-v      verbose"
+    print "-n      dryrun"
+    print "-a      export all files inside the project"
+    print "-s      single OUS.admit.tar.gz with all admit projects listed"
+    print "-a      export all (the default is brief, i.e.. no cubes)"
+    print "-p OUS  the OUS.admit basename used (default: none)"
+
+    sys.exit(0)
+
+#   command line arguments  
+single  = False                           # -s
+brief   = True                            # -a         @todo   could be a level (encoded also in the prefix name)
+verbose = False                           # -v
+dryrun  = False                           # -n
+pflag   = False;    prefix = "admit"      # -p PREFIX    (only allowed in -s mode)
+aplist  = []                              # list of .admit project directories
+
+if have_casa:
+    argv = admit.utils.casa_argv(sys.argv)
+else:
+    argv = sys.argv
+
+def find_files(aname, pattern):
+    """ within an admit directory, return directories (casa images) matching a pattern, hierarchically
+    """
+    matches = []
+    for root, dirnames, filenames in os.walk(aname):
+        for dirname in fnmatch.filter(dirnames,pattern):
+            if fnmatch.fnmatch(dirname,pattern):
+                matches.append(os.path.join(root,dirname))
+    return matches
+
+def find_casa(aname):
+    """ within an admit directory, return directories (casa images)
+    """
+    matches = []
+    for root, dirnames, filenames in os.walk(aname):
+        for dirname in dirnames:
+            if os.path.exists(os.path.join(root,dirname,'table.info')) and os.path.exists(os.path.join(root,dirname,'table.dat')):
+                matches.append(os.path.join(root,dirname))
+    return matches
+    
+
+def find_exclude(aname, level=2):
+    if level==1:
+        # our convention of 3D cubes
+        return find_files(aname,"*.im") + find_files(aname,"*.cim")
+    elif level == 2:
+        # all casa images
+        return find_casa(aname)
+    else:
+        return []
 
 
-if ($#argv == 0) goto usage
+def myexec(cmd, dryrun = False):
+    print cmd
+    if dryrun:  return
+    os.system(cmd)
+    
+# if __name__ == "__main__":
 
-set projects = ()
-set tgz = 0
+for a in argv[1:]:
+    if pflag:
+        pflag   = False
+        prefix  = "%s.admit" % a
+        continue        
+    if a == '-p': pflag   = True;    continue
+    if a == '-v': verbose = True;    continue
+    if a == '-n': dryrun  = True;    continue
+    if a == '-s': single  = True;    continue
+    if a == '-a': brief   = False;   continue
+    if a == '-h': usage();           continue
+    # all remaining arguments are taken as admit directories
+    aplist.append(a)
 
-set brief = 1
-foreach arg ($*)
-  if (x$arg == x-s) then
-     set tgz = 1
-     continue
-  endif
-  if (x$arg == x-a) then
-    set brief = 0
-    continue
-  endif
-  if (x$arg == x-b) then
-    set brief = 1
-    continue
-  endif
-  if (! -d $arg) then
-    echo Warning: skipping $arg, it is not a directory
-    continue
-  endif
-  if (! -e $arg/admit.xml) then
-    echo Warning: skipping $arg, it is not an ADMIT directory
-    continue
-  endif
+if verbose:
+    print "brief,single,dryrun,verbose:",brief,single,dryrun,verbose
+    print "AP:",aplist
 
-  if ($tgz == 1) then
-     set projects=($projects $arg)
-     continue
-  endif
+np = len(aplist)
+if np==0:
+    usage()
 
-  set tgz = $arg.tar.gz
-  if ($brief) then
-    # @todo what about .cim and .lim files 
-    set dim=(`find $arg -type d -name \*.im -o -name \*.lim`)
-    set excludes = ()
-    admit_stale -s $arg
-    foreach d ($dim)
-      set excludes=($excludes --exclude=$d)
-    end
-    echo Writing brief $tgz
-    echo Excluding: $dim
-    tar -zcf $tgz $excludes $arg
-    admit_stale -u $arg    
-  else
-    echo Writing all in $tgz
-    tar zcf $tgz $arg
-  endif
-end
+if brief:
+    if single:
+        if verbose: print "brief and single tar"
+        p = range(np)
+        excludes = []
+        for i in range(np):
+            if have_casa and not dryrun:
+                p[i] = admit.Project(aplist[i],commit=False)
+                p[i].mergeFlow(False)
+                p[i].setAstale(True,verbose,dryrun)
+                p[i].writeXML(script=False)
+            for f in find_exclude(aplist[i]):
+                excludes.append(f)
+                
+        cmd = "tar -zcf %s.tar.gz " % prefix
+        for f in excludes:
+            cmd = cmd + ' --exclude=%s' % f
+        for i in range(np):
+            cmd = cmd + ' %s' % aplist[i]
+        myexec(cmd,dryrun)
 
-if ($tgz == 1) then
-  set tgz = admit.tar.gz
-  if ($brief) then
-    # @todo what about .cim and .lim files 
-    set dim=(`find $arg -type d -name \*.im -o -name \*.lim`)
-    set excludes = ()
-    foreach d ($dim)
-      set excludes=($excludes --exclude=$d)
-    end
-    echo Writing brief $tgz
-    echo Excluding: $dim
-    admit_stale -s $projects
-    tar -zcf $tgz $excludes $projects
-    admit_stale -u $projects
-  else
-    echo Writing all in $tgz
-    tar zcf $tgz $projects
-  endif
 
-endif
-
-exit 0
-
-usage:
-    echo Usage:
-    echo "$0 [-s] [-a] project1.admit [-b] project2.admit [-a] ...."
-    echo ""
-    echo " -a      export all files inside the project"
-    echo " -b      brief export (the default)"
-    echo " -s      single admit.tar.gz with all admit projects listed"
-    echo "         (do not use interspersed -a/b flags)"
+        for i in range(np):
+            if have_casa and not dryrun:
+                p[i].setAstale(False,verbose,dryrun)
+                p[i].writeXML(script=False)
+            
+    else:
+        if verbose: print "brief and many tar"
+        for ap in aplist:
+            cmd = "tar -zcf %s.tar.gz " % ap
+            for f in find_exclude(ap):
+                cmd = cmd + ' --exclude=%s' % f
+            cmd = cmd + " %s" % ap
+            if have_casa and not dryrun:
+                p = admit.Project(ap,commit=False)
+                p.mergeFlow(False)
+                p.setAstale(True,verbose,dryrun)
+                p.writeXML(script=False)
+            myexec(cmd,dryrun)
+            if have_casa and not dryrun:
+                p.setAstale(False,verbose,dryrun)
+                p.writeXML(script=False)
+else:
+    if single:
+        if verbose: print "-a -s : full and single tar"
+        cmd = "tar -zcf %s.tar.gz " % prefix
+        for ap in aplist:
+            cmd = cmd + " " + ap
+        myexec(cmd,dryrun)
+    else:
+        if verbose: print "-a : full and many tar"
+        for ap in aplist:
+            cmd = "tar -zcf %s.tar.gz %s " % (ap,ap)
+            myexec(cmd,dryrun)            
+    

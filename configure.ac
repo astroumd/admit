@@ -49,6 +49,11 @@ AC_ARG_WITH([casa-root],
         AC_SUBST([CASA_ROOT],[$with_casa_root])
     fi
 ],[
+    for casaroot in /Applications/CASA.app/Contents/ /home/casa/packages/ /astromake/opt/casa/; do
+    	if test -d $casaroot; then
+	    AC_MSG_NOTICE([Found a casa-root in or below $casaroot])
+	fi
+    done
     if test "x$CASA_ROOT" = "x"; then
         AC_MSG_WARN([CASA not found and --with-casa-root not given])
         with_casa_root=""

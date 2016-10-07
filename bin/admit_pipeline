@@ -39,7 +39,8 @@ def usage(cmd):
    print "   -o    old style (runa1) with optional apar files"
    print "   -s    use shadow tree to write (not implemented)"
    print "   -v    verbose (not implemented)"
-   print "   -c    clean up admit working directory (i.e. no re-run)"
+   print "   -c    clean up admit working directory (i.e. no re-run) [not implemented]"
+   print "   -e    admit_export only (assuming pipeline had been run) [not implemented]"
    print "  "
    print "Example:"
    print "    %s -n /somewhere/bigdata/2016.*" % cmd

@@ -64,7 +64,7 @@ def find_casa(aname):
     return matches
     
 
-def find_exclude(aname, level=2):
+def find_exclude(aname, level=1):
     if level==1:
         # our convention of 3D cubes
         return find_files(aname,"*.im") + find_files(aname,"*.cim")

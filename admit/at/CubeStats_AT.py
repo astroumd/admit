@@ -119,7 +119,7 @@ class CubeStats_AT(AT):
                 "psample" : -1,         # if > 0, spatial sampling rate for PeakStats
         }
         AT.__init__(self,keys,keyval)
-        self._version       = "1.0.5"
+        self._version       = "1.0.6"
         self.set_bdp_in([(Image_BDP,      1, bt.REQUIRED)])
         self.set_bdp_out([(CubeStats_BDP, 1)])
 
@@ -456,7 +456,7 @@ class CubeStats_AT(AT):
             ry2 = stats.robust(y2)
             y2_mean = ry2.mean()
             y2_std  = ry2.std()
-            logging.debug("NORMALTEST2: %s" % str(scipy.stats.normaltest(ry2)))
+            if n>9: logging.debug("NORMALTEST2: %s" % str(scipy.stats.normaltest(ry2)))
             myplot.hisplot(y2,title,bdp_name+"_2",xlab=xlab,gauss=[y2_mean,y2_std],thumbnail=True)
 
             title = bdp_name + "_3"
@@ -467,7 +467,7 @@ class CubeStats_AT(AT):
             rdy2 = stats.robust(dy2)
             dy2_mean = rdy2.mean()
             dy2_std  = rdy2.std()
-            logging.debug("NORMALTEST3: %s" % str(scipy.stats.normaltest(rdy2)))
+            if n>9: logging.debug("NORMALTEST3: %s" % str(scipy.stats.normaltest(rdy2)))
             myplot.hisplot(dy2,title,bdp_name+"_3",xlab=xlab,gauss=[dy2_mean,dy2_std],thumbnail=True)
 
 
@@ -477,7 +477,7 @@ class CubeStats_AT(AT):
             ry3 = stats.robust(y3)
             y3_mean = ry3.mean()
             y3_std  = ry3.std()
-            logging.debug("NORMALTEST4: %s" % str(scipy.stats.normaltest(ry3)))
+            if n>9: logging.debug("NORMALTEST4: %s" % str(scipy.stats.normaltest(ry3)))
             myplot.hisplot(y3,title,bdp_name+"_4",xlab=xlab,gauss=[y3_mean,y3_std],thumbnail=True)
 
             title = bdp_name + "_5"
@@ -487,7 +487,7 @@ class CubeStats_AT(AT):
             rdy3 = stats.robust(dy3)
             dy3_mean = rdy3.mean()
             dy3_std  = rdy3.std()
-            logging.debug("NORMALTEST5: %s" % str(scipy.stats.normaltest(rdy3)))
+            if n>9: logging.debug("NORMALTEST5: %s" % str(scipy.stats.normaltest(rdy3)))
             myplot.hisplot(dy3,title,bdp_name+"_5",xlab=xlab,gauss=[dy3_mean,dy3_std],thumbnail=True)
 
 
@@ -497,7 +497,7 @@ class CubeStats_AT(AT):
             ry5 = stats.robust(y5)
             y5_mean = ry5.mean()
             y5_std  = ry5.std()
-            logging.debug("NORMALTEST6: %s" % str(scipy.stats.normaltest(ry5)))
+            if n>9: logging.debug("NORMALTEST6: %s" % str(scipy.stats.normaltest(ry5)))
             myplot.hisplot(y5,title,bdp_name+"_6",xlab=xlab,gauss=[y5_mean,y5_std],thumbnail=True)
 
             logging.debug("LogPeak: m,s= %f %f min/max %f %f" % (y1.mean(),y1.std(),y1.min(),y1.max()))

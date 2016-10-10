@@ -99,6 +99,8 @@
     maps.  Default:[1.5,3,3]
 
    - *width* in PVSlice_AT: width in channels orthogonal to the slice length to sum. Default:5
+
+   - *box* in Ingest_AT: Box to select when ingesting a cube. Default: entire image"
 """
 #
 # Required imports

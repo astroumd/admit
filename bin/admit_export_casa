@@ -1,5 +1,5 @@
-#! /usr/bin/env python
 #! /usr/bin/env casarun
+#! /usr/bin/env python
 #FLIP 2 BEFORE
 #  -*- python -*-
 #
@@ -13,8 +13,8 @@ import sys, os, fnmatch, math
 slow_version = 'admit_export_casa'     # slow version
 
 #FLIP 2 NEXT   the next two lines and the first two lines in this file for the **slow_version**
-have_casa = True           # slow one, via casarun
 have_casa = False          # fast one, via python
+have_casa = True           # slow one, via casarun
 
 if have_casa:
     # this also needs to run via casarun, python cannot run this in CASA mode

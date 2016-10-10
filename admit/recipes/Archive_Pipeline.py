@@ -127,6 +127,7 @@ def _run(argv):
         KEYS["minchan"]  = int(KEYS["minchan"])
         KEYS["numsigma"] = float(KEYS["numsigma"])
         KEYS["pad"]      = int(KEYS["pad"])
+        KEYS["width"]    = int(KEYS["width"])
         KEYS["cutoff"]   = ast.literal_eval(str(KEYS["cutoff"]))
     except Exception, e:
         print("Exception converting keyword value to number:",e)

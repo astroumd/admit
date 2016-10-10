@@ -110,11 +110,10 @@ for a in argv[1:]:
     if a == '-s': single  = True;    continue
     if a == '-h': usage();           continue
     # all remaining arguments are taken as admit directories
+    # in brief mode we now need the casarun version
     if not have_casa and brief:
-       print "This is where we will call the slow one:"
        argv[0] = slow_version
-       print argv
-       myexecs(argv)
+       myexecs(argv,dryrun)
        sys.exit(1)
     aplist.append(a)
 

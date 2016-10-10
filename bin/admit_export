@@ -94,16 +94,11 @@ def myexec(cmd, dryrun = False):
 # if __name__ == "__main__":
 
 for a in argv[1:]:
-    if a == '-a':
-        brief   = False;   	
-        if have_casa:
-	   print "Impossible to get here"
-           sys.exit(1)
-	continue
     if pflag:
         pflag   = False
         prefix  = "%s.admit" % a
         continue        
+    if a == '-a': brief   = False;   continue
     if a == '-p': pflag   = True;    continue
     if a == '-v': verbose = True;    continue
     if a == '-n': dryrun  = True;    continue

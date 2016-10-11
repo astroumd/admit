@@ -290,7 +290,8 @@ class PVSlice_AT(AT):
               pard = pvslit[3]*np.pi/180.0
               cosp = np.cos(pard)
               sinp = np.sin(pard)
-              segm = [[xcen-slen*sinp,xcen+slen*sinp,ycen-slen*cosp,ycen+slen*cosp]]
+              halflen = 0.5*slen
+              segm = [[xcen-halflen*sinp,xcen+halflen*sinp,ycen-halflen*cosp,ycen+halflen*cosp]]
               pa   = pvslit[3]
               title = "PV Slice location : slit PA=%g" % pa
             else:

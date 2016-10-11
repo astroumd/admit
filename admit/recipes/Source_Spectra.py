@@ -1,41 +1,10 @@
 #!/usr/bin/env casarun
-#
-# Use: % Source_Spectra.py Source-List-BDP-Name Your-Cube-File-Name Your-cube's-primary-beam-file
-#            
-#           Source-List-BDP-Name is typically a BDP created by SFind2D_AT but can
-#                 be any BDP compatible with the ADMIT source-list definition.
-#                 This consists of a table of source position where spectra will
-#                 be created from "Your-Cube-File-Name spectral data cube.
-#           Input only "Your-Cube-File-Name" if the image file is not primary beam
-#                 corrected. Default cubes from clean are like this.
-#                 The noise does not rise up at the edge of the field.
-#                 MUST BE A Spectral Data Cube.
-#
-#           Cubes from the ALMA archive are often primary beam corrected.
-#                 In these images the noise rises out from the center of
-#                 the imaged field. In this case, you need to input both
-#                 the image file and the primary beam cube. Both are
-#                 available to you from the archive.
-#=========================================================================
-#
-# This ADMIT script for making a simple moment map from an
-#  ALMA interferometer data cube. The flow below:
-#     0. Ingest your BDP which contains the list of source positions
-#     1. Ingest your spectral cube into ADMIT (creates a casa image if starts as FITS)
-#     2. Calculate the spectrum for each position in your source list
-#=======================================================================
-#  Most common CubeSpectrum_AT key word to change in the flow below:
-#   - xaxis:  sets x-axis type: channel number, frequency,
-#     velocity. Current default is channel for full cubes and velocity for
-#     cubes created for each emission line by LineCube_AT.
-
-#=======================================================================
 """.. _Source_Spectra-api:
 
    **Source_Spectra** --- Generates spectra for a series of map locations.
    ===========================================================
 
-   Usage: Source_Spectra.py BDP-Source-Table Your-Image-Cube [Your-Primary-Beam]
+   Usage: admit_recipe Source_Spectra BDP-Source-Table Your-Image-Cube [Your-Primary-Beam]
 
    or
 
@@ -58,7 +27,7 @@
      corrected, then input only this cube. Default cubes from *clean*
      are like this. The noise does not rise up at the edge of the field
 
-   param3: image, optional
+   param3 : image, optional
      Your CASA or FITS primary beam image.  Cubes from 
      the ALMA archive are often primary beam corrected.  In these images,
      the noise rises out from the center of the imaged field. In this 

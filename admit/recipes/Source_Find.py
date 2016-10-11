@@ -5,7 +5,7 @@
    **Source_Find** --- Finds sources in a 2-D image.
    ===========================================================
 
-   Usage: Source_Find.py Your-Image [Your-Primary-Beam]
+   Usage: admit_recipe Source_Find Your-Image [Your-Primary-Beam]
 
    or
 

@@ -3,11 +3,11 @@
 
 #import admit.scripts as recipes ## Really???
 """
-   **recipe** --- Executes a pre-defined ADMIT script (recipe).
+   **recipe** --- Executes a pre-defined ADMIT recipe (script).
    ------------------------------------------------------------
 
    This module implements a uniform interface for executing pre-defined ADMIT
-   scripts.
+   recipes.
 """
 
 import os

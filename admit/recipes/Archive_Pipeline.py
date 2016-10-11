@@ -1,22 +1,19 @@
 #!/usr/bin/env casarun
-""".. _Archive-Pipeline-api:
+""".. _Archive_Pipeline-api:
 
-   **Archive-Pipeline** --- Produces locally standard JAO ADMIT pipeline products.
+   **Archive_Pipeline** --- Produces standard JAO ADMIT pipeline products for spectral line plus continuum images.
    ===========================================================
 
    Example Usage: 
-       Archive_Pipeline.py Spectral-Cube Continuum-Image
+       admit_recipe Archive_Pipeline Spectral-Cube Continuum-Image
 
    or
-
        admit.recipe("Archive_Pipeline","Spectral-Cube","Continuum-Image")
 
    If primary beam files given: 
-
-       Archive_Pipeline.py Spectral-Cube Continuum-Image specpb="Spectral-Primary-Beam", contpb="Continuum-Primary-Beam"
+       admit_recipe Archive_Pipeline Spectral-Cube Continuum-Image specpb="Spectral-Primary-Beam" contpb="Continuum-Primary-Beam"
 
    or
-
        admit.recipe("Archive_Pipeline","Spectral-Cube","Continuum-Image", specpb="Spectral-Primary-Beam", contpb="Continuum-Primary-Beam")
 
    This ADMIT script makes standard ADMIT pipeline products for a local dataset.  The flow is:
@@ -41,7 +38,7 @@
      corrected, then do not supply a primary beam for it. Default cubes from *clean*
      are not primary beam corrected: The noise does not rise up at the edge of the field
 
-   param2: continuum image, optional
+   param2 : continuum image, optional
      Your CASA or FITS continuum image. This image should have one channel (NAXIS3=1).
      If the image is not primary beam corrected, then do not supply the primary beam for it.
 
@@ -60,19 +57,13 @@
 
    - *numsigma* in LineID_AT: typically use 6.0 to 8.0 for 4000 channels;
      4.0 if you only have a few hundred channels
-     3.0 if you want to dig deep but then expect to get 
-     fake lines too.
+     3.0 if you want to dig deep but then expect to get fake lines too.
 
-   - *minchan* in LineID_AT: minimum width of line in # of channels to
-    assume when searching for lines.
+   - *minchan* in LineID_AT: minimum width of line in channels to assume when searching for lines.
 
-   - *pad* in Linecube_AT: this controls how many "extra" channels are
-    added to either end of the line sub-cube to be cut from the  
-    input cube.  It should generally be comparable to your line width
+   - *pad* in Linecube_AT: this controls how many "extra" channels are added to either end of the line sub-cube to be cut from the  input cube.  It should generally be comparable to your line width
 
-   - *cutoff* in Moment_AT: number of sigma for cut levels in making
-    moment maps: one value for each requested moment map. 
-    Must be a Python list: [1.0, 2.0,3.0] for example for moment 0, 1 and 2 maps
+   - *cutoff* in Moment_AT: number of sigma for cut levels in making moment maps: one value for each requested moment map.  Must be a Python list: [1.0, 2.0,3.0] for example for moment 0, 1 and 2 maps 
 
    - *width* in PVSlice_AT: width in channels orthogonal to the slice length to sum.
 """
@@ -127,6 +118,7 @@ def _run(argv):
         KEYS["minchan"]  = int(KEYS["minchan"])
         KEYS["numsigma"] = float(KEYS["numsigma"])
         KEYS["pad"]      = int(KEYS["pad"])
+        KEYS["width"]    = int(KEYS["width"])
         KEYS["cutoff"]   = ast.literal_eval(str(KEYS["cutoff"]))
     except Exception, e:
         print("Exception converting keyword value to number:",e)

@@ -59,16 +59,11 @@
      4.0 if you only have a few hundred channels
      3.0 if you want to dig deep but then expect to get fake lines too.
 
-   - *minchan* in LineID_AT: minimum width of line in # of channels to
-    assume when searching for lines.
+   - *minchan* in LineID_AT: minimum width of line in channels to assume when searching for lines.
 
-   - *pad* in Linecube_AT: this controls how many "extra" channels are
-    added to either end of the line sub-cube to be cut from the  
-    input cube.  It should generally be comparable to your line width
+   - *pad* in Linecube_AT: this controls how many "extra" channels are added to either end of the line sub-cube to be cut from the  input cube.  It should generally be comparable to your line width
 
-   - *cutoff* in Moment_AT: number of sigma for cut levels in making
-    moment maps: one value for each requested moment map. 
-    Must be a Python list: [1.0, 2.0,3.0] for example for moment 0, 1 and 2 maps
+   - *cutoff* in Moment_AT: number of sigma for cut levels in making moment maps: one value for each requested moment map.  Must be a Python list: [1.0, 2.0,3.0] for example for moment 0, 1 and 2 maps 
 
    - *width* in PVSlice_AT: width in channels orthogonal to the slice length to sum.
 """

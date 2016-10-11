@@ -1,8 +1,30 @@
 import os, sys
 import admit
-
-
+"""
+Utility methods for creating ADMIT recipes
+==========================================
+"""
 def usage(progname,REQARGS,OPTARGS,KEYS,KEYDESC):
+    """Print a standard usage statement given arguments and keywords.
+
+       Parameters
+       ----------
+       progname : str 
+         the calling program (recipe) name
+
+       REQARGS : list
+         the required non-keyword arguments
+
+       OPTARGS : list
+         the optional non-keyword arguments
+
+       KEYS : dict
+         the possible keywords 
+
+       KEYDESC : dict
+         string descriptions of KEYS
+
+    """
     # Minimum required keyless arguments
     MINARGS = len(REQARGS)  
 
@@ -33,7 +55,29 @@ def usage(progname,REQARGS,OPTARGS,KEYS,KEYDESC):
     print("For detailed help, type '%s help'" % progname)
   
 def _processargs(argv,REQARGS,OPTARGS,KEYS,KEYDESC,docstr):
+    """Check command arguments and keywords, and possibly print a 
+       usage statement.  See any ADMIT recipe for example usage.
 
+       Parameters
+       ----------
+       argv : str 
+         the calling program arguments list
+
+       REQARGS : list
+         the required non-keyword arguments
+
+       OPTARGS : list
+         the optional non-keyword arguments
+
+       KEYS : dict
+         the possible keywords 
+
+       KEYDESC : dict
+         string descriptions of KEYS
+
+       docstr : str
+         The calling program documentation string
+    """
     if "help" in argv:
         print(docstr)
         return False

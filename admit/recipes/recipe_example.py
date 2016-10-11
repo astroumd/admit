@@ -1,9 +1,12 @@
 #!/usr/bin/env casarun
-"""ADMIT Recipe:  Archive_Pipeline
+""".. _recipe_example-api:
 
-  Produces locally standard JAO ADMIT pipeline products.
+  **Recipe Example** --- An example recipe that you can use to create your own.
+  ============================================================================
 
-  This ADMIT script makes standard ADMIT pipeline products for a local dataset.  The flow is:
+  This script is similar to the recipe Archive_Pipeline that
+  produces locally standard JAO ADMIT pipeline products.
+  The flow is:
 
    #. Ingest the cube and continuum image into ADMIT doing primary beam correction  if PB file(s) supplied. This will create CASA images if inputs are FITS.
    #. Calculate statistics on cube for later use
@@ -17,6 +20,10 @@
    #. Search for sources in the continuum map down to a given cutoff.
    #. Make a spectrum at each source found from in the previous step.
 
+   Required non-keyword arguments are set in the REQARGS list and option
+   non-keyword arguments are set in the OPTARGS list.  You can create
+   keywords for the script to use by modifying the  KEYS and KEYSDESC
+   dictionaries.
 """
 
 import os, sys
@@ -41,16 +48,13 @@ KEYDESC = {"foo"      : "the foo parameter",
            "numsigma" : "Number of 1-sigma rms for cutoff level"
           }
 
-# Minimum required keyless arguments
-MINARGS = len(REQARGS)  
-
-# Number of optional keyless arguments  (max args = MINARGS+OPTARGS)
-# Note: rule is that if user provides one optional keyless argument,
-#       user must supply them all.  That's the only way to know
-#       which optional keyless argument is which.
-NUMOPTARGS = len(OPTARGS)  
 
 def _run(argv):
+    """The functionality is not in 'main' so that it doesn't get executed when 
+    sphinx imports it to make the documentation.  The method name starts 
+    with _ so that the method is not listed in the sphinx-generated 
+    documentation.
+    """
     print "ARGV=",argv
 
     if ( not admit.recipeutils._processargs(argv,REQARGS,OPTARGS,KEYS,KEYDESC,__doc__)): return

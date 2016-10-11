@@ -41,13 +41,14 @@ Module `admit.bdp`
    module/admit.bdp/*
 
 
-Module `admit.scripts`
+Module `admit.recipes`
 ----------------------
 
 .. toctree::
+   :maxdepth: 1
    :glob:
 
-   module/admit.scripts/*
+   module/admit.recipes/*
 
 
 Module `admit.util`

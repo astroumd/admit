@@ -697,4 +697,4 @@ this mode.
 .. _LineCube_AT:        module/admit.at/LineCube_AT.html
 .. _LineSegment_AT:     module/admit.at/LineSegment_AT.html
 .. _ContinuumSub_AT:    module/admit.at/ContinuumSub_AT.html
-.. _Line_Moment:         module/admit.scripts/Line_Moment.html
+.. _Line_Moment:        module/admit.recipes/Line_Moment.html

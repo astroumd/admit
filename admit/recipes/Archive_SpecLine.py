@@ -1,52 +1,10 @@
 #!/usr/bin/env casarun
-#
-# Use: % Archive_SpecLine.py Your-Cube-File-Name Your-cube's-primary-beam-file
-#            
-#           Input only "Your-Cube" if the image file is not primary beam
-#                 corrected. Default cubes from clean are like this.
-#                 The noise does not rise up at the edge of the field.
-#                 MUST be a spectral line cube.
-#
-#           Cubes from the ALMA archive are often primary beam corrected.
-#                 In these images the noise rises out from the center of
-#                 the imaged field. In this case, you need to input both
-#                 the image file and the primary beam cube. Both are
-#                 available to you from the archive.
-#=========================================================================
-#
-# This ADMIT script for making a simple moment map from an
-#  ALMA interferometer data cube. The flow below:
-#     0. Ingest your cube into ADMIT (creates a casa image if starts as FITS)
-#     1. Calculate statistics on cube for later use
-#     2. Calculate simple sum of all channels to decide where to make a spectrum
-#     3. Make a spectrum at the peak in the sum map from step #3
-#     4. Make a PV slice for the entire cube based on the sum map
-#     5. Find segments with emission or absorption and try to ID the line(s)
-#     6. Cut out cubes for each line found; cube name is line name
-#     7. Calculate moment 0,1,2 maps for each line cube
-#     8. Make a spectrum at the peak in each moment map
-#     9. Make a PV slice based on the moment 0 map for each line cube
-#=======================================================================
-#  Most common AT key word to change in the flow below:
-#   - numsigma in LineID_AT: typically use 6.0 to 8.0 for 4000 channels;
-#                            4.0 if you only have a few hundred channels
-#                            3.0 if you want to dig deep but then expect
-#                                to get fake lines too.
-#   - minchan in LineID_AT: minimum width of line in # of channels to
-#                            assume when searching for lines.
-#   - numsigma in Moment_AT: number of sigma for cut levels in making
-#                            moment maps: one value for each requested 
-#                            moment map. Must be a python list: [1.0, 2.0,3.0]
-#                            for example for moment 0, 1 and 2 maps
-#   - width in PVSlice_AT: width in channels orthogonal to the slice length
-#                            to sum.
-#=======================================================================
-""".. _Archive-SpecLine-api:
+""".. _Archive_SpecLine-api:
 
-   **Archive-SpecLine** --- Produces locally standard JAO ADMIT pipeline products.
+   **Archive_SpecLine** --- Produces standard JAO ADMIT pipeline products for spectral line images.
    ===========================================================
 
-   Usage: Archive_SpecLine.py Your-Image-Cube [Your-Primary-Beam]
+   Usage: admit_recipe Archive_SpecLine Your-Image-Cube [Your-Primary-Beam]
 
    or
 
@@ -72,7 +30,7 @@
      corrected, then input only this cube. Default cubes from *clean*
      are like this. The noise does not rise up at the edge of the field
 
-   param2: image, optional
+   param2 : image, optional
      Your CASA or FITS primary beam image.  Cubes from 
      the ALMA archive are often primary beam corrected.  In these images,
      the noise rises out from the center of the imaged field. In this 

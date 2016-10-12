@@ -31,6 +31,12 @@ def usage():
     print "-s      single OUS.admit.tar.gz with all admit projects listed"
     print "-a      export all (the default is brief, i.e.. no cubes)"
     print "-p OUS  the OUS.admit basename used (default: none)"
+    print ""
+    if not have_casa:
+        print " (this is the fast pure-python version; in brief mode it will call %s)" % slow_version
+    else:
+        print " (this is the slow casarun version; it should not be called directly)"
+        
     sys.exit(0)
 
 #   command line arguments  

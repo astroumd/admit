@@ -81,6 +81,9 @@ If you want to check that ADMIT is set-up you can type:
 
 and will now see the directory paths and versions. Congratulations!
 
+Even though this discussion is out of scope here, the ADMIT development version
+can be obtained from http://github.com/astroumd/admit
+
 Documentation
 -------------
 

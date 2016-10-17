@@ -75,7 +75,7 @@ class APlot(AbstractPlot):
             plt.ioff()
             plt.show()
 
-    def scatter(self,x,y,title=None,figname=None,xlab=None,ylab=None,color=None,size=None,cmds=None,thumbnail=True, xrange=[], yrange=[]):
+    def scatter(self,x,y,title=None,figname=None,xlab=None,ylab=None,color=None,size=None,cmds=None,thumbnail=True, xrange=None, yrange=None):
         """Scatter plot of multiple columns against one column
 
            Parameters
@@ -117,11 +117,11 @@ class APlot(AbstractPlot):
               For instance, if the output file is 'fig.jpg', the thumbnail
               will be 'fig_thumb.jpg'
 
-           xrange : list
-               list of length 2 giving [xmin,xmax]. Default:[] meaning show full range of data
+           xrange : tuple
+              X axis range (xmin,xmax). Default:None meaning show full range of data
 
-           yrange : list
-               list of length 2 giving [ymin,ymax]. Default:[] meaning show full range of data
+           yrange: tuple
+              Y axis range, (ymin,ymax). Default:None meaning show full range of data
 
 
            Returns
@@ -149,10 +149,10 @@ class APlot(AbstractPlot):
         if title:    ax1.set_title(title)
         if xlab:     ax1.set_xlabel(xlab)
         if ylab:     ax1.set_ylabel(ylab)
-        if len(xrange) == 2:
-            plt.xlim(xrange[0],xrange[1])
-        if len(yrange) == 2:
-            plt.ylim(yrange[0],yrange[1])
+        if xrange != None:
+            ax1.set_xlim(xrange)
+        if yrange != None:
+            ax1.set_ylim(yrange)
         if cmds != None:
               self.parse(cmds)
         if figname:
@@ -168,7 +168,7 @@ class APlot(AbstractPlot):
 
         plt.close()
 
-    def plotter(self,x,y,title=None,figname=None,xlab=None,ylab=None,yrange=None,segments=None,labels=[],histo=False,thumbnail=True):
+    def plotter(self,x,y,title=None,figname=None,xlab=None,ylab=None,xrange=None,yrange=None,segments=None,labels=[],histo=False,thumbnail=True):
         """Simple plotter of multiple columns against one column, optionally in histogram style
 
            Parameters
@@ -176,7 +176,7 @@ class APlot(AbstractPlot):
            x : numpy array
                X axis (abscissa) values
 
-           y : numpy array
+           y : list of numpy array
                Y axis (ordinate) values
 
            title : str
@@ -193,8 +193,11 @@ class APlot(AbstractPlot):
            ylab : str
               Y axis label
 
+           xrange : tuple
+              X axis range (xmin,xmax). Default:None meaning show full range of data
+
            yrange: tuple
-              Y axis range, (ymin,ymax)
+              Y axis range, (ymin,ymax). Default:None meaning show full range of data
 
            segments : list
               list of segment end points pairs for overlaying horizontal
@@ -251,6 +254,92 @@ class APlot(AbstractPlot):
         if title:    ax1.set_title(title)
         if xlab:     ax1.set_xlabel(xlab)
         if ylab:     ax1.set_ylabel(ylab)
+        if xrange:   ax1.set_xlim(xrange)
+        if yrange:   ax1.set_ylim(yrange)
+        if figname:
+            self._figurefiles[APlot.figno] = figname + PlotControl.mkext(self._plot_type,True)
+            fig.savefig(self._figurefiles[APlot.figno])
+            if thumbnail: self.makeThumbnail(APlot.figno, fig=fig)
+
+        if self._plot_mode==PlotControl.INTERACTIVE:
+            plt.show()
+
+        plt.close()
+
+    def multiplotter(self,x,y,title=None,figname=None,xlab=None,ylab=None,xrange=None,yrange=None,labels=[],thumbnail=True):
+        """Plotter of multiple x against multiple y as traces on same plot. 
+
+           Parameters
+           ----------
+           x : list of numpy array
+               X axis (abscissa) values
+
+           y : list of numpy array
+               Y axis (ordinate) values
+
+           title : str
+               Title string for plot
+
+           figname : str
+               Root of output file name.  An extension matching the plot
+               type will be appended. For instance, for, figname='fig'
+               and plottype=PlotControl.PNG, the output file is 'fig.png'
+
+           xlab : str
+              X axis label
+
+           ylab : str
+              Y axis label
+
+           xrange : tuple
+              X axis range (xmin,xmax). Default:None meaning show full range of data
+
+           yrange: tuple
+              Y axis range, (ymin,ymax). Default:None meaning show full range of data
+
+           labels : list
+              labels for the plot traces. In general, there should be one per plot trace.
+
+           thumbnail : boolean
+              If True, create a thumbnail when creating an output figure.
+              Thumbnails will have '_thumb' appended for file root.
+              For instance, if the output file is 'fig.jpg', the thumbnail
+              will be 'fig_thumb.jpg'
+
+           Returns
+           -------
+           None
+
+        """
+        if self._plot_mode == PlotControl.NOPLOT:
+            return
+
+        if len(x) != len(y):
+           raise Exception("Input x and y arrays are not the same length [%d,%d]"%(len(x),len(y)))
+
+        # if filename: plt.ion()
+        #plt.ion()
+        plt.ioff()
+        APlot.figno = APlot.figno + 1
+        if self._abspath != "" and figname:
+            figname = self._abspath + figname
+
+        fig = plt.figure(APlot.figno)
+        ax1 = fig.add_subplot(1,1,1)
+        if len(labels) > 0:
+            for (xi,yi,li) in zip(x,y,labels):
+                ax1.plot(xi,yi,label=li)
+            # @todo    try loc='lower center'
+            # smaller font
+            ax1.legend(loc='best',prop={'size':8})
+        else:
+            for i in len(y):
+                ax1.plot(x[i],y[i])
+        ylim = ax1.get_ylim()[1]/3.0
+        if title:    ax1.set_title(title)
+        if xlab:     ax1.set_xlabel(xlab)
+        if ylab:     ax1.set_ylabel(ylab)
+        if xrange:   ax1.set_xlim(xrange)
         if yrange:   ax1.set_ylim(yrange)
         if figname:
             self._figurefiles[APlot.figno] = figname + PlotControl.mkext(self._plot_type,True)

@@ -6,6 +6,8 @@
 #
 #    -v         print header instead of one line summary
 
+from __future__ import print_function
+
 # python system modules
 import sys, os, math
 #
@@ -27,7 +29,7 @@ def cube_size(ss):
     return size
 
 def grab(hdu, key, default):
-    if hdu.header.has_key(key):
+    if key in hdu.header:
         return hdu.header[key]
     return default
 
@@ -35,7 +37,7 @@ def dim(dimt):
     """convert a tuple into a list, and reverse the elements
     """
     n = len(dimt)
-    dimrl = range(n)
+    dimrl = list(range(n))
     for i in range(n):
         dimrl[i] = dimt[n-i-1]
     return dimrl
@@ -55,8 +57,8 @@ for ff in argv[1:]:
     f = fits.open(ff)
     hdu = f[0]
     if verbose:
-        print "### FITS FILE ",ff
-        print hdu.header
+        print("### FITS FILE ",ff)
+        print(hdu.header)
         f.close()
         continue
     s = hdu.shape
@@ -68,6 +70,6 @@ for ff in argv[1:]:
     c3 = grab(hdu,'crval3', 0.0) / 1e9
     f.close()
     size = cube_size(s)*4.0/1024.0/1024.0/1024.0
-    print fn,dim(s),srcname,c1,c2,c3,"%.3f" % size
+    print(fn,dim(s),srcname,c1,c2,c3,"%.3f" % size)
 
 

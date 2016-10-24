@@ -518,9 +518,7 @@ class Ingest_AT(AT):
             logging.debug("BOX/EDGE selection: %s %s" % (str(r1['blc']),str(r1['trc'])))
             if file_is_casa:
                 taskinit.ia.subimage(region=r1,overwrite=True,outfile=fno)
-            else:
-                taskinit.ia.subimage(region=r1,overwrite=True,outfile=fno+'.box')
-                utils.rename(fno+'.box',fno)
+
             taskinit.ia.close()
             taskinit.ia.open(fno)
             dt.tag("subimage-1")

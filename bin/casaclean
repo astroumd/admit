@@ -37,6 +37,7 @@ switch ($1:q)
     case -r:
       echo "recursive clean"
       find . -name casapy-\*.log -exec rm {} \;
+      find . -name casa-\*.log -exec rm {} \;
       find . -name ipython-\*.log -exec rm {} \;
       breaksw
 

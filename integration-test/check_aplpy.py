@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 #
-
+from __future__ import print_function
 import os, sys
 
 import numpy
@@ -10,8 +10,8 @@ import numpy
 
 try:
     import aplpy
-    print "aplpy OK",aplpy.__version__
+    print("aplpy OK",aplpy.__version__)
 except:
-    print "aplpy MISSING"
+    print("aplpy MISSING")
     sys.exit(0)
  

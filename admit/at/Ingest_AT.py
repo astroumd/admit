@@ -450,6 +450,8 @@ class Ingest_AT(AT):
                                        major='%gpix' % smooth[0], minor='%gpix' % smooth[1], type='gaussian')
                 taskinit.ia.close()
                 srcname = casa.imhead(fno,mode="get",hdkey="object")          # work around CASA bug
+            #@todo use safer ia.rename() here.
+            # https://casa.nrao.edu/docs/CasaRef/image.rename.html
                 utils.rename(fnos,fno)
                 casa.imhead(fno,mode="put",hdkey="object",hdvalue=srcname)    # work around CASA bug
                 dt.tag("convolve2d")
@@ -460,6 +462,8 @@ class Ingest_AT(AT):
                     else:
                         # @todo may have the wrong center
                         specsmooth(fno,fnos,axis=2,function='boxcar',dmethod="",width=smooth[2])
+            #@todo use safer ia.rename() here.
+            # https://casa.nrao.edu/docs/CasaRef/image.rename.html
                     utils.rename(fnos,fno)
                     dt.tag("specsmooth")
                 taskinit.ia.open(fno)
@@ -470,6 +474,8 @@ class Ingest_AT(AT):
                 fnot = fno + '_4'
                 taskinit.ia.adddegaxes(stokes='I',outfile=fnot)
                 taskinit.ia.close()
+            #@todo use safer ia.rename() here.
+            # https://casa.nrao.edu/docs/CasaRef/image.rename.html
                 utils.rename(fnot,fno)
                 taskinit.ia.open(fno)
                 dt.tag("adddegaxes")
@@ -491,7 +497,7 @@ class Ingest_AT(AT):
             nx = s['shape'][0]
             ny = s['shape'][1]
             nz = s['shape'][2]
-            logging.debug("box=%s edge=%s processing with SHAPE: %s" % (str(box),str(edge),str(s['shape'])))
+            logging.info("box=%s edge=%s processing with SHAPE: %s" % (str(box),str(edge),str(s['shape'])))
                                                                                                  
             if len(box) == 2:
                 # select zrange
@@ -515,13 +521,16 @@ class Ingest_AT(AT):
                 r1 = taskinit.rg.box([0,0,edge[0]] , [nx-1,ny-1,nz-edge[1]-1])
             else:
                 raise Exception,"box=%s illegal" % box
-            logging.debug("BOX/EDGE selection: %s %s" % (str(r1['blc']),str(r1['trc'])))
-            if file_is_casa:
-                taskinit.ia.subimage(region=r1,overwrite=True,outfile=fno)
-            else:
-                taskinit.ia.subimage(region=r1,overwrite=True,outfile=fno+'.box')
-                utils.rename(fno+'.box',fno)
+            logging.debug("BOX/EDGE selection: %s %s" % (str(r1['blc']),str(r1['trc']))) 
+            #if taskinit.ia.isopen(): taskinit.ia.close()
+
+            logging.info("SUBIMAGE")
+            subimage = taskinit.ia.subimage(region=r1,outfile=fno+'.box',overwrite=True)
             taskinit.ia.close()
+            taskinit.ia.done()
+            subimage.rename(fno,overwrite=True)
+            subimage.close()
+            subimage.done()
             taskinit.ia.open(fno)
             dt.tag("subimage-1")
         else:
@@ -603,6 +612,8 @@ class Ingest_AT(AT):
             fno4 = fno + '.cont0'   # mean cont map
             taskinit.ia.continuumsub(outline=fno2,outcont=fno1,channels=ch,fitorder=0)
             taskinit.ia.close()
+            #@todo use safer ia.rename() here.
+            # https://casa.nrao.edu/docs/CasaRef/image.rename.html
             utils.rename(fno,fno3)
             utils.rename(fno2,fno)
             casa.immoments(fno1,-1,outfile=fno4)   
@@ -617,7 +628,7 @@ class Ingest_AT(AT):
         # There may be multiple beams per plane so we can't
         # rely on the BEAM's 'major', 'minor', 'positionangle' being present.
         # ia.commonbeam() is guaranteed to return beam parameters
-        # if present.
+        # if present
         if do_cbeam and s.has_key('perplanebeams'):
             # report on the beam extremities, need to loop over all, 
             # first and last don't need to be extremes....
@@ -705,12 +716,16 @@ class Ingest_AT(AT):
                     fnot = fno + ".trans"
                     if True:
                         # this works
+            #@todo use safer ia.rename() here.
+            # https://casa.nrao.edu/docs/CasaRef/image.rename.html
                         utils.rename(fno,fnot)
                         imtrans(fnot,fno,"0132")
                         utils.remove(fnot)
                     else:
                         # this does not work, what the heck
                         imtrans(fno,fnot,"0132")
+            #@todo use safer ia.rename() here.
+            # https://casa.nrao.edu/docs/CasaRef/image.rename.html
                         utils.rename(fnot,fno)
                     nz = s['shape'][3]
                     # get a new summary 's'
@@ -839,6 +854,8 @@ class Ingest_AT(AT):
         if logscale > 0.0:
             print 'LOGSCALE',logscale
             casa.immath(fno,'evalexpr','_ingest.im','iif(IM0<0, -log(1-IM0/%g), log(1+IM0/%g))' % (logscale,logscale))
+            #@todo use safer ia.rename() here.
+            # https://casa.nrao.edu/docs/CasaRef/image.rename.html
             utils.rename('_ingest.im',fno)
             dt.tag("logscale")
 

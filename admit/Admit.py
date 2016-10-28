@@ -73,7 +73,15 @@ class Admit(object):
         Whether to start the data browser server.
 
     loglevel : int
-        @todo document this
+        The integer log level from the Python *logging* module.  One of:
+ 
+        - logging.CRITICAL    = 50
+        - logging.ERROR       = 40
+        - logging.WARNING     = 30
+        - logging.INFO        = 20
+        - logging.DEBUG       = 10
+ 
+        Default is logging.INFO.
 
     commit : bool, optional
         Whether to commit XML-backed flows immediately; default is ``True``.

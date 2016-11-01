@@ -33,7 +33,7 @@ class LineSegment_AT(AT):
         **Keywords**
           **numsigma**: float
             Minimum intensity, in terms of one sigma rms noise, to consider a given channel
-            to not be noise. Default: 2.0.
+            to not be noise. Default: 5.0.
 
           **minchan**: int
             Minimum number of consecutive channels above numsigma to consider them

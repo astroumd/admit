@@ -1657,6 +1657,37 @@ class Summary():
                tablestr = "<br><h4>%s No information available about the ingested BDP</h4>" % taskname
            retval = header % (taskclass, tid,thetask.statusicons(),taskname,tid,the_item.taskargs,tid,tablestr,tid)
 
+        if tlower == "generatespectrum_at":
+           spectra = titems.get('spectra',None)
+           if (spectra) != None:
+               count = 0
+               # task arguments are the same in all entries.
+               taskargs = spectra.taskargs
+               allspecs = ''
+               for val in spectra.getValue():
+                   # default bootstrap width is 12 columns. We are using 'span4' so
+                   # thumbnail 'cell' is 4 columns. Therefore, if we have more than 
+                   # 3 thumbnails, start a new row.
+                   if count != 0 and (count % MAX_THUMBNAILS_PER_ROW) == 0:
+                      specval = ENDROW + STARTROW
+                   else: 
+                      specval = ""
+                   
+                   xlabel = val[0]
+                   image = val[1]
+                   thumb = val[2]
+                   caption = val[3]
+                   specval = specval + (SPAN4VAL % (image, thumb, caption, caption, caption))
+                   allspecs = allspecs + "\n" + specval
+                   count = count + 1
+
+               banner = '<br><h4>%s output</h4>' % (taskname)
+               allspecs = banner + allspecs
+           else:
+               allspecs = "<br><h4>%s produced no output</h4>" % (taskname)
+
+           retval = header % (taskclass, tid,thetask.statusicons(),taskname,tid,taskargs,tid,allspecs,tid)
+
         return topval + retval + botval
 
     def __str__(self):

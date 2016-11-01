@@ -15,6 +15,7 @@ import admit.util.utils as utils
 from admit.util import APlot
 import admit.util.Image as Image
 from admit.util import SpectralLineSearch
+from admit.Summary import SummaryEntry
 
 import os
 import numpy as np
@@ -147,6 +148,38 @@ class GenerateSpectrum_AT(AT):
         self._version       = "1.0.0"
         self.set_bdp_in([])
         self.set_bdp_out([(CubeSpectrum_BDP,1)])
+        self.spec_description = []   # for summary() 
+
+    def summary(self):
+        """Returns the summary dictionary from the AT, for merging
+           into the ADMIT Summary object.
+
+           GenerateSpectrum_AT adds the following to ADMIT summary:
+
+           .. table::
+              :class: borderless
+
+              +---------+----------+---------------------------+
+              |   Key   | type     |    Description            |
+              +=========+==========+===========================+
+              | spectra | list     |   the spectral plots      |
+              +---------+----------+---------------------------+
+           
+           Parameters
+           ----------
+           None
+
+           Returns
+           -------
+           dict
+               Dictionary of SummaryEntry
+        """
+        if hasattr(self,"_summary"):
+            return self._summary
+        else:
+            return {}
+
+
 
     def run(self):
         """Runs the task.
@@ -173,6 +206,7 @@ class GenerateSpectrum_AT(AT):
         f0 = self.getkey("freq")     # central frequency in band
         df = self.getkey("delta") / 1000.0      # channel width (in GHz)
         nspectra = self.getkey("nspectra")
+        taskargs = " contin=%f freq=%f delta=%f nspectra=%f " % (contin,f0,df,nspectra)
         spec = range(nspectra)
         dt.tag("start")
         if self.getkey("file") != "":
@@ -193,6 +227,7 @@ class GenerateSpectrum_AT(AT):
             for i in range(nspectra):
                 spec[i] = np.zeros(nchan)
         chans = np.arange(nchan)
+        taskargs += " nchan = %d" % nchan
         for i in range(nspectra):
             if seed >= 0:
                 spec[i] += np.random.normal(contin, rms, nchan)
@@ -233,12 +268,13 @@ class GenerateSpectrum_AT(AT):
             dt.tag("hanning")
         center = int(nchan/2)
         dt.tag("open")
-        sd = []
         bdp_name = self.mkext("Genspec","csp")
         b2 = CubeSpectrum_BDP(bdp_name)
         self.addoutput(b2)
         images = {}                                      # png's accumulated
         for i in range(nspectra):
+            sd = []
+            caption = "Generated Spectrum %d" % i
             # construct the Table for CubeSpectrum_BDP 
             # @todo note data needs to be a tuple, later to be column_stack'd
             labels = ["channel" ,"frequency" ,"flux" ]
@@ -265,6 +301,12 @@ class GenerateSpectrum_AT(AT):
             thumbname = myplot.getThumbnail(figno=myplot.figno,relative=True)
 
             image = Image(images=images, description="CubeSpectrum")
+            sd.extend([ii, thumbname, caption])
+            self.spec_description.append(sd)
+
+        self._summary["spectra"] = SummaryEntry(self.spec_description,"GenerateSpectrum_AT",self.id(True), taskargs)
+        
+
         dt.tag("table")
         b2.setkey("image",image)
         b2.setkey("table",table)

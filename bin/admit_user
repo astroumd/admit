@@ -1,0 +1,138 @@
+#! /usr/bin/env python
+#           -*- python -*-
+#
+#
+#  Example ADMIT processing on a series of directories where *the same* work has
+#  to be done based on a script given as first argument.
+#
+#  See also admit_pipeline for another fancy implementation
+#
+#
+#  based on : /subaruraid/lgm/ALMA-Serpens-Survey/ and admit-field.py
+#
+#  Usage:
+#        admit_user [-flags] scriptname dirname(s)
+#  e.g.
+#        admit_user admit-field.py  Field???
+#
+#
+
+import os,sys
+
+def usage(cmd):
+   """ the usage message
+   """
+   print cmd,"[options] scriptname directory(s)"
+   print "  "
+   print "Options:"
+   print "   -h    help"
+   print "   -n    dryrun"
+   print "   -v    verbose (not implemented)"
+   print "   -c    clean up admit working directory (i.e. no re-run) [not implemented]"
+   print "   -l    logging stdout+err into scriptname.log instead of default screen"
+   print "  "
+   print "Example:"
+   print "    %s -n admit-field.py field??? " % cmd
+   print "  "
+   print "  scriptname and at least one directory is required"
+   sys.exit(0)
+
+
+def catlist(alist, sep=""):
+   """
+   alist is a python list of strings, returns them with a separator between
+   successive list elements
+   """
+   if len(alist) == 0:
+      return ""
+   if len(alist) == 1:
+      return alist[0]
+   f = alist[0]
+   for p in alist[1:]:
+      f = f + sep + p
+   return f
+
+def pfile(plist):
+   """
+   return the full path of a list of file name components
+   e.g.  ['a/b','c','d'] ->  'a/b/c/d'
+
+   os.path.join() does the same 
+   """
+   return catlist(plist,'/')
+
+def elist(cmds):
+   """
+   return a ; list of commands from a list of commands
+   e.g.  ['cmd1','cmd2','cmd3'] -> ['cmd1;cmd2;cmd3']
+   """
+   return catlist(cmds,';')
+
+
+def run_clean1(p):
+   """ clean action
+   """
+   # print "No cleaning yet in",p
+   # @todo   cleanup should be externally done, e.g. a -c flag to the script? script should really do it
+
+def run_pipe1(scriptname, ap, dryrun, logging=True):
+   #
+   local_scriptname  = scriptname[scriptname.rfind('/')+1:]
+   local_logfile = local_scriptname + ".log"
+   #
+   cmd = []
+   cmd.append('cp %s %s' % (scriptname,ap))
+   cmd.append('cd %s ' % ap)
+   if logging:
+      cmd.append('./%s > %s 2>&1' % (local_scriptname, local_logfile))
+   else:
+      cmd.append('./%s'           % (local_scriptname))
+   #
+   cmd = elist(cmd)
+   if not dryrun:
+      print cmd
+      os.system(cmd)
+   else:
+      print cmd
+
+if __name__ == '__main__':
+   dryrun   = False   # -n
+   verbose  = False   # -v
+   clean    = False   # -c
+   logging  = False   # -l
+   scriptname = None   
+   projects = []
+   
+   for dirname in sys.argv[1:]:                   
+      if dirname == '-h':
+         usage(sys.argv[0])
+         continue
+      if dirname == '-n':
+         dryrun = True
+         continue
+      if dirname == '-v':
+         verbose = True
+         continue
+      if dirname == '-c':
+         clean = True
+         continue
+      if dirname == '-l':
+         logging = True
+         continue
+      if scriptname == None:
+         scriptname = dirname
+         # @todo  check if exists
+         continue
+      projects.append(dirname)
+
+   for dirname in projects:
+      if not os.path.isdir(dirname):
+         print "Warning: %s not a directory, skipping" % dirname
+         continue
+      run_clean1(dirname)              
+      run_pipe1(scriptname,dirname,dryrun,logging)
+
+   if len(projects) == 0:
+      usage(sys.argv[0])
+   # all done.
+

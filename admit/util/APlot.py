@@ -633,11 +633,11 @@ class APlot(AbstractPlot):
         if xlab:     ax1.set_xlabel(xlab)
         if ylab:     ax1.set_ylabel(ylab)
         if range == None:
-            alplot = ax1.imshow(data)
+            alplot = ax1.imshow(data, origin='lower')
         elif len(range) == 1:
-            alplot = ax1.imshow(data, vmin = range[0])
+            alplot = ax1.imshow(data, origin='lower', vmin = range[0])
         elif len(range) == 2:
-            alplot = ax1.imshow(data, vmin = range[0], vmax = range[1])
+            alplot = ax1.imshow(data, origin='lower', vmin = range[0], vmax = range[1])
         alplot.set_cmap(cmap)
         if contours != None:
             ax1.contour(data, contours, colors='g')

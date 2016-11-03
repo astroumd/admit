@@ -785,6 +785,8 @@ class LineID_AT(AT):
                              self.getkey("allowexotics"), **kw)
 
         results = self.checkreject(results)
+        for r in results:
+            print "PJT",r
         return results
 
     def gettier1(self):

@@ -136,6 +136,9 @@ class LineData(Line):
         Line.__init__(self)
         self.setkey(keyval)
 
+    def __str__(self):
+        return "%s %g %f" % (self.uid,self.energies[1],self.linestrength)
+
     def setkey(self, name="", value=""):
         """ Method to set the key-value pairs for the class. It treats the chans and freqs keywords
             specially, making sure that the pairs of numbers are properly ordered. All other keys

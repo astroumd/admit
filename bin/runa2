@@ -6,6 +6,12 @@
 #  that will automagically detect it's intent
 #
 #  This version is meant for continuum data only
+#
+#  @todo special MFS case:   basename.tt0.pbcor.fits
+#                            basename.tt1.pbcor.fits
+#                            basename.alpha.fits
+#                            basename.alpha.error.fits
+#                            basename.pb.tt0.fits
 
 if ($?ADMIT == 0) then
     setenv ADMIT `admit_root`

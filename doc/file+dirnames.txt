@@ -19,6 +19,7 @@ BDP names have a filename:     x.BTA.bdp
                         input        ->       output                    
                         -----                 ------                    
 Ingest_AT               [X.fits]              x.im.bdp  (and x.im)                    basename= used to convert 'X' to 'x'
+                                              x.pb.bdp  (and x.pb)
 
 ContinuumSub_AT         x.im                  x.cim   (and x.cim.bdp)
                                               x.lim   (and x.lim.bdp)

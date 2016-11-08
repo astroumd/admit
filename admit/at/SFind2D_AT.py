@@ -141,8 +141,8 @@ class SFind2D_AT(AT):
                }
 
         AT.__init__(self,keys,keyval)
-        self._version = "1.0.3"
-        self.set_bdp_in([(Image_BDP,1,bt.REQUIRED),
+        self._version = "1.0.4"
+        self.set_bdp_in([(Image_BDP,2,bt.OPTIONAL),
                          (CubeStats_BDP,1,bt.OPTIONAL)])
         self.set_bdp_out([(SourceList_BDP, 1)])
 
@@ -206,6 +206,20 @@ class SFind2D_AT(AT):
         if mpl:
             data = np.rot90(casautil.getdata(self.dir(infile)).data)
 
+        # check if there is a 2nd image (which will be a PB)
+        for i in range(len(self._bdp_in)):
+            print 'BDP',i,type(self._bdp_in[i])
+
+        if self._bdp_in[2] != None:
+            bdpin_pb  = self._bdp_in[1]            
+            bdpin_cst = self._bdp_in[2]
+            print "Need to process PB"
+        else:
+            bdpin_pb  = None
+            bdpin_cst = self._bdp_in[1]
+            print "No PB given"
+            
+
         # get the output bdp basename
         slbase = self.mkext(infile,'sl')
 
@@ -224,7 +238,7 @@ class SFind2D_AT(AT):
         # if no CubeStats BDP was given and no sigma was specified:
         # find a noise level via casa.imstat()
         # if a CubeStat_BDP is given get it from there.
-        if self._bdp_in[1] == None:
+        if bdpin_cst == None:
             # get statistics from input image with imstat because no CubeStat_BDP
             stat  = casa.imstat(**args)
             dmin  = float(stat["min"][0])                 # these would be wrong if robust were used already
@@ -235,10 +249,10 @@ class SFind2D_AT(AT):
                 sigma = float(stat["sigma"][0])
             dt.tag("imstat")
         else:
-            # get statistics from CubeStat_BDP
-            sigma = self._bdp_in[1].get("sigma")
-            dmin  = self._bdp_in[1].get("minval")
-            dmax  = self._bdp_in[1].get("maxval")
+            # get statistics from CubeStat_BDP 
+            sigma = bdpin_cst.get("sigma")
+            dmin  = bdpin_cst.get("minval")
+            dmax  = bdpin_cst.get("maxval")
 
         self.setkey("sigma",sigma)
         # calculate cutoff based either on RMS or dynamic range limitation

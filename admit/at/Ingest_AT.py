@@ -209,24 +209,6 @@ class Ingest_AT(AT):
 
     #### DEPRECATED KEYWORDS BUT STILL ACTIVE IN CODE BY THEIR DEFAULT
     """
-          **noise** : (method,value) tuple
-               Tuple controlling if the ingested cube is to be replaced (method="replace")
-               or padded (method="pad") with two noise cubes on either end of the ingested cube.
-               The noise level can either be directly set (value>0) or estimated (using a MAD value)
-               if value is negative. A FWHM value is expected here, where FWHM = 2.355 * SIGMA.
-               CAVEAT: noise is added randomly per pixel, with any smoothing this can result into
-               regions with different noise levels.
-               DEPRECATE
-               Default:  ()
-
-          **contsub** : list of tuples
-               Experimental. Features will change.
-               Tuple containing the order of the polynomial to fit, plus
-               a list of paired channel ranges where the continuum should be defined.
-               Channel ranges include both edges and start at channel 0.
-               A better solution will be to use Contsub_AT(), which also saves
-               a continuum map. This has not been written yet.
-               DEPRECATE, but keep in code
 
           **symlink** : True/False:
                If True, A symlink is kept to the input file without
@@ -251,18 +233,15 @@ class Ingest_AT(AT):
             'smooth'  : [],        # pixel smoothing size applied to data (can be slow) - see also Smooth_AT
             'vlsr'    : -999999.0, # force a VLSR (see also LineID)
             'restfreq': -1.0,      # alternate VLSRf specification
-            #'noise'   : (),       # DEPRECATED: ("replace",value) or ("pad",value)
-            #'contsub' : [],       # DEPRECATED: emergency continuum (see ContinuumSub_AT)
-            #'symlink' : False,    # 
+            # 'symlink' : False,   # 
             # 'autobox' : False,   # automatically cut away spatial and spectral slices that are masked
             # 'cbeam'   : 0.5,     # channel beam variation allowed in terms of pixel size to use median beam
-            # 'logscale': 0.0,     # log(1+x/logscale) scaling as final step in Ingest_AT
         }
         AT.__init__(self,keys,keyval)
-        self._version = "1.0.8"
+        self._version = "1.0.8a"
         self.set_bdp_in()                            # no input BDP
         self.set_bdp_out([(SpwCube_BDP, 1),          # one or two output BDPs
-                          (Image_BDP,   1),
+                          (Image_BDP,   1),          # optional PB if there was an input
                         ])
 
     def summary(self):
@@ -317,26 +296,6 @@ class Ingest_AT(AT):
         use_pb = self.getkey("usepb")
         # 
         create_mask = self.getkey('mask')   # create a new mask ?
-        #
-        # noise= is a deprecated keyword.
-        #noiset = self.getkey('noise')
-        noiset = ()
-        if len(noiset) > 0:
-            logging.info("NOISE=%s" % str(noiset))
-            if noiset[0][0] == "p":          # pad the cube with two noise cubes
-                do_pad = True
-            elif noiset[0][0] == "r":        # replace the cube with noise 
-                do_pad = False
-            else:
-                raise Exception,"Noise method %s unknown" % noiset[0]               
-            if len(noiset)>1:
-                noise = noiset[1]
-            else:
-                noise = -1.0
-        else:
-            noise = None
-        logscale = 0.0                      # logarithmic rescaling if set > 0 (RMS is a good choice)
-                                            # this only works well if no continuum left, i.e. mean=0.0
         box   = self.getkey("box")          # corners in Z, XY or XYZ
         edge  = self.getkey("edge")         # number of edge channels to remove
         restfreq = self.getkey("restfreq")  # < 0 means not activated
@@ -344,11 +303,6 @@ class Ingest_AT(AT):
         # smooth=  could become deprecated, and/or include a decimation option to make it useful
         #          again, Smooth_AT() does this also , at the cost of an extra cube to store
         smooth = self.getkey("smooth")      # 
-        #
-        # contsub= is a deprecated keyword. It can be done via ContinuumSub_AT(), except within ingest
-        #          you don't need to store the extra cube
-        #contsub = self.getkey("contsub")    #  [(ch0,ch1),(ch2,ch3)]    but both inclusive channels
-        contsub = []
         #
         vlsr = self.getkey("vlsr")          # see also LineID, where this could be given again
 
@@ -452,10 +406,11 @@ class Ingest_AT(AT):
                             # use the mean of all channels... faster may be to use the middle plane
                             # barf; edge channels can be with fewer subfields in a mosaic 
                             taskinit.ia.open('_pb')
-                            taskinit.ia.moments(moments=[-1],axis=3,drop=True,outfile=fno2)
+                            taskinit.ia.summary()
+                            ia1=taskinit.ia.moments(moments=[-1],drop=True,outfile=fno2)
+                            ia1.done()
                             taskinit.ia.close()
                             dt.tag("moments")
-                            # casa.immoments()
                         utils.remove('_pbcor')
                         utils.remove('_pb')
                         dt.tag("impbcor-3")
@@ -597,71 +552,7 @@ class Ingest_AT(AT):
 
         s = taskinit.ia.summary()
         dt.tag("summary-1")
-        if noise is not None:
-            logging.warning("noise option for testing")
-            if do_pad:
-                logging.info("Padding two cubes with noise=%g, be patient...." % noise)
-                taskinit.ia.close()
-                fno1 = fno + '.data'
-                fno2 = fno + '.noise'
-                taskinit.ia.open(fno)
-                if noise < 0.0:
-                    s = taskinit.ia.statistics(robust=True)          #  slightly expensive
-                    noise = 1.4826 * s['medabsdevmed'][0]            #  RMS ~ 1.4826 * MAD
-                    logging.info("Using MAD based noise=%g" % noise)
-                s = taskinit.ia.summary()
-                nz = s['shape'][2]
-                iz = s['refpix'][2]
-                fz = s['refval'][2]
-                taskinit.ia.subimage(overwrite=True, outfile=fno1)
-                taskinit.ia.subimage(overwrite=True, outfile=fno2)
-                taskinit.ia.close()
-                taskinit.ia.open(fno2)
-                taskinit.ia.addnoise(type='normal', pars=[0.0, noise*noise], zero=True)
-                infiles = [fno,fno,fno]
-                ia3 = taskinit.ia.imageconcat(outfile=fno,infiles=[fno2,fno1,fno2], axis=2, relax=True, overwrite=True)
-                ia3.done()
-                # fix up the (crpix,crval) of the 2nd axis in the new cube
-                casa.imhead(imagename=fno, mode="put", hdkey='crpix3', hdvalue="%g" % (nz+iz))
-                casa.imhead(imagename=fno, mode="put", hdkey='crval3', hdvalue=fz)
-                taskinit.ia.open(fno)
-                # remove temporary .data and .noise cubes
-                utils.remove(fno1)
-                utils.remove(fno2)
-                dt.tag("noise-pad")
-            else:
-                logging.info("Replacing cube with noise=%g, be patient...." % noise)
-                taskinit.ia.addnoise(type='normal', pars=[0.0, noise*noise], zero=True)
-                dt.tag("noise-repl")
-            #  catenate
 
-        # @todo we allow a continuum subtraction here.... (keyword is deprecated)
-        # assume contsub=[(ch0,ch1),(ch0,ch1)] with fitorder=0 for now.
-        if len(contsub) > 0:
-            def ch2ch(contsub):
-                """helper function to turn the list of tuples into what ia.continuumsub wants
-                   (a long list of 0 based channel numbers). Also deals with including both
-                   lower and upper edge channels
-                """
-                ch = []
-                for r in contsub:
-                    ch = ch + range(r[0],r[1]+1)
-                return ch
-            ch = ch2ch(contsub)
-            fno1 = fno + '.cont'    # pure cont cube
-            fno2 = fno + '.line'    # pure line cube
-            fno3 = fno + '.cube'    # orig dirty line+cont cube
-            fno4 = fno + '.cont0'   # mean cont map
-            taskinit.ia.continuumsub(outline=fno2,outcont=fno1,channels=ch,fitorder=0)
-            taskinit.ia.close()
-            #@todo use safer ia.rename() here.
-            # https://casa.nrao.edu/docs/CasaRef/image.rename.html
-            utils.rename(fno,fno3)
-            utils.rename(fno2,fno)
-            casa.immoments(fno1,-1,outfile=fno4)   
-            taskinit.ia.open(fno)
-            dt.tag("continuumsub")
-            
         # do a fast statistics (no median or robust)
         s0 = taskinit.ia.statistics()
         dt.tag("statistics")
@@ -890,18 +781,6 @@ class Ingest_AT(AT):
             msg = 'Ingest_AT: missing RESTFREQ'
             print msg
         # @todo   LINTRN  is the ALMA keyword that designates the expected line transition in a spw
-
-        # although a logscale messes up the statistics, it can be useful to experiment with
-        # data that has a lot of dynamic range. Makes for prettier plots as well.
-        # the best value for logscale should be near the RMS of the signal
-        # Alternatively, we can also use Lupton1999's sinh formulae,  asinh(x/(2*logscale))
-        if logscale > 0.0:
-            print 'LOGSCALE',logscale
-            casa.immath(fno,'evalexpr','_ingest.im','iif(IM0<0, -log(1-IM0/%g), log(1+IM0/%g))' % (logscale,logscale))
-            #@todo use safer ia.rename() here.
-            # https://casa.nrao.edu/docs/CasaRef/image.rename.html
-            utils.rename('_ingest.im',fno)
-            dt.tag("logscale")
 
         self._summarize(fitsfile, bdpfile, h, shape, taskargs)
 

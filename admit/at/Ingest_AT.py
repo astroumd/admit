@@ -16,6 +16,7 @@ import admit.util.utils as utils
 import admit.util.casautil as casautil
 import admit.util.ImPlot  as ImPlot
 from admit.bdp.SpwCube_BDP import SpwCube_BDP
+from admit.bdp.Image_BDP   import Image_BDP
 from admit.util.AdmitLogging import AdmitLogging as logging
 
 import numpy as np
@@ -114,6 +115,14 @@ class Ingest_AT(AT):
                'longname.pbcor.fits'  Note: PB correction is slow.
                Default:  empty string, no PB correction is done.
 
+      **usepb**: boolean
+               If True, the PB is actually used in an assumed flux flat input file to
+               create a noise flat input BDP.  If False, it is assumed the user has
+               given a noise flat file, and the PB can be used downstream to compute
+               proper PB corrected fluxes.  Note that the PB is always stored as an 2D image,
+               not as a cube.
+               Default: True
+
       **box**:  blc,tlc (a list of 2, 4 or 6 integers)
                Select a box region from the cube.
                For example box=[xmin,ymin,xmax,ymax], which takes all channels, or
@@ -138,7 +147,7 @@ class Ingest_AT(AT):
                A future version should contain a decimation option.
                By default no smoothing is applied.
     
-      **mask**: True/False: 
+      **mask**: boolean
                If True, as mask needs to be created where the 
                cube has 0's. This option is automatically bypassed if the input
                CASA image had a mask. 
@@ -176,6 +185,11 @@ class Ingest_AT(AT):
         you want to modify the cube name to "alias.im", and hence the BDP to
         "alias.im.bdp".   Note this is an exception from the usual rule, where
         alias= is used to create a dashed-prefix to an extension, e.g. "x.alias-y".
+
+      **Image_BDP**: 1
+        Output PB Map. If the input PB is a cube, the central channel (being representative
+        for the avarage PB across the spectrum window) is used.
+        New extension will be ".bp"
 
     Parameters
     ----------
@@ -227,9 +241,10 @@ class Ingest_AT(AT):
 
     def __init__(self,**keyval):
         keys = {
-            'file'    : "",        # fitsfile cube (or casa/miriad)
-            'basename': "",        # override basename
-            'pb'      : "",        # PB cube if input cube needs a correction
+            'file'    : "",        # fitsfile cube or map (or casa/miriad)
+            'basename': "",        # override basename (useful for shorter names)
+            'pb'      : "",        # PB cube or map
+            'usepb'   : True,      # use PB, or was it just given for downstream
             'mask'    : True,      # define a mask where data==0.0 if no mask present
             'box'     : [],        # [] or z1,z2 or x1,y1,x2,y2  or x1,y1,z1,x2,y2,z2 
             'edge'    : [],        # [] or zl,zr - number of edge channels
@@ -244,9 +259,11 @@ class Ingest_AT(AT):
             # 'logscale': 0.0,     # log(1+x/logscale) scaling as final step in Ingest_AT
         }
         AT.__init__(self,keys,keyval)
-        self._version = "1.0.7"
+        self._version = "1.0.8"
         self.set_bdp_in()                            # no input BDP
-        self.set_bdp_out([(SpwCube_BDP,1)])          # one output BDP
+        self.set_bdp_out([(SpwCube_BDP, 1),          # one or two output BDPs
+                          (Image_BDP,   1),
+                        ])
 
     def summary(self):
         """Returns the summary dictionary from the AT, for merging
@@ -297,6 +314,7 @@ class Ingest_AT(AT):
         #
         pb = self.getkey('pb')
         do_pb = len(pb) > 0
+        use_pb = self.getkey("usepb")
         # 
         create_mask = self.getkey('mask')   # create a new mask ?
         #
@@ -374,6 +392,7 @@ class Ingest_AT(AT):
             b1  = SpwCube_BDP(bdpfile)
             self.addoutput(b1)
             b1.setkey("image", Image(images={bt.CASA:bdpfile}))
+            # @todo b2 and PB?
         else:
             # construct the output name and construct the BDP based on the CASA image name
             # this also takes care of the behind the scenes alias= substitution
@@ -382,6 +401,11 @@ class Ingest_AT(AT):
                 raise Exception,"basename and bdpfile are the same, Ingest_AT needs a fix for this"
             b1  = SpwCube_BDP(bdpfile)
             self.addoutput(b1)
+            if do_pb:
+                print "doing the PB"
+                bdpfile2 = self.mkext(basename,"pb")
+                b2 = Image_BDP(bdpfile2)
+                self.addoutput(b2)
 
         # @todo    we should also set readonly=True if no box, no mask etc. and still an alias
         #          that way it will speed up and not make a copy of the image ?
@@ -390,17 +414,20 @@ class Ingest_AT(AT):
         # fni is the same as fitsfile
         fni = self.dir(ffile0)
         fno = self.dir(bdpfile)
+        if do_pb: fno2 = self.dir(bdpfile2)
         dt.tag("start")
 
         if file_is_casa:
             taskinit.ia.open(fni)
         else:
-            if do_pb:
+            if do_pb and use_pb:
                 # @todo   this needs a fix for the path for pb, only works if abs path is given
                 # impbcor(im.fits,pb.fits,out.im,overwrite=True,mode='m')
                 if False:
                     # this may seem like a nice shortcut, to have the fits->casa conversion be done
                     # internally in impbcor, but it's a terrible performance for big cubes. (tiling?)
+                    # we keep this code here, perhaps at some future time (mpi?) this performs better
+                    # @todo fno2
                     impbcor(fni,pb,fno,overwrite=True,mode='m')
                     dt.tag("impbcor-1")
                 else:
@@ -411,6 +438,7 @@ class Ingest_AT(AT):
                     dt.tag("impbcor-1f")
                     if False:
                         impbcor('_pbcor','_pb',fno,overwrite=True,mode='m')
+                        # @todo fno2
                         utils.remove('_pbcor')
                         utils.remove('_pb')
                         dt.tag("impbcor-2")
@@ -419,10 +447,24 @@ class Ingest_AT(AT):
                         # https://bugs.nrao.edu/browse/CAS-8299
                         # @todo  this needs to be confirmed that impbcor is now good to go (r36078)
                         casa.immath(['_pbcor','_pb'],'evalexpr',fno,'IM0*IM1')
+                        dt.tag("immath")
+                        if True:
+                            # use the mean of all channels... faster may be to use the middle plane
+                            # barf; edge channels can be with fewer subfields in a mosaic 
+                            taskinit.ia.open('_pb')
+                            taskinit.ia.moments(moments=[-1],axis=3,drop=True,outfile=fno2)
+                            taskinit.ia.close()
+                            dt.tag("moments")
+                            # casa.immoments()
                         utils.remove('_pbcor')
                         utils.remove('_pb')
                         dt.tag("impbcor-3")
+            elif do_pb and not use_pb:
+                # cheat case: PB was given, but not meant to be used
+                # not implemented yet
+                print "cheat case dummy PB not implemented yet"
             else:
+                # no PB given
                 if True:
                     # re-running this was more consistently faster in wall clock time
                     # note that zeroblanks=True will still keep the mask
@@ -450,8 +492,8 @@ class Ingest_AT(AT):
                                        major='%gpix' % smooth[0], minor='%gpix' % smooth[1], type='gaussian')
                 taskinit.ia.close()
                 srcname = casa.imhead(fno,mode="get",hdkey="object")          # work around CASA bug
-            #@todo use safer ia.rename() here.
-            # https://casa.nrao.edu/docs/CasaRef/image.rename.html
+                #@todo use safer ia.rename() here.
+                # https://casa.nrao.edu/docs/CasaRef/image.rename.html
                 utils.rename(fnos,fno)
                 casa.imhead(fno,mode="put",hdkey="object",hdvalue=srcname)    # work around CASA bug
                 dt.tag("convolve2d")
@@ -462,8 +504,8 @@ class Ingest_AT(AT):
                     else:
                         # @todo may have the wrong center
                         specsmooth(fno,fnos,axis=2,function='boxcar',dmethod="",width=smooth[2])
-            #@todo use safer ia.rename() here.
-            # https://casa.nrao.edu/docs/CasaRef/image.rename.html
+                    #@todo use safer ia.rename() here.
+                    # https://casa.nrao.edu/docs/CasaRef/image.rename.html
                     utils.rename(fnos,fno)
                     dt.tag("specsmooth")
                 taskinit.ia.open(fno)
@@ -474,8 +516,8 @@ class Ingest_AT(AT):
                 fnot = fno + '_4'
                 taskinit.ia.adddegaxes(stokes='I',outfile=fnot)
                 taskinit.ia.close()
-            #@todo use safer ia.rename() here.
-            # https://casa.nrao.edu/docs/CasaRef/image.rename.html
+                #@todo use safer ia.rename() here.
+                # https://casa.nrao.edu/docs/CasaRef/image.rename.html
                 utils.rename(fnot,fno)
                 taskinit.ia.open(fno)
                 dt.tag("adddegaxes")
@@ -699,6 +741,8 @@ class Ingest_AT(AT):
 
         if not file_is_casa:
             b1.setkey("image", Image(images={bt.CASA:bdpfile}))
+            if do_pb:
+                b2.setkey("image", Image(images={bt.CASA:bdpfile2}))            
 
         # cube sanity: needs to be either 4D or 2D. But p-p-v cube
         # alternative: ia.subimage(dropdeg = True)

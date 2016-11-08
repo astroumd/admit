@@ -1,11 +1,13 @@
-<!ELEMENT GENERATESPECTRUM_AT	(_loglevel,_running,_variflow,_bdp_out_map,_link,_plot_mode,_enabled,_needToSave,_loggername,_bdp_in_map,_stale,_baseDir,_version,_alias,_plot_type,_taskid,_keys)>
+<!ELEMENT GENERATESPECTRUM_AT	(_loglevel,_running,_variflow,_bdp_out_map,_link,_plot_mode,_enabled,_needToSave,_loggername,_bdp_in_map,_stale,spec_description,_baseDir,_version,_alias,_plot_type,_taskid,_keys)>
 <!-- child nodes #PCDATA indicates parsable character data-->
 <!ELEMENT _loglevel		(#PCDATA)>
 <!ATTLIST _loglevel type (INT) #REQUIRED>
 <!ELEMENT _running		(#PCDATA)>
 <!ATTLIST _running type (BOOL) #REQUIRED>
-<!ELEMENT _baseDir		(#PCDATA)>
-<!ATTLIST _baseDir type (STRING) #REQUIRED>
+<!ELEMENT spec_description		(#PCDATA)>
+<!ATTLIST spec_description ndarray (STRING) #REQUIRED>
+<!ATTLIST spec_description set (STRING) #REQUIRED>
+<!ATTLIST spec_description type (LIST) #REQUIRED>
 <!ELEMENT _alias		(#PCDATA)>
 <!ATTLIST _alias type (STRING) #REQUIRED>
 <!ELEMENT _bdp_out_map		(#PCDATA)>
@@ -36,6 +38,8 @@
 <!ATTLIST _taskid type (INT) #REQUIRED>
 <!ELEMENT _enabled		(#PCDATA)>
 <!ATTLIST _enabled type (BOOL) #REQUIRED>
+<!ELEMENT _baseDir		(#PCDATA)>
+<!ATTLIST _baseDir type (STRING) #REQUIRED>
 <!ELEMENT _keys	(nchan,file,lines,hanning,nspectra,contin,delta,freq,transitions,seed)>
 <!ATTLIST _keys type (DICT) #REQUIRED>
 <!ELEMENT nchan		(#PCDATA)>

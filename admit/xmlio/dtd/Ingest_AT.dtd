@@ -36,7 +36,7 @@
 <!ATTLIST _taskid type (INT) #REQUIRED>
 <!ELEMENT _enabled		(#PCDATA)>
 <!ATTLIST _enabled type (BOOL) #REQUIRED>
-<!ELEMENT _keys	(box,file,mask,basename,smooth,pb,edge,restfreq,vlsr)>
+<!ELEMENT _keys	(box,file,mask,basename,smooth,pb,edge,restfreq,vlsr,usepb)>
 <!ATTLIST _keys type (DICT) #REQUIRED>
 <!ELEMENT box		(#PCDATA)>
 <!ATTLIST box ndarray (STRING) #REQUIRED>
@@ -62,3 +62,5 @@
 <!ATTLIST restfreq type (FLOAT) #REQUIRED>
 <!ELEMENT vlsr		(#PCDATA)>
 <!ATTLIST vlsr type (FLOAT) #REQUIRED>
+<!ELEMENT usepb		(#PCDATA)>
+<!ATTLIST usepb type (BOOL) #REQUIRED>

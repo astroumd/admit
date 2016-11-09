@@ -119,7 +119,7 @@ class PVSlice_AT(AT):
                 #"major"   : True,          # (TODO) major or minor axis, not used yet
                 }
         AT.__init__(self,keys,keyval)
-        self._version       = "1.0.2"
+        self._version       = "1.0.3"
         self.set_bdp_in([(Image_BDP,     1, bt.REQUIRED),      # SpwCube
                          (Moment_BDP,    1, bt.OPTIONAL),      # Moment0 or CubeSum
                          (CubeStats_BDP, 1, bt.OPTIONAL)])     # was: PeakPointPlot
@@ -277,9 +277,9 @@ class PVSlice_AT(AT):
             nx = data.shape[0]
             ny = data.shape[1]
             taskinit.tb.close()
-            d1 = np.rot90 (data.reshape((nx,ny)) )
+            d1 = np.flipud(np.rot90 (data.reshape((nx,ny))))
             if len(pvslice) == 4:
-              segm = [[pvslice[0],pvslice[2],ny-pvslice[1]-1,ny-pvslice[3]-1]]
+              segm = [[pvslice[0],pvslice[2],pvslice[1],pvslice[3]]]
               pa = np.arctan2(pvslice[2]-pvslice[0],pvslice[1]-pvslice[3])*180.0/np.pi
               title = "PV Slice location : slice PA=%.1f" % pa
             elif len(pvslit) == 4:

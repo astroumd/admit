@@ -602,10 +602,8 @@ class APlot(AbstractPlot):
 
     def map1(self,data,title=None,figname=None,xlab=None,ylab=None,range=None,contours=None,cmap='hot',segments=None,circles=None,thumbnail=True):
         """
-        display map; horrible hack, the caller should call np.rot90() since
+        display map; horrible hack, the caller should call np.flipud(np.rot90()) since
         casa and numpy do not have their axes in the same order.
-        In addition any (ix,iy) needs to be (ix,ny-iy-1) in matplotlib
-        after the map was rotated.
         We cannot call casa here, since APlot needs to stay casa agnostic.
         To be resolved.
         segments    [x0,x1,y0,y1]

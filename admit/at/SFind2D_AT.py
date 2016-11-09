@@ -141,7 +141,7 @@ class SFind2D_AT(AT):
                }
 
         AT.__init__(self,keys,keyval)
-        self._version = "1.0.4"
+        self._version = "1.0.5"
         self.set_bdp_in([(Image_BDP,2,bt.OPTIONAL),
                          (CubeStats_BDP,1,bt.OPTIONAL)])
         self.set_bdp_out([(SourceList_BDP, 1)])
@@ -204,7 +204,7 @@ class SFind2D_AT(AT):
         bdpin = self._bdp_in[0]
         infile = bdpin.getimagefile(bt.CASA)
         if mpl:
-            data = np.rot90(casautil.getdata(self.dir(infile)).data)
+            data = np.flipud(np.rot90(casautil.getdata(self.dir(infile)).data))
 
         # check if there is a 2nd image (which will be a PB)
         for i in range(len(self._bdp_in)):
@@ -299,9 +299,9 @@ class SFind2D_AT(AT):
         logscale = False
         sumflux = 0.0
         if nsources > 0:
-# @TODO: Why are Xpix, YPix not stored in the table?
-#        -> PJT: I left them out since they are connected to an image which may not be available here
-#                but we should store the frequency of the observation here for later bandmerging
+            # @TODO: Why are Xpix, YPix not stored in the table?
+            #        -> PJT: I left them out since they are connected to an image which may not be available here
+            #                but we should store the frequency of the observation here for later bandmerging
             logging.debug("%s" % str(atab['component0']['shape']))
             logging.info("Right Ascen.  Declination   X(pix)   Y(pix)      Peak       Flux    Major   Minor    PA    SNR")
             funits = atab['component0']['flux']['unit']
@@ -386,10 +386,10 @@ class SFind2D_AT(AT):
         # make output png with circles marking sources found
         if mpl:
             circles=[]
-            nx = data.shape[1]             # data[] array was already rot90'd
+            nx = data.shape[1]             # data[] array was already flipud(rot90)'d
             ny = data.shape[0]             # 
             for (x,y) in zip(xtab,ytab):
-                circles.append([x,ny-y-1,1])
+                circles.append([x,y,1])
             # @todo variable name
             if logscale:
                 logging.warning("LogScaling applied")

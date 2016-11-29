@@ -6,22 +6,6 @@ To grab the git based source code
 
   git clone https://github.com/astroumd/admit.git
 
-There are some automated scripts in  $ADMIT/scripts/ that you can tailor for installation
-
-  setenv CASA_ROOT /your/casa      (or :  export CASA_ROOT=/your/casa)
-  make config                      (it needs $CASA_ROOT if you want to include that CASA via ADMIT)
-  source admit_start.csh           (or the .sh variant if your shell is not a csh variant)
-
-
-A few simple tests:
-
-  make python0              (should work without casa)
-  make python1   	    (needs CASA in the environment) - can hang on a mac?  try 'make python2'
-
-This last test is important, it will verify if you have properly
-integrated CASA in your shell. This is something that has changed
-over the lifetime of CASA. ($PATH, $LD_LIBRARY_PATH etc.)
-
 
 CASA requirements:
     Without CASA you can currently do very little with ADMIT. 
@@ -90,14 +74,11 @@ Sample installation
 
 # 
 
-git clone ....
+git clone https://github.com/astroumd/admit
 cd admit
 autoconfig
-./configure --with-casa-root=/astromake/opt/casa/stable
-source admit_start.csh
-
-# unit tests (these are pure python tests, and not essential for ALMA)
-make unit0
+./configure --with-casa-root=/opt/casa-release-4.7.0-el6
+source admit_start.sh
 
 # unit tests (will need CASA in your environment)
 make unit
@@ -105,17 +86,18 @@ make unit
 # integratation tests (will need CASA)
 make integration
 
-# a DATA test (will need CASA)
-make foobar
-cd data
-../admit/test/admit1.py foobar.fits x
+# regression (will need CASA)
+make regression
+
+# make testdata
+cd testdata
+runa1 test0.fits
 
 # a new DTD should not leave modified or new files
 # we need CASA for this
 cd $ADMIT
 make dtd
 git status
-
 
 
 

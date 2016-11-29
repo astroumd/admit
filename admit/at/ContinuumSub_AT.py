@@ -37,9 +37,8 @@ class ContinuumSub_AT(AT):
 
     Based on line segments found (usually from LineSegments_AT from a CubeStats_BDP)
     this AT will fit the continuum in channels not covered by the line segments.
-    The continuum segments can also be explicitly given, as can also be done in
-    Ingest_AT if they are known beforehand.  This AT is meant for the automated
-    continuum subtraction via LineSegments_AT.
+    The continuum segments can also be explicitly given.
+    This AT is meant for the automated continuum subtraction via LineSegments_AT.
 
     Although both are optional, you need to given either a LineSegment list, or
     explicitly define the **contsub** continuum segments.
@@ -48,8 +47,7 @@ class ContinuumSub_AT(AT):
 
         **contsub**: list of tuples 
             List a set of channel segments, 0 based and edges included,
-            where the continuum is fitted. For example [(100,200),(800,900)]
-            See also Ingest_AT for an alternate method.
+            where the continuum is fitted. For example [(100,200),(800,900)].
             **Default**: []
 
         **pad**: integer
@@ -95,12 +93,12 @@ class ContinuumSub_AT(AT):
 
     def __init__(self, **keyval):
         keys = {
-            "contsub"    : [],      # see also Ingest_AT (although deprecated there now)
+            "contsub"    : [],      # list of tuples
             "pad"        : 5,       # see also LineCube_AT
             "fitorder"   : 0,       # polynomial order
         }
         AT.__init__(self,keys,keyval)
-        self._version = "1.0.2"
+        self._version = "1.0.3"
         self.set_bdp_in([(SpwCube_BDP,      1, bt.REQUIRED),        # input spw cube 
                          (LineList_BDP,     1, bt.OPTIONAL),        # will catch SegmentList as well
                         ])

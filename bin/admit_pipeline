@@ -2,9 +2,10 @@
 #           -*- python -*-
 #
 #
-#  Example ADMIT processing on the imaging pipeline "products" tree
+#  Example ADMIT processing on the imaging pipeline "product(s)" tree
 #  There are some assumptions about naming conventions, see code and comments below
-#  how to adjust this.
+#  how to adjust this. It can also run oldstyle (peter) and new (lee) pipeline
+#  examples
 #
 #
 #  admit_pipeline project_directories
@@ -14,7 +15,7 @@
 #    with the assumption you are allowed to write into those directories
 #  (for testing you can use "cp -al" to create your own shadow tree)
 #
-# Example tree:
+# Example tree (pmode=1)
 # 2016.1.00022.CSV_2016_09_09T19_16_06.636/
 #  SOUS_uid___A001_X865_X2d/
 #   GOUS_uid___A001_X865_X2e/
@@ -22,7 +23,13 @@
 #     products/
 #      uid___A001_X865_X2f.Pillar_22_sci.spw16.cube.I.pbcor.fits
 #
-#
+# Example tree (pmode=2)
+# 2015.1.00741.S/
+#  sg_ouss_id/
+#   group_ouss_id/
+#    member_ouss_id/
+#     product/
+#      uid___A001_X2fb_X387.emb_15_sci.spw17.cube.I.pbcor.fits
 # 
 
 import os,sys,glob,time
@@ -36,7 +43,7 @@ def usage(cmd):
    print "   -h    help"
    print "   -n    dryrun"
    print "   -p    only print out Project/Sous/Gous/Mous trees"
-   print "   -o    old style (runa1) with optional apar files"
+   print "   -o    old style (runa1/runa2) with optional apar files"
    print "   -s    use shadow tree to write (not implemented)"
    print "   -v    verbose (not implemented)"
    print "   -c    clean up admit working directory (i.e. no re-run) [not implemented]"
@@ -82,7 +89,7 @@ def elist(cmds):
    """
    return catlist(cmds,';')
 
-def process_dir(dname):
+def process_dir(dname, pmode=2):
    """
    looks for the "cube" and "mfs" "pbcor" files in the ALMA hierarchy, starting at
    the project directory level
@@ -109,28 +116,42 @@ def process_dir(dname):
    2015.A.00021.S/science_goal.uid___A001_X85a_X2a/group.uid___A001_X85a_X2b/member.uid___A001_X85a_X2c/
    which is pretty close to
    2015.A.00021.S/SOUS_uid___A001_X85a_X2a/GOUS_uid___A001_X85a_X2b/MOUS_uid___A001_X85a_X2c/
+
+   Older pipeline (pmode=2) has names like:
+   2015.1.00741.S/sg_ouss_id/group_ouss_id/member_ouss_id/product/uid___A001_X2fb_X387.emb_15_sci.spw17.cube.I.pbcor.fits
    """
-   if True:
-      # pipeline convention
-      files = glob.glob('%s/SOUS*/GOUS*/MOUS*/products/uid_*_sci.spw*.cube.I.pbcor.fits' % dname)
+   if pmode==1:
+      # pipeline convention 1
+      pname = 'products'
+      files = glob.glob('%s/SOUS*/GOUS*/MOUS*/%d/uid_*_sci.spw*.cube.I.pbcor.fits' % (dname,pname))
+   elif pmode==2:
+      pname = 'product'
+      # pipeline convention 2 
+      files = []
+      files += glob.glob('%s/sg_ouss_id/group_ouss_id/member_ouss_id/%s/uid_*_sci.spw*.cube.I.pbcor.fits' % (dname,pname))
+      print files
+      files += glob.glob('%s/sg_ouss_id/group_ouss_id/member_ouss_id/%s/uid_*_sci.spw*.mfs.I.pbcor.fits'  % (dname,pname))
+      print files
    else:
       # ? JAO convention ?
-      files = glob.glob('%s/science_goal.*/group.*/member.*/products/uid_*_sci.spw*.cube.I.pbcor.fits' % dname)
+      pname = 'products'
+      files = glob.glob('%s/science_goal.*/group.*/member.*/%s/uid_*_sci.spw*.cube.I.pbcor.fits' % (dname,pname))
    #                   n-1    n    n+1   n+1     n+3
    nlevel = len(dname.strip('/').split('/'))-1
-   print 'Found',len(files),' cube+mfs pairs in',dname
+   print 'Found',len(files),' cube+mfs pairs in',dname,' nlevel',nlevel
    out = []
    no_mfs = 0
    for f in files:
-      sgm = f.split('/')[nlevel+1:nlevel+4]     # 
-      f1  = f.split('/')[nlevel+5]
+      sgm = f.split('/')[nlevel+1:nlevel+4]     # [sous,gous,mous]
+      f1  = f.split('/')[nlevel+5]              # the pbcor fits name
       f2  = f1.replace('.cube.','.mfs.',1)
       f1b = f1.replace('.pbcor.','.pb.',1)                                       # older ones may be '.flux'
       f2b = f2.replace('.pbcor.','.pb.',1)                                       # older ones may be '.flux'
-      e1  = os.path.exists(pfile([dname,sgm[0],sgm[1],sgm[2],'products',f1]))    # older ones may be '.product'
-      e2  = os.path.exists(pfile([dname,sgm[0],sgm[1],sgm[2],'products',f2]))    # older ones may be '.product'
-      e1b = os.path.exists(pfile([dname,sgm[0],sgm[1],sgm[2],'products',f1b]))   # older ones may be '.product'
-      e2b = os.path.exists(pfile([dname,sgm[0],sgm[1],sgm[2],'products',f2b]))   # older ones may be '.product'
+      e1  = os.path.exists(pfile([dname,sgm[0],sgm[1],sgm[2],pname,f1]))    # older ones may be '.product'
+      e2  = os.path.exists(pfile([dname,sgm[0],sgm[1],sgm[2],pname,f2]))    # older ones may be '.product'
+      e1b = os.path.exists(pfile([dname,sgm[0],sgm[1],sgm[2],pname,f1b]))   # older ones may be '.product'
+      e2b = os.path.exists(pfile([dname,sgm[0],sgm[1],sgm[2],pname,f2b]))   # older ones may be '.product'
+      print sgm,f1,e1,e2,e1b,e2b
       # @todo  if only e1 and e1b found, should allow to continue
       #        perhaps other modes as well
       if e1 and e2 and e1b and e2b:
@@ -140,9 +161,10 @@ def process_dir(dname):
          no_mfs = no_mfs + 1
    if no_mfs:
       print 'Found',no_mfs,' cube with no mfs'
-   return out
+   print 'Returning %d' % len(out)
+   return pname,out
 
-def run_pipe1(ap, dryrun, oldstyle):
+def run_pipe1(ap, dryrun, oldstyle,pname):
    """
    ap = (directory, [sous, gous, mous], f1, f2, f1b, f2b)
    or
@@ -166,13 +188,18 @@ def run_pipe1(ap, dryrun, oldstyle):
    cmd.append('mkdir -p %s' % admit_dir)
    cmd.append('cd %s ' % admit_dir)
    for f in files:
-      cmd.append('ln -sf ../products/%s' % f)
+      cmd.append('ln -sf ../%s/%s' % (pname,f))
    if oldstyle:
-      # old style 'runa1' needs the .pbcor.fits removed  (does not deal with mfs)
+      # old style 'runa1' needs the .pbcor.fits removed  (and deal with mfs)
       f = f1[:f1[:f1.rindex('.')].rindex('.')]
       # un-comment next line if you want a faster run for testing 
       # cmd.append('echo stop=\\"ingest\\" > admit1.apar')
-      cmd.append('runa1 %s' % f)
+      if f.find('.cube.') > 0:
+         cmd.append('runa1 %s' % f)
+      elif f.find('.mfs.') > 0:
+         cmd.append('runa2 %s' % f)
+      else:
+         print "Skipping oldstyle ",f
    else:      
       # new style recipe
       if have_mfs:
@@ -187,13 +214,17 @@ def run_pipe1(ap, dryrun, oldstyle):
       print cmd
    return admit_dir
 
-def run_export(admit_dir, mous, dryrun):
+def run_export(admit_dir, mous, dryrun, pname):
    """ 
    """
    cmds = []
    cmds.append("cd %s" % admit_dir)
-   cmds.append("admit_export -s -p %s *.admit" % mous)
-   cmds.append("mv %s.admit.tar.gz ../products" % mous)
+   if False:
+      cmds.append("admit_export -s -p %s *.admit" % mous)
+      cmds.append("mv %s.admit.tar.gz ../%s" % (mous,pname))
+   else:
+      cmds.append("admit_export -s *.admit")
+      cmds.append("mv admit.tar.gz ../%s" % (pname))
    cmd = elist(cmds)
    if not dryrun:
       os.system(cmd)
@@ -218,6 +249,7 @@ if __name__ == '__main__':
    verbose  = False
    clean    = False
    pshow    = False
+   pmode    = 2
    
    projects = []
    for dirname in sys.argv[1:]:                   
@@ -258,7 +290,7 @@ if __name__ == '__main__':
          usage(sys.argv[0])
          
    for dirname in projects:
-      aps = process_dir(dirname)
+      pname,aps = process_dir(dirname,pmode)
       if len(aps) == 0:
          continue
       sgm0 = aps[0][1]
@@ -276,9 +308,12 @@ if __name__ == '__main__':
             # for now it is assumed here that all the SGM's are the same !!!!
             print "ERROR: SOUS/GOUS/MOUS differ:",sgm0
             print "ERROR: SOUS/GOUS/MOUS differ:",ap[1]
-         admit_dir = run_pipe1(ap, dryrun, oldstyle)
-      run_export(admit_dir,mous,dryrun)
-      print "%s.admit.tar.gz in %s " % (mous, admit_dir)
+         admit_dir = run_pipe1(ap, dryrun, oldstyle,pname)
+      run_export(admit_dir,mous,dryrun,pname)
+      if False:
+         print "%s.admit.tar.gz in %s " % (mous, admit_dir)
+      else:
+         print "admit.tar.gz in %s " % (admit_dir)
       if os.path.exists(admit_dir):
          # @todo 
          cmd = "rm -rf %s" % admit_dir

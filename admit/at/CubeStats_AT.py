@@ -384,7 +384,15 @@ class CubeStats_AT(AT):
             y1 = np.log10(ma.masked_invalid(peakval))
             y2 = np.log10(ma.masked_invalid(sigma))
             y3 = y1-y2
-            y4 = np.log10(ma.masked_invalid(-minval))
+
+            # Note: log10(-minval) will fail with a runtime domain error if all values
+            # in minval are positive , so do a check here and only call log10 if there
+            # is at least one negative value in minval.
+            # RuntimeWarning: invalid value encountered in log10
+            if (minval <= 0).all(): 
+                y4 = np.log10(ma.masked_invalid(-minval))
+            else:
+                y4 = np.zeros(len(minval))
             y5 = y1-y4
             y = [y1,y2,y3,y4]
             title = 'CubeStats: ' + bdp_name+'_0'

@@ -238,7 +238,7 @@ class Ingest_AT(AT):
             # 'cbeam'   : 0.5,     # channel beam variation allowed in terms of pixel size to use median beam
         }
         AT.__init__(self,keys,keyval)
-        self._version = "1.0.8a"
+        self._version = "1.0.9"
         self.set_bdp_in()                            # no input BDP
         self.set_bdp_out([(SpwCube_BDP, 1),          # one or two output BDPs
                           (Image_BDP,   1),          # optional PB if there was an input
@@ -406,8 +406,9 @@ class Ingest_AT(AT):
                             # use the mean of all channels... faster may be to use the middle plane
                             # barf; edge channels can be with fewer subfields in a mosaic 
                             taskinit.ia.open('_pb')
-                            taskinit.ia.summary()
-                            ia1=taskinit.ia.moments(moments=[-1],drop=True,outfile=fno2)
+                            s=taskinit.ia.summary()
+                            #ia1=taskinit.ia.moments(moments=[-1],drop=True,outfile=fno2)    # fails for cont maps
+                            ia1=taskinit.ia.collapse(outfile=fno2, function='mean', axes=2)  # @todo ensure 2=freq axis
                             ia1.done()
                             taskinit.ia.close()
                             dt.tag("moments")

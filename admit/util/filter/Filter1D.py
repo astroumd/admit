@@ -409,7 +409,7 @@ class Filter1D(object):
             raise Exception("Smoothing method must be given.")
         if args[0] not in Filter1D.methods:
             raise Exception("The smoothing method %s is not known, it must be one of: %s" % 
-                            (args[0], str(Fiter1D.methods)))
+                            (args[0], str(Filter1D.methods)))
         keyval = deepcopy(getattr(Filter1D, args[0] + "_args"))
         keys = keyval.keys()
         for i, arg in enumerate(args):

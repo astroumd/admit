@@ -15,10 +15,13 @@ FIL = Box.png Gauss.png Hanning.png Raw_Spec.png Savgol.png Triangle.png Welch.p
 FM  = flow6-FM.png fm-gui1.png fm-gui2.png fm-gui3.png fm-gui4.png fm-gui5.png \
       fm-gui6.png fm-gui7.png
 
-PNG = flow1.png flow2.png flow4.png flow5.png flow1bad.png flow2b.png \
-      flow6-AT.png BDPorder.png $(FAA) $(FM) $(FIL) databrowser.png
+FLOW = flow1.png flow2.png flow4.png flow5.png flow1bad.png flow2b.png \
+       flow6-AT.png flow6-FM.png BDPorder.png
 
-ALL = $(PNG) $(AP).pdf $(CT).pdf $(IC).pdf
+PDF = $(AP).pdf $(CT).pdf $(IC).pdf
+PNG = $(FLOW) $(FAA) $(FM) $(FIL) databrowser.png
+
+ALL = $(PNG) $(PDF)
 
 .SUFFIXES: .dot .fig .pdf .png .tex
 
@@ -44,5 +47,15 @@ all:	$(ALL)
 $(AD).pdf:  $(AD).tex $(PNG) $(BDP) $(EXAMPLES)
 $(M1).pdf:  $(M1).tex $(AD).tex $(EXAMPLES)
 
+ADMIT.pdf: all
+	$(MAKE) -C sphinx latex 2>&1 | \
+	  grep -vF "WARNING: toctree references unknown document" | \
+	  grep -vF "WARNING: toctree contains ref to nonexisting"
+	TEXINPUTS=$(TEXINPUTS) $(MAKE) -C sphinx/_build/latex all 2>&1 | \
+	  grep -vF Overfull | grep -vF Underfull | grep -vF "[]"
+	cp sphinx/_build/latex/ADMIT.pdf .
+	@echo A copy of the sphinx manual is in:
+	@echo " $(ADMIT)/doc/ADMIT.pdf"
+
 clean:
-	rm -rf $(ALL) $(SPHINXIM) *.aux *.log CodeTesting.out
+	rm -rf $(FLOW) $(PDF) $(SPHINXIM) sphinx/_build *.aux *.log CodeTesting.out

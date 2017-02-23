@@ -49,7 +49,8 @@ help:
 
 clean: cleanpyc
 	@echo No real clean yet ...
-	-rm -rf doc/sphinx/_build configure admit_start.csh admit_start.sh
+	-rm -rf configure admit_start.csh admit_start.sh
+	$(MAKE) -C doc clean
 
 cleanpyc:
 	find admit -name \*.pyc -print -exec rm '{}' \;
@@ -289,17 +290,11 @@ hack1:
 # Extra style files for Sphinx not readily found on RHEL 7 (in particular).
 TEXINPUTS = ":$(ADMIT)/doc/sphinx/texinputs"
 
-# multiple -C don't work here because _build/latex doesn't exist until make latex is complete
 pdf:
-	($(MAKE) -C doc/sphinx latex ; TEXINPUTS=$(TEXINPUTS) $(MAKE) -C doc/sphinx/_build/latex all; cp doc/sphinx/_build/latex/ADMIT.pdf ./doc) 2>&1 | \
-	  grep -vF "WARNING: toctree references unknown document" | \
-	  grep -vF "WARNING: toctree contains ref to nonexisting" | \
-	  grep -vF "Overfull \hbox" | grep -vF " [] []"
-	@echo A copy of the sphinx manual is in:
-	@echo " $(ADMIT)/doc/ADMIT.pdf"
+	TEXINPUTS=$(TEXINPUTS) $(MAKE) -C doc ADMIT.pdf
 
 doc:
-	$(MAKE) -C doc all
+	TEXINPUTS=$(TEXINPUTS) $(MAKE) -C doc all
 
 # This has to be called docs NOT doc.  Don't change it!
 docs: doc html pdf

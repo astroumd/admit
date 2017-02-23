@@ -6,7 +6,7 @@
 #  for now it's just a placeholder so that typing "admit" tells you it's loaded
 #  displays the most commonly used old and new environment variables and the
 #  version ID's for ADMIT and CASA
-#
+#-
 
 set sysname=`uname -s`
 

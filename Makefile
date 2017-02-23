@@ -286,9 +286,12 @@ html:
 hack1:
 	rm admit/at/__init__.py admit/at/__init__.pyc ; touch admit/at/__init__.py
 
+# Extra style files for Sphinx not readily found on RHEL 7 (in particular).
+TEXINPUTS = ":$(ADMIT)/doc/sphinx/texinputs"
+
 # multiple -C don't work here because _build/latex doesn't exist until make latex is complete
 pdf:
-	($(MAKE) -C doc/sphinx latex ; $(MAKE) -C doc/sphinx/_build/latex all; cp doc/sphinx/_build/latex/ADMIT.pdf ./doc) 2>&1 | \
+	($(MAKE) -C doc/sphinx latex ; TEXINPUTS=$(TEXINPUTS) $(MAKE) -C doc/sphinx/_build/latex all; cp doc/sphinx/_build/latex/ADMIT.pdf ./doc) 2>&1 | \
 	  grep -vF "WARNING: toctree references unknown document" | \
 	  grep -vF "WARNING: toctree contains ref to nonexisting" | \
 	  grep -vF "Overfull \hbox" | grep -vF " [] []"

@@ -600,7 +600,9 @@ class APlot(AbstractPlot):
 
         plt.close()
 
-    def map1(self,data,title=None,figname=None,xlab=None,ylab=None,range=None,contours=None,cmap='hot',segments=None,circles=None,thumbnail=True):
+    def map1(self,data,title=None,figname=None,xlab=None,ylab=None,range=None,
+             contours=None,cmap='hot',segments=None,circles=None,
+             thumbnail=True,zoom=1):
         """
         display map; horrible hack, the caller should call np.flipud(np.rot90()) since
         casa and numpy do not have their axes in the same order.
@@ -618,27 +620,39 @@ class APlot(AbstractPlot):
 
         fig = plt.figure(APlot.figno)
         ax1 = fig.add_subplot(1,1,1)
+
+        # Zoom calculation.
+        m, n = data.shape
+        m2 = m/2
+        n2 = n/2
+        m0 = m2-m2/zoom
+        m1 = m2+m2/zoom
+        n0 = n2-n2/zoom
+        n1 = n2+n2/zoom
+
         if segments:
             for s in segments:
-                ax1.plot([s[0],s[1]],[s[2],s[3]],c='skyblue')
+                ax1.plot([s[0]-m0,s[1]-n0],[s[2]-m0,s[3]-n0],c='skyblue')
         if circles:
             # @todo awkward, these are closes circles, we want open
             for c in circles:
-                circ = plt.Circle((c[0],c[1]),radius=c[2],color='green')
+                circ = plt.Circle((c[0]-m0,c[1]-n0),radius=c[2], color='green')
                 ax1.add_patch(circ)
                 # plt.plot([c[0]], [c[1]], 'g.', markersize=c[2])
         if title:    ax1.set_title(title)
         if xlab:     ax1.set_xlabel(xlab)
         if ylab:     ax1.set_ylabel(ylab)
+
+        zoom = data[m0:m1,n0:n1]
         if range == None:
-            alplot = ax1.imshow(data, origin='lower')
+            alplot = ax1.imshow(zoom, origin='lower')
         elif len(range) == 1:
-            alplot = ax1.imshow(data, origin='lower', vmin = range[0])
+            alplot = ax1.imshow(zoom, origin='lower', vmin = range[0])
         elif len(range) == 2:
-            alplot = ax1.imshow(data, origin='lower', vmin = range[0], vmax = range[1])
+            alplot = ax1.imshow(zoom, origin='lower', vmin = range[0], vmax = range[1])
         alplot.set_cmap(cmap)
         if contours != None:
-            ax1.contour(data, contours, colors='g')
+            ax1.contour(zoom, contours, colors='g')
         if figname:
             self._figurefiles[APlot.figno] = figname + PlotControl.mkext(self._plot_type,True)
             fig.savefig(self._figurefiles[APlot.figno])

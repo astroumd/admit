@@ -32,7 +32,8 @@ class ImPlot(AbstractPlot):
         # increment AFTER plt is made.
         AbstractPlot.__init__(self,pmode,ptype,figno,abspath)
 
-    def plotter(self, figname, rasterfile=None, contourfile=None, colorwedge=False, thumbnail=True):
+    def plotter(self, figname, rasterfile=None, contourfile=None,
+                colorwedge=False, thumbnail=True, zoom=1):
        """Image plotter
 
           Parameters
@@ -59,6 +60,9 @@ class ImPlot(AbstractPlot):
              will be 'fig_thumb.png'.  Note: only PNG format is currently
              supported (matplotlib restriction, Exception raised otherwise).
 
+          zoom : int
+            Image zoom ratio.
+
           Returns
           -------
           None
@@ -75,7 +79,7 @@ class ImPlot(AbstractPlot):
 
        if self._plot_mode != PlotControl.NOPLOT:
            #print "%s figno=%d figname=%s rasterfile=%s" % (self.__class__.__name__,self.__class__.figno,figname,rasterfile)
-           casautil.implot(rasterfile=rasterfile,figname=figname,contourfile=contourfile,plottype=self._plot_type,plotmode=self._plot_mode,colorwedge=colorwedge)
+           casautil.implot(rasterfile=rasterfile,figname=figname,contourfile=contourfile,plottype=self._plot_type,plotmode=self._plot_mode,colorwedge=colorwedge,zoom=zoom)
 
            if thumbnail: self.makeThumbnail(self.__class__.figno)
 

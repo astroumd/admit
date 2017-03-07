@@ -29,7 +29,8 @@ def iscasa(file):
     return os.path.isdir(file)
     
 
-def implot(rasterfile, figname, contourfile=None, plottype=PlotControl.PNG, plotmode=PlotControl.BATCH, colorwedge=False):
+def implot(rasterfile, figname, contourfile=None, plottype=PlotControl.PNG,
+           plotmode=PlotControl.BATCH, colorwedge=False, zoom=1):
     """Wrapper for CASA's imview, that will also create thumbnails.
 
        Parameters
@@ -54,6 +55,9 @@ def implot(rasterfile, figname, contourfile=None, plottype=PlotControl.PNG, plot
 
        colorwedge  : boolean
          True - show color wedge, False - don't show color wedge
+
+       zoom : int
+         Image zoom ratio.
 
        Returns
        -------
@@ -100,8 +104,10 @@ def implot(rasterfile, figname, contourfile=None, plottype=PlotControl.PNG, plot
                 'scaling'    : DEFAULT_SCALING}
 
     # Grmph. Giving an 'out' dictionary to imview causes SEVERE error.
-    #out={'file'   : figname, 
-    #     'format' : PlotControl.mkext(plottype,False), 
+    #out={'file'   : figname,
+    #     'format' : PlotControl.mkext(plottype,False),
+    #     'scale'  : 2.0,
+    #     'dpi'    : 1.0,
     #     'orient' : orientation}
          #dpi/scale - DPI used for PS/EPS, scale for others. Perhaps 
          #            we will enable these options later
@@ -123,7 +129,8 @@ def implot(rasterfile, figname, contourfile=None, plottype=PlotControl.PNG, plot
 
     
 
-    casa.imview(raster=raster, contour=contour, out=figname, axes=axes)
+    casa.imview(raster=raster, contour=contour, out=figname, axes=axes,
+                zoom=zoom)
 
     #of = PlotControl.mkext(plottype,dot=False)
     #casa.viewer(outfile=outfile, infile=imagename, gui=False, plottype=of)

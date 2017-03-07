@@ -89,6 +89,10 @@ class Moment_AT(AT):
             of that moment-0 map.
             Default: 0.0 (not applied).
 
+          **zoom**: int
+            Image zoom ratio applied to the moment map plots. This does not
+            affect the base (CASA) image itself. Default: 1.
+
         **Input BDPs**
 
           **ImageCube_BDP**: count: 1
@@ -119,6 +123,7 @@ class Moment_AT(AT):
             "chans"    : "",           # default to select all channels
             "mom0clip" : 0.0,          # default to not clip
             "variflow" : False,        # default to manual sub-flow management
+            "zoom"     : 1,            # default map plot zoom ratio
         }
         AT.__init__(self, keys, keyval)
         self._version = "1.0.3"
@@ -294,7 +299,8 @@ class Moment_AT(AT):
                 dt.tag("makemask")
             if mom == 0:
                 beamarea = nppb(self.dir(imagename))
-            implot.plotter(rasterfile=imagename,figname=figname,colorwedge=True)
+            implot.plotter(rasterfile=imagename,figname=figname,
+                           colorwedge=True,zoom=self.getkey("zoom"))
             imagepng  = implot.getFigure(figno=implot.figno,relative=True)
             thumbname = implot.getThumbnail(figno=implot.figno,relative=True)
             images = {bt.CASA : imagename, bt.PNG  : imagepng}

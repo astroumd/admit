@@ -82,6 +82,10 @@ class PVSlice_AT(AT):
         it is available for inspection.
         **Default:**  [].
 
+      **zoom**: int
+        Image zoom ratio applied to the map plots. This does not
+        impact the base (CASA) images. Default: 1.
+
     **Input BDPs**
 
       **SpwCube_BDP**: count: 1
@@ -116,6 +120,7 @@ class PVSlice_AT(AT):
                 "clip"     : 0.0,           # clip value (in terms of sigma)
                 "gamma"    : 1.0,           # gamma factor for analyzing map MOI
                 "pvsmooth" : [],            # P and V smoothing (in pixel)
+                "zoom"     : 1,             # default map plot zoom ratio
                 #"major"   : True,          # (TODO) major or minor axis, not used yet
                 }
         AT.__init__(self,keys,keyval)
@@ -304,9 +309,11 @@ class PVSlice_AT(AT):
             if d1.max() < clip:
               logging.warning("datamax=%g,  clip=%g" % (d1.max(), clip))
               title = title + ' (no signal over %g?)' % clip
-              myplot.map1(d1,title,overlay,segments=segm,thumbnail=True)
+              myplot.map1(d1,title,overlay,segments=segm,thumbnail=True,
+                          zoom=self.getkey("zoom"))
             else:
-              myplot.map1(d1,title,overlay,segments=segm,range=[clip],thumbnail=True)
+              myplot.map1(d1,title,overlay,segments=segm,range=[clip],thumbnail=True,
+                          zoom=self.getkey("zoom"))
             dt.tag("plot")
             overlayname = myplot.getFigure(figno=myplot.figno,relative=True)
             overlaythumbname = myplot.getThumbnail(figno=myplot.figno,relative=True)

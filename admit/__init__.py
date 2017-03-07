@@ -4,13 +4,13 @@
    This package serves as the root module for all ADMIT script functionality.
 """
 
-from AT          import AT          as Task
-from Admit       import Admit       as Project
-from bdp.BDP     import BDP         as Data
-from FlowManager import FlowManager as Flow
-from ProjectManager import ProjectManager as Manager
-from Summary     import Summary     as Summary
-from Summary     import SummaryEntry as SummaryEntry
+from .AT          import AT          as Task
+from .Admit       import Admit       as Project
+from .bdp.BDP     import BDP         as Data
+from .FlowManager import FlowManager as Flow
+from .ProjectManager import ProjectManager as Manager
+from .Summary     import Summary     as Summary
+from .Summary     import SummaryEntry as SummaryEntry
 
 from admit.util import *
 from admit.bdp  import *

@@ -106,6 +106,10 @@ class SFind2D_AT(AT):
 
                region='circle[[19h58m52.7s,+40d42m06.04s ],30.0arcsec]'
 
+        **zoom**: int
+          Image zoom ratio applied to the source map plot. This does not
+          affect the base (CASA) image itself. Default: 1.
+
     **Input BDPs**
 
         **SpwCube_BDP**: count: 1
@@ -138,6 +142,7 @@ class SFind2D_AT(AT):
                 "region"   : "",           # default to entire map
                 "robust"   : ['hin',1.5],  # default to classic MAD
                 "snmax"    : 35.0,         # default to limit dynamic range to 100
+                "zoom"     : 1,            # default map plot zoom ratio
                }
 
         AT.__init__(self,keys,keyval)
@@ -396,7 +401,8 @@ class SFind2D_AT(AT):
                 data = data/sigma
                 data = np.where(data<0,-np.log10(1-data),+np.log10(1+data))
             title = "SFind2D: %d sources" % nsources
-            myplot.map1(data,title,slbase,thumbnail=True,circles=circles)
+            myplot.map1(data,title,slbase,thumbnail=True,circles=circles,
+                        zoom=self.getkey("zoom"))
 
         #---------------------------------------------------------
         # Get the figure and thumbmail names and create a caption

@@ -97,7 +97,12 @@ class CubeSum_AT(AT):
             Extra channels added on either side of a line (as given by
             the LineList).  
             **Default**: 5.
-    
+
+        **zoom**: int
+          Image zoom ratio applied to the moment map plots. This does not
+          affect the base (CASA) image itself. Default: 1.
+
+
     **Input BDPs**
 
         **SpwCube_BDP**: count: 1
@@ -152,6 +157,7 @@ class CubeSum_AT(AT):
             "sigma"      : -1.0,   # default to CubeStats rms(freq)
             "linesum"    : True,   # Select line segments for from the (optional) LineList
             "pad"        : 5,      # number of channels to pad onto the line segments from LineList
+            "zoom"       : 1,      # default map plot zoom ratio
         }
         AT.__init__(self,keys,keyval)
         self._version = "1.0.2"
@@ -336,7 +342,8 @@ class CubeSum_AT(AT):
             
         # Create two output images for html and their thumbnails, too
         implot = ImPlot(ptype=self._plot_type,pmode=self._plot_mode,abspath=self.dir())
-        implot.plotter(rasterfile=bdp_name,figname=bdp_name,colorwedge=True)
+        implot.plotter(rasterfile=bdp_name,figname=bdp_name,
+                       colorwedge=True,zoom=self.getkey("zoom"))
         figname   = implot.getFigure(figno=implot.figno,relative=True)
         thumbname = implot.getThumbnail(figno=implot.figno,relative=True)
        

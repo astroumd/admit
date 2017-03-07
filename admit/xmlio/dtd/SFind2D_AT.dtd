@@ -36,17 +36,19 @@
 <!ATTLIST _taskid type (INT) #REQUIRED>
 <!ELEMENT _enabled		(#PCDATA)>
 <!ATTLIST _enabled type (BOOL) #REQUIRED>
-<!ELEMENT _keys	(numsigma,snmax,region,robust,sigma)>
+<!ELEMENT _keys	(numsigma,snmax,region,zoom,robust,sigma)>
 <!ATTLIST _keys type (DICT) #REQUIRED>
 <!ELEMENT numsigma		(#PCDATA)>
 <!ATTLIST numsigma type (FLOAT) #REQUIRED>
 <!ELEMENT region		(#PCDATA)>
 <!ATTLIST region type (STRING) #REQUIRED>
-<!ELEMENT sigma		(#PCDATA)>
-<!ATTLIST sigma type (FLOAT) #REQUIRED>
+<!ELEMENT zoom		(#PCDATA)>
+<!ATTLIST zoom type (INT) #REQUIRED>
 <!ELEMENT snmax		(#PCDATA)>
 <!ATTLIST snmax type (FLOAT) #REQUIRED>
 <!ELEMENT robust		(#PCDATA)>
 <!ATTLIST robust ndarray (STRING) #REQUIRED>
 <!ATTLIST robust set (STRING) #REQUIRED>
 <!ATTLIST robust type (LIST) #REQUIRED>
+<!ELEMENT sigma		(#PCDATA)>
+<!ATTLIST sigma type (FLOAT) #REQUIRED>

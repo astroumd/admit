@@ -36,13 +36,15 @@
 <!ATTLIST _taskid type (INT) #REQUIRED>
 <!ELEMENT _enabled		(#PCDATA)>
 <!ATTLIST _enabled type (BOOL) #REQUIRED>
-<!ELEMENT _keys	(linesum,pad,numsigma,sigma)>
+<!ELEMENT _keys	(linesum,numsigma,zoom,pad,sigma)>
 <!ATTLIST _keys type (DICT) #REQUIRED>
 <!ELEMENT linesum		(#PCDATA)>
 <!ATTLIST linesum type (BOOL) #REQUIRED>
 <!ELEMENT numsigma		(#PCDATA)>
 <!ATTLIST numsigma type (FLOAT) #REQUIRED>
-<!ELEMENT pad		(#PCDATA)>
-<!ATTLIST pad type (INT) #REQUIRED>
 <!ELEMENT sigma		(#PCDATA)>
 <!ATTLIST sigma type (FLOAT) #REQUIRED>
+<!ELEMENT pad		(#PCDATA)>
+<!ATTLIST pad type (INT) #REQUIRED>
+<!ELEMENT zoom		(#PCDATA)>
+<!ATTLIST zoom type (INT) #REQUIRED>

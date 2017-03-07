@@ -36,19 +36,21 @@
 <!ATTLIST _taskid type (INT) #REQUIRED>
 <!ELEMENT _enabled		(#PCDATA)>
 <!ATTLIST _enabled type (BOOL) #REQUIRED>
-<!ELEMENT _keys	(numsigma,moments,mom0clip,chans,sigma)>
+<!ELEMENT _keys	(numsigma,moments,mom0clip,zoom,chans,sigma)>
 <!ATTLIST _keys type (DICT) #REQUIRED>
-<!ELEMENT moments		(#PCDATA)>
-<!ATTLIST moments ndarray (STRING) #REQUIRED>
-<!ATTLIST moments set (STRING) #REQUIRED>
-<!ATTLIST moments type (LIST) #REQUIRED>
 <!ELEMENT numsigma		(#PCDATA)>
 <!ATTLIST numsigma ndarray (STRING) #REQUIRED>
 <!ATTLIST numsigma set (STRING) #REQUIRED>
 <!ATTLIST numsigma type (LIST) #REQUIRED>
-<!ELEMENT sigma		(#PCDATA)>
-<!ATTLIST sigma type (FLOAT) #REQUIRED>
-<!ELEMENT chans		(#PCDATA)>
-<!ATTLIST chans type (STRING) #REQUIRED>
+<!ELEMENT moments		(#PCDATA)>
+<!ATTLIST moments ndarray (STRING) #REQUIRED>
+<!ATTLIST moments set (STRING) #REQUIRED>
+<!ATTLIST moments type (LIST) #REQUIRED>
 <!ELEMENT mom0clip		(#PCDATA)>
 <!ATTLIST mom0clip type (FLOAT) #REQUIRED>
+<!ELEMENT zoom		(#PCDATA)>
+<!ATTLIST zoom type (INT) #REQUIRED>
+<!ELEMENT chans		(#PCDATA)>
+<!ATTLIST chans type (STRING) #REQUIRED>
+<!ELEMENT sigma		(#PCDATA)>
+<!ATTLIST sigma type (FLOAT) #REQUIRED>

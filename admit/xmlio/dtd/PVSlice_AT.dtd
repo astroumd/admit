@@ -36,7 +36,7 @@
 <!ATTLIST _taskid type (INT) #REQUIRED>
 <!ELEMENT _enabled		(#PCDATA)>
 <!ATTLIST _enabled type (BOOL) #REQUIRED>
-<!ELEMENT _keys	(slice,clip,width,slit,pvsmooth,gamma)>
+<!ELEMENT _keys	(slice,clip,width,zoom,slit,pvsmooth,gamma)>
 <!ATTLIST _keys type (DICT) #REQUIRED>
 <!ELEMENT slice		(#PCDATA)>
 <!ATTLIST slice ndarray (STRING) #REQUIRED>
@@ -44,6 +44,8 @@
 <!ATTLIST slice type (LIST) #REQUIRED>
 <!ELEMENT clip		(#PCDATA)>
 <!ATTLIST clip type (FLOAT) #REQUIRED>
+<!ELEMENT zoom		(#PCDATA)>
+<!ATTLIST zoom type (INT) #REQUIRED>
 <!ELEMENT width		(#PCDATA)>
 <!ATTLIST width type (INT) #REQUIRED>
 <!ELEMENT slit		(#PCDATA)>

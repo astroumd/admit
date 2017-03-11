@@ -22,15 +22,22 @@ if have_casa:
     import admit.util.utils as utils
 
 def usage():
-    print "Usage: admit_export [-h] [-v] [-n] [-s] [-a] [-p OUS] admit_project(s)"
+    print "Usage: admit_export [-h] [-v] [-n] [-s] [-a] [-p OUS] [-l] admit_project(s)"
     print ""
     print "-h      this help"
     print "-v      verbose"
     print "-n      dryrun"
+    print "-l      local storage (useful if you have no write permission where admit_projects are"
     print "-a      export all files inside the project"
     print "-s      single OUS.admit.tar.gz with all admit projects listed"
     print "-a      export all (the default is brief, i.e.. no cubes)"
     print "-p OUS  the OUS.admit basename used (default: none)"
+    print ""
+    if not have_casa:
+        print " (this is the fast pure-python version; in brief mode it will call %s)" % slow_version
+    else:
+        print " (this is the slow casarun version; it should not be called directly)"
+        
     sys.exit(0)
 
 #   command line arguments  
@@ -38,6 +45,7 @@ single  = False                           # -s
 brief   = True                            # -a         @todo   could be a level (encoded also in the prefix name)
 verbose = False                           # -v
 dryrun  = False                           # -n
+local   = False                           # -l
 pflag   = False;    prefix = "admit"      # -p PREFIX    (only allowed in -s mode)
 aplist  = []                              # list of .admit project directories
 
@@ -103,6 +111,7 @@ for a in argv[1:]:
     if a == '-v': verbose = True;    continue
     if a == '-n': dryrun  = True;    continue
     if a == '-s': single  = True;    continue
+    if a == '-l': local   = True;    continue
     if a == '-h': usage();           continue
     # all remaining arguments are taken as admit directories
     # in brief mode we now need the casarun version
@@ -136,7 +145,7 @@ if brief:
                 
         cmd = "tar -zcf %s.tar.gz " % prefix
         for f in excludes:
-            cmd = cmd + ' --exclude=%s' % f
+            cmd = cmd + ' --exclude="%s"' % f
         for i in range(np):
             cmd = cmd + ' %s' % aplist[i]
         myexec(cmd,dryrun)
@@ -152,7 +161,7 @@ if brief:
         for ap in aplist:
             cmd = "tar -zcf %s.tar.gz " % ap
             for f in find_exclude(ap):
-                cmd = cmd + ' --exclude=%s' % f
+                cmd = cmd + ' --exclude="%s"' % f
             cmd = cmd + " %s" % ap
             if have_casa and not dryrun:
                 p = admit.Project(ap,commit=False)

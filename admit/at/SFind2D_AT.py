@@ -146,7 +146,7 @@ class SFind2D_AT(AT):
                }
 
         AT.__init__(self,keys,keyval)
-        self._version = "1.0.5"
+        self._version = "1.0.6"
         self.set_bdp_in([(Image_BDP,2,bt.OPTIONAL),
                          (CubeStats_BDP,1,bt.OPTIONAL)])
         self.set_bdp_out([(SourceList_BDP, 1)])
@@ -325,6 +325,7 @@ class SFind2D_AT(AT):
                 # @todo variable name
                 regname = self.mkext(infile,'ds9.reg')
                 fp9 = open(self.dir(regname),"w!")
+            sn0 = -1.0
             for i in range(nsources):
                 c = "component%d" % i
                 name = "%d" % (i+1)
@@ -354,6 +355,8 @@ class SFind2D_AT(AT):
                 snr = peakf/sigma
                 if snr > dynlog:
                     logscale = True
+                if snr > sn0:
+                    sn0 = snr
                 logging.info("%s %s %8.2f %8.2f %10.3g %10.3g %7.3f %7.3f %6.1f %6.1f" % (ra,dec,xpos,ypos,peakf,flux,smajor,sminor,sangle,snr))
                 
                 xtab.append(xpos)
@@ -400,7 +403,12 @@ class SFind2D_AT(AT):
                 logging.warning("LogScaling applied")
                 data = data/sigma
                 data = np.where(data<0,-np.log10(1-data),+np.log10(1+data))
-            title = "SFind2D: %d sources" % nsources
+            if nsources == 0:
+                title = "SFind2D: 0 sources above S/N=%.1f" % (nsigma)
+            elif nsources == 1:
+                title = "SFind2D: 1 source (S/N=%.1f)" % (sn0)
+            else:
+                title = "SFind2D: %d sources (S/N=%.1f)" % (nsources,sn0)
             myplot.map1(data,title,slbase,thumbnail=True,circles=circles,
                         zoom=self.getkey("zoom"))
 

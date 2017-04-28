@@ -36,8 +36,10 @@
 <!ATTLIST _taskid type (INT) #REQUIRED>
 <!ELEMENT _enabled		(#PCDATA)>
 <!ATTLIST _enabled type (BOOL) #REQUIRED>
-<!ELEMENT _keys	(numsigma,snmax,region,zoom,robust,sigma)>
+<!ELEMENT _keys	(nmax,numsigma,snmax,region,zoom,robust,sigma)>
 <!ATTLIST _keys type (DICT) #REQUIRED>
+<!ELEMENT nmax		(#PCDATA)>
+<!ATTLIST nmax type (INT) #REQUIRED>
 <!ELEMENT numsigma		(#PCDATA)>
 <!ATTLIST numsigma type (FLOAT) #REQUIRED>
 <!ELEMENT region		(#PCDATA)>

@@ -80,7 +80,7 @@ class CubeStats_AT(AT):
         Add columns to create a PeakPointPlot. Currently this is somewhat expensive.
         Default: False.
 
-      **maxvmrs**: float
+      **maxvrms**: float
         Clip the RMS if it varies by more than this number. This is to avoid creating
         artificial lines when large variations occur due to for example missing short
         spacings.   Use -1 to skip this clipping.
@@ -93,7 +93,7 @@ class CubeStats_AT(AT):
     **Input BDPs**
 
       **Image_BDP**: count: 1
-        Spectral cube (or map) for which statistics is computed.
+        Spectral cube (or map) for which statistics are computed.
 
     **Output BDPs** 
 

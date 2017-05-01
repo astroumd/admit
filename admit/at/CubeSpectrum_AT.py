@@ -55,12 +55,12 @@ class CubeSpectrum_AT(AT):
         input BDPs. See below how this is done. This also means if an input BDP
         is given, the keyword values are ignored.
         If no input pos is given, and no optional BPD's, the center
-        of the map is given.
+        of the map is used.
 
       **sources** : list of int
-        A python list (i.e. 0 being the first) of the sources selected from the
-        SourceList_BDP to be selected for a spectrum. Use a blank list, [], to select all.
-        Normally the SourceList is ordered by total flux.
+        A python list of source indices (0 being the first) from the
+        SourceList_BDP to be selected for a spectrum. A blank list, [],
+        selects all. Normally the SourceList is ordered by total flux.
         Default : [0]
 
       **xaxis**: string
@@ -82,9 +82,9 @@ class CubeSpectrum_AT(AT):
         their maxpos.
     
       **SourceList_BDP**: count: 1 (optional)
-        If given, the positions in this source list will be used. Currently only the
-        strongest source will be used. Typically the output from a SFind2D_AT on
-        a continuum map will be used here.
+        If given, the positions in this source list will be used. By default
+        only the strongest source (index 0) is selected. Typically the output
+        from SFind2D_AT on a continuum map is given here.
 
     **Output BDPs**
 

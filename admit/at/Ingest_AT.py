@@ -238,10 +238,10 @@ class Ingest_AT(AT):
             # 'cbeam'   : 0.5,     # channel beam variation allowed in terms of pixel size to use median beam
         }
         AT.__init__(self,keys,keyval)
-        self._version = "1.0.9"
+        self._version = "1.0.10"
         self.set_bdp_in()                            # no input BDP
         self.set_bdp_out([(SpwCube_BDP, 1),          # one or two output BDPs
-                          (Image_BDP,   1),          # optional PB if there was an input
+                          (Image_BDP,   0),          # optional PB if there was an pb= input
                         ])
 
     def summary(self):

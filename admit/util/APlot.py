@@ -168,7 +168,7 @@ class APlot(AbstractPlot):
 
         plt.close()
 
-    def plotter(self,x,y,title=None,figname=None,xlab=None,ylab=None,xrange=None,yrange=None,segments=None,labels=[],histo=False,thumbnail=True):
+    def plotter(self,x,y,title=None,figname=None,xlab=None,ylab=None,xrange=None,yrange=None,segments=None,labels=[],histo=False,thumbnail=True,x2range=None,y2range=None,x2lab=None,y2lab=None):
         """Simple plotter of multiple columns against one column, optionally in histogram style
 
            Parameters
@@ -215,6 +215,22 @@ class APlot(AbstractPlot):
               For instance, if the output file is 'fig.jpg', the thumbnail
               will be 'fig_thumb.jpg'
 
+           x2range: tuple
+              If given and non-empty, label the upper x axis with a second
+              range. Useful for, e.g. plotting frequency and velocity on
+              the same plot.  Default: None, no second x axis
+
+           y2range: tuple
+              If given and non-empty, label the right y axis with a second
+              range. Default: None, no second y axis
+
+           x2lab : str
+              second X axis label
+
+           y2lab : str
+              second Y axis label
+
+
            Returns
            -------
            None
@@ -251,11 +267,22 @@ class APlot(AbstractPlot):
                 else:
                     #print "plotting",[s[0],s[1]],[s[2],s[3]]
                     ax1.plot([s[0],s[1]],[s[2],s[3]],'k-')
-        if title:    ax1.set_title(title)
+        if title and not x2range:    ax1.set_title(title)
         if xlab:     ax1.set_xlabel(xlab)
         if ylab:     ax1.set_ylabel(ylab)
         if xrange:   ax1.set_xlim(xrange)
         if yrange:   ax1.set_ylim(yrange)
+        if x2range:  
+           ax2 = ax1.twiny()
+           ax2.set_xlim(x2range)
+           if x2lab: ax2.set_xlabel(x2lab)
+           # if 2nd x-axis specified, then title will be
+           # placed interior to plot
+           if title: ax1.text(.5,.92,title, horizontalalignment='center', transform=ax1.transAxes)
+        if y2range:  
+           ax3 = ax1.twinx()
+           ax3.set_ylim(y2range)
+           if y2lab: ax3.set_ylabel(y2lab)
         if figname:
             self._figurefiles[APlot.figno] = figname + PlotControl.mkext(self._plot_type,True)
             fig.savefig(self._figurefiles[APlot.figno])
@@ -266,7 +293,7 @@ class APlot(AbstractPlot):
 
         plt.close()
 
-    def multiplotter(self,x,y,title=None,figname=None,xlab=None,ylab=None,xrange=None,yrange=None,labels=[],thumbnail=True):
+    def multiplotter(self,x,y,title=None,figname=None,xlab=None,ylab=None,xrange=None,yrange=None,labels=[],thumbnail=True,x2range=None,y2range=None,x2lab=None,y2lab=None):
         """Plotter of multiple x against multiple y as traces on same plot. 
 
            Parameters
@@ -306,6 +333,21 @@ class APlot(AbstractPlot):
               For instance, if the output file is 'fig.jpg', the thumbnail
               will be 'fig_thumb.jpg'
 
+           x2range: tuple
+              If given and non-empty, label the upper x axis with a second
+              range. Useful for, e.g. plotting frequency and velocity on
+              the same plot.  Default: None, no second x axis
+
+           y2range: tuple
+              If given and non-empty, label the right y axis with a second
+              range. Default: None, no second y axis
+
+           x2lab : str
+              second X axis label
+
+           y2lab : str
+              second Y axis label
+
            Returns
            -------
            None
@@ -336,11 +378,24 @@ class APlot(AbstractPlot):
             for i in len(y):
                 ax1.plot(x[i],y[i])
         ylim = ax1.get_ylim()[1]/3.0
-        if title:    ax1.set_title(title)
+        if title and not x2range:    ax1.set_title(title)
         if xlab:     ax1.set_xlabel(xlab)
         if ylab:     ax1.set_ylabel(ylab)
         if xrange:   ax1.set_xlim(xrange)
         if yrange:   ax1.set_ylim(yrange)
+        if x2range:  
+           ax2 = ax1.twiny()
+           ax2.set_xlim(x2range)
+           if x2lab: ax2.set_xlabel(x2lab)
+           # if 2nd x-axis specified, then title will be
+           # placed interior to plot
+           if title: ax1.text(.5,.92,title, horizontalalignment='center', transform=ax1.transAxes)
+        if y2range:  
+           ax3 = ax1.twinx()
+           ax3.set_ylim(y2range)
+           if y2lab: ax3.set_ylabel(y2lab)
+
+
         if figname:
             self._figurefiles[APlot.figno] = figname + PlotControl.mkext(self._plot_type,True)
             fig.savefig(self._figurefiles[APlot.figno])

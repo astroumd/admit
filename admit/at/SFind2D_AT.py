@@ -96,6 +96,10 @@ class SFind2D_AT(AT):
             Limits search to 1/35th brightness of max source in map -- good default
             for pipeline ALMA images which have not been selfcaled.
 
+        **nmax**: int
+            Maximum sources that will be searched for in the map.
+            Default: 30
+
         **region**: string
             Region to search for sources. Format is CASA region specification.
             Default: entire image.
@@ -142,11 +146,12 @@ class SFind2D_AT(AT):
                 "region"   : "",           # default to entire map
                 "robust"   : ['hin',1.5],  # default to classic MAD
                 "snmax"    : 35.0,         # default to limit dynamic range to 100
+                "nmax"     : 30,           # default to limit max number of sources to 30
                 "zoom"     : 1,            # default map plot zoom ratio
                }
 
         AT.__init__(self,keys,keyval)
-        self._version = "1.0.5"
+        self._version = "1.0.7"
         self.set_bdp_in([(Image_BDP,2,bt.OPTIONAL),
                          (CubeStats_BDP,1,bt.OPTIONAL)])
         self.set_bdp_out([(SourceList_BDP, 1)])
@@ -200,6 +205,7 @@ class SFind2D_AT(AT):
         region = self.getkey("region")
         robust = self.getkey("robust")
         snmax  = self.getkey("snmax")
+        nmax   = self.getkey("nmax")
         ds9 = True                                     # writes a "ds9.reg" file
         mpl = True                                     # aplot.map1() plot
         dynlog = 20.0                                  # above this value of dyn range finder chart is log I-scaled
@@ -271,7 +277,7 @@ class SFind2D_AT(AT):
         logging.info("sigma, dmin, dmax, snmax, cutoff %g %g %g %g %g" % (sigma, dmin, dmax, snmax, cutoff))
         # define arguments for call to findsources
         args2 = {"cutoff" : cutoff}
-        args2["nmax"] = 30
+        args2["nmax"] = nmax
         if region != "" :
             args2["region"] = region
         #args2["mask"] = ""
@@ -296,7 +302,7 @@ class SFind2D_AT(AT):
         if bpatch:
             taskinit.ia.setbrightnessunit(bunit)
         
-        taskargs = "nsigma=%4.1f sigma=%g region=%s robust=%s snmax=%5.1f" % (nsigma,sigma,str(region),str(robust),snmax)
+        taskargs = "nsigma=%4.1f sigma=%g region=%s robust=%s snmax=%5.1f nmax=%d" % (nsigma,sigma,str(region),str(robust),snmax,nmax)
         dt.tag("findsources")
         nsources = atab["nelements"] 
         xtab = []
@@ -325,6 +331,7 @@ class SFind2D_AT(AT):
                 # @todo variable name
                 regname = self.mkext(infile,'ds9.reg')
                 fp9 = open(self.dir(regname),"w!")
+            sn0 = -1.0
             for i in range(nsources):
                 c = "component%d" % i
                 name = "%d" % (i+1)
@@ -354,6 +361,8 @@ class SFind2D_AT(AT):
                 snr = peakf/sigma
                 if snr > dynlog:
                     logscale = True
+                if snr > sn0:
+                    sn0 = snr
                 logging.info("%s %s %8.2f %8.2f %10.3g %10.3g %7.3f %7.3f %6.1f %6.1f" % (ra,dec,xpos,ypos,peakf,flux,smajor,sminor,sangle,snr))
                 
                 xtab.append(xpos)
@@ -400,7 +409,12 @@ class SFind2D_AT(AT):
                 logging.warning("LogScaling applied")
                 data = data/sigma
                 data = np.where(data<0,-np.log10(1-data),+np.log10(1+data))
-            title = "SFind2D: %d sources" % nsources
+            if nsources == 0:
+                title = "SFind2D: 0 sources above S/N=%.1f" % (nsigma)
+            elif nsources == 1:
+                title = "SFind2D: 1 source (S/N=%.1f)" % (sn0)
+            else:
+                title = "SFind2D: %d sources (S/N=%.1f)" % (nsources,sn0)
             myplot.map1(data,title,slbase,thumbnail=True,circles=circles,
                         zoom=self.getkey("zoom"))
 

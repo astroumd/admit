@@ -32,6 +32,15 @@ from admit.util import LineData
 from admit.util import Segments
 
 
+# @todo  this code does not check upon exit that the LineID list is uniq, the U lines,
+#        where we only used 3 digits (i.e. 1 MHz accuracy) it would too often find
+#        duplicate frequencies to 3 digits. 4 would be better, but despite that these
+#        cases have identical channel ranges, U freq still different.
+#        Note there were 3 places where %.3f -> %.4f now
+#        The real fix is a) not allow same interval (U) lines
+#                        b) double check on exit linelist is unique
+
+
 #(see :ref:`tier-one-lineid`).
 class LineID_AT(AT):
     """ Task for detecting and identifying spectral lines from input spectra. All
@@ -273,7 +282,7 @@ class LineID_AT(AT):
                }
         self.boxcar = True
         AT.__init__(self, keys, keyval)
-        self._version = "1.0.2"
+        self._version = "1.0.3"
         self.set_bdp_in([(CubeSpectrum_BDP, 1, bt.OPTIONAL),
                          (CubeStats_BDP,    1, bt.OPTIONAL),
                          (PVCorr_BDP,       1, bt.OPTIONAL)])
@@ -2322,7 +2331,7 @@ class LineID_AT(AT):
                 el = 0.0
                 vel = 0.0
                 if centerpeak:
-                    species = "U_%.3f" % (freq)
+                    species = "U_%.4f" % (freq)
                     frq = float(freq)
                     winner = LineData(formula=species, name=name, frequency=frq, uid=species,
                                       energies=[el, eu], linestrength=linestr, transition=qn,
@@ -2352,7 +2361,7 @@ class LineID_AT(AT):
                                       })
                         identifications[freq] = winner
                 for i in [0, 1]:
-                    species = "U_%.3f" % (wings[i])
+                    species = "U_%.4f" % (wings[i])
                     frq = float(wings[i])
                     wpeak = peaks.getspecs()[peaks.getchan(wings[i])]
                     winner = LineData(formula=species, name=name, frequency=frq, uid=species,
@@ -2734,7 +2743,7 @@ class LineID_AT(AT):
                                                              peaks.fsingles[i] + width + k])
             if len(possibilities) == 0:
                 # if none were found the set it as a U line
-                species = "U_%.3f" % (peaks.fsingles[i])
+                species = "U_%.4f" % (peaks.fsingles[i])
                 name = "Unknown"
                 freq = peaks.fsingles[i]
                 qn = ""

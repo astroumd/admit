@@ -282,7 +282,7 @@ class LineID_AT(AT):
                }
         self.boxcar = True
         AT.__init__(self, keys, keyval)
-        self._version = "1.0.3"
+        self._version = "1.0.4"
         self.set_bdp_in([(CubeSpectrum_BDP, 1, bt.OPTIONAL),
                          (CubeStats_BDP,    1, bt.OPTIONAL),
                          (PVCorr_BDP,       1, bt.OPTIONAL)])
@@ -3215,7 +3215,13 @@ class LineID_AT(AT):
         if not self.identifylines:
             segments = utils.mergesegments([self.statseg,self.specseg,self.pvseg],len(self.freq))
             lines = specutil.linedatafromsegments(self.freq,self.chan,segments,self.specs,self.statspec)
+            duplicate_lines = []
             for l in lines:
+                if l.getkey('uid') in duplicate_lines:
+                    logging.log(logging.INFO, " Skipping-2 duplicate UID: " + l.getkey("uid"))
+                    continue
+                else:
+                    duplicate_lines.append(l.getkey('uid'))
                llbdp.addRow(l)
                logging.regression("LINEID: %s %.5f  %d %d" % ("NotIdentified", l.frequency, l.chans[0], l.chans[1]))
 
@@ -4374,11 +4380,17 @@ class LineID_AT(AT):
             mlist.append(frc)
         #mlist[0]
         mlist.sort(key=lambda x: float(x.getkey("frequency")))
+        duplicate_lines = []
         for m in mlist:
             addon = ""
             logging.log(logging.INFO, " Found line: " + m.getkey("formula") + " " + m.getkey("transition") +
                         " @ " + str(m.getkey("frequency")) + "GHz, channels " + str(m.getstart()) +
                         " - " + str(m.getend()) + addon)
+            if m.getkey('uid') in duplicate_lines:
+                logging.log(logging.INFO, " Skipping duplicate UID: " + m.getkey("uid"))
+                continue
+            else:
+                duplicate_lines.append(m.getkey('uid'))
             llbdp.addRow(m)
             logging.regression("LINEID: %s %.5f  %d %d" % (m.getkey("formula"), m.getkey("frequency"),
                                                            m.getstart(), m.getend()))

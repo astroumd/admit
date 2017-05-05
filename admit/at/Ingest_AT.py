@@ -148,7 +148,7 @@ class Ingest_AT(AT):
                By default no smoothing is applied.
     
       **mask**: boolean
-               If True, as mask needs to be created where the 
+               If True, a mask needs to be created where the
                cube has 0's. This option is automatically bypassed if the input
                CASA image had a mask. 
                [False]
@@ -189,7 +189,7 @@ class Ingest_AT(AT):
       **Image_BDP**: 1
         Output PB Map. If the input PB is a cube, the central channel (being representative
         for the avarage PB across the spectrum window) is used.
-        New extension will be ".bp"
+        New extension will be ".pb"
 
     Parameters
     ----------

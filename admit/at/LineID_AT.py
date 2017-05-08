@@ -32,6 +32,15 @@ from admit.util import LineData
 from admit.util import Segments
 
 
+# @todo  this code does not check upon exit that the LineID list is uniq, the U lines,
+#        where we only used 3 digits (i.e. 1 MHz accuracy) it would too often find
+#        duplicate frequencies to 3 digits. 4 would be better, but despite that these
+#        cases have identical channel ranges, U freq still different.
+#        Note there were 3 places where %.3f -> %.4f now
+#        The real fix is a) not allow same interval (U) lines
+#                        b) double check on exit linelist is unique
+#        See code around duplicate_lines[] where method b) is applied in 1.0.4.
+
 #(see :ref:`tier-one-lineid`).
 class LineID_AT(AT):
     """ Task for detecting and identifying spectral lines from input spectra. All
@@ -273,7 +282,7 @@ class LineID_AT(AT):
                }
         self.boxcar = True
         AT.__init__(self, keys, keyval)
-        self._version = "1.0.2"
+        self._version = "1.0.4"
         self.set_bdp_in([(CubeSpectrum_BDP, 1, bt.OPTIONAL),
                          (CubeStats_BDP,    1, bt.OPTIONAL),
                          (PVCorr_BDP,       1, bt.OPTIONAL)])
@@ -2322,7 +2331,7 @@ class LineID_AT(AT):
                 el = 0.0
                 vel = 0.0
                 if centerpeak:
-                    species = "U_%.3f" % (freq)
+                    species = "U_%.4f" % (freq)
                     frq = float(freq)
                     winner = LineData(formula=species, name=name, frequency=frq, uid=species,
                                       energies=[el, eu], linestrength=linestr, transition=qn,
@@ -2352,7 +2361,7 @@ class LineID_AT(AT):
                                       })
                         identifications[freq] = winner
                 for i in [0, 1]:
-                    species = "U_%.3f" % (wings[i])
+                    species = "U_%.4f" % (wings[i])
                     frq = float(wings[i])
                     wpeak = peaks.getspecs()[peaks.getchan(wings[i])]
                     winner = LineData(formula=species, name=name, frequency=frq, uid=species,
@@ -2734,7 +2743,7 @@ class LineID_AT(AT):
                                                              peaks.fsingles[i] + width + k])
             if len(possibilities) == 0:
                 # if none were found the set it as a U line
-                species = "U_%.3f" % (peaks.fsingles[i])
+                species = "U_%.4f" % (peaks.fsingles[i])
                 name = "Unknown"
                 freq = peaks.fsingles[i]
                 qn = ""
@@ -3206,9 +3215,15 @@ class LineID_AT(AT):
         if not self.identifylines:
             segments = utils.mergesegments([self.statseg,self.specseg,self.pvseg],len(self.freq))
             lines = specutil.linedatafromsegments(self.freq,self.chan,segments,self.specs,self.statspec)
+            duplicate_lines = []
             for l in lines:
-               llbdp.addRow(l)
-               logging.regression("LINEID: %s %.5f  %d %d" % ("NotIdentified", l.frequency, l.chans[0], l.chans[1]))
+                if l.getkey('uid') in duplicate_lines:
+                    logging.log(logging.WARNING, " Skipping-2 duplicate UID: " + l.getkey("uid"))
+                    continue
+                else:
+                    duplicate_lines.append(l.getkey('uid'))
+                llbdp.addRow(l)
+                logging.regression("LINEID: %s %.5f  %d %d" % ("NotIdentified", l.frequency, l.chans[0], l.chans[1]))
 
             # @todo  vlsr could now have been taken from Summary, so getkey() is an old value
             if self.getkey("vlsr") > -999998.0:
@@ -4365,11 +4380,17 @@ class LineID_AT(AT):
             mlist.append(frc)
         #mlist[0]
         mlist.sort(key=lambda x: float(x.getkey("frequency")))
+        duplicate_lines = []
         for m in mlist:
             addon = ""
             logging.log(logging.INFO, " Found line: " + m.getkey("formula") + " " + m.getkey("transition") +
                         " @ " + str(m.getkey("frequency")) + "GHz, channels " + str(m.getstart()) +
                         " - " + str(m.getend()) + addon)
+            if m.getkey('uid') in duplicate_lines:
+                logging.log(logging.WARNING, " Skipping duplicate UID: " + m.getkey("uid"))
+                continue
+            else:
+                duplicate_lines.append(m.getkey('uid'))
             llbdp.addRow(m)
             logging.regression("LINEID: %s %.5f  %d %d" % (m.getkey("formula"), m.getkey("frequency"),
                                                            m.getstart(), m.getend()))

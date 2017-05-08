@@ -6,7 +6,7 @@ tools for analyzing image data cubes. ADMIT is based on python and designed
 to be fully compliant with CASA_ and to utilize CASA_ routines where possible.
 ADMIT has a flow-oriented approach, executing a series of ADMIT Tasks (ATs)
 in a sequence to produce a sequence of outputs. For the beginner, ADMIT can
-be driven by simple scripts that can be run at the unix level or from inside
+be driven by simple scripts that can be run at the Unix level or from inside
 of CASA_. ADMIT provides a simple browser interface for looking at the data
 products, and all major data products are on disk as CASA_ images and graphics
 files. For the advanced user, ADMIT is a python environment for data analysis
@@ -24,7 +24,7 @@ telescopes. ADMIT has three primary functionalities:
 
 Typically an astronomer will interact with ADMIT in one of two ways:
 
-* By retrieving the ADMIT products from the ALMA Archive. These products will be in a gzipped tar file of size a few to a few tens of megabytes. Once untar'ed on the disk, these products can be viewed with a browser utilizing the index.html file provided or inspected directly with unix or xml tools. Archive products available later in 2016.
+* By retrieving the ADMIT products from the ALMA Archive. These products will be in a gzipped tar file of size a few to a few tens of megabytes. Once untar'ed on the disk, these products can be viewed with a browser utilizing the index.html file provided or inspected directly with Unix or xml tools. Archive products available later in 2016.
 
 * By creating a local ADMIT flow to do the user requested analysis, inspect the results, and then modify and improve the flow parameters to achieve the desired final data products.
 
@@ -79,7 +79,7 @@ associated with the BDP.  Most users will never examine admit.xml or a BDP file 
 
 ADMIT expects to be in control the contents of its BDPs so users should
 not delete files in the *input-cube-name.admit* directory. Furthermore,
-if the *input-cube-name.admit* directory is deleted at the unix level,
+if the *input-cube-name.admit* directory is deleted at the Unix level,
 all information about the flow and all data products are deleted. 
 
 Getting Started with ADMIT (for Linux users)
@@ -87,22 +87,22 @@ Getting Started with ADMIT (for Linux users)
 
 You should have already installed ADMIT on your local machine (see `Install Guide`_).
 
-In the shell that you want to work, there must be a path to casa_.
+In the shell that you want to work, there must be a path to CASA_.
 
 .. code-block:: none
 
       which casa        
 
-on your unix command line and you should see the path to casa_. If not,
-you need to either install casa or invoke your local script that
-defines your path to casa_. Similarly, admit should be in your path
+on your Unix command line and you should see the path to CASA_. If not,
+you need to either install CASA or invoke your local script that
+defines your path to CASA_. Similarly, admit should be in your path
 
 .. code-block:: none
 
         which admit
    or   echo $ADMIT
 
-on your unix command line and you should see the path to ADMIT.
+on your Unix command line and you should see the path to ADMIT.
 If you do not, go to the directory where ADMIT was installed and
 source the admit start-up script:
 
@@ -117,22 +117,22 @@ the ALMA archive and just want to look at the products, you can skip
 down to the `ADMIT in Your Web Browser`_ section on viewing data products. 
 Right now, since ADMIT products are not yet in the archive, you should 
 proceed to the next section to create simple ADMIT data products
-from an ALMA image in FITS or casa_ format.
+from an ALMA image in FITS or CASA_ format.
 
 Getting Started with ADMIT (for OS X users)
 ============================================
 
 You should have already installed ADMIT on your local machine (see `Install Guide`_).
 
-In the shell that you want to work, there must be a path to casa_.
+In the shell that you want to work, there must be a path to CASA_.
 
 .. code-block:: tcsh
 
       which casa        
 
-on your OS X command line and you should see the path to casa_. If not,
-you need to either install casa or invoke your local script that
-defines your path to casa_. Similarly, admit should be in your path
+on your OS X command line and you should see the path to CASA_. If not,
+you need to either install CASA or invoke your local script that
+defines your path to CASA_. Similarly, admit should be in your path
 
 .. code-block:: tcsh
 
@@ -149,7 +149,7 @@ source the admit start-up script:
 
 You can type "echo $ADMIT" again and now you should see the path.
 
-There are now two more steps. First, casa must be able to "see" where ADMIT is. 
+There are now two more steps. First, CASA must be able to "see" where ADMIT is. 
 The mac executable 'casa' or 'casapy' overwrites the system supplied path. To 
 fix this, edit (in your home directory) the ~/.casa/init.py file to reflect both the 
 ADMIT path and the ADMIT/bin path. 
@@ -170,9 +170,9 @@ ADMIT path and the ADMIT/bin path.
 
 (you can find a template of this script in *$ADMIT/scripts/casa.init.py*)
 The second thing that must be done is that calls to the ADMIT-supplied script
-'casarun' must be replaced with calls to the casa-supplied command 'casa-config.' 
+'casarun' must be replaced with calls to the CASA-supplied command 'casa-config.' 
 As an explicit example, one test that is run to establish the Python-path as seen 
-by casa is performed by running 
+by CASA is performed by running
 
 .. code-block:: tcsh
 
@@ -187,7 +187,7 @@ the ALMA archive and just want to look at the products, you can skip
 down to the `ADMIT in Your Web Browser`_ section on viewing data products. 
 Right now, since ADMIT products are not yet in
 the ALMA archive, you should proceed to the next section 
-to create simple ADMIT data products from an ALMA image FITS file or casa image.
+to create simple ADMIT data products from an ALMA image FITS file or CASA image.
 
 
 Prepared ADMIT Recipes
@@ -215,15 +215,15 @@ Making an ADMIT Data Product
 ============================
 
 ADMIT Tasks -- which do the work -- can be run directly 
-within casa_ from the command line, or from scripts in either the unix or
-casa_ environment.
-The goal of ADMIT is to produce, reproduce, and simply modify the production 
-of data products of scientific interest to you so ADMIT must internally keep track of
+within CASA_ from the command line, or from scripts in either the Unix or
+CASA_ environment.
+The goal of ADMIT is to produce, reproduce and simplify the production
+of data products of scientific interest to you, so ADMIT must internally keep track of
 what you are doing. To do this, ADMIT will create a "your-name-choice".admit
 directory and store information there. This tracking capability also means
 that simple ADMIT usage will involve a couple of administrative steps.
 
-Let's start in the casa environment. At the casa prompt, type:
+Let's start in the CASA environment. At the CASA prompt, type:
 
 .. code-block:: python
 
@@ -232,108 +232,133 @@ Let's start in the casa environment. At the casa prompt, type:
    CASA <3>: t0 = p.addtask(admit.Ingest_AT(file='your-image-cube-name.fits', vlsr=10.0))
 
 The admit.Project command initiates the project, opens the directory
-with the name that you gave and creates an Python 'Admit object' in memory named
-"p". The "p" can be anything that you choose; it will become the first
-piece of every ADMIT task command so chose a short name.  The dataserver=True
-flag causes ADMIT to start up a webpage for showing the results, 
-more on that later (in `ADMIT in Your Web Browser`_).  The webpage will be blank
-until you actually perform calculations.
+with the name that you gave and creates a Python 'Admit object' in memory named
+"p". The "p" can be anything that you choose; as it will become the first
+piece of every project command you type, a short name is recommended.  The
+dataserver=True flag causes ADMIT to start up a webpage for showing the
+results; more on that later (in `ADMIT in Your Web Browser`_).  The webpage
+will be blank until you actually perform calculations.
 
-The addtask command puts an ADMIT task into your flow: in this case, the `Ingest_AT`_. 
-The `Ingest_AT`_
-brings an image cube into ADMIT. If it is a FITS file, the image cube will
-be read into a casa_ image on disk. If it is a casa_ image, `Ingest_AT`_ will
-just create an ADMIT information file. "t0" is the ADMIT task number.
-In the ADMIT world, "t0" (or whatever you chose for a name)
-is the way to refer to your first `Basic Data Product`_ (BDP). Since casa_ images
-generally do not have information about your source Vlsr, `Ingest_AT`_ is typically
-a good place to input it -- in km/sec.
+The ``addtask()`` method (see `Admit Project`_) puts an ADMIT task into your
+flow---in this case, `Ingest_AT`_---and returns a handle to the task (the
+task's ID number). The `Ingest_AT`_ brings an image cube
+into ADMIT. If it is a FITS file, the image cube will be read into a CASA_
+image on disk. If it is a CASA_ image, `Ingest_AT`_ will just create an ADMIT
+information file.
 
-To make a moment map, or zero, first, and second moment maps, from the
-image cube, you would then type
+.. note::
+  Since CASA_ images generally do not have information about
+  your source Vlsr, `Ingest_AT`_ is typically a good place to input it
+  (in km/sec).
+
+The "t0" (or whatever name you choose) is the ADMIT task number, which
+provides a handle to the `Basic Data Product`_ (BDP)---in some cases,
+multiple BDPs---produced by the task. BDP outputs from a task are numbered from
+zero and referred to with Python tuples such as (*t0*,0), which represents the
+*first* BDP output from task *t0*. (Since many tasks produce only one BDP, for
+convenience tuples such as (*t0*,0) can be abbreviated simply to *t0*, as
+shown in the following example.)
+
+To make a moment map, such as zero, first and second moment maps, from the
+image cube, you would then type:
 
 .. code-block:: python
 
      CASA <4>: t1  = p.addtask(admit.CubeStats_AT(ppp=True), [t0])
      CASA <5>: t2  = p.addtask(admit.Moment_AT(mom0clip=2.0, numsigma=[3.0]), [t0, t1])
 
-The `CubeStats_AT`_ will produce a series of statistics about your data (t0) which will
-be stored in BDP "t1". The `Moment_AT`_ produces the requested moment maps for
-the image cube ("t0") that your digested. In this case, for the entire cube 
-(all spectral channels) with a
-S/N cutoff of 3 times the RMS noise determined by CubeStats (the "t1" input), 
-and with the higher moment maps (1,2,3...) clipped to be valid only 
-where the moment zero map is greater then 2 time the RMS.
+The `CubeStats_AT`_ will produce a series of statistics about its input data
+[*t0*]---shorthand for [(*t0*,0)]---which will be output in BDP (*t1*,0), the
+first (and only) BDP generated by the task, *t1*. The `Moment_AT`_ produces the
+requested moment map(s)---by default, just moment-0---for the image cube
+*t0* that you digested. In this case, for the entire cube (all spectral
+channels) with a S/N cutoff of 3 times the RMS noise determined by CubeStats
+(the *t1* input), and with the higher moment maps (1,2,3...) clipped to be
+valid only where the moment zero map is greater than 2 times the RMS. (In this
+example, no higher-order moments are produced.)
 
-Up to this point, you have just been creating a flow but the data products have
-not been calculated. You should have seen an "INFO" message as you entered
-each of the above lines. To execute your flow, you now type:
+.. note::
+  The moments=[...] argument to `Moment_AT`_ specifies the list of moments
+  to produce, each in its own BDP. For example, adding moments=[0,1,2] to
+  the preceding call will direct `Moment_AT`_ to produce moment-0, moment-1 and
+  moment-2 maps, which can be input to other tasks using the BDP handles
+  (*t2*,0), (*t2*,1) and (*t2*,2), respectively.
+
+Up to this point, you have just been creating a flow; the data products have
+not actually been calculated yet. You should have seen an "INFO" message as you
+entered each of the above lines. To execute your flow and create the BDPs,
+type:
 
 .. code-block:: python
 
       CASA <6>: p.run()
 
-p.run causes ADMIT to calculate your data products. The data products can be
-viewed in your local browser window -- there should be one now crested
-by ADMIT. If not, you can start one up by typing
+``p.run()`` causes ADMIT to calculate your data products. The data products can
+be viewed in your local browser window---there should be one now created by
+ADMIT. If not, you can start up the data browser by typing
 
 .. code-block:: python
 
       CASA <7>: p.startDataServer()
 
-If you already have a data server running, the above command, will inform you
+If you already have a data server running, the above command, will inform you:
 
 .. code-block:: none
 		
-      A data server for this Admit object is already running on localhost:NNNNN, 
+      A data server for this Admit object is already running on localhost:NNNNN
 
 where NNNNN is a port number.  If so, look through the webpages in your
 browser to see if it is hiding among your tabs, or copy and paste the
-*localhost:NNNNNN* to a new tab.  You should now have a browser page
-with bars for Ingest, CubeStats, and Moment. Click on the bars to see the
-products. In this case, the most interesting one is probably the moment
-map which is the integrated emisson over frequency in your cube -- the
-moment zero map.
+*localhost:NNNNN* to a new tab.  You should now have a browser page
+with bars for Ingest, CubeStats and Moment, as well as a flow diagram. Click on
+the bars to see the products. In this case, the most interesting one is
+probably the moment-0 map, which is the emission in your cube integrated over
+frequency.
 
 Great. Now let's say that you want a spectrum at the highest peak in your
-moment map. ADMIT can do that because one of the products in the `Moment_AT`_ 
-is the pixel location of the peak. To make the spectrum, you use the
-`CubeSpectrum_AT`_.
+moment map. ADMIT can do that automatically given the `Moment_AT`_ output.
+To make the spectrum, you use the `CubeSpectrum_AT`_:
 
 .. code-block:: python
 
      CASA <8>: t3 = p.addtask(admit.CubeSpectrum_AT(), [t0, t2])
      CASA <9>: p.run()
 
-The p.run() command is needed again. The add-task puts
-the task into the flow, and p.run() execute it. Your browser page should
+The p.run() command is needed again---the addtask() puts
+the task into the flow and p.run() executes it. Your browser page should
 now have a new line at the bottom which is labeled CubeSpectrum. Click
 on the bar and you will see your spectrum.
 
-The ADMIT Tasks, as they execute, create a python structure in memory
-containing all of the task information, and they write out information,
+The ADMIT tasks, as they execute, create a python structure in memory
+containing all of the task and flow information, and they write out information,
 images, and files to the "your-name-choice".admit directory. As long
-as you remain in your casa_ session, you have access to the contents
-of the structure and you can add to the flow, and your browser page
-will continue to update as you add to and run the flow.
+as you remain in your CASA_ session, you have access to the contents
+of the structure---you can add tasks to and re-execute the flow and your browser
+page will continue to update accordingly.
+
+.. note::
+  To minimize execution time, ADMIT re-runs projects intelligently. Each time
+  you add a task and re-run the flow, *only* the task(s) which have not yet
+  been run (or are otherwise out-of-date; e.g., due to changing the task
+  arguments) are executed. Unchanged tasks are skipped.
 
 
 Using ADMIT Scripts
 ===================
-ADMIT can also be run from script files using either the unix
-command line or the casa_ command line. The direct connection
-to the browser page and the ability to add to flows from the
-command line is only available from within casa_ because the
-casa session keeps your python structures persistent in memory. When a
-script is run from the unix command line, all memory-based products
-die when the script ends; fortunately, ADMIT writes all of
-the products to disk so you can view your ADMIT products using
-the browser as described in the next section.
+ADMIT can also be run from script files using either the Unix
+command line or the CASA_ command line. The direct connection
+to the browser page and the ability to dynamically add to flows from the
+command line is only available from within CASA_ because the
+CASA session keeps your python structures in active memory. When a
+script is run from the Unix command line, all memory-based products
+disappear when the script ends; however, ADMIT writes all of the products to
+persistent disk files so you can view your ADMIT products using the browser, as
+described in the next section, or modify and re-run the flow using a script
+file.
 
 An ADMIT script looks very much like what you would type
-on the casa_ command line. For example, the script below will
-create all of the same products in the casa session in
-the last section.
+on the CASA_ command line. For example, the script below will
+create all of the same products in the CASA session of the previous section.
 
 .. code-block:: python
 
@@ -346,17 +371,27 @@ the last section.
  t0  = p.addtask(admit.Ingest_AT(file='your-image-cube-name.fits'))
  t1  = p.addtask(admit.CubeStats_AT(ppp=True), [t0])
  t2  = p.addtask(admit.Moment_AT(mom0clip=2.0, numsigma=[3.0]), [t0, t1])
- t3  = p.addtask(admit.CubeSpectrum_AT(), [t0, t2])
+ t3  = p.addtask(admit.CubeSpectrum_AT(), [t0, (t2,0)])
  p.run()
 
-The script can be run in casa_ using the "execfile" command, or 
-from the unix command line by making the script file executable
-(chmod +x) and them executing it. The file containing your
-script should be named 'anything-you-want.py'
+The script can be run in CASA_ using the "execfile" command, or
+from the Unix command line by making the script file executable
+(``chmod +x``) and then executing it. The file containing your
+script can be named 'anything-you-want.py'.
 
-The 'your-name-choice.admit' directory includes a file (which is
-currently called admit0.py) containg a script that will re-run
-exactly the flow that created 'your-name-choice.admit'.
+The 'your-name-choice.admit' directory includes a file, admit0.py, containing a 
+transcript (an ADMIT script) of the flow that created 'your-name-choice.admit'.
+Comparing this script to the graphical representation of the flow (shown in the
+"Flow Diagram" tab at the top of the data browser window) can be instructive
+when learning how to create your own ADMIT scripts.
+
+.. warning::
+  Flow transcripts are *not* intended to be used directly as script templates
+  (although this will work in simple cases). In particular, flows containing
+  tasks producing a variable number of BDP outputs, such as `LineCube_AT`_,
+  require special care---the transcript includes all literal outputs of such
+  *variadic* tasks, whereas user scripts should assume only a single,
+  placeholder output is present (see the following section for an example).
 
 Molecular Line Identification
 =============================
@@ -369,7 +404,7 @@ channel intervals with emission above a user-selected
 noise level and then tries to identify the lines in the
 Splatalog database. `LineCube_AT`_ cuts out sub-cubes for
 each identified line emission region and writes out a
-separate casa_ image file for each.
+separate CASA_ image file for each.
 
 Information about the Vlsr of your object is not passed down the ALMA
 imaging pipeline to your ALMA image cubes. Hence, ADMIT does not
@@ -398,22 +433,24 @@ A typical use of `LineID_AT`_ would look like this in a script:
  t4  = p.addtask(admit.LineID_AT(csub=[0, 0], minchan=4, maxgap=6, numsigma=5.0), [t1, t3])
  t5 = p.addtask(admit.LineCube_AT(pad=40), [t0, t4])
  t6 = p.addtask(admit.Moment_AT(mom0clip=2.0, moments=[0, 1, 2]), [t5, t1])
- t7 = p.addtask(admit.CubeSpectrum_AT(), [t5, t6])
+ t7 = p.addtask(admit.CubeSpectrum_AT(), [t5, (t6,0)])
  p.run()
 
 The `CubeStats_AT`_ is done to get the RMS noise in the cube and to generate two
 spectra: one consisting of the maximum flux density in each channel and the
 other the minimum. The `CubeSpectrum_AT`_ is run to get the spectrum at the
 position of the peak total integrated emission. Both of these BDPs are input
-to `LineID_AT`_ to estimate the emission segments and do the line identification. `LineCube_AT`_,
-`Moment_AT`_, and `CubeSpectrum_AT`_ are then repeated for each emission
-segment identified.
+to `LineID_AT`_ to estimate the emission segments and do the line
+identification. `LineCube_AT`_ produces one data cube for each segment found.
+`Moment_AT`_ and `CubeSpectrum_AT`_ are then repeated for each emission
+segment identified. (ADMIT automatically replicates the latter two tasks in the
+flow for each `LineCube_AT`_ output it finds---do not do this manually!)
 
 At the present time, some (perhaps many) ALMA total power line cubes have
 baselines that are not "average" zero in the non-line channels. There are
 infrequently cases where the 7-m or 12-m interferometric maps have incorrect
 continuum subtractions but you are best off to correct that by remaking the
-maps in casa_ based on a new continuum subtracted u,v dataset. For the
+maps in CASA_ based on a new continuum subtracted u,v dataset. For the
 total power data, the sequence would be similar to the above with the
 insertion of two new tasks: `LineSegment_AT`_ and `ContinuumSub_AT`_.
 `LineSegment_AT`_ finds the channel segments with emission above your
@@ -517,7 +554,7 @@ which can be fed into `LineCube_AT`_ to cut line cubes. You can also use
 the force and reject buttons as input advise to a second run of `LineID_AT`_.
 
 The interaction mode with LineID Editor can only be used if your ADMIT
-file is created or opened from within your current casa session. The
+file is created or opened from within your current CASA session. The
 editing mode requires that your ADMIT flow be present as an active 
 python memory structure. The interactive edits that you make within
 LineID Editor are not saved to the flow so, at present, you cannot
@@ -680,6 +717,7 @@ this mode.
 
 
 
+.. _ADMIT Project:      module/admit/Admit.html
 .. _ADMIT Tasks:        module/admit/AT.html
 .. _ADMIT Task:         module/admit/AT.html
 .. _BDP:                module/admit.bdp/BDP.html

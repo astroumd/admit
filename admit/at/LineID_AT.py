@@ -243,18 +243,21 @@ class LineID_AT(AT):
         **Input BDPs**
           At least one of the following BDPs must be specified.
 
-          **CubeSpectrum**: count: 1 (optional)
-            Input spectrum, may contain several spectra.
+          **CubeSpectrum_BDP**: count: 1 (optional)
+            Input spectrum, may contain several spectra. Typically the output
+            of a `CubeSpectrum_AT <CubeSpectrum_AT.html>`_ or
+            `GenerateSpectrum_AT <GenerateSpectrum_AT.html>`_.
 
-          **CubeStats**: count: 1 (optional)
-            Alternative input spectrum.
+          **CubeStats_BDP**: count: 1 (optional)
+            Alternative input spectrum, as from a
+            `CubeStats_AT <CubeStats_AT.html>`_.
 
-          **PVCorr**: count: 1 (optional)
-            Spectrum based on the output of PVCorr.
+          **PVCorr_BDP**: count: 1 (optional)
+            Spectrum based on the output of `PVCorr_AT <PVCorr_AT.html>`_.
 
         **Output BDPs**
 
-          **LineList**: count: 1
+          **LineList_BDP**: count: 1
             List of spectral lines.
 
     """

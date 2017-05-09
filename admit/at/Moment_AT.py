@@ -95,11 +95,15 @@ class Moment_AT(AT):
 
         **Input BDPs**
 
-          **ImageCube_BDP**: count: 1
-            Spectral cube to take the moment(s) of.
+          **SpwCube_BDP** or **LineCube_BDP**: count: 1
+            Spectral cube to take the moment(s) of, as from an
+            `Ingest_AT <Ingest_AT.html>`_,
+            `ContinuumSub_AT <ContinuumSub_AT.html>`_ or
+            `LineCube_AT <LineCube_AT.html>`_.
 
           **CubeStats_BDP**: count: 1 (optional)
             Use for determining the noise level for cutoffs.
+            Normally from a `CubeStats_AT <CubeStats_AT.html>`_.
 
         **Output BDPs**
 

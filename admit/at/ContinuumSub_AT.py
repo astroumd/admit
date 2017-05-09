@@ -63,11 +63,14 @@ class ContinuumSub_AT(AT):
     **Input BDPs**
 
         **SpwCube_BDP**: count: 1
-            Input spectral window cube. 
+            Input spectral window cube; e.g., as output by
+            `Ingest_AT <Ingest_AT.html>`_. 
 
-        **LineList_BDP**: count: 1 (optional)
-            Optional linelist, usually derived from LineSegments_AT, although
-            LineID_AT should also work. If given, the contsub= is ignored.
+        **LineSegemnt_BDP** or **LineList_BDP**: count: 1 (optional)
+            Optional line list, usually derived from 
+            `LineSegment_AT <LineSegment_AT.html>`_, although
+            `LineID_AT <LineID_AT.html>`_ output should also work. If given, the
+            contsub= is ignored.
  
     **Output BDPs**
 

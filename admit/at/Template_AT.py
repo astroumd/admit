@@ -44,7 +44,10 @@ class Template_AT(admit.Task):
     **Input BDPs**
 
       **SpwCube_BDP**: count: 1
-        Input 3-D data cube.
+        Input 3-D data cube; e.g., as output from an
+        `Ingest_AT <Ingest_AT.html>`_,
+        `ContinuumSub_AT <ContinuumSub_AT.html>`_ or
+        `LineCube_AT <LineCube_AT.html>`_.
 
     **Output BDPs**
 

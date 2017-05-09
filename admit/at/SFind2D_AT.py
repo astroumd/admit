@@ -117,19 +117,21 @@ class SFind2D_AT(AT):
     **Input BDPs**
 
         **SpwCube_BDP**: count: 1
-            Input 2-D map (typically continuum or moment map).
-            Needs to be a noise-flat map. Ingest has the option for creating noise-flat
-            map from a primary beam corrected map and a primary beam.
+            Input 2-D map, typically from `Moment_AT <Moment_AT.html>`_.
+            Needs to be a noise-flat map. `Ingest_AT <Ingest_AT.html>`_
+            has the option for creating a noise-flat map from a primary beam
+            corrected map and a primary beam.
 
         **CubeStats_BDP**: count: 1 (optional)
-            Output from **CubeStats** executed on input image cube.
-            Optional, see description if **sigma** keyword.
+            Output from `CubeStats_AT <CubeStats_AT.html>`_ executed on the
+            input image cube.  Optional, see description of **sigma** keyword.
 
     **Output BDPs**
 
-        **SFind2D_BDP**: count: 1
-            A table with source information, ordered by peak flux density.
-            The BDP can be input to CubeStats to produce spectra at each source position.
+        **SourceList_BDP**: count: 1
+            An image and table with source information, ordered by peak flux
+            density. Can be input to `CubeStats_AT <CubeStats_AT.html>`_
+            to produce spectra at each source position.
 
     Parameters
     ----------

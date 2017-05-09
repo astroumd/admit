@@ -14,21 +14,23 @@ class PrincipalComponent_AT(admit.Task):
     """
     Calculates the principal components of a set of input maps.
 
-    Given **N** single-plane images, principal component analysis solves the
-    **N**-dimensional eigenvalue problem determining the principal directions
-    in **N**-space of the image data, ranked according to their contribution to
-    the total variance of the sample points (each sample point being the
-    **N**-vector of image values corresponding to a single pixel position). 
-    This decomposition can be used to reduce the dimensionality of the data by
-    identifying components contributing little independent information to the
-    data set. This task also calculates the covariance matrix for input images.
+    Given **N** single-plane (i.e., 2-D) images, principal component analysis
+    solves the **N**-dimensional eigenvalue problem determining the principal
+    directions in **N**-space of the image data, ranked according to their
+    contribution to the total variance of the sample points (each sample point
+    being the **N**-vector of image values corresponding to a single pixel
+    position).  This decomposition can be used to reduce the dimensionality of
+    the data by identifying components contributing little independent
+    information to the data set. This task also calculates the covariance
+    matrix for input images.
 
     Mathematically, a principal component analysis can be applied to an
     arbitrary set of images. In practice, the input images should be related in
     some way; otherwise, the eigenvalues will be of similar magnitude and (as
     expected) no reduction in dataset dimensionality possible. For astronomical
     images, the inputs will typically be maps of the same source (at the same
-    pixel scale) in different wavelength bands.
+    pixel scale) in different wavelength bands. In ADMIT, the inputs will often
+    be moment maps produced by `Moment_AT <Moment_AT.html>`_.
 
     **Keywords**
 
@@ -43,7 +45,9 @@ class PrincipalComponent_AT(admit.Task):
     **Input BDPs**
 
       **Image_BDP**: count: `varies`
-        Input images for principal component analysis.
+        Input images for principal component analysis; e.g., moment maps
+        produced by `Moment_AT <Moment_AT.html>`_ or
+        `CubeSum_AT <CubeSum_AT.html>`_.
 
     **Output BDPs**
 

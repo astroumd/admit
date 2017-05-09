@@ -56,7 +56,10 @@ class Export_AT(AT):
     **Input BDPs**
 
         **Image_BDP**: count: 1
-           Input image.
+           Input 2-D or 3-D image, such as output by
+           `Ingest_AT <Ingest_AT.html>`_,
+           `LineCube_AT <LineCube_AT.html>`_ or
+           `Moment_AT <Moment_AT.html>`_.
 
     **Output BDPs**
         None

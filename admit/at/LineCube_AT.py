@@ -61,10 +61,13 @@ class LineCube_AT(AT):
         **Input BDPs**
 
           **Image_BDP**: count: 1
-            Spectral cube from which the line cube is sliced.
+            Spectral cube from which the line cube is sliced, as from an
+            `Ingest_AT <Ingest_AT.html>`_ or 
+            `ContinuumSub_AT <ContinuumSub_AT.html>`_.
 
           **LineList_BDP**: count: 1
-            List of spectral lines to cut (including the channel ranges).
+            List of spectral lines to cut (including the channel ranges),
+            typically the output of a `LineID_AT <LineID_AT.html>`_.
 
         **Output BDPs**
 

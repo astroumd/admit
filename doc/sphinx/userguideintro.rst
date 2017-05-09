@@ -313,7 +313,8 @@ browser to see if it is hiding among your tabs, or copy and paste the
 with bars for Ingest, CubeStats and Moment, as well as a flow diagram. Click on
 the bars to see the products. In this case, the most interesting one is
 probably the moment-0 map, which is the emission in your cube integrated over
-frequency.
+frequency. Examining the flow diagram is a good way to visually explore how the
+tasks in your flow relate to each other.
 
 Great. Now let's say that you want a spectrum at the highest peak in your
 moment map. ADMIT can do that automatically given the `Moment_AT`_ output.

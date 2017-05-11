@@ -1826,6 +1826,12 @@ $as_echo "$with_casa_root appears to be a valid CASA installation.1" >&6; }
 
 else
 
+    for casaroot in /Applications/CASA.app/Contents/ /home/casa/packages/ /astromake/opt/casa/; do
+    	if test -d $casaroot; then
+	    { $as_echo "$as_me:${as_lineno-$LINENO}: Found a casa-root in or below $casaroot" >&5
+$as_echo "$as_me: Found a casa-root in or below $casaroot" >&6;}
+	fi
+    done
     if test "x$CASA_ROOT" = "x"; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: CASA not found and --with-casa-root not given" >&5
 $as_echo "$as_me: WARNING: CASA not found and --with-casa-root not given" >&2;}

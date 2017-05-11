@@ -56,16 +56,19 @@ both Linux and Darwin:
 
     tar zxf admit.tar.gz
     ls
-    cd admit_0.X.x
-    ./configure --with-casa-root=/path/to/casa-release-4.5.2-el6
+    cd admit_1.X.x
+    ./configure --with-casa-root=/path/to/casa-release-4.7.2-el6
 
     ./configure --with-casa-root=/Applications/CASA.app/Contents
 
-where a CASA release had been placed in the /path/to/casa-release-4.5.2-el6
+where a CASA release had been placed in the /path/to/casa-release-4.7.2-el6
 (a typical Linux example) or /Applications/CASA.app/Contents (the common Darwin
 example)
-and admit_0.X.x is the downloaded version of ADMIT. You can also *wget* that
+and admit_1.X.x is the downloaded version of ADMIT. You can also *wget* that
 fully named version, but the latest is always available under the generic name.
+If you have a version of ADMIT without the configure script , you might be able
+to use the scripts/configure script instead (formally configure should be
+created with the autoconf command).
 
 Now you can source the startup file and you are set:
 

@@ -297,6 +297,7 @@ doc:
 	TEXINPUTS=$(TEXINPUTS) $(MAKE) -C doc all
 
 # This has to be called docs NOT doc.  Don't change it!
-docs: doc html pdf
+docs: doc html 
+#pdf
 
 all: config docs

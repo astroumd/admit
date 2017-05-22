@@ -1,1 +1,0 @@
-.. automodule:: admit.scripts.recipe

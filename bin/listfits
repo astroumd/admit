@@ -1,20 +1,21 @@
 #! /usr/bin/env casarun
 #-*- mode: python -*-
 #
-#   listfits
+#   listfits: use CASA to print some basic info for fits files - one line per file
+#
+#   See also:   listfitsa   (faster, and uses either astropy.io.fits or pyfits)
 #
 #   Usage:      $ADMIT/admit/test/listfits  *.fits
 #               $ADMIT/admit/test/listfits `cat file`
 #               ---------> file is a text file containing a bunch of fits files
 
-version  = '22-jul-2015'
+version  = '29-may-2017'
 
 
 # =================================================================================================================
 # python system modules
-import sys, os, math
-import admit.Admit as admit
-import admit.util.util as util
+import sys
+import admit.util.utils as util
 
 try:
   import taskinit
@@ -24,9 +25,9 @@ except:
 
 
 verbose = False
-#verbose = True
+verbose = True
 
-argv = admit.casa_argv(sys.argv)
+argv = util.casa_argv(sys.argv)
 
 total = len(argv)-1
 counter = 0
@@ -45,12 +46,13 @@ for ff in argv[1:]:
     else:
         fn = ff
     
-    taskinit.ia.open(ff)
+    #taskinit.ia.open(ff)
+    ia.open(ff)
     dt.tag("ia.open")
-    s = taskinit.ia.summary()
+    s = ia.summary()
     dt.tag("ia.summary")
 
-    s1 = taskinit.ia.miscinfo()
+    s1 = ia.miscinfo()
     if s1.has_key('object'):
         # casa image has it
         obj = s1['object']
@@ -59,7 +61,7 @@ for ff in argv[1:]:
         obj = ''
 
     if Qstats:
-        stat = taskinit.ia.statistics()
+        stat = ia.statistics()
         dt.tag("ia.stats")
         goodpix = stat['npts'][0]
     else:

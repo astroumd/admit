@@ -710,7 +710,7 @@ class SpectralLineSearch(object):
         """
         try:
             from slsearch import slsearch
-            import taskinit
+            # import taskinit
         except:
             logging.info("WARNING: No CASA, slsearch is not available, no line identificaiton possible.")
             raise
@@ -725,7 +725,7 @@ class SpectralLineSearch(object):
         #print flname
         slsearch(**self.sls_kw)
         # open the table and get the contents
-        tb = taskinit.tb
+        # tb = taskinit.tb
         tb.open(self.sls_kw["outfile"])
         numrows = tb.nrows()
         possible = []

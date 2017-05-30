@@ -70,10 +70,11 @@ class PVCorr_AT(AT):
        **Input BDPs**
 
           **PVSlice_BDP**: count: 1
-            Input PV Slice. As created with e.g. PVSlice_AT.
+            Input PV slice, normally from a `PVSlice_AT <PVSlice_AT.html>`_.
 
           **CubeStats_BDP**: count: 1
-            Input cube statistics from which the RMS is taken.
+            Input cube statistics from which the RMS is taken, received from a
+            `CubeStats_AT <CubeStats_AT.html>`_.
 
        **Output BDPs**
 

@@ -93,7 +93,10 @@ class CubeStats_AT(AT):
     **Input BDPs**
 
       **Image_BDP**: count: 1
-        Spectral cube (or map) for which statistics are computed.
+        Spectral cube (or map) for which statistics are computed; for example,
+        the output of an `Ingest_AT <Ingest_AT.html>`_,
+        `SFind2D_AT <SFind2D_AT.html>`_ or `Moment_AT <Moment_AT.html>`_.
+
 
     **Output BDPs** 
 

@@ -66,6 +66,10 @@ Some known peculiar situations
 
 fedora22: it needs libpng12
 
+ubuntu:   it needs a new symlink to the system version of CASA's libtinfo.so.5, viz.
+
+	  cd $CASA_ROOT/lib ; ln -sf /lib/x86_64-linux-gnu/libtinfo.so.5
+
 Sample installation
 -------------------
 

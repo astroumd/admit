@@ -106,15 +106,20 @@ class CubeSum_AT(AT):
     **Input BDPs**
 
         **SpwCube_BDP**: count: 1
-           Input spectral window cube.
+           Input spectral window cube; usually the output of an
+           `Ingest_AT <Ingest_AT.html>`_.
 
         **CubeStats_BDP**: count: 1 (optional)
-            Optional input for the global RMS or channel-based RMS (if sigma>0). Note that
-            tracking channel-based RMS is currently very expensive.
+            Optional input for the global RMS or channel-based RMS (if
+            sigma>0). Note that tracking channel-based RMS is currently very
+            expensive. Normally the output of a
+            `CubeStats_AT <CubeStats_AT.html>`_.
  
         **LineList_BDP**: count: 1 (optional)
-            Optional input of a LineList in case channels segments are selected or rejected
-            to be included. A LineSegment_BDP is also allowed.
+            Optional input of a LineList in case channels segments are selected
+            or rejected to be included; usually the output of a
+            `LineID_AT <LineID_AT.html>`_. A LineSegment_BDP (from
+            `LineSegment_AT <LineSegment_AT.html>`_) is also allowed.
 
     **Output BDPs**
 

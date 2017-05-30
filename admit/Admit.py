@@ -517,9 +517,15 @@ class Admit(object):
         """
         Add an AT to the project.
 
-        Also adjusts the connection mapping.
-        Usually all but the first task will have 'stuples'
-        (a List of Source Tuples (task-id,bdp-id)).
+        Also adjusts the connection mapping between tasks.
+        Usually all but the first task---typically, Ingest_AT---will have
+        'stuples' (a List of Source Tuples (task-id,bdp-id)). A source 2-tuple
+        consists of a task ID (``task-id``, such as returned by this method) and
+        BDP output slot number (``bdp-id``, zero-based). If the output slot is
+        zero (the tuple refers to the *first* BDP output from the task), then
+        the tuple can be replaced by the task ID for convenience---e.g.,
+        stuples = [(t1,0), (t2,1)] is equivalent to
+        stuples = [t1, (t2,1)].
 
         Support for re-running scripts: this method will ignore attempts to
         re-add a task of the same type and ID to the existing flow, if the

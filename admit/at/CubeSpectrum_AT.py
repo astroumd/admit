@@ -71,20 +71,25 @@ class CubeSpectrum_AT(AT):
     **Input BDPs**
 
       **SpwCube_BDP** or **LineCube_BDP**: count: 1
-        One of more spectra are taken through this cube.
+        One of more spectra are taken through this cube, as from an
+        `Ingest_AT <Ingest_AT.html>`_,
+        `ContinuumSub_AT <ContinuumSub_AT.html>`_ or
+        `LineCube_AT <LineCube_AT.html>`_.
 
       **CubeStats_BDP**: count: 1 (optional)
         If given, the cube maxpos from this table will be used for pos=[].
+        Normally the output of a `CubeStats_AT <CubeStats_AT.html>`_.
 
-      **CubeSum_BDP** or **Moment_BDP**: count: 1 (optional)
+      **Moment_BDP**: count: 1 (optional)
         If given, the maxpos from this moment map will be used for pos=[].
         Note : currently this is computed on the fly, as maps don't store
-        their maxpos.
+        their maxpos. Typically the output of a
+        `CubeSum_AT <CubeSum_AT.html>`_ or `Moment_AT <Moment_AT.html>`_.
     
       **SourceList_BDP**: count: 1 (optional)
         If given, the positions in this source list will be used. By default
         only the strongest source (index 0) is selected. Typically the output
-        from SFind2D_AT on a continuum map is given here.
+        from `SFind2D_AT <SFind2D_AT.html>`_ on a continuum map is given here.
 
     **Output BDPs**
 

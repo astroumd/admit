@@ -89,14 +89,18 @@ class PVSlice_AT(AT):
     **Input BDPs**
 
       **SpwCube_BDP**: count: 1
-        Spectral window cube.
+        Spectral window cube, as from an `Ingest_AT <Ingest_AT.html>`_ or
+        `ContinuumSub_AT <ContinuumSub_AT.html>`_.
 
       **Moment_BDP**: count: 1 (optional)
-        Moment_BDP or CubeSum_BDP map where a moment of inertia is used to derive a best slice.
+        Map from a `CubeSum_AT <CubeSum_AT.html>`_ or
+        `Moment_AT <Moment_AT.html>`_
+        where a moment of inertia is used to derive a best slice.
 
       **CubeStats_BDP**: count: 1 (optional)
         The peakpoints from this table are used to compute a moment of inertia
-        to obtain a best slice.
+        to obtain a best slice. Normally the output of a
+        `CubeStats_AT <CubeStats_AT.html>`_.
     
     **Output BDPs**
 

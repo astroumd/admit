@@ -61,7 +61,10 @@ class Regrid_AT(AT):
     **Input BDPs**
 
         **SpwCube_BDP**: count: `varies` (minimum 2)
-           Input cubes.
+           Input cubes, as from
+           `Ingest_AT <Ingest_AT.html>`_,
+           `ContinuumSub_AT <ContinuumSub_AT.html>`_ or
+           `LineCube_AT <LineCube_AT.html>`_.
 
     **Output BDPs**
 

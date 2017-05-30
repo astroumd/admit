@@ -39,7 +39,7 @@ from admit.util import Segments
 #        Note there were 3 places where %.3f -> %.4f now
 #        The real fix is a) not allow same interval (U) lines
 #                        b) double check on exit linelist is unique
-
+#        See code around duplicate_lines[] where method b) is applied in 1.0.4.
 
 #(see :ref:`tier-one-lineid`).
 class LineID_AT(AT):
@@ -243,18 +243,21 @@ class LineID_AT(AT):
         **Input BDPs**
           At least one of the following BDPs must be specified.
 
-          **CubeSpectrum**: count: 1 (optional)
-            Input spectrum, may contain several spectra.
+          **CubeSpectrum_BDP**: count: 1 (optional)
+            Input spectrum, may contain several spectra. Typically the output
+            of a `CubeSpectrum_AT <CubeSpectrum_AT.html>`_ or
+            `GenerateSpectrum_AT <GenerateSpectrum_AT.html>`_.
 
-          **CubeStats**: count: 1 (optional)
-            Alternative input spectrum.
+          **CubeStats_BDP**: count: 1 (optional)
+            Alternative input spectrum, as from a
+            `CubeStats_AT <CubeStats_AT.html>`_.
 
-          **PVCorr**: count: 1 (optional)
-            Spectrum based on the output of PVCorr.
+          **PVCorr_BDP**: count: 1 (optional)
+            Spectrum based on the output of `PVCorr_AT <PVCorr_AT.html>`_.
 
         **Output BDPs**
 
-          **LineList**: count: 1
+          **LineList_BDP**: count: 1
             List of spectral lines.
 
     """
@@ -3218,12 +3221,12 @@ class LineID_AT(AT):
             duplicate_lines = []
             for l in lines:
                 if l.getkey('uid') in duplicate_lines:
-                    logging.log(logging.INFO, " Skipping-2 duplicate UID: " + l.getkey("uid"))
+                    logging.log(logging.WARNING, " Skipping-2 duplicate UID: " + l.getkey("uid"))
                     continue
                 else:
                     duplicate_lines.append(l.getkey('uid'))
-               llbdp.addRow(l)
-               logging.regression("LINEID: %s %.5f  %d %d" % ("NotIdentified", l.frequency, l.chans[0], l.chans[1]))
+                llbdp.addRow(l)
+                logging.regression("LINEID: %s %.5f  %d %d" % ("NotIdentified", l.frequency, l.chans[0], l.chans[1]))
 
             # @todo  vlsr could now have been taken from Summary, so getkey() is an old value
             if self.getkey("vlsr") > -999998.0:
@@ -4387,7 +4390,7 @@ class LineID_AT(AT):
                         " @ " + str(m.getkey("frequency")) + "GHz, channels " + str(m.getstart()) +
                         " - " + str(m.getend()) + addon)
             if m.getkey('uid') in duplicate_lines:
-                logging.log(logging.INFO, " Skipping duplicate UID: " + m.getkey("uid"))
+                logging.log(logging.WARNING, " Skipping duplicate UID: " + m.getkey("uid"))
                 continue
             else:
                 duplicate_lines.append(m.getkey('uid'))

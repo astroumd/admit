@@ -81,7 +81,10 @@ class Smooth_AT(AT):
     **Input BDPs**
 
         **SpwCube_BDP**: count: `varies`
-          Input cubes.
+          Input cubes; e.g., output from an
+          `Ingest_AT <Ingest_AT.html>`_,
+          `ContinuumSub_AT <ContinuumSub_AT.html>`_ or
+          `LineCube_AT <LineCube_AT.html>`_.
 
     **Output BDPs**
 

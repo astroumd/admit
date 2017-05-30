@@ -84,15 +84,16 @@ class LineSegment_AT(AT):
         **Input BDPs**
           At least one of the following BDPs must be specified.
 
-          **CubeSpectrum**: count: 1 (optional)
-            Input spectrum.
+          **CubeSpectrum_BDP**: count: 1 (optional)
+            Input spectrum, as from `CubeSpectrum_AT <CubeSpectrum_AT.html>`_.
 
-          **CubeStats**: count: 1 (optional)
-            Alternative input spectrum.
+          **CubeStats_BDP**: count: 1 (optional)
+            Alternative input spectrum, as from
+            `CubeStats_AT <CubeStats_AT.html>`_.
 
         **Output BDPs**
 
-          **LineSegment**: count: 1
+          **LineSegment_BDP**: count: 1
             List of line segments.
 
     """

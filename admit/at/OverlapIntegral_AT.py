@@ -66,8 +66,9 @@ class OverlapIntegral_AT(AT):
     **Input BDPS**
 
         **Image_BDP**: count: 2 or more
-            Input images (or cubes). This could be Moment_BDP, or SpwCube_BDP or
-            LineCube_BDP.
+            Input images (or cubes); for example, from 
+            `Ingest_AT <Ingest_AT.html>`_, `LineCube_AT <LineCube_AT.html>`_
+            or `Moment_AT <Moment_AT.html>`_.
 
     **Output BDPs**
 

@@ -29,9 +29,8 @@ import os
 
 try:
     import scipy.stats
-    import casa 
-    from taskinit import ia
-    from taskinit import rg
+    import casa
+    import taskinit
 except:
     print "WARNING: No CASA; CubeStats task cannot function."
 
@@ -122,7 +121,7 @@ class CubeStats_AT(AT):
                 "psample" : -1,         # if > 0, spatial sampling rate for PeakStats
         }
         AT.__init__(self,keys,keyval)
-        self._version       = "1.0.6"
+        self._version       = "1.1.0"
         self.set_bdp_in([(Image_BDP,      1, bt.REQUIRED)])
         self.set_bdp_out([(CubeStats_BDP, 1)])
 
@@ -209,6 +208,9 @@ class CubeStats_AT(AT):
         # numsigma:  adding all signal > numsigma ; not user enabled;   for peaksum.
         numsigma = -1.0
         numsigma = 3.0
+
+        # tools we need
+        ia = taskinit.iatool()
 
         # grab the new robust statistics. If this is used, 'rms' will be the RMS,
         # else we will use RMS = 1.4826*MAD (MAD does a decent job on outliers as well)
@@ -566,6 +568,7 @@ class CubeStats_AT(AT):
         for v in self._summary:
             self._summary[v].setTaskArgs(taskargs)
 
+        ia.done()     # is that a good habit?
         dt.tag("summary")
         dt.end()
 

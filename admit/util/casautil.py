@@ -117,9 +117,10 @@ def implot(rasterfile, figname, contourfile=None, plottype=PlotControl.PNG,
     axes = {'x':'x','y':'y','z':'z'}
 
     # work around this axis labeling problem?
-    taskinit.ia.open(rasterfile)
-    h = taskinit.ia.summary()
-    taskinit.ia.close()
+    ia = taskinit.iatool()
+    ia.open(rasterfile)
+    h = ia.summary()
+    ia.close()
     #print "PJT: implot axisnames:",h['axisnames'][0],h['axisnames'][1]
     if h['axisnames'][1]=='Frequency':
         axes['y'] = 'Frequency'
@@ -159,14 +160,15 @@ def getdata(imgname, chans=[], zeromask=False):
        array 
            data in a masked numpy array
     """
-    taskinit.ia.open(imgname)
+    ia = taskinit.iatool()    
+    ia.open(imgname)
     if len(chans) == 0:
-        d = taskinit.ia.getchunk(blc=[0,0,0,0],trc=[-1,-1,-1,0],getmask=False).squeeze()
-        m = taskinit.ia.getchunk(blc=[0,0,0,0],trc=[-1,-1,-1,0],getmask=True).squeeze()
+        d = ia.getchunk(blc=[0,0,0,0],trc=[-1,-1,-1,0],getmask=False).squeeze()
+        m = ia.getchunk(blc=[0,0,0,0],trc=[-1,-1,-1,0],getmask=True).squeeze()
     else:
-        d = taskinit.ia.getchunk(blc=[0,0,chans[0],0],trc=[-1,-1,chans[1],0],getmask=False).squeeze()
-        m = taskinit.ia.getchunk(blc=[0,0,chans[0],0],trc=[-1,-1,chans[1],0],getmask=True).squeeze()
-    taskinit.ia.close()
+        d = ia.getchunk(blc=[0,0,chans[0],0],trc=[-1,-1,chans[1],0],getmask=False).squeeze()
+        m = ia.getchunk(blc=[0,0,chans[0],0],trc=[-1,-1,chans[1],0],getmask=True).squeeze()
+    ia.close()
     # note CASA and MA have their mask logic reversed
     # casa: true means a good point
     #   ma: true means a masked/bad point
@@ -206,10 +208,11 @@ def getdata1(imgname):
        array 
           data in a 1D numpy array
     """
-    taskinit.ia.open(imgname)
-    d = taskinit.ia.getchunk(blc=[0,0,0,0],trc=[-1,-1,0,0],getmask=False)
-    m = taskinit.ia.getchunk(blc=[0,0,0,0],trc=[-1,-1,0,0],getmask=True)
-    taskinit.ia.close()
+    ia = taskinit.iatool()
+    ia.open(imgname)
+    d = ia.getchunk(blc=[0,0,0,0],trc=[-1,-1,0,0],getmask=False)
+    m = ia.getchunk(blc=[0,0,0,0],trc=[-1,-1,0,0],getmask=True)
+    ia.close()
     # note CASA and MA have their mask logic reversed
     # casa: true means a good point
     #   ma: true means a masked/bad point
@@ -238,9 +241,10 @@ def getdata_raw(imgname):
        array 
            data in a 2D numpy array
     """
-    taskinit.tb.open(imgname)
-    data=taskinit.tb.getcol('map')
-    taskinit.tb.close()
+    tb = taskinit.tbtool()
+    tb.open(imgname)
+    data=tb.getcol('map')
+    tb.close()
     shp=data.shape
     nx = shp[0]
     ny = shp[1]
@@ -265,9 +269,10 @@ def putdata_raw(imgname, data, clone=None):
            for output. It needs to be an absolute filename.
   
     """
+    ia = taskinit.iatool()    
     if clone != None:
-        taskinit.ia.fromimage(infile=clone,outfile=imgname,overwrite=True) 
-        taskinit.ia.close()
+        ia.fromimage(infile=clone,outfile=imgname,overwrite=True) 
+        ia.close()
     # @todo this seems circumvent to have to borrow the odd dimensions (nx,ny,1,1,1) shape was seen
     if type(data) == type([]):
         # @todo since this needs to extend the axes, the single plane clone and replace data doesn't work here
@@ -275,12 +280,13 @@ def putdata_raw(imgname, data, clone=None):
         bigim = ia.imageconcat(outfile=imgname, infiles=infiles, axis=2, relax=T, tempclose=F, overwrite=T)
         bigim.close()
     else:
-        taskinit.tb.open(imgname,nomodify=False)
-        d = taskinit.tb.getcol('map')
+        tb = taskinit.tbtool()
+        tb.open(imgname,nomodify=False)
+        d = tb.getcol('map')
         pdata = ma.getdata(data).reshape(d.shape)
-        taskinit.tb.putcol('map',pdata)
-        taskinit.tb.flush()
-        taskinit.tb.close()
+        tb.putcol('map',pdata)
+        tb.flush()
+        tb.close()
     return
   
 def mapdim(imgname, dim=None):
@@ -298,10 +304,11 @@ def mapdim(imgname, dim=None):
      dim : integer (or None)
 
      """
-     taskinit.ia.open(imgname)
-     s = taskinit.ia.summary()
+     ia = taskinit.iatool()     
+     ia.open(imgname)
+     s = ia.summary()
      shape = s['shape']
-     taskinit.ia.close()
+     ia.close()
      #
      rdim = -1
      for d in range(len(shape)):

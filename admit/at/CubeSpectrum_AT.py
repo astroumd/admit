@@ -28,8 +28,8 @@ import numpy.ma as ma
 import os
 
 try:
-  import casa
   import taskinit
+  import casa
 except:
   print "WARNING: No CASA; CubeSpectrum task cannot function."
 
@@ -136,7 +136,7 @@ class CubeSpectrum_AT(AT):
                 "xaxis"   : "",    # currently still ignored
         }
         AT.__init__(self,keys,keyval)
-        self._version       = "1.0.3"
+        self._version       = "1.1.0"
         self.set_bdp_in( [(Image_BDP,       1,bt.REQUIRED),     # 0: cube: SpwCube or LineCube allowed
                           (CubeStats_BDP,   1,bt.OPTIONAL),     # 1: stats, uses maxpos
                           (Moment_BDP,      1,bt.OPTIONAL),     # 2: map, uses the max in this image as pos=
@@ -177,7 +177,10 @@ class CubeSpectrum_AT(AT):
         cmean  = 0.0
         csigma = 0.0
         smax  = []                   # accumulate max in each spectrum for regression
-        self.spec_description = []   # for summary() 
+        self.spec_description = []   # for summary()
+
+        # get the tools
+        ia = taskinit.iatool()
 
         if self._bdp_in[1] != None:                                      # check if CubeStats_BDP
             #print "BDP[1] type: ",self._bdp_in[1]._type
@@ -193,7 +196,7 @@ class CubeSpectrum_AT(AT):
             dt.tag("CubeStats-pos")
             
         if self._bdp_in[2] != None:                                      # check if Moment_BDP (probably from CubeSum)
-            #print "BDP[2] type: ",self._bdp_in[2]._type
+            # print "BDP[2] type: ",self._bdp_in[2]._type
             if self._bdp_in[2]._type != bt.MOMENT_BDP:
                 raise Exception,"bdp_in[2] not a Moment_BDP, should never happen"
             b1m = self._bdp_in[2]
@@ -205,7 +208,7 @@ class CubeSpectrum_AT(AT):
             dt.tag("Moment-pos")
 
         if self._bdp_in[3] != None:                                      # check if SourceList
-            #print "BDP[3] type: ",self._bdp_in[3]._type
+            # print "BDP[3] type: ",self._bdp_in[3]._type
             # a table (SourceList)
             b1p = self._bdp_in[3]
             ra   = b1p.table.getFullColumnByName("RA")
@@ -239,8 +242,8 @@ class CubeSpectrum_AT(AT):
         if len(pos) == 0:
             # @todo  this could result in a masked pixel and cause further havoc
             # @todo  could also take the reference pixel, but that could be outside image
-            taskinit.ia.open(self.dir(fin))
-            s = taskinit.ia.summary()
+            ia.open(self.dir(fin))
+            s = ia.summary()
             pos = [int(s['shape'][0])/2, int(s['shape'][1])/2]
             logging.warning("No input positions supplied, map center choosen: %s" % str(pos))
             dt.tag("map-center")
@@ -410,10 +413,11 @@ class CubeSpectrum_AT(AT):
         # we're going to assume 2D images fit in memory and always use getchunk
         # @todo  review the use of the new casautil.getdata() style routines
         if True:
-            taskinit.ia.open(im)
-            plane = taskinit.ia.getchunk(blc=[0,0,0,-1],trc=[-1,-1,-1,-1],dropdeg=True)
+            ia = taskinit.iatool()
+            ia.open(im)
+            plane = ia.getchunk(blc=[0,0,0,-1],trc=[-1,-1,-1,-1],dropdeg=True)
             v = ma.masked_invalid(plane)
-            taskinit.ia.close()
+            ia.close()
             mp = np.unravel_index(v.argmax(), v.shape)
             maxval = v[mp[0],mp[1]]
             maxpos = [int(mp[0]),int(mp[1])]

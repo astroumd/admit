@@ -153,7 +153,7 @@ class SFind2D_AT(AT):
                }
 
         AT.__init__(self,keys,keyval)
-        self._version = "1.0.7"
+        self._version = "1.1.0"
         self.set_bdp_in([(Image_BDP,2,bt.OPTIONAL),
                          (CubeStats_BDP,1,bt.OPTIONAL)])
         self.set_bdp_out([(SourceList_BDP, 1)])
@@ -290,19 +290,20 @@ class SFind2D_AT(AT):
         slbdp = SourceList_BDP(slbase)
 
         # connect to casa image and call casa ia.findsources tool
-        taskinit.ia.open(self.dir(infile))
+        ia = taskinit.iatool()
+        ia.open(self.dir(infile))
 
         # findsources() cannot deal with  'Jy/beam.km/s' ???
         # so for the duration of findsources() we patch it
-        bunit = taskinit.ia.brightnessunit()
+        bunit = ia.brightnessunit()
         if bpatch and bunit != 'Jy/beam':
             logging.warning("Temporarely patching your %s units to Jy/beam for ia.findsources()" % bunit) 
-            taskinit.ia.setbrightnessunit('Jy/beam')
+            ia.setbrightnessunit('Jy/beam')
         else:
             bpatch = False
-        atab = taskinit.ia.findsources(**args2)
+        atab = ia.findsources(**args2)
         if bpatch:
-            taskinit.ia.setbrightnessunit(bunit)
+            ia.setbrightnessunit(bunit)
         
         taskargs = "nsigma=%4.1f sigma=%g region=%s robust=%s snmax=%5.1f nmax=%d" % (nsigma,sigma,str(region),str(robust),snmax,nmax)
         dt.tag("findsources")
@@ -324,7 +325,7 @@ class SFind2D_AT(AT):
             else:
                 sunits = "n/a"
                 aunits = "n/a"
-            punits = taskinit.ia.summary()['unit']
+            punits = ia.summary()['unit']
             logging.info("                                               %s       %s    %s   %s   %s" % (punits,funits,sunits,sunits,aunits))
             #
             # @todo future improvement is to look at image coordinates and control output appropriately
@@ -339,10 +340,10 @@ class SFind2D_AT(AT):
                 name = "%d" % (i+1)
                 r = atab[c]['shape']['direction']['m0']['value']
                 d = atab[c]['shape']['direction']['m1']['value']
-                pixel = taskinit.ia.topixel([r,d])
+                pixel = ia.topixel([r,d])
                 xpos = pixel['numeric'][0]
                 ypos = pixel['numeric'][1]
-                rd = taskinit.ia.toworld([xpos,ypos],'s')
+                rd = ia.toworld([xpos,ypos],'s')
                 ra = rd['string'][0][:12]
                 dec = rd['string'][1][:12]
                 flux = atab[c]['flux']['value'][0]
@@ -355,7 +356,7 @@ class SFind2D_AT(AT):
                     smajor = 0.0
                     sminor = 0.0
                     sangle = 0.0
-                peakstr = taskinit.ia.pixelvalue([xpos,ypos,0,0])
+                peakstr = ia.pixelvalue([xpos,ypos,0,0])
                 if len(peakstr) == 0:
                     logging.warning("Problem with source %d @ %d,%d" % (i,xpos,ypos))
                     continue
@@ -382,7 +383,7 @@ class SFind2D_AT(AT):
         logging.regression("CONTFLUX: %d %g" % (nsources,sumflux))
         
 
-        summary = taskinit.ia.summary()
+        summary = ia.summary()
         beammaj = summary['restoringbeam']['major']['value']
         beammin = summary['restoringbeam']['minor']['value']
         beamunit = summary['restoringbeam']['minor']['unit']

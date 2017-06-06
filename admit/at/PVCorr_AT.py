@@ -29,7 +29,6 @@ try:
 except:
     print "WARNING: No scipy; PVCorr task cannot function."
 try:
-    import taskinit
     import casa
 except:
     print "WARNING: No CASA; PVCorr task cannot function."
@@ -90,7 +89,7 @@ class PVCorr_AT(AT):
                 "nchan"    : 0,      # number of channels around the channel where the peak is
                }
         AT.__init__(self,keys,keyval)
-        self._version = "1.0.1"
+        self._version = "1.1.0"
         self.set_bdp_in([(Image_BDP,1,bt.REQUIRED),
                          # @todo optional 2nd PVSlice can be used to draw the template from
                          (CubeStats_BDP,1,bt.REQUIRED)])

@@ -796,7 +796,7 @@ class Admit(object):
         try:
           self.fm.run()
         except:
-          logging.error("Project run() failed; saving state...")
+          logging.error("Project run() failed; %s : saving state..." % str(sys.exc_info()))
           self.write()
           raise
 

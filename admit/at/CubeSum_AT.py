@@ -165,7 +165,7 @@ class CubeSum_AT(AT):
             "zoom"       : 1,      # default map plot zoom ratio
         }
         AT.__init__(self,keys,keyval)
-        self._version = "1.0.2"
+        self._version = "1.1.0"
         self.set_bdp_in([(Image_BDP,     1, bt.REQUIRED),
                          (CubeStats_BDP, 1, bt.OPTIONAL),
                          (LineList_BDP,  1, bt.OPTIONAL)])    # LineSegment_BDP also allowed
@@ -194,9 +194,11 @@ class CubeSum_AT(AT):
         b1a = self._bdp_in[1]                    # cubestats (optional)
         b1b = self._bdp_in[2]                    # linelist  (optional)
 
+        ia = taskinit.iatool()
+
         f1 =  b1.getimagefile(bt.CASA)
-        taskinit.ia.open(self.dir(f1))
-        s = taskinit.ia.summary()
+        ia.open(self.dir(f1))
+        s = ia.summary()
         nchan = s['shape'][2]
 
         if b1b != None:
@@ -280,15 +282,15 @@ class CubeSum_AT(AT):
             # create a CASA image copy for making the mirror sigma cube to mask against
             file = self.dir(infile)
             mask = file+"_mask"
-            taskinit.ia.fromimage(infile=file, outfile=mask)
-            nx = taskinit.ia.shape()[0]
-            ny = taskinit.ia.shape()[1]
-            nchan = taskinit.ia.shape()[2]
-            taskinit.ia.fromshape(shape=[nx,ny,1])
-            plane = taskinit.ia.getchunk([0,0,0],[-1,-1,0])     # convenience plane for masking operation
+            ia.fromimage(infile=file, outfile=mask)
+            nx = ia.shape()[0]
+            ny = ia.shape()[1]
+            nchan = ia.shape()[2]
+            ia.fromshape(shape=[nx,ny,1])
+            plane = ia.getchunk([0,0,0],[-1,-1,0])     # convenience plane for masking operation
             dt.tag("mask_sig")
 
-            taskinit.ia.open(mask) 
+            ia.open(mask) 
             dt.tag("open_mask")
               
             count = 0
@@ -296,16 +298,16 @@ class CubeSum_AT(AT):
                 if sigma_array[i] > 0:
                     if b1b != None:
                         if msum[i]:
-                            taskinit.ia.putchunk(plane*0+sigma_array[i],blc=[0,0,i,-1])
+                            ia.putchunk(plane*0+sigma_array[i],blc=[0,0,i,-1])
                             count = count + 1
                         else:
-                            taskinit.ia.putchunk(plane*0+maxval,blc=[0,0,i,-1])                            
+                            ia.putchunk(plane*0+maxval,blc=[0,0,i,-1])                            
                     else:
-                        taskinit.ia.putchunk(plane*0+sigma_array[i],blc=[0,0,i,-1])
+                        ia.putchunk(plane*0+sigma_array[i],blc=[0,0,i,-1])
                         count = count + 1
                 else:
-                    taskinit.ia.putchunk(plane*0+maxval,blc=[0,0,i,-1])
-            taskinit.ia.close()
+                    ia.putchunk(plane*0+maxval,blc=[0,0,i,-1])
+            ia.close()
             logging.info("%d/%d channels used for CubeSum" % (count,nchan))
             dt.tag("close_mask")
 
@@ -330,9 +332,9 @@ class CubeSum_AT(AT):
             utils.remove(mask)
 
         # get the flux
-        taskinit.ia.open(image_out)
-        st = taskinit.ia.statistics()
-        taskinit.ia.close()
+        ia.open(image_out)
+        st = ia.statistics()
+        ia.close()
         dt.tag("statistics")
         # report that flux, but there's no way to get the units from casa it seems
         # ia.summary()['unit'] is usually 'Jy/beam.km/s' for ALMA
@@ -397,6 +399,8 @@ class CubeSum_AT(AT):
         auxcaption = "Histogram of cube sum for image cube"
         taskargs = "numsigma=%.1f sigma=%g smooth=%s" % (numsigma, sigma, str(smooth))
         self._summary["cubesum"] = SummaryEntry([figname,thumbname,imcaption,auxname,auxthumb,auxcaption,bdp_name,infile],"CubeSum_AT",self.id(True),taskargs)
+
+        ia.done()
         
         dt.tag("done")
         dt.end()

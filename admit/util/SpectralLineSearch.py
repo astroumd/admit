@@ -725,7 +725,7 @@ class SpectralLineSearch(object):
         #print flname
         slsearch(**self.sls_kw)
         # open the table and get the contents
-        tb = taskinit.tb
+        tb = taskinit.tbtool()
         tb.open(self.sls_kw["outfile"])
         numrows = tb.nrows()
         possible = []

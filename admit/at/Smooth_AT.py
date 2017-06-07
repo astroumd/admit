@@ -111,7 +111,7 @@ class Smooth_AT(AT):
         }
 
         AT.__init__(self,keys,keyval)
-        self._version = "1.0.5"
+        self._version = "1.1.0"
         self.set_bdp_in([(SpwCube_BDP,0,bt.REQUIRED)])
         self.set_bdp_out([(SpwCube_BDP,0)])
 
@@ -156,7 +156,9 @@ class Smooth_AT(AT):
         bmin['unit'] = bmin['unit'].lower()
         velres['unit'] = velres['unit'].lower()
         taskargs = "bmaj=%s bmin=%s bpa=%s velres=%s" % (bmaj,bmin,bpa,velres)
-        
+
+        ia = taskinit.iatool()
+        qa = taskinit.qatool()
 
         bdpnames=[]
         for ibdp in self._bdp_in:
@@ -166,7 +168,7 @@ class Smooth_AT(AT):
             bdp_name = self.mkext(istem,'sim')
             image_out = self.dir(bdp_name)
           
-            taskinit.ia.open(image_in)        
+            ia.open(image_in)        
             h = casa.imhead(image_in, mode='list')
             pix_scale = np.abs(h['cdelt1'] * 206265.0) # pix scale in asec @todo QA ?
             CC = 299792458.0 # speed of light  @todo somewhere else   [utils.c , but in km/s]
@@ -234,7 +236,7 @@ class Smooth_AT(AT):
                 if(velres['value'] < vel_scale):
                     raise Exception,"Desired velocity resolution %g less than pixel scale %g" % (velres['value'],vel_scale)
                 image_tmp = self.dir('tmp.smooth')
-                im2=taskinit.ia.sepconvolve(outfile=image_tmp,axes=[0,1,2], types=["boxcar","boxcar","gauss"],\
+                im2=ia.sepconvolve(outfile=image_tmp,axes=[0,1,2], types=["boxcar","boxcar","gauss"],\
                                               widths=['1pix','1pix',freq_res], overwrite=True)
                 im2.done()
                 logging.debug("sepconvolve to %s" % image_out)
@@ -242,8 +244,8 @@ class Smooth_AT(AT):
 
                 logging.info("Smoothing cube to a velocity resolution of %s km/s" % str(velres['value']))
                 logging.info("Smoothing cube to a frequency resolution of %s" % freq_res)
-                taskinit.ia.close()
-                taskinit.ia.open(image_tmp)
+                ia.close()
+                ia.open(image_tmp)
                 dt.tag("sepconvolve")
             else:
                 image_tmp = image_out
@@ -254,9 +256,9 @@ class Smooth_AT(AT):
 
             if bmaj > 0 and bmin > 0:
                 # form qa objects out of these so that casa can understand
-                bmaj = taskinit.qa.quantity(bmaj,'arcsec')
-                bmin = taskinit.qa.quantity(bmin,'arcsec')
-                bpa  = taskinit.qa.quantity(bpa,'deg')
+                bmaj = qa.quantity(bmaj,'arcsec')
+                bmin = qa.quantity(bmin,'arcsec')
+                bpa  = qa.quantity(bpa,'deg')
 
                 target_res={}
                 target_res['major'] = bmaj
@@ -268,7 +270,7 @@ class Smooth_AT(AT):
                 try:
                     # for whatever reason, if you give convolve2d a beam parameter,
                     # it complains ...
-                    im2=taskinit.ia.convolve2d(outfile=image_out,major = bmaj,\
+                    im2=ia.convolve2d(outfile=image_out,major = bmaj,\
                                              minor = bmin, pa = bpa,\
                                              targetres=True,overwrite=True)
                     im2.done()
@@ -285,8 +287,8 @@ class Smooth_AT(AT):
             dt.tag("convolve2d-1")
 
             if convolve_to_min_beam:
-                restoring_beams = taskinit.ia.restoringbeam()
-                commonbeam = taskinit.ia.commonbeam()
+                restoring_beams = ia.restoringbeam()
+                commonbeam = ia.commonbeam()
                 # for whatever reason, setrestoringbeam does not use the same set of hashes...
                 commonbeam['positionangle']=commonbeam['pa']
                 del commonbeam['pa']
@@ -298,7 +300,7 @@ class Smooth_AT(AT):
                          str(commonbeam['minor']['value'])+" at a PA of "\
                         +str(commonbeam['pa']['value'])  
                     target_res = commonbeam
-                    im2=taskinit.ia.convolve2d(outfile=image_out,major=commonbeam['major'],\
+                    im2=ia.convolve2d(outfile=image_out,major=commonbeam['major'],\
                                                minor=commonbeam['minor'],\
                                                pa=commonbeam['positionangle'],\
                                                targetres=True,overwrite=True)
@@ -309,16 +311,16 @@ class Smooth_AT(AT):
                     print "One beam for all planes. Smoothing to common beam redundant."
                     achieved_res = commonbeam 
                     if velres['value'] < 0:
-                        taskinit.ia.fromimage(outfile=image_out, infile=image_in)
+                        ia.fromimage(outfile=image_out, infile=image_in)
                     # not really doing anything
                 # else, we've already done what we needed to
 
-                taskinit.ia.setrestoringbeam(beam = achieved_res)
+                ia.setrestoringbeam(beam = achieved_res)
                 rdata = achieved_res['major']['value']
 
             # else do no smoothing and just close the image
 
-            taskinit.ia.close() 
+            ia.close() 
             dt.tag("close")
 
             b1 = SpwCube_BDP(bdp_name)
@@ -334,9 +336,9 @@ class Smooth_AT(AT):
                 utils.remove(image_tmp)
 
         # thes are task arguments not summary entries.
-        _bmaj = taskinit.qa.convert(achieved_res['major'],'rad')['value']
-        _bmin = taskinit.qa.convert(achieved_res['minor'],'rad')['value']
-        _bpa = taskinit.qa.convert(achieved_res['positionangle'],'deg')['value']
+        _bmaj = qa.convert(achieved_res['major'],'rad')['value']
+        _bmin = qa.convert(achieved_res['minor'],'rad')['value']
+        _bpa = qa.convert(achieved_res['positionangle'],'deg')['value']
         vres = "%.2f %s" % (velres['value'],velres['unit'])
 
         logging.regression("SMOOTH: %f %f" % (rdata,velres['value']))

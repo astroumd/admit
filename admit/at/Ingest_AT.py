@@ -336,8 +336,6 @@ class Ingest_AT(AT):
             logging.debug("CMD: %s" % cmd)
             os.system(cmd)
 
-        print "PJT - test0"
-
         readonly = False
         if file_is_casa:
             logging.debug("Assuming input %s is a CASA (or MIRIAD) image" % ffile0)
@@ -429,7 +427,6 @@ class Ingest_AT(AT):
                     # re-running this was more consistently faster in wall clock time
                     # note that zeroblanks=True will still keep the mask
                     logging.debug("casa::ia.fromfits(%s) -> %s" % (fni,bdpfile))
-                    print "PJT - test21"                                        
                     ia.fromfits(fno,fni,overwrite=True)
 
                     #taskinit.ia.fromfits(fno,fni,overwrite=True,zeroblanks=True)
@@ -441,11 +438,8 @@ class Ingest_AT(AT):
                     # possible bug: zeroblanks=True has no effect?
                     casa.importfits(fni,fno,zeroblanks=True,overwrite=True)
                     dt.tag("importfits")
-            print "PJT - test22",fno
             ia.close()
-            print "PJT - test23"
             ia.open(fno)
-            print "PJT - test24"
             if len(smooth) > 0:
                 # smooth here, but Smooth_AT is another option
                 # here we only allow pixel smoothing
@@ -489,7 +483,6 @@ class Ingest_AT(AT):
                 dt.tag("adddegaxes")
             else:
                 logging.info("SHAPE: %s" % str(s['shape']))
-        print "PJT - test2"                
         s = ia.summary()
         dt.tag("summary-0")
         if s['hasmask'] and create_mask:
@@ -798,7 +791,6 @@ class Ingest_AT(AT):
 
         dt.tag("done")
         dt.end()
-        print "PJT - test"
 
     def _summarize(self, fitsname, casaname, header, shape, taskargs):
         """Convenience function to populate dictionary for

@@ -295,6 +295,11 @@ class CubeStats_AT(AT):
                 logging.warning("sigma varies too much, going to clip to %g (%g > %g)" % (cliprms, smax/smin, maxvrms))
                 sigma = np.where(sigma < cliprms, sigma, cliprms)
 
+        nzeros = len(np.where(sigma<=0.0)[0])
+        if nzeros > 0:
+            zeroch = np.where(sigma<=0.0)[0]
+            logging.warning("There are %d fully masked channels (%s)" % (nzeros,str(zeroch)))
+            
         # @todo   (and check again) for foobar.fits all sigma's became 0 when robust was selected
         #         was this with mask=True/False?
 
@@ -319,11 +324,6 @@ class CubeStats_AT(AT):
             peaksum = np.nan_to_num(peaksum)    # put 0's where nan's are found
             ia.close()
             dt.tag("ppp")
-
-        nzeros = len(np.where(sigma<=0.0))
-        if nzeros > 0:
-            zeroch = np.where(sigma<=0.0)
-            logging.warning("There are %d fully masked channels (%s)" % (nzeros,str(zeroch)))
 
         # construct the admit Table for CubeStats_BDP
         # note data needs to be a tuple, later to be column_stack'd

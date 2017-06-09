@@ -34,8 +34,8 @@ import numpy.ma as ma
 
 # Fake linefinder for Sphinx.
 try:
+    import taskinit
     import asap
-    from taskinit import tb
     from asap.asaplinefind import linefinder
 except:
     print "WARNING: No ASAP; ASAPLineFinder cannot function."
@@ -102,7 +102,7 @@ class ASAPSegmentFinder(linefinder):
         self.spectrum = []
         self.freq = []
         self.lines_merged = []
-        self.tb = tb
+        self.tb = taskinit.tbtool()
         self.tb.create()
 
         # create dummy scantable

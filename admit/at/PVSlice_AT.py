@@ -128,7 +128,7 @@ class PVSlice_AT(AT):
                 #"major"   : True,          # (TODO) major or minor axis, not used yet
                 }
         AT.__init__(self,keys,keyval)
-        self._version       = "1.0.3"
+        self._version       = "1.1.0"
         self.set_bdp_in([(Image_BDP,     1, bt.REQUIRED),      # SpwCube
                          (Moment_BDP,    1, bt.OPTIONAL),      # Moment0 or CubeSum
                          (CubeStats_BDP, 1, bt.OPTIONAL)])     # was: PeakPointPlot
@@ -281,11 +281,12 @@ class PVSlice_AT(AT):
         overlay   = "pvoverlay"
         if b11 != None:
             f11 = b11.getimagefile(bt.CASA)
-            taskinit.tb.open(self.dir(f11))
-            data = taskinit.tb.getcol('map')
+            tb = taskinit.tbtool()
+            tb.open(self.dir(f11))
+            data = tb.getcol('map')
             nx = data.shape[0]
             ny = data.shape[1]
-            taskinit.tb.close()
+            tb.close()
             d1 = np.flipud(np.rot90 (data.reshape((nx,ny))))
             if len(pvslice) == 4:
               segm = [[pvslice[0],pvslice[2],pvslice[1],pvslice[3]]]
@@ -384,9 +385,10 @@ class PVSlice_AT(AT):
 def map_to_slit(fname, clip=0.0, gamma=1.0):
     """take all values from a map over clip, compute best slit for PV Slice
     """
-    taskinit.ia.open(fname)
-    imshape = taskinit.ia.shape()
-    pix = taskinit.ia.getchunk().squeeze()     # this should now be a numpy pix[ix][iy] map
+    ia = taskinit.iatool()
+    ia.open(fname)
+    imshape = ia.shape()
+    pix = ia.getchunk().squeeze()     # this should now be a numpy pix[ix][iy] map
     pixmax = pix.max()
     pixrms = pix.std()
     if False:
@@ -396,7 +398,7 @@ def map_to_slit(fname, clip=0.0, gamma=1.0):
         logging.debug("stats: rms: %g %g" % (pix1.std(), rpix.std()))
         logging.debug("stats: max: %g %g" % (pix1.max(), rpix.max()))
         logging.debug('shape: %s %s %s' % (str(pix.shape),str(pix1.shape),str(imshape)))
-    taskinit.ia.close()
+    ia.close()
     nx = pix.shape[0]
     ny = pix.shape[1]
     x=np.arange(pix.shape[0]).reshape( (nx,1) )

@@ -6,6 +6,7 @@
 import shutil
 import os
 import time
+import tempfile
 import fnmatch
 import matplotlib
 import numpy as np
@@ -352,6 +353,22 @@ def find_files(directory, pattern):
                 filename = os.path.join(root, basename)
                 yield filename
 
+def tmp_file(prefix):
+    """ Create a temporary file in /tmp.
+
+        Parameters
+        ----------
+        prefix : str
+           starting name of the filename in /tmp/<pattern>
+
+        Returns
+        -------
+        Unique filename
+    """
+    fd = tempfile.NamedTemporaryFile(prefix=prefix,dir='/tmp',delete='false')
+    name = fd.name
+    fd.close()
+    return name
 
 def on_error_retry(exception, callback, timeout=2, timedelta=.1):
     """ A generic method for doing retries with timeout.

@@ -101,7 +101,7 @@ class ContinuumSub_AT(AT):
             "fitorder"   : 0,       # polynomial order
         }
         AT.__init__(self,keys,keyval)
-        self._version = "1.0.3"
+        self._version = "1.1.0"
         self.set_bdp_in([(SpwCube_BDP,      1, bt.REQUIRED),        # input spw cube 
                          (LineList_BDP,     1, bt.OPTIONAL),        # will catch SegmentList as well
                         ])
@@ -150,8 +150,10 @@ class ContinuumSub_AT(AT):
         self.addoutput(b2)
         self.addoutput(b3)
 
-        taskinit.ia.open(self.dir(f1))
-        s = taskinit.ia.summary()
+        ia = taskinit.iatool()
+
+        ia.open(self.dir(f1))
+        s = ia.summary()
         nchan = s['shape'][2]                # ingest has guarenteed this to the spectral axis
                         
         if b1a != None:                      # if a LineList was given, use that
@@ -179,9 +181,9 @@ class ContinuumSub_AT(AT):
             raise Exception,"No contsub= or input LineList given"
             
         if len(ch) > 0:
-            taskinit.ia.open(self.dir(f1))
-            taskinit.ia.continuumsub(outline=self.dir(f2),outcont=self.dir(f3a),channels=ch,fitorder=fitorder)
-            taskinit.ia.close()
+            ia.open(self.dir(f1))
+            ia.continuumsub(outline=self.dir(f2),outcont=self.dir(f3a),channels=ch,fitorder=fitorder)
+            ia.close()
             dt.tag("continuumsub")
             casa.immoments(self.dir(f3a),-1,outfile=self.dir(f3))      # mean of the continuum cube (f3a)
             utils.remove(self.dir(f3a))                                # is the continuum map (f3)

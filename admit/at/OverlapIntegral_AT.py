@@ -186,6 +186,8 @@ class OverlapIntegral_AT(AT):
         self.addoutput(b1)
         b1.setkey("image", Image(images={bt.CASA:outfile}))
 
+        ia = taskinit.iatool()
+
         dt.tag("open")
 
         useClone = True
@@ -194,16 +196,16 @@ class OverlapIntegral_AT(AT):
         # e.g. using imsubimage(infile,outfile=,chans=
         if len(chans) > 0:
             # ia.regrid() doesn't have the chans=
-            taskinit.ia.open(self.dir(self._bdp_in[0].getimagefile(bt.CASA)))
-            taskinit.ia.regrid(outfile=self.dir(outfile))
-            taskinit.ia.close()
+            ia.open(self.dir(self._bdp_in[0].getimagefile(bt.CASA)))
+            ia.regrid(outfile=self.dir(outfile))
+            ia.close()
         else:
             # 2D for now
             if not useClone:
                 logging.info("OVERLAP out=%s" % outfile)
-                taskinit.ia.fromimage(infile=self.dir(self._bdp_in[0].getimagefile(bt.CASA)),
+                ia.fromimage(infile=self.dir(self._bdp_in[0].getimagefile(bt.CASA)),
                                       outfile=self.dir(outfile), overwrite=True)
-                taskinit.ia.close()
+                ia.close()
         dt.tag("fromimage")
 
 
@@ -220,14 +222,15 @@ class OverlapIntegral_AT(AT):
         if useClone:
             casautil.putdata_raw(self.dir(outfile),out,clone=self.dir(self._bdp_in[0].getimagefile(bt.CASA)))
         else:
-            taskinit.ia.open(self.dir(outfile))
-            s1 = taskinit.ia.shape()
+            ia.open(self.dir(outfile))
+            s1 = ia.shape()
             s0 = [0,0,0,0]
-            r1 = taskinit.rg.box(blc=s0,trc=s1)
+            rg = taskinit.rgtool()
+            r1 = rg.box(blc=s0,trc=s1)
             pixeldata = out.data
             pixelmask = ~out.mask
-            taskinit.ia.putregion(pixels=pixeldata, pixelmask=pixelmask, region=r1)
-            taskinit.ia.close()
+            ia.putregion(pixels=pixeldata, pixelmask=pixelmask, region=r1)
+            ia.close()
 
         title = "OverlapIntegral"
         pdata = np.rot90(out.squeeze())

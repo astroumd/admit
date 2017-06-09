@@ -238,7 +238,7 @@ class Ingest_AT(AT):
             # 'cbeam'   : 0.5,     # channel beam variation allowed in terms of pixel size to use median beam
         }
         AT.__init__(self,keys,keyval)
-        self._version = "1.0.10"
+        self._version = "1.1.0"
         self.set_bdp_in()                            # no input BDP
         self.set_bdp_out([(SpwCube_BDP, 1),          # one or two output BDPs
                           (Image_BDP,   0),          # optional PB if there was an pb= input
@@ -371,8 +371,10 @@ class Ingest_AT(AT):
         if do_pb: fno2 = self.dir(bdpfile2)
         dt.tag("start")
 
+        ia = taskinit.iatool()
+        
         if file_is_casa:
-            taskinit.ia.open(fni)
+            ia.open(fni)
         else:
             if do_pb and use_pb:
                 # @todo   this needs a fix for the path for pb, only works if abs path is given
@@ -387,8 +389,8 @@ class Ingest_AT(AT):
                 else:
                     # the better way is to convert FITS->CASA and then call impbcor()
                     # the CPU savings are big, but I/O overhead can still be substantial
-                    taskinit.ia.fromfits('_pbcor',fni,overwrite=True)
-                    taskinit.ia.fromfits('_pb',pb,overwrite=True)
+                    ia.fromfits('_pbcor',fni,overwrite=True)
+                    ia.fromfits('_pb',pb,overwrite=True)
                     dt.tag("impbcor-1f")
                     if False:
                         impbcor('_pbcor','_pb',fno,overwrite=True,mode='m')
@@ -405,12 +407,12 @@ class Ingest_AT(AT):
                         if True:
                             # use the mean of all channels... faster may be to use the middle plane
                             # barf; edge channels can be with fewer subfields in a mosaic 
-                            taskinit.ia.open('_pb')
-                            s=taskinit.ia.summary()
+                            ia.open('_pb')
+                            s=ia.summary()
                             #ia1=taskinit.ia.moments(moments=[-1],drop=True,outfile=fno2)    # fails for cont maps
-                            ia1=taskinit.ia.collapse(outfile=fno2, function='mean', axes=2)  # @todo ensure 2=freq axis
+                            ia1=ia.collapse(outfile=fno2, function='mean', axes=2)  # @todo ensure 2=freq axis
                             ia1.done()
-                            taskinit.ia.close()
+                            ia.close()
                             dt.tag("moments")
                         utils.remove('_pbcor')
                         utils.remove('_pb')
@@ -421,11 +423,12 @@ class Ingest_AT(AT):
                 print "cheat case dummy PB not implemented yet"
             else:
                 # no PB given
-                if True:
+                if False:
                     # re-running this was more consistently faster in wall clock time
                     # note that zeroblanks=True will still keep the mask
                     logging.debug("casa::ia.fromfits(%s) -> %s" % (fni,bdpfile))
-                    taskinit.ia.fromfits(fno,fni,overwrite=True)
+                    ia.fromfits(fno,fni,overwrite=True)
+
                     #taskinit.ia.fromfits(fno,fni,overwrite=True,zeroblanks=True)
                     dt.tag("fromfits")
                 else:
@@ -433,9 +436,10 @@ class Ingest_AT(AT):
                     logging.debug("casa::importfits(%s) -> %s" % (fni,bdpfile))
                     #casa.importfits(fni,fno,defaultaxes=True,defaultaxesvalues=[None,None,None,'I'])
                     # possible bug: zeroblanks=True has no effect?
-                    casa.importfits(fni,fno,zeroblanks=True)
+                    casa.importfits(fni,fno,zeroblanks=True,overwrite=True)
                     dt.tag("importfits")
-            taskinit.ia.open(fno)
+            ia.close()
+            ia.open(fno)
             if len(smooth) > 0:
                 # smooth here, but Smooth_AT is another option
                 # here we only allow pixel smoothing
@@ -444,9 +448,9 @@ class Ingest_AT(AT):
                 #     is the boxcar wrong, not centered, but edged?
                 # @todo CASA BUG:  this will loose the object name (and maybe more?) from header, so VLSR lookup fails
                 fnos = fno + '.smooth'
-                taskinit.ia.convolve2d(outfile=fnos, overwrite=True, pa='0deg',
+                ia.convolve2d(outfile=fnos, overwrite=True, pa='0deg',
                                        major='%gpix' % smooth[0], minor='%gpix' % smooth[1], type='gaussian')
-                taskinit.ia.close()
+                ia.close()
                 srcname = casa.imhead(fno,mode="get",hdkey="object")          # work around CASA bug
                 #@todo use safer ia.rename() here.
                 # https://casa.nrao.edu/docs/CasaRef/image.rename.html
@@ -464,22 +468,22 @@ class Ingest_AT(AT):
                     # https://casa.nrao.edu/docs/CasaRef/image.rename.html
                     utils.rename(fnos,fno)
                     dt.tag("specsmooth")
-                taskinit.ia.open(fno)
+                ia.open(fno)
 
-            s = taskinit.ia.summary()
+            s = ia.summary()
             if len(s['shape']) != 4:
                 logging.warning("Adding dummy STOKES-I axis")
                 fnot = fno + '_4'
-                taskinit.ia.adddegaxes(stokes='I',outfile=fnot)
-                taskinit.ia.close()
+                ia.adddegaxes(stokes='I',outfile=fnot)
+                ia.close()
                 #@todo use safer ia.rename() here.
                 # https://casa.nrao.edu/docs/CasaRef/image.rename.html
                 utils.rename(fnot,fno)
-                taskinit.ia.open(fno)
+                ia.open(fno)
                 dt.tag("adddegaxes")
             else:
                 logging.info("SHAPE: %s" % str(s['shape']))
-        s = taskinit.ia.summary()
+        s = ia.summary()
         dt.tag("summary-0")
         if s['hasmask'] and create_mask:
             logging.warning("no extra mask created because input image already had one")
@@ -501,35 +505,35 @@ class Ingest_AT(AT):
                 # select zrange
                 if len(edge)>0:
                     raise Exception,"Cannot use edge= when box=[z1,z2] is used"
-                r1 = taskinit.rg.box([0,0,box[0]] , [nx-1,ny-1,box[1]])
+                r1 = rg.box([0,0,box[0]] , [nx-1,ny-1,box[1]])
             elif len(box) == 4:
                 if len(edge) == 0:
                     # select just an XY box
-                    r1 = taskinit.rg.box([box[0],box[1]] , [box[2],box[3]])
+                    r1 = rg.box([box[0],box[1]] , [box[2],box[3]])
                 elif len(edge) == 2:
                     # select an XY box, but remove some edge channels
-                    r1 = taskinit.rg.box([box[0],box[1],edge[0]] , [box[2],box[3],nz-edge[1]-1])
+                    r1 = rg.box([box[0],box[1],edge[0]] , [box[2],box[3],nz-edge[1]-1])
                 else:
                     raise Exception,"Bad edge= for len(box)=4"
             elif len(box) == 6:
                 # select an XYZ box
-                r1 = taskinit.rg.box([box[0],box[1],box[2]] , [box[3],box[4],box[5]])
+                r1 = rg.box([box[0],box[1],box[2]] , [box[3],box[4],box[5]])
             elif len(edge) == 2:
                 # remove some edge channels, but keep the whole XY box
-                r1 = taskinit.rg.box([0,0,edge[0]] , [nx-1,ny-1,nz-edge[1]-1])
+                r1 = rg.box([0,0,edge[0]] , [nx-1,ny-1,nz-edge[1]-1])
             else:
                 raise Exception,"box=%s illegal" % box
             logging.debug("BOX/EDGE selection: %s %s" % (str(r1['blc']),str(r1['trc']))) 
             #if taskinit.ia.isopen(): taskinit.ia.close()
 
             logging.info("SUBIMAGE")
-            subimage = taskinit.ia.subimage(region=r1,outfile=fno+'.box',overwrite=True)
-            taskinit.ia.close()
-            taskinit.ia.done()
+            subimage = ia.subimage(region=r1,outfile=fno+'.box',overwrite=True)
+            ia.close()
+            ia.done()
             subimage.rename(fno,overwrite=True)
             subimage.close()
             subimage.done()
-            taskinit.ia.open(fno)
+            ia.open(fno)
             dt.tag("subimage-1")
         else:
             # the whole cube is passed onto ADMIT
@@ -537,9 +541,9 @@ class Ingest_AT(AT):
                 raise Exception,"Cannot use mask=True, data read-only, or use an alias"
             if file_is_casa and not readonly:
                 # @todo a miriad file - which should be read only - will also create a useless copy here if no alias used
-                taskinit.ia.subimage(overwrite=True,outfile=fno)
-                taskinit.ia.close()
-                taskinit.ia.open(fno)
+                ia.subimage(overwrite=True,outfile=fno)
+                ia.close()
+                ia.open(fno)
                 dt.tag("subimage-0")
 
         if create_mask:
@@ -548,14 +552,14 @@ class Ingest_AT(AT):
             # also check out the 'fromfits::zeroblanks = False'
             # calcmask() will overwrite any previous pixelmask
             #taskinit.ia.calcmask('mask("%s") && "%s" != 0.0' % (fno,fno))
-            taskinit.ia.calcmask('"%s" != 0.0' % fno)
+            ia.calcmask('"%s" != 0.0' % fno)
             dt.tag("mask")
 
-        s = taskinit.ia.summary()
+        s = ia.summary()
         dt.tag("summary-1")
 
         # do a fast statistics (no median or robust)
-        s0 = taskinit.ia.statistics()
+        s0 = ia.statistics()
         dt.tag("statistics")
         if len(s0['npts']) == 0:
             raise Exception,"No statistics possible, are there valid data in this cube?"
@@ -585,38 +589,38 @@ class Ingest_AT(AT):
                 # imhead is a bit slow; alternatively use ia.summary() at the half point for setrestoringbeam()
                 h = casa.imhead(fno,mode='list')
                 b = h['perplanebeams']['median area beam']
-                taskinit.ia.setrestoringbeam(remove=True)
-                taskinit.ia.setrestoringbeam(beam=b)
-                commonbeam = taskinit.ia.commonbeam()
+                ia.setrestoringbeam(remove=True)
+                ia.setrestoringbeam(beam=b)
+                commonbeam = ia.commonbeam()
 
             else:
                 # @todo : this will be VERY slow - code not finished, needs renaming etc.
                 #         this is however formally the better solution
                 logging.warning("commmonbeam code not finished")
-                cb = taskinit.ia.commonbeam()
-                taskinit.ia.convolve2d(outfile='junk-common.im', major=cb['major'], minor=cb['minor'], pa=cb['pa'], 
+                cb = ia.commonbeam()
+                ia.convolve2d(outfile='junk-common.im', major=cb['major'], minor=cb['minor'], pa=cb['pa'], 
                                        targetres=True, overwrite=True)
                 dt.tag('convolve2d')
                 commonbeam = {}
         else:
             try:
-                commonbeam = taskinit.ia.commonbeam()
+                commonbeam = ia.commonbeam()
             except:
                 nppb = 4.0
                 logging.warning("No synthesized beam found, faking one to prevent downstream problems: nppb=%f" % nppb)
-                s = taskinit.ia.summary()
+                s = ia.summary()
                 cdelt2 = abs(s['incr'][0]) * 180.0/math.pi*3600.0
                 bmaj = nppb * cdelt2      # use a nominal 4 points per (round) beam 
                 bmin = nppb * cdelt2
                 bpa  = 0.0
-                taskinit.ia.setrestoringbeam(major='%farcsec' % bmaj, minor='%farcsec' % bmin, pa='%fdeg' % bpa)
+                ia.setrestoringbeam(major='%farcsec' % bmaj, minor='%farcsec' % bmin, pa='%fdeg' % bpa)
                 commonbeam = {}
         logging.info("COMMONBEAM[%d] %s" % (len(commonbeam),str(commonbeam)))
 
-        first_point = taskinit.ia.getchunk(blc=[0,0,0,0],trc=[0,0,0,0],dropdeg=True)
+        first_point = ia.getchunk(blc=[0,0,0,0],trc=[0,0,0,0],dropdeg=True)
         logging.debug("DATA0*: %s" % str(first_point))
 
-        taskinit.ia.close()
+        ia.close()
         logging.info('BASICS: [shape] npts min max: %s %d %f %f' % (s['shape'],s0['npts'][0],s0['min'][0],s0['max'][0]))
         logging.info('S/N (all data): %f' % (s0['max'][0]/s0['rms'][0]))
         npix = 1
@@ -665,9 +669,9 @@ class Ingest_AT(AT):
                         utils.rename(fnot,fno)
                     nz = s['shape'][3]
                     # get a new summary 's'
-                    taskinit.ia.open(fno)
-                    s = taskinit.ia.summary()
-                    taskinit.ia.close()
+                    ia.open(fno)
+                    s = ia.summary()
+                    ia.close()
                     logging.warning("Using imtrans, with nz=%d, to fix axis ordering" % nz)
                     dt.tag("imtrans4")
             # @todo  ensure first two axes are position, followed by frequency
@@ -835,12 +839,13 @@ class Ingest_AT(AT):
         # so we have to munge them
 
         # convert beam parameters
+        qa = taskinit.qatool()
         if 'beampa' in header:
-            self._summary['bpa']  = SummaryEntry(taskinit.qa.convert(header['beampa'],'deg')['value'])
+            self._summary['bpa']  = SummaryEntry(qa.convert(header['beampa'],'deg')['value'])
         if 'beammajor' in header:
-            self._summary['bmaj'] = SummaryEntry(taskinit.qa.convert(header['beammajor'],'rad')['value'])
+            self._summary['bmaj'] = SummaryEntry(qa.convert(header['beammajor'],'rad')['value'])
         if 'beamminor' in header:
-            self._summary['bmin'] = SummaryEntry(taskinit.qa.convert(header['beamminor'],'rad')['value'])
+            self._summary['bmin'] = SummaryEntry(qa.convert(header['beamminor'],'rad')['value'])
         
         # Now tag all summary items with task name and task ID.
 

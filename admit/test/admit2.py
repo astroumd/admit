@@ -21,7 +21,7 @@ import argparse as ap
 
 import admit
 
-version  = '12-apr-2016'
+version  = '8-jun-2017'
 
 #  ===>>> set some parameters for this run <<<=================================================================
 #
@@ -146,8 +146,14 @@ a[ingest1].setkey('smooth',insmooth)
 a[ingest1].setkey('pb',pb)
 if len(inbox) > 0:
     a[ingest1].setkey('box',inbox)
-bandcube1 = (ingest1,0)
-pbmap1 = (ingest1,1)
+bandcube1 = (ingest1,0)    # output noise flat image
+pbmap1 = (ingest1,1)       # output primary beam
+
+#   need to run to see if there is a pbmap1
+#   or could SFind2D for example be doing this check????
+a.run()
+if len(a[ingest1]) == 1:
+    pbmap1 = None
 
 if stop == 'ingest':  a.exit(1)
 
@@ -179,11 +185,12 @@ csttab1 = (cubestats1,0)
 
 if stop == 'cubestats':  a.exit(1)
 
-#sfind1 = a.addtask(admit.SFind2D_AT(), [bandcube1])
-#NEW:
-sfind1 = a.addtask(admit.SFind2D_AT(), [bandcube1,pbmap1,csttab1])
+# SFind2D
+if pbmap1 == None:
+    sfind1 = a.addtask(admit.SFind2D_AT(), [bandcube1,csttab1])
+else:
+    sfind1 = a.addtask(admit.SFind2D_AT(), [bandcube1,pbmap1,csttab1])
 #OLD
-#sfind1 = a.addtask(admit.SFind2D_AT(), [bandcube1,csttab1])
 #a[sfind1].setkey('numsigma',6.0)
 #a[sfind1].setkey('sigma',-1.0)
 #a[sfind1].setkey('robust',())

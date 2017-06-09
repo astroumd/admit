@@ -622,12 +622,12 @@ class Spectrum(object):
 
     def calcdelta(self):
         if self._freq is None:
-            raise
+            raise Exception("no freq given")
         for f in range(len(self._freq) - 1):
             if not self._mask[f] and not self._mask[f + 1]:
                 self._delta = abs(self._freq[f] - self._freq[f + 1])
                 return
-        raise
+        raise Exception("calcdelta")
 
     def centerfreq(self):
         cen = int(len(self._freq) / 2)

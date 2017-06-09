@@ -29,9 +29,8 @@ import os
 
 try:
     import scipy.stats
-    import casa 
-    from taskinit import ia
-    from taskinit import rg
+    import casa
+    import taskinit
 except:
     print "WARNING: No CASA; CubeStats task cannot function."
 
@@ -122,7 +121,7 @@ class CubeStats_AT(AT):
                 "psample" : -1,         # if > 0, spatial sampling rate for PeakStats
         }
         AT.__init__(self,keys,keyval)
-        self._version       = "1.0.6"
+        self._version       = "1.1.0"
         self.set_bdp_in([(Image_BDP,      1, bt.REQUIRED)])
         self.set_bdp_out([(CubeStats_BDP, 1)])
 
@@ -210,6 +209,9 @@ class CubeStats_AT(AT):
         numsigma = -1.0
         numsigma = 3.0
 
+        # tools we need
+        ia = taskinit.iatool()
+
         # grab the new robust statistics. If this is used, 'rms' will be the RMS,
         # else we will use RMS = 1.4826*MAD (MAD does a decent job on outliers as well)
         # and was the only method available before CASA 4.4 when robust was implemented
@@ -293,6 +295,11 @@ class CubeStats_AT(AT):
                 logging.warning("sigma varies too much, going to clip to %g (%g > %g)" % (cliprms, smax/smin, maxvrms))
                 sigma = np.where(sigma < cliprms, sigma, cliprms)
 
+        nzeros = len(np.where(sigma<=0.0)[0])
+        if nzeros > 0:
+            zeroch = np.where(sigma<=0.0)[0]
+            logging.warning("There are %d fully masked channels (%s)" % (nzeros,str(zeroch)))
+            
         # @todo   (and check again) for foobar.fits all sigma's became 0 when robust was selected
         #         was this with mask=True/False?
 
@@ -317,11 +324,6 @@ class CubeStats_AT(AT):
             peaksum = np.nan_to_num(peaksum)    # put 0's where nan's are found
             ia.close()
             dt.tag("ppp")
-
-        nzeros = len(np.where(sigma<=0.0))
-        if nzeros > 0:
-            zeroch = np.where(sigma<=0.0)
-            logging.warning("There are %d fully masked channels (%s)" % (nzeros,str(zeroch)))
 
         # construct the admit Table for CubeStats_BDP
         # note data needs to be a tuple, later to be column_stack'd
@@ -566,6 +568,7 @@ class CubeStats_AT(AT):
         for v in self._summary:
             self._summary[v].setTaskArgs(taskargs)
 
+        ia.done()     # is that a good habit?
         dt.tag("summary")
         dt.end()
 

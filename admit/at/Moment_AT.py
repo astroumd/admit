@@ -130,7 +130,7 @@ class Moment_AT(AT):
             "zoom"     : 1,            # default map plot zoom ratio
         }
         AT.__init__(self, keys, keyval)
-        self._version = "1.0.3"
+        self._version = "1.1.0"
         # set input types
         self.set_bdp_in([(Image_BDP,     1, bt.REQUIRED),
                          (CubeStats_BDP, 1, bt.OPTIONAL)])
@@ -203,6 +203,8 @@ class Moment_AT(AT):
         sigma0 = self.getkey("sigma")
         sigma  = sigma0
 
+        ia = taskinit.iatool()
+
         dt.tag("open")
 
         # if no CubseStats BDP was given and no sigma was specified, find a 
@@ -273,9 +275,9 @@ class Moment_AT(AT):
                     }
             casa.immath(**args)
             # get the default mask name
-            taskinit.ia.open(self.dir("mom0.masked"))
-            defmask = taskinit.ia.maskhandler('default')
-            taskinit.ia.close()
+            ia.open(self.dir("mom0.masked"))
+            defmask = ia.maskhandler('default')
+            ia.close()
             dt.tag("mom0clip")
 
         # loop over moments to rename them to _0, _1, _2 etc.
@@ -297,9 +299,9 @@ class Moment_AT(AT):
                          output="%s:%s" % (self.dir(imagename), defmask[0]),
                          overwrite=True, inpmask="%s:%s" % (self.dir("mom0.masked"),
                                                             defmask[0]))
-                taskinit.ia.open(self.dir(imagename))
-                taskinit.ia.maskhandler('set', defmask)
-                taskinit.ia.close()
+                ia.open(self.dir(imagename))
+                ia.maskhandler('set', defmask)
+                ia.close()
                 dt.tag("makemask")
             if mom == 0:
                 beamarea = nppb(self.dir(imagename))

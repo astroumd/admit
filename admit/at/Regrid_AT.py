@@ -91,7 +91,7 @@ class Regrid_AT(AT):
         }
 
         AT.__init__(self,keys,keyval)
-        self._version = "1.0.0"
+        self._version = "1.1.0"
         self.set_bdp_in([(SpwCube_BDP,0,bt.REQUIRED)])
         self.set_bdp_out([(SpwCube_BDP,0)])
 
@@ -138,7 +138,9 @@ class Regrid_AT(AT):
         pix_wc_nu=[]
         src_dec = []
         
-        RADPERARCSEC = 4.848137E-6 
+        RADPERARCSEC = 4.848137E-6
+
+        ia = taskinit.iatool()
 
         for ibdp in self._bdp_in:
           # Convert input CASA images to numpy arrays.
@@ -153,8 +155,8 @@ class Regrid_AT(AT):
           pix_y = h['shape'][1]          
           pix_nu= h['shape'][2]
           
-          taskinit.ia.open(ifile)
-          mycs = taskinit.ia.coordsys(axes=[0,1,2])
+          ia.open(ifile)
+          mycs = ia.coordsys(axes=[0,1,2])
 #           getting all four corners handles the case of images where
 #           x-y axis not aligned with RA-dec
           for xpix in [0,pix_x]:
@@ -168,7 +170,7 @@ class Regrid_AT(AT):
           pix_wc_nu.append(nu)
           nu= mycs.toworld([pix_x,pix_y,pix_nu])['numeric'][2]
           pix_wc_nu.append(nu)
-          taskinit.ia.close()
+          ia.close()
  
         min_ra = np.min(pix_wc_x)
         max_ra = np.max(pix_wc_x)
@@ -239,10 +241,10 @@ class Regrid_AT(AT):
           outcdelt.append((newhead['csys']['direction0']['cdelt'][0]/RADPERARCSEC,newhead['csys']['direction0']['cdelt'][1]/RADPERARCSEC,utils.freqtovel(mean_nu,newhead['csys']['spectral2']['wcs']['cdelt'])))
 
           if(do_freq_regrid):
-            taskinit.ia.open(ofile)
+            ia.open(ofile)
             print flux_correction
-            taskinit.ia.calc(pixels=ofile.replace(r"/",r"\/")+'*'+str(flux_correction))
-            taskinit.ia.done()
+            ia.calc(pixels=ofile.replace(r"/",r"\/")+'*'+str(flux_correction))
+            ia.done()
           obdp = admit.SpwCube_BDP(ostem)
           self.addoutput(obdp)
 

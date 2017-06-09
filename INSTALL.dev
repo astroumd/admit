@@ -8,17 +8,27 @@ To grab the git based source code
 
 
 CASA requirements:
-    Without CASA you can currently do very little with ADMIT. 
+    Without CASA you can currently do very little with ADMIT (although a version of
+    ADMIT does exist that works with some of the Radio Astro Tools).
+    
+    Here is where you should get CASA:
+    
     http://casa.nrao.edu/casa_obtaining.shtml
     http://casa.nrao.edu/installlinux.shtml
-    http://casa.nrao.edu/install xxx.shtml
+    https://casa.nrao.edu/installMacOS.shtml
 
-    e.g. the latest ones are
+    e.g. the latest ones are:
+
+    https://casa.nrao.edu/download/distro/linux/release/el7/casa-release-4.7.2-el7.tar.gz
+    https://casa.nrao.edu/download/distro/linux/release/el6/casa-release-4.7.2-el6.tar.gz
+    https://casa.nrao.edu/download/distro/osx/release/10.11/casa-release-4.7.2-10.11.dmg
+    https://casa.nrao.edu/download/distro/osx/release/10.10/casa-release-4.7.2-10.10.dmg
     
-    https://svn.cv.nrao.edu/casa/distro/linux/release/el6/casa-release-4.6.0-el6.tar.gz
-    https://svn.cv.nrao.edu/casa/distro/linux/release/el6/casa-release-4.5.3-el6.tar.gz
-    https://svn.cv.nrao.edu/casa/distro/osx/release/10.11/casa-release-4.6.0-10.11.dmg
-    https://svn.cv.nrao.edu/casa/distro/osx/release/10.9/casa-release-4.5.3-10.9.dmg
+    and there are also pre-releases in:
+    
+    https://casa.nrao.edu/download/distro/linux/prerelease/el7/
+    https://casa.nrao.edu/download/distro/linux/prerelease/el6/
+    https://casa.nrao.edu/download/distro/osx/prerelease/10.12/
 
 Programs you will need: (apart from the obvious things like python etc.)
 
@@ -76,11 +86,11 @@ Sample installation
   Sample scripts:
   $ADMIT/scripts/get_stable-casa_admit             install both casa and admit, only for linux
 
-# 
+# example session:
 
 git clone https://github.com/astroumd/admit
 cd admit
-autoconfig
+autoconf
 ./configure --with-casa-root=/opt/casa-release-4.7.0-el6
 source admit_start.sh
 

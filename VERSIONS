@@ -3,3 +3,4 @@
 1.0.2   Conversion to git (github/astroumd/admit)
 1.0.3   Adding stale flag (branchname: stale)
 1.0.4   Stale added back on master
+1.0.6   Merged in CASA 5.0 (pre-release) requirements

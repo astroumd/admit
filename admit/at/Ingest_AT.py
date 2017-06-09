@@ -231,6 +231,7 @@ class Ingest_AT(AT):
             'box'     : [],        # [] or z1,z2 or x1,y1,x2,y2  or x1,y1,z1,x2,y2,z2 
             'edge'    : [],        # [] or zl,zr - number of edge channels
             'smooth'  : [],        # pixel smoothing size applied to data (can be slow) - see also Smooth_AT
+            'variflow': False,     # requires manual sub-flow management for now
             'vlsr'    : -999999.0, # force a VLSR (see also LineID)
             'restfreq': -1.0,      # alternate VLSRf specification
             # 'symlink' : False,   # 

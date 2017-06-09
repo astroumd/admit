@@ -710,7 +710,7 @@ class SpectralLineSearch(object):
         """
         try:
             from slsearch import slsearch
-            # import taskinit
+            import taskinit
         except:
             logging.info("WARNING: No CASA, slsearch is not available, no line identificaiton possible.")
             raise

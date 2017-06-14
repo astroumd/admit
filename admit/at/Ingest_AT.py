@@ -373,6 +373,7 @@ class Ingest_AT(AT):
         dt.tag("start")
 
         ia = taskinit.iatool()
+        rg = taskinit.rgtool()
         
         if file_is_casa:
             ia.open(fni)

@@ -2,7 +2,7 @@
 #
 #   clean casa files
 #
-#   @todo   TempLattice18579_0  from ia.transpose()
+#   @todo   TempLattice18579_0  from ia.transpose()   [now done]
 #           tab<PID>_0
 #
 #   @todo   Since integration tests also need to clean, better have something in python
@@ -27,6 +27,11 @@ foreach dir ($dirs)
       echo Removing suspect directory $dir
       rm -rf $dir
    endif
+end
+
+foreach dir (TempLattice*_*)
+  echo Removing suspect directory $dir
+  rm -rf $dir
 end
 
 

@@ -7,6 +7,10 @@
 #
 #   @todo   Since integration tests also need to clean, better have something in python
 
+
+# we don't want this script to crash if the foreach's have no match.
+set nonomatch=1
+
 set dirs = (_immath __tmp_fromTFmask __tmp_outputmask __tmp_frominmask)
 
 

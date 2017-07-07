@@ -15,6 +15,7 @@ from   matplotlib.widgets import RadioButtons
 import PlotControl
 import numpy.ma as ma
 import utils
+from admit.util.AdmitLogging import AdmitLogging as logging
 # import mpld3      # needs matplotlib 1.3
 
 class APlot(AbstractPlot):
@@ -657,7 +658,7 @@ class APlot(AbstractPlot):
 
     def map1(self,data,title=None,figname=None,xlab=None,ylab=None,range=None,
              contours=None,cmap='hot',segments=None,circles=None,
-             thumbnail=True,zoom=1):
+             thumbnail=True,zoom=1,star=None):
         """
         display map; horrible hack, the caller should call np.flipud(np.rot90()) since
         casa and numpy do not have their axes in the same order.
@@ -684,10 +685,14 @@ class APlot(AbstractPlot):
         m1 = m2+m2/zoom
         n0 = n2-n2/zoom
         n1 = n2+n2/zoom
+        #logging.info("type(data) %s m,n,m0,n0,m1,n1 %g %g %g %g %g %g" % (type(data),m,n,m0,n0,m1,n1))
 
         if segments:
             for s in segments:
                 ax1.plot([s[0]-m0,s[1]-n0],[s[2]-m0,s[3]-n0],c='skyblue')
+        #        ax1.plot([s[0],s[1]],[s[2],s[3]],c='green')
+        if star:
+                ax1.plot(star[0],star[1],'*',c='red')
         if circles:
             # @todo awkward, these are closes circles, we want open
             for c in circles:
@@ -698,7 +703,11 @@ class APlot(AbstractPlot):
         if xlab:     ax1.set_xlabel(xlab)
         if ylab:     ax1.set_ylabel(ylab)
 
+#   Note this (inadvertently) can change the axis order if m0>m1 or n0>n1!
         zoom = data[m0:m1,n0:n1]
+#        logging.info("data[0,0] %g data[m1,n1] %g zoom[0,0] %g zoom[m1,n1] %g" % (data[0,0],data[m1-1,n1-1],zoom[0,0],zoom[m1-1,n1-1]))
+#        print("Zoom==data? %s " % np.array_equal(zoom,data) )
+#        zoom = data
         if range == None:
             alplot = ax1.imshow(zoom, origin='lower')
         elif len(range) == 1:

@@ -80,8 +80,8 @@ ubuntu:   it needs a new symlink to the system version of CASA's libtinfo.so.5, 
 
 	  cd $CASA_ROOT/lib ; ln -sf /lib/x86_64-linux-gnu/libtinfo.so.5
 
-Sample installation
--------------------
+Example installation script
+---------------------------
 
   Sample scripts:
   $ADMIT/scripts/get_stable-casa_admit             install both casa and admit, only for linux

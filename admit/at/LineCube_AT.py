@@ -33,6 +33,9 @@ import math
 
 # @todo
 # - use CoordSys tool and setrestfrequency to set the restfreq per linecube
+# - the current code cannot make cubes with equal velocity gridding
+#   the cheat is that as long as bandwidth not too wide, it's about right
+#   but to compare between bands, this will not work anymore, or even USB/LSB?
 
 
 class LineCube_AT(AT):

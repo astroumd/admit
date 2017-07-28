@@ -42,13 +42,13 @@ class PVSlice_AT(AT):
     **Keywords**
       **slice**: 4 element list
         Beginning and ending positions of the slice.
-        Only (0 based) pixel coordinatesa allowed.
+        Only (0 based) pixel coordinates are allowed.
 
       **slit**: 4 element list
         Center, Length and PA of the slit.
         Pixel coordinates for now, for both center (0 based) and
-        length.  PA in degrees, east of north, the traditional astronomy
-        convention.
+        length.  PA in degrees, east of north,
+        in the traditional astronomy convention.
 
       **width**: int
         Width of the slice/slit in the XY plane. Higher numbers will of
@@ -128,7 +128,7 @@ class PVSlice_AT(AT):
                 #"major"   : True,          # (TODO) major or minor axis, not used yet
                 }
         AT.__init__(self,keys,keyval)
-        self._version       = "1.1.0"
+        self._version       = "1.1.2"
         self.set_bdp_in([(Image_BDP,     1, bt.REQUIRED),      # SpwCube
                          (Moment_BDP,    1, bt.OPTIONAL),      # Moment0 or CubeSum
                          (CubeStats_BDP, 1, bt.OPTIONAL)])     # was: PeakPointPlot
@@ -301,7 +301,7 @@ class PVSlice_AT(AT):
               cosp = np.cos(pard)
               sinp = np.sin(pard)
               halflen = 0.5*slen
-              segm = [[xcen-halflen*sinp,xcen+halflen*sinp,ycen-halflen*cosp,ycen+halflen*cosp]]
+              segm = [[xcen-halflen*sinp,xcen+halflen*sinp,ycen+halflen*cosp,ycen-halflen*cosp]]
               pa   = pvslit[3]
               title = "PV Slice location : slit PA=%g" % pa
             else:
@@ -524,6 +524,8 @@ def expand_line(x0,y0,x1,y1,nx,ny,edge=6):
         """squared distance between two points"""
         return (x0-x1)*(x0-x1) + (y0-y1)*(y0-y1)
     def inside(x,e,n):
+        """return if x is within e and n-e-1
+        """
         if x < e: return False
         if x > n-e-1: return False
         return True
@@ -539,7 +541,8 @@ def expand_line(x0,y0,x1,y1,nx,ny,edge=6):
     y_e = yc + a*(edge-xc)
     x_n = xc + (ny-edge-1-yc)/a
     y_n = yc + a*(nx-edge-1-xc)
-    #print "x,y(e)  x,y(n):",x_e,y_e,x_n,y_n
+    print "x,y(0)  x,y(1):",x0,y0,x1,y1
+    print "x,y(e)  x,y(n):",x_e,y_e,x_n,y_n
     e = []
     if inside(x_e,edge,nx):  
         e.append(x_e)
@@ -554,6 +557,7 @@ def expand_line(x0,y0,x1,y1,nx,ny,edge=6):
         e.append(nx-edge-1)
         e.append(y_n)
     if len(e) != 4:
+        # can happen for small maps?
         msg = "Math Error in expand_line: ",e
         raise Exception,msg
     return e

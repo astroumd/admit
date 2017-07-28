@@ -7,7 +7,7 @@
 #
 #   @todo   Since integration tests also need to clean, better have something in python
 
-set dirs = (_immath __tmp_fromTFmask __tmp_outputmask __tmp_frominmask)
+set dirs = (_immath __tmp_fromTFmask __tmp_outputmask __tmp_frominmask _tmp_copy___tmp_frominmask)
 
 
 if ($#argv == 0) then

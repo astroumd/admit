@@ -278,7 +278,7 @@ class PVSlice_AT(AT):
         # @todo   if pmode is not png, can viewer handle this?
         figname   = pvname + ".png"
         slicename = self.dir(figname)
-        overlay   = "pvoverlay"
+        overlay   = pvname+"_overlay" 
         if b11 != None:
             f11 = b11.getimagefile(bt.CASA)
             tb = taskinit.tbtool()

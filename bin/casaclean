@@ -9,6 +9,9 @@
 
 set dirs = (_immath __tmp_fromTFmask __tmp_outputmask __tmp_frominmask _tmp_copy___tmp_frominmask)
 
+# we don't want this script to crash if the foreach's have no match.
+set nonomatch=1
+
 
 if ($#argv == 0) then
   echo 'For cleaning suspect casa temporary files:'

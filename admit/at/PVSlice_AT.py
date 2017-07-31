@@ -292,6 +292,8 @@ class PVSlice_AT(AT):
               segm = [[pvslice[0],pvslice[2],pvslice[1],pvslice[3]]]
               pa = np.arctan2(pvslice[2]-pvslice[0],pvslice[1]-pvslice[3])*180.0/np.pi
               title = "PV Slice location : slice PA=%.1f" % pa
+              xcen = (pvslice[0]+pvslice[2])/2.0
+              ycen = (pvslice[1]+pvslice[3])/2.0
             elif len(pvslit) == 4:
               # can only do this now if using pixel coordinates
               xcen = pvslit[0]
@@ -315,10 +317,10 @@ class PVSlice_AT(AT):
               logging.warning("datamax=%g,  clip=%g" % (d1.max(), clip))
               title = title + ' (no signal over %g?)' % clip
               myplot.map1(d1,title,overlay,segments=segm,thumbnail=True,
-                          zoom=self.getkey("zoom"))
+                          zoom=self.getkey("zoom"),star=[xcen,ycen])
             else:
               myplot.map1(d1,title,overlay,segments=segm,range=[clip],thumbnail=True,
-                          zoom=self.getkey("zoom"))
+                          zoom=self.getkey("zoom"),star=[xcen,ycen])
             dt.tag("plot")
             overlayname = myplot.getFigure(figno=myplot.figno,relative=True)
             overlaythumbname = myplot.getThumbnail(figno=myplot.figno,relative=True)

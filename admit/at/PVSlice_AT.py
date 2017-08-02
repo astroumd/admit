@@ -40,12 +40,12 @@ class PVSlice_AT(AT):
     See also :ref:`PVSlice-AT-Design` for the design document.
 
     **Keywords**
-      **slice**: 4 element list
-        Beginning and ending positions of the slice.
+      **slice**: 4 element list 
+        Beginning and ending positions of the slice: [x0,y0,x1,y1]
         Only (0 based) pixel coordinates are allowed.
 
       **slit**: 4 element list
-        Center, Length and PA of the slit.
+        XCenter, Ycenter, SlitLength and SlitPA.
         Pixel coordinates for now, for both center (0 based) and
         length.  PA in degrees, east of north,
         in the traditional astronomy convention.
@@ -128,7 +128,7 @@ class PVSlice_AT(AT):
                 #"major"   : True,          # (TODO) major or minor axis, not used yet
                 }
         AT.__init__(self,keys,keyval)
-        self._version       = "1.1.2"
+        self._version       = "1.1.3"
         self.set_bdp_in([(Image_BDP,     1, bt.REQUIRED),      # SpwCube
                          (Moment_BDP,    1, bt.OPTIONAL),      # Moment0 or CubeSum
                          (CubeStats_BDP, 1, bt.OPTIONAL)])     # was: PeakPointPlot
@@ -297,7 +297,7 @@ class PVSlice_AT(AT):
             elif len(pvslit) == 4:
               # can only do this now if using pixel coordinates
               xcen = pvslit[0]
-              ycen = ny-pvslit[1]-1
+              ycen = pvslit[1]
               slen = pvslit[2]
               pard = pvslit[3]*np.pi/180.0
               cosp = np.cos(pard)
@@ -531,6 +531,9 @@ def expand_line(x0,y0,x1,y1,nx,ny,edge=6):
         if x < e: return False
         if x > n-e-1: return False
         return True
+    # bypass everything
+    if False:
+        return [x0,y0,x1,y1]
     # pathetic cases
     if x0==x1: return [x0, edge, x1, ny-1-edge]
     if y0==y1: return [edge, y0, nx-1-edge, y1]

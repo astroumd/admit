@@ -664,7 +664,13 @@ class APlot(AbstractPlot):
         casa and numpy do not have their axes in the same order.
         We cannot call casa here, since APlot needs to stay casa agnostic.
         To be resolved.
+        
+        data:    a classic numpy array, i.e. data[ny][nx] where we want data[0][0]
+                 in the lower left corner
+        
         segments    [x0,x1,y0,y1]
+        star        [x,y]
+        
         See also casa.viewer() calls in e.g. Moment_AT
         """
         if self._plot_mode == PlotControl.NOPLOT:
@@ -677,22 +683,23 @@ class APlot(AbstractPlot):
         fig = plt.figure(APlot.figno)
         ax1 = fig.add_subplot(1,1,1)
 
-        # Zoom calculation.
+        # Zoom calculation.  (n= X direction; m= Y direction)
+        # @todo   for zoom>1 star and circles not plotted right
         m, n = data.shape
         m2 = m/2
         n2 = n/2
-        m0 = m2-m2/zoom
+        m0 = m2-m2/zoom    # Y direction
         m1 = m2+m2/zoom
-        n0 = n2-n2/zoom
+        n0 = n2-n2/zoom    # X direction
         n1 = n2+n2/zoom
         #logging.info("type(data) %s m,n,m0,n0,m1,n1 %g %g %g %g %g %g" % (type(data),m,n,m0,n0,m1,n1))
 
         if segments:
             for s in segments:
-                ax1.plot([s[0]-m0,s[1]-n0],[s[2]-m0,s[3]-n0],c='skyblue')
-        #        ax1.plot([s[0],s[1]],[s[2],s[3]],c='green')
+                ax1.plot([s[0]-n0,s[1]-n0],[s[2]-m0,s[3]-m0],c='skyblue')
+                # ax1.plot([s[0],s[1]],[s[2],s[3]],c='skyblue')                
         if star:
-                ax1.plot(star[0],star[1],'*',c='red')
+                ax1.plot(star[0],star[1],'*',c='white')
         if circles:
             # @todo awkward, these are closes circles, we want open
             for c in circles:

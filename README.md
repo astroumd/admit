@@ -10,7 +10,9 @@ Optional components are described in opt/README.
 
 Some branches on developers github pages:
 * RAT (teuben) : using [Radio Astro Tools](http://radio-astro-tools.github.io/)
-* github pages: https://astroumd.github.io/admit
+
+Documentation:
 * our own build: http://admit.astro.umd.edu
+* github pages: https://astroumd.github.io/admit (experimental) 
 
 

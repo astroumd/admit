@@ -1,0 +1,1117 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Spectrum — Spectral line data container. &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../index.html" />
+    <link rel="up" title="Python Scripting Interface (API)" href="../../api.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" accesskey="U">Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-admit.util.Spectrum"></span><div class="section" id="spectrum-spectral-line-data-container">
+<span id="spectrum-api"></span><h1><strong>Spectrum</strong> &#8212; Spectral line data container.<a class="headerlink" href="#spectrum-spectral-line-data-container" title="Permalink to this headline">¶</a></h1>
+<p>This module defines the Spectrum class.</p>
+<dl class="class">
+<dt id="admit.util.Spectrum.Spectrum">
+<em class="property">class </em><code class="descclassname">admit.util.Spectrum.</code><code class="descname">Spectrum</code><span class="sig-paren">(</span><em>spec=None, freq=None, chans=None, contin=None, noise=None, mask=[False]</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Spectrum.html#Spectrum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Spectrum.Spectrum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class for holding a spectrum. It holds entries for the spectrum,
+frequency axis, channel axis, vlsr, and rest_frequency. A mask
+is also available to mask bad data points. The mask is common to
+all axes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>spec</strong> : array like</p>
+<blockquote>
+<div><p>The spectrum.</p>
+</div></blockquote>
+<p><strong>freq</strong> : array like</p>
+<blockquote>
+<div><p>The frequency axis, one entry per spectral point.</p>
+</div></blockquote>
+<p><strong>chans</strong> : array like</p>
+<blockquote>
+<div><p>The channel axis, one entry per spectral point.</p>
+</div></blockquote>
+<p><strong>contin</strong> : array like or float</p>
+<blockquote>
+<div><p>The continuum for each channel, or for all channels if it is an
+int.</p>
+</div></blockquote>
+<p><strong>noise</strong> : float</p>
+<blockquote>
+<div><p>The rms noise of the spectrum.</p>
+</div></blockquote>
+<p><strong>mask</strong> : array like or bool</p>
+<blockquote class="last">
+<div><p>The mask for the spectrum, one entry per spectral point
+or a single boolean value, Defaults to all good.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Spectrum.Spectrum.calcdelta" title="admit.util.Spectrum.Spectrum.calcdelta"><code class="xref py py-obj docutils literal"><span class="pre">calcdelta</span></code></a>()</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Spectrum.Spectrum.centerfreq" title="admit.util.Spectrum.Spectrum.centerfreq"><code class="xref py py-obj docutils literal"><span class="pre">centerfreq</span></code></a>()</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Spectrum.Spectrum.chans" title="admit.util.Spectrum.Spectrum.chans"><code class="xref py py-obj docutils literal"><span class="pre">chans</span></code></a>([masked])</td>
+<td>Method to get the channel axis, the mask is optionally returned</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Spectrum.Spectrum.contin" title="admit.util.Spectrum.Spectrum.contin"><code class="xref py py-obj docutils literal"><span class="pre">contin</span></code></a>([masked])</td>
+<td>Method to get the continuum, the mask is optionally returned</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Spectrum.Spectrum.delta" title="admit.util.Spectrum.Spectrum.delta"><code class="xref py py-obj docutils literal"><span class="pre">delta</span></code></a>()</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Spectrum.Spectrum.fix_invalid" title="admit.util.Spectrum.Spectrum.fix_invalid"><code class="xref py py-obj docutils literal"><span class="pre">fix_invalid</span></code></a>([mask_value])</td>
+<td>Method to replace invalid spectral data with a specific value and mask it.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Spectrum.Spectrum.freq" title="admit.util.Spectrum.Spectrum.freq"><code class="xref py py-obj docutils literal"><span class="pre">freq</span></code></a>([masked])</td>
+<td>Method to get the frequency axis, the mask is optionally returned</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Spectrum.Spectrum.freqdispersion" title="admit.util.Spectrum.Spectrum.freqdispersion"><code class="xref py py-obj docutils literal"><span class="pre">freqdispersion</span></code></a>([chanrange])</td>
+<td>Compute the frequency dispersion of the spectrum in the given channel range.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Spectrum.Spectrum.fwhm" title="admit.util.Spectrum.Spectrum.fwhm"><code class="xref py py-obj docutils literal"><span class="pre">fwhm</span></code></a>([chanrange])</td>
+<td>Compute the full-width at half-maximum velocity (km/s).</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Spectrum.Spectrum.getchan" title="admit.util.Spectrum.Spectrum.getchan"><code class="xref py py-obj docutils literal"><span class="pre">getchan</span></code></a>(frq)</td>
+<td>Method to get the channel number given the frequency</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Spectrum.Spectrum.getchanindex" title="admit.util.Spectrum.Spectrum.getchanindex"><code class="xref py py-obj docutils literal"><span class="pre">getchanindex</span></code></a>(chan)</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Spectrum.Spectrum.getfreq" title="admit.util.Spectrum.Spectrum.getfreq"><code class="xref py py-obj docutils literal"><span class="pre">getfreq</span></code></a>(chan)</td>
+<td>Method to get the frequency of the given channel, the channel can contain a fraction of a channel (e.g.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Spectrum.Spectrum.integritycheck" title="admit.util.Spectrum.Spectrum.integritycheck"><code class="xref py py-obj docutils literal"><span class="pre">integritycheck</span></code></a>()</td>
+<td>Method to check that all axes are the same length.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Spectrum.Spectrum.invert" title="admit.util.Spectrum.Spectrum.invert"><code class="xref py py-obj docutils literal"><span class="pre">invert</span></code></a>()</td>
+<td>Multiply this spectrum and continuum by -1</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Spectrum.Spectrum.mask" title="admit.util.Spectrum.Spectrum.mask"><code class="xref py py-obj docutils literal"><span class="pre">mask</span></code></a>()</td>
+<td>Method to return the mask as a numpy array</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Spectrum.Spectrum.mask_between" title="admit.util.Spectrum.Spectrum.mask_between"><code class="xref py py-obj docutils literal"><span class="pre">mask_between</span></code></a>(limit1,&nbsp;limit2[,&nbsp;axis])</td>
+<td>Method to mask any data bewteen the the given values.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Spectrum.Spectrum.mask_equal" title="admit.util.Spectrum.Spectrum.mask_equal"><code class="xref py py-obj docutils literal"><span class="pre">mask_equal</span></code></a>(value[,&nbsp;axis])</td>
+<td>Method to mask data equal to the given value.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Spectrum.Spectrum.mask_ge" title="admit.util.Spectrum.Spectrum.mask_ge"><code class="xref py py-obj docutils literal"><span class="pre">mask_ge</span></code></a>(limit[,&nbsp;axis])</td>
+<td>Method to mask any data less than or equal to the given value.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Spectrum.Spectrum.mask_gt" title="admit.util.Spectrum.Spectrum.mask_gt"><code class="xref py py-obj docutils literal"><span class="pre">mask_gt</span></code></a>(limit[,&nbsp;axis])</td>
+<td>Method to mask any data greater than the given value.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Spectrum.Spectrum.mask_invalid" title="admit.util.Spectrum.Spectrum.mask_invalid"><code class="xref py py-obj docutils literal"><span class="pre">mask_invalid</span></code></a>()</td>
+<td>Method to mask all invalid spectral data.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Spectrum.Spectrum.mask_le" title="admit.util.Spectrum.Spectrum.mask_le"><code class="xref py py-obj docutils literal"><span class="pre">mask_le</span></code></a>(limit[,&nbsp;axis])</td>
+<td>Method to mask any data less than or erqual to the given value.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Spectrum.Spectrum.mask_lt" title="admit.util.Spectrum.Spectrum.mask_lt"><code class="xref py py-obj docutils literal"><span class="pre">mask_lt</span></code></a>(limit[,&nbsp;axis])</td>
+<td>Method to mask any data less than the given value.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Spectrum.Spectrum.mask_outside" title="admit.util.Spectrum.Spectrum.mask_outside"><code class="xref py py-obj docutils literal"><span class="pre">mask_outside</span></code></a>(limit1,&nbsp;limit2[,&nbsp;axis])</td>
+<td>Method to mask any data less than or greater than the given values.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Spectrum.Spectrum.meanfrequency" title="admit.util.Spectrum.Spectrum.meanfrequency"><code class="xref py py-obj docutils literal"><span class="pre">meanfrequency</span></code></a>([chanrange])</td>
+<td>Compute the power-weighted mean frequency of this spectrum,  aka the first moment.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Spectrum.Spectrum.meanvelocity" title="admit.util.Spectrum.Spectrum.meanvelocity"><code class="xref py py-obj docutils literal"><span class="pre">meanvelocity</span></code></a>([chanrange])</td>
+<td>Compute the power-weighted mean velocity of this spectrum.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Spectrum.Spectrum.moment" title="admit.util.Spectrum.Spectrum.moment"><code class="xref py py-obj docutils literal"><span class="pre">moment</span></code></a>([chanrange,&nbsp;p])</td>
+<td>Compute the power-weighted moment of a spectrum If a mask exists, this function operates on the masked spectrum.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Spectrum.Spectrum.momenta" title="admit.util.Spectrum.Spectrum.momenta"><code class="xref py py-obj docutils literal"><span class="pre">momenta</span></code></a>([chanrange,&nbsp;p])</td>
+<td>abs(intensity)-weighted moment</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Spectrum.Spectrum.momenti" title="admit.util.Spectrum.Spectrum.momenti"><code class="xref py py-obj docutils literal"><span class="pre">momenti</span></code></a>([chanrange,&nbsp;p])</td>
+<td>Intensity-weighted moment</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Spectrum.Spectrum.noise" title="admit.util.Spectrum.Spectrum.noise"><code class="xref py py-obj docutils literal"><span class="pre">noise</span></code></a>()</td>
+<td>Method to return the noise of the spectrum.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Spectrum.Spectrum.peak" title="admit.util.Spectrum.Spectrum.peak"><code class="xref py py-obj docutils literal"><span class="pre">peak</span></code></a>([chanrange])</td>
+<td>Return the peak intensity in the given channel range If a mask exists, this function operates on the masked spectrum.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Spectrum.Spectrum.rms" title="admit.util.Spectrum.Spectrum.rms"><code class="xref py py-obj docutils literal"><span class="pre">rms</span></code></a>()</td>
+<td>If the noise has been set, return the noise, otherwise compute and return the root-mean-square value of the spectrum.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Spectrum.Spectrum.set_chans" title="admit.util.Spectrum.Spectrum.set_chans"><code class="xref py py-obj docutils literal"><span class="pre">set_chans</span></code></a>(chans)</td>
+<td>Method to set the channel axis.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Spectrum.Spectrum.set_contin" title="admit.util.Spectrum.Spectrum.set_contin"><code class="xref py py-obj docutils literal"><span class="pre">set_contin</span></code></a>(contin)</td>
+<td>Method to set the continuum.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Spectrum.Spectrum.set_freq" title="admit.util.Spectrum.Spectrum.set_freq"><code class="xref py py-obj docutils literal"><span class="pre">set_freq</span></code></a>(freq)</td>
+<td>Method to set the frequency axis.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Spectrum.Spectrum.set_mask" title="admit.util.Spectrum.Spectrum.set_mask"><code class="xref py py-obj docutils literal"><span class="pre">set_mask</span></code></a>(mask)</td>
+<td>Method to set the mask item</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Spectrum.Spectrum.set_noise" title="admit.util.Spectrum.Spectrum.set_noise"><code class="xref py py-obj docutils literal"><span class="pre">set_noise</span></code></a>(noise)</td>
+<td>Method to set the noise value for the spectrum.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Spectrum.Spectrum.set_spec" title="admit.util.Spectrum.Spectrum.set_spec"><code class="xref py py-obj docutils literal"><span class="pre">set_spec</span></code></a>(spec[,&nbsp;mask])</td>
+<td>Method to set the spectrum, an optionally the mask.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Spectrum.Spectrum.spec" title="admit.util.Spectrum.Spectrum.spec"><code class="xref py py-obj docutils literal"><span class="pre">spec</span></code></a>([csub,&nbsp;masked])</td>
+<td>Method to get the spectrum, the mask is optionally returned</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Spectrum.Spectrum.veldispersion" title="admit.util.Spectrum.Spectrum.veldispersion"><code class="xref py py-obj docutils literal"><span class="pre">veldispersion</span></code></a>([chanrange])</td>
+<td>Compute the velocity dispersion (km/s) of the spectrum in the given channel range.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="admit.util.Spectrum.Spectrum.calcdelta">
+<code class="descname">calcdelta</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Spectrum.html#Spectrum.calcdelta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Spectrum.Spectrum.calcdelta" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Spectrum.Spectrum.centerfreq">
+<code class="descname">centerfreq</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Spectrum.html#Spectrum.centerfreq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Spectrum.Spectrum.centerfreq" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Spectrum.Spectrum.chans">
+<code class="descname">chans</code><span class="sig-paren">(</span><em>masked=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Spectrum.html#Spectrum.chans"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Spectrum.Spectrum.chans" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get the channel axis, the mask is optionally returned</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>masked</strong> : bool</p>
+<blockquote>
+<div><p>If True then return the channel axis as a masked array with
+the current mask applied. False will return a numpy array
+with no masking done.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Array like object containing the channel axis</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Spectrum.Spectrum.contin">
+<code class="descname">contin</code><span class="sig-paren">(</span><em>masked=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Spectrum.html#Spectrum.contin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Spectrum.Spectrum.contin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get the continuum, the mask is optionally returned</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>masked</strong> : bool</p>
+<blockquote>
+<div><p>If True then return the continuum as a masked array with
+the current mask applied. False will return a numpy array
+with no masking done.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Array like object containing the continuum</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Spectrum.Spectrum.delta">
+<code class="descname">delta</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Spectrum.html#Spectrum.delta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Spectrum.Spectrum.delta" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Spectrum.Spectrum.fix_invalid">
+<code class="descname">fix_invalid</code><span class="sig-paren">(</span><em>mask_value=0.0</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Spectrum.html#Spectrum.fix_invalid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Spectrum.Spectrum.fix_invalid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to replace invalid spectral data with a specific value
+and mask it. Invalid values are: NaN, Inf, -Inf</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>mask_value</strong> : float</p>
+<blockquote>
+<div><p>The value to replace the invalid data with.
+Default: 0.0</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Spectrum.Spectrum.freq">
+<code class="descname">freq</code><span class="sig-paren">(</span><em>masked=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Spectrum.html#Spectrum.freq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Spectrum.Spectrum.freq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get the frequency axis, the mask is optionally returned</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>masked</strong> : bool</p>
+<blockquote>
+<div><p>If True then return the frequency axis as a masked array with
+the current mask applied. False will return a numpy array
+with no masking done.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Array like object containing the frequency axis</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Spectrum.Spectrum.freqdispersion">
+<code class="descname">freqdispersion</code><span class="sig-paren">(</span><em>chanrange=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Spectrum.html#Spectrum.freqdispersion"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Spectrum.Spectrum.freqdispersion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the frequency dispersion of the spectrum in the given
+channel range.
+If a mask exists, this function operates on the masked spectrum.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>chanrange: range of channels over which to compute dispersion</strong></p>
+<blockquote>
+<div><p>[startchan, endchan]</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Power-weighted frequency dispersion df as computed by</p>
+<blockquote>
+<div><p>df = sqrt(mom2)</p>
+</div></blockquote>
+<p class="last">where mom2 is the 2nd moment as computed by the moment() method.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Spectrum.Spectrum.fwhm">
+<code class="descname">fwhm</code><span class="sig-paren">(</span><em>chanrange=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Spectrum.html#Spectrum.fwhm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Spectrum.Spectrum.fwhm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the full-width at half-maximum velocity (km/s).
+If a mask exists, this function operates on the masked spectrum.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>chanrange: range of channels over which to compute dispersion</strong></p>
+<blockquote>
+<div><p>[startchan, endchan]</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">fwhm computed by</p>
+<blockquote>
+<div><p>fwhm = dv * sqrt(8*ln(2))</p>
+</div></blockquote>
+<p>where dv is the velocity dispersion computered by</p>
+<p class="last">the veldispersion() method.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Spectrum.Spectrum.getchan">
+<code class="descname">getchan</code><span class="sig-paren">(</span><em>frq</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Spectrum.html#Spectrum.getchan"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Spectrum.Spectrum.getchan" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get the channel number given the frequency</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>frq</strong> : float</p>
+<blockquote>
+<div><p>The frequency whose channel number is to be found</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">int containing the channel number, will be 0 or len(self.x)-1 if</p>
+<p class="last">the frequency is outside of the frequency range in the class</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Spectrum.Spectrum.getchanindex">
+<code class="descname">getchanindex</code><span class="sig-paren">(</span><em>chan</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Spectrum.html#Spectrum.getchanindex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Spectrum.Spectrum.getchanindex" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Spectrum.Spectrum.getfreq">
+<code class="descname">getfreq</code><span class="sig-paren">(</span><em>chan</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Spectrum.html#Spectrum.getfreq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Spectrum.Spectrum.getfreq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get the frequency of the given channel, the channel can
+contain a fraction of a channel (e.g. 1.45)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>chan</strong> : float</p>
+<blockquote>
+<div><p>The channel to convert</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Float of the frequency corresponding to the channel</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Spectrum.Spectrum.integritycheck">
+<code class="descname">integritycheck</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Spectrum.html#Spectrum.integritycheck"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Spectrum.Spectrum.integritycheck" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to check that all axes are the same length. Axes
+that have no data are ignored.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Bool, True if all match, False if there is an inconsistency</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Spectrum.Spectrum.invert">
+<code class="descname">invert</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Spectrum.html#Spectrum.invert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Spectrum.Spectrum.invert" title="Permalink to this definition">¶</a></dt>
+<dd><p>Multiply this spectrum and continuum by -1</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Spectrum.Spectrum.mask">
+<code class="descname">mask</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Spectrum.html#Spectrum.mask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Spectrum.Spectrum.mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to return the mask as a numpy array</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Array like object containing the mask</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Spectrum.Spectrum.mask_between">
+<code class="descname">mask_between</code><span class="sig-paren">(</span><em>limit1</em>, <em>limit2</em>, <em>axis='spec'</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Spectrum.html#Spectrum.mask_between"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Spectrum.Spectrum.mask_between" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to mask any data bewteen the the given values.
+Any axis can be used (&#8220;spec&#8221;, &#8220;freq&#8221;, &#8220;chans&#8221;) as
+the basis for the masking.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>limit1</strong> : float or int</p>
+<blockquote>
+<div><p>The value above which all data of the given axis
+will be masked.</p>
+</div></blockquote>
+<p><strong>limit2</strong> : float or int</p>
+<blockquote>
+<div><p>The value below which all data of the given axis
+will be masked.</p>
+</div></blockquote>
+<p><strong>axis</strong> : str</p>
+<blockquote>
+<div><p>The axis which is used to determine the flags.
+Default: &#8220;spec&#8221;</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Spectrum.Spectrum.mask_equal">
+<code class="descname">mask_equal</code><span class="sig-paren">(</span><em>value</em>, <em>axis='spec'</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Spectrum.html#Spectrum.mask_equal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Spectrum.Spectrum.mask_equal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to mask data equal to the given value.
+Any axis can be used  (&#8220;spec&#8221;, &#8220;freq&#8221;, &#8220;chans&#8221;) as
+the basis for the masking.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>value</strong> : float or int</p>
+<blockquote>
+<div><p>The value equal to which all data of the given axis
+will be masked.</p>
+</div></blockquote>
+<p><strong>axis</strong> : str</p>
+<blockquote>
+<div><p>The axis which is used to determine the flags.
+Default: &#8220;spec&#8221;</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Spectrum.Spectrum.mask_ge">
+<code class="descname">mask_ge</code><span class="sig-paren">(</span><em>limit</em>, <em>axis='spec'</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Spectrum.html#Spectrum.mask_ge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Spectrum.Spectrum.mask_ge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to mask any data less than or equal to the given value.
+Any axis can be used (&#8220;spec&#8221;, &#8220;freq&#8221;, &#8220;chans&#8221;) as
+the basis for the masking.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>limit</strong> : float or int</p>
+<blockquote>
+<div><p>The value which all data, of the given axis,
+greater than or equal to, will be masked.</p>
+</div></blockquote>
+<p><strong>axis</strong> : str</p>
+<blockquote>
+<div><p>The axis which is used to determine the flags.
+Default: &#8220;spec&#8221;</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Spectrum.Spectrum.mask_gt">
+<code class="descname">mask_gt</code><span class="sig-paren">(</span><em>limit</em>, <em>axis='spec'</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Spectrum.html#Spectrum.mask_gt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Spectrum.Spectrum.mask_gt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to mask any data greater than the given value.
+Any axis can be used (&#8220;spec&#8221;, &#8220;freq&#8221;, &#8220;chans&#8221;) as
+the basis for the masking.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>limit</strong> : float or int</p>
+<blockquote>
+<div><p>The value above which all data of the given axis
+will be masked.</p>
+</div></blockquote>
+<p><strong>axis</strong> : str</p>
+<blockquote>
+<div><p>The axis which is used to determine the flags.
+Default: &#8220;spec&#8221;</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Spectrum.Spectrum.mask_invalid">
+<code class="descname">mask_invalid</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Spectrum.html#Spectrum.mask_invalid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Spectrum.Spectrum.mask_invalid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to mask all invalid spectral data.
+Invalid values are: NaN, Inf, -Inf</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Spectrum.Spectrum.mask_le">
+<code class="descname">mask_le</code><span class="sig-paren">(</span><em>limit</em>, <em>axis='spec'</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Spectrum.html#Spectrum.mask_le"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Spectrum.Spectrum.mask_le" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to mask any data less than or erqual to the given value.
+Any axis can be used (&#8220;spec&#8221;, &#8220;freq&#8221;, &#8220;chans&#8221;) as
+the basis for the masking.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>limit</strong> : float or int</p>
+<blockquote>
+<div><p>The value which all data, of the given axis,
+less than or equal to, will be masked.</p>
+</div></blockquote>
+<p><strong>axis</strong> : str</p>
+<blockquote>
+<div><p>The axis which is used to determine the flags.
+Default: &#8220;spec&#8221;</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Spectrum.Spectrum.mask_lt">
+<code class="descname">mask_lt</code><span class="sig-paren">(</span><em>limit</em>, <em>axis='spec'</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Spectrum.html#Spectrum.mask_lt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Spectrum.Spectrum.mask_lt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to mask any data less than the given value.
+Any axis can be used (&#8220;spec&#8221;, &#8220;freq&#8221;, &#8220;chans&#8221;) as
+the basis for the masking.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>limit</strong> : float or int</p>
+<blockquote>
+<div><p>The value below which all data of the given axis
+will be masked.</p>
+</div></blockquote>
+<p><strong>axis</strong> : str</p>
+<blockquote>
+<div><p>The axis which is used to determine the flags.
+Default: &#8220;spec&#8221;</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Spectrum.Spectrum.mask_outside">
+<code class="descname">mask_outside</code><span class="sig-paren">(</span><em>limit1</em>, <em>limit2</em>, <em>axis='spec'</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Spectrum.html#Spectrum.mask_outside"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Spectrum.Spectrum.mask_outside" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to mask any data less than or greater than the given values.
+Any axis can be used (&#8220;spec&#8221;, &#8220;freq&#8221;, &#8220;chans&#8221;) as
+the basis for the masking.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>limit1</strong> : float or int</p>
+<blockquote>
+<div><p>The value below which all data of the given axis
+will be masked.</p>
+</div></blockquote>
+<p><strong>limit2</strong> : float or int</p>
+<blockquote>
+<div><p>The value above which all data of the given axis
+will be masked.</p>
+</div></blockquote>
+<p><strong>axis</strong> : str</p>
+<blockquote>
+<div><p>The axis which is used to determine the flags.
+Default: &#8220;spec&#8221;</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Spectrum.Spectrum.meanfrequency">
+<code class="descname">meanfrequency</code><span class="sig-paren">(</span><em>chanrange=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Spectrum.html#Spectrum.meanfrequency"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Spectrum.Spectrum.meanfrequency" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the power-weighted mean frequency of this spectrum, 
+aka the first moment.
+If a channel range is given, the mean frequency is computed
+over that channel range, otherwise over the entire spectrum.
+If a mask exists, this function operates on the masked spectrum.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>chanrange: range of channels over which to compute frequency</strong></p>
+<blockquote>
+<div><p>[startchan, endchan]</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Power-weighted mean frequency as computed by</p>
+<blockquote>
+<div><p>f_mean = Sum(spec[i]**2*f[i]])/Sum(spec[i]**2)</p>
+</div></blockquote>
+<p>where spec[i] is the intensity at channel i and f[i] is</p>
+<p class="last">the frequency at channel i.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Spectrum.Spectrum.meanvelocity">
+<code class="descname">meanvelocity</code><span class="sig-paren">(</span><em>chanrange=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Spectrum.html#Spectrum.meanvelocity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Spectrum.Spectrum.meanvelocity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the power-weighted mean velocity of this spectrum. 
+derived from the mean frequency and channel width:</p>
+<blockquote>
+<div>mean_v = C * delta()/meanfrequency(chanrange)</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Spectrum.Spectrum.moment">
+<code class="descname">moment</code><span class="sig-paren">(</span><em>chanrange=None</em>, <em>p=1</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Spectrum.html#Spectrum.moment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Spectrum.Spectrum.moment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the power-weighted moment of a spectrum
+If a mask exists, this function operates on the masked spectrum.</p>
+<blockquote>
+<div>f_mean = Sum(spec[i]**2*(f[i]-mom{p-1})^p])/Sum(spec[i]**2)</div></blockquote>
+<p>where spec[i] is the intensity at channel i (spec[i]**2 is he power) 
+and f[i] is the frequency at channel i, p is the moment power,
+and mom{p-1} is the p-1-th moment [for p &gt;1].</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>chanrange: range of channels over which to compute moment</strong></p>
+<blockquote>
+<div><p>[startchan, endchan]</p>
+</div></blockquote>
+<p><strong>p:         the moment to compute (the power of the frequency in the sum)</strong></p>
+<p><strong>Returns:</strong></p>
+<blockquote class="last">
+<div><p>The computed moment</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Spectrum.Spectrum.momenta">
+<code class="descname">momenta</code><span class="sig-paren">(</span><em>chanrange=None</em>, <em>p=1</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Spectrum.html#Spectrum.momenta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Spectrum.Spectrum.momenta" title="Permalink to this definition">¶</a></dt>
+<dd><p>abs(intensity)-weighted moment
+Does somewhat better than signed intensity-weighted moment.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>chanrange: range of channels over which to compute moment</strong></p>
+<blockquote>
+<div><p>[startchan, endchan]</p>
+</div></blockquote>
+<p><strong>p:         the moment to compute (the power of the frequency in the sum)</strong></p>
+<p><strong>Returns:</strong></p>
+<blockquote class="last">
+<div><p>The computed moment</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Spectrum.Spectrum.momenti">
+<code class="descname">momenti</code><span class="sig-paren">(</span><em>chanrange=None</em>, <em>p=1</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Spectrum.html#Spectrum.momenti"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Spectrum.Spectrum.momenti" title="Permalink to this definition">¶</a></dt>
+<dd><p>Intensity-weighted moment
+Note this moment does poorly for very narrow line segments where
+some channels may be negative.&#8221;</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>chanrange: range of channels over which to compute moment</strong></p>
+<blockquote>
+<div><p>[startchan, endchan]</p>
+</div></blockquote>
+<p><strong>p:         the moment to compute (the power of the frequency in the sum)</strong></p>
+<p><strong>Returns:</strong></p>
+<blockquote class="last">
+<div><p>The computed moment</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Spectrum.Spectrum.noise">
+<code class="descname">noise</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Spectrum.html#Spectrum.noise"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Spectrum.Spectrum.noise" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to return the noise of the spectrum.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Float of the rms noise.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Spectrum.Spectrum.peak">
+<code class="descname">peak</code><span class="sig-paren">(</span><em>chanrange=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Spectrum.html#Spectrum.peak"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Spectrum.Spectrum.peak" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the peak intensity in the given channel range
+If a mask exists, this function operates on the masked spectrum.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>chanrange: range of channels over which to compute dispersion</strong></p>
+<blockquote>
+<div><p>[startchan, endchan]</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Maximum of the absolute value of the spectrum in the channel range</p>
+<blockquote class="last">
+<div><p>max(abs(spectrum[startchan:endchan]))</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Spectrum.Spectrum.rms">
+<code class="descname">rms</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Spectrum.html#Spectrum.rms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Spectrum.Spectrum.rms" title="Permalink to this definition">¶</a></dt>
+<dd><p>If the noise has been set, return the noise, otherwise
+compute and return the root-mean-square value of the spectrum.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Spectrum.Spectrum.set_chans">
+<code class="descname">set_chans</code><span class="sig-paren">(</span><em>chans</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Spectrum.html#Spectrum.set_chans"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Spectrum.Spectrum.set_chans" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to set the channel axis.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>chans</strong> : array like</p>
+<blockquote>
+<div><p>The channel axis to use</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Spectrum.Spectrum.set_contin">
+<code class="descname">set_contin</code><span class="sig-paren">(</span><em>contin</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Spectrum.html#Spectrum.set_contin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Spectrum.Spectrum.set_contin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to set the continuum.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>freq</strong> : array like</p>
+<blockquote>
+<div><p>The continuum to use</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Spectrum.Spectrum.set_freq">
+<code class="descname">set_freq</code><span class="sig-paren">(</span><em>freq</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Spectrum.html#Spectrum.set_freq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Spectrum.Spectrum.set_freq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to set the frequency axis.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>freq</strong> : array like</p>
+<blockquote>
+<div><p>The frequency axis to use</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Spectrum.Spectrum.set_mask">
+<code class="descname">set_mask</code><span class="sig-paren">(</span><em>mask</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Spectrum.html#Spectrum.set_mask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Spectrum.Spectrum.set_mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to set the mask item</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>mask</strong> : array like or bool</p>
+<blockquote>
+<div><p>The mask to use, must be equal in dimmension to
+the spectral axis, or a single boolean value which
+is applied to all data.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Spectrum.Spectrum.set_noise">
+<code class="descname">set_noise</code><span class="sig-paren">(</span><em>noise</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Spectrum.html#Spectrum.set_noise"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Spectrum.Spectrum.set_noise" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to set the noise value for the spectrum.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>noise</strong> : float</p>
+<blockquote>
+<div><p>The noise of the spectrum</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Spectrum.Spectrum.set_spec">
+<code class="descname">set_spec</code><span class="sig-paren">(</span><em>spec</em>, <em>mask=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Spectrum.html#Spectrum.set_spec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Spectrum.Spectrum.set_spec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to set the spectrum, an optionally the mask.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>spec</strong> : array like</p>
+<blockquote>
+<div><p>The spectrum to set</p>
+</div></blockquote>
+<p><strong>mask</strong> : array like or single bool</p>
+<blockquote>
+<div><p>The mask to apply to the spectrum. Default: None (no mask)</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Spectrum.Spectrum.spec">
+<code class="descname">spec</code><span class="sig-paren">(</span><em>csub=True</em>, <em>masked=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Spectrum.html#Spectrum.spec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Spectrum.Spectrum.spec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get the spectrum, the mask is optionally returned</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>csub</strong> : bool</p>
+<blockquote>
+<div><p>If True return the spectrum with the continuum subtracted,
+False will return the pure spectrum
+Default: True</p>
+</div></blockquote>
+<p><strong>masked</strong> : bool</p>
+<blockquote>
+<div><p>If True then return the spectrum as a masked array with
+the current mask applied. False will return a numpy array
+with no masking done.
+Default: True</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Array like object containing the spectrum</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Spectrum.Spectrum.veldispersion">
+<code class="descname">veldispersion</code><span class="sig-paren">(</span><em>chanrange=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Spectrum.html#Spectrum.veldispersion"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Spectrum.Spectrum.veldispersion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the velocity dispersion (km/s) of the spectrum in the given
+channel range.
+If a mask exists, this function operates on the masked spectrum.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>chanrange: range of channels over which to compute dispersion</strong></p>
+<blockquote>
+<div><p>[startchan, endchan]</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Power-weighted velocity dv as computed by</p>
+<blockquote>
+<div><p>dv = C * df/mf</p>
+</div></blockquote>
+<p>where df is the frequency dispersion computered by</p>
+<p>the frequencydispersion() method,</p>
+<p>mf is the mean frequency from the meanfrequency() method,</p>
+<p class="last">and C is the speed of light.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/module/admit.util/Spectrum.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" >Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,187 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Archive_Pipeline — Produces standard JAO ADMIT pipeline products for spectral line plus continuum images. &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../index.html" />
+    <link rel="up" title="Python Scripting Interface (API)" href="../../api.html" />
+    <link rel="next" title="Archive_SpecLine — Produces standard JAO ADMIT pipeline products for spectral line images." href="Archive_SpecLine.html" />
+    <link rel="prev" title="Recipes Package" href="0-index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="Archive_SpecLine.html" title="Archive_SpecLine — Produces standard JAO ADMIT pipeline products for spectral line images."
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="0-index.html" title="Recipes Package"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" accesskey="U">Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-admit.recipes.Archive_Pipeline"></span><div class="section" id="archive-pipeline-produces-standard-jao-admit-pipeline-products-for-spectral-line-plus-continuum-images">
+<span id="archive-pipeline-api"></span><h1><strong>Archive_Pipeline</strong> &#8212; Produces standard JAO ADMIT pipeline products for spectral line plus continuum images.<a class="headerlink" href="#archive-pipeline-produces-standard-jao-admit-pipeline-products-for-spectral-line-plus-continuum-images" title="Permalink to this headline">¶</a></h1>
+<dl class="docutils">
+<dt>Example Usage: </dt>
+<dd>admit_recipe Archive_Pipeline Spectral-Cube Continuum-Image</dd>
+<dt>or</dt>
+<dd>admit.recipe(&#8220;Archive_Pipeline&#8221;,&#8221;Spectral-Cube&#8221;,&#8221;Continuum-Image&#8221;)</dd>
+<dt>If primary beam files given: </dt>
+<dd>admit_recipe Archive_Pipeline Spectral-Cube Continuum-Image specpb=&#8221;Spectral-Primary-Beam&#8221; contpb=&#8221;Continuum-Primary-Beam&#8221;</dd>
+<dt>or</dt>
+<dd>admit.recipe(&#8220;Archive_Pipeline&#8221;,&#8221;Spectral-Cube&#8221;,&#8221;Continuum-Image&#8221;, specpb=&#8221;Spectral-Primary-Beam&#8221;, contpb=&#8221;Continuum-Primary-Beam&#8221;)</dd>
+</dl>
+<p>This ADMIT script makes standard ADMIT pipeline products for a local dataset.  The flow is:</p>
+<ol class="arabic simple">
+<li>Ingest the cube and optional continuum image into ADMIT doing primary beam correction  if PB file(s) supplied. This will create CASA images if inputs are FITS.</li>
+<li>Calculate statistics on cube for later use</li>
+<li>Make a zeroth moment map over all emission in the cube.</li>
+<li>Make a position-velocity (PV) slice oriented on the moment emission from the previous step.</li>
+<li>Find segments with emission or absorption and try to ID the line(s)</li>
+<li>Cut out cubes for each line found; cube name is line name</li>
+<li>Calculate moment 0,1,2 maps for each line cube</li>
+<li>Make a spectrum at the peak in each moment map</li>
+<li>Make a PV slice through the peak in each moment map</li>
+<li>Compute statistics on continuum map</li>
+<li>Search for sources in the continuum map down to a given cutoff.</li>
+<li>Make a spectrum at each source found from in the previous step.</li>
+</ol>
+<div class="section" id="parameters">
+<h2>Parameters<a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>param1</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">spectral image cube</span><dd>Your CASA or FITS spectral line image cube.  If the cube is not primary beam
+corrected, then do not supply a primary beam for it. Default cubes from <em>clean</em>
+are not primary beam corrected: The noise does not rise up at the edge of the field</dd>
+<dt>param2</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">continuum image, optional</span><dd>Your CASA or FITS continuum image. This image should have one channel (NAXIS3=1).
+If the image is not primary beam corrected, then do not supply the primary beam for it.</dd>
+</dl>
+</div>
+<div class="section" id="optional-keywords">
+<h2>Optional Keywords<a class="headerlink" href="#optional-keywords" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><em>specpb</em>  Spectral primary beam image
+The CASA or FITS primary beam image for the spectral line cube.  Cubes from 
+the ALMA archive are often primary beam corrected.  In these images,
+the noise rises out from the center of the imaged field. In this 
+case, you need to input both the image file and the primary beam 
+cube. Both are available to you from the archive.</li>
+<li><em>conpb</em>  Continuum primary beam image
+The CASA or FITS primary beam image for the continuum image.</li>
+<li><em>numsigma</em> in LineID_AT: typically use 6.0 to 8.0 for 4000 channels;
+4.0 if you only have a few hundred channels
+3.0 if you want to dig deep but then expect to get fake lines too.</li>
+<li><em>minchan</em> in LineID_AT: minimum width of line in channels to assume when searching for lines.</li>
+<li><em>pad</em> in Linecube_AT: this controls how many &#8220;extra&#8221; channels are added to either end of the line sub-cube to be cut from the  input cube.  It should generally be comparable to your line width</li>
+<li><em>cutoff</em> in Moment_AT: number of sigma for cut levels in making moment maps: one value for each requested moment map.  Must be a Python list: [1.0, 2.0,3.0] for example for moment 0, 1 and 2 maps</li>
+<li><em>width</em> in PVSlice_AT: width in channels orthogonal to the slice length to sum.</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><strong>Archive_Pipeline</strong> &#8212; Produces standard JAO ADMIT pipeline products for spectral line plus continuum images.</a><ul>
+<li><a class="reference internal" href="#parameters">Parameters</a></li>
+<li><a class="reference internal" href="#optional-keywords">Optional Keywords</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="0-index.html"
+                        title="previous chapter">Recipes Package</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="Archive_SpecLine.html"
+                        title="next chapter"><strong>Archive_SpecLine</strong> &#8212; Produces standard JAO ADMIT pipeline products for spectral line images.</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/module/admit.recipes/Archive_Pipeline.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="Archive_SpecLine.html" title="Archive_SpecLine — Produces standard JAO ADMIT pipeline products for spectral line images."
+             >next</a> |</li>
+        <li class="right" >
+          <a href="0-index.html" title="Recipes Package"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" >Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

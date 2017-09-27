@@ -1,0 +1,241 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.at.Export_AT &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.at.Export_AT</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; .. _Export-at-api:</span>
+
+<span class="sd">   **Export_AT** --- Exports an Image_BDP to FITS.</span>
+<span class="sd">   -----------------------------------------------</span>
+
+<span class="sd">   This module defines the Export_AT class.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">admit.AT</span> <span class="k">import</span> <span class="n">AT</span>
+<span class="kn">from</span> <span class="nn">admit.Summary</span> <span class="k">import</span> <span class="n">SummaryEntry</span>
+<span class="kn">import</span> <span class="nn">admit.util.bdp_types</span> <span class="k">as</span> <span class="nn">bt</span>
+<span class="kn">import</span> <span class="nn">admit.util.casautil</span> <span class="k">as</span> <span class="nn">casautil</span>
+<span class="kn">import</span> <span class="nn">admit.util.Image</span> <span class="k">as</span> <span class="nn">Image</span>
+<span class="kn">import</span> <span class="nn">admit.util.Line</span> <span class="k">as</span> <span class="nn">Line</span>
+<span class="kn">import</span> <span class="nn">admit.util.ImPlot</span> <span class="k">as</span> <span class="nn">ImPlot</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.Image_BDP</span> <span class="k">import</span> <span class="n">Image_BDP</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.CubeStats_BDP</span> <span class="k">import</span> <span class="n">CubeStats_BDP</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.LineList_BDP</span> <span class="k">import</span> <span class="n">LineList_BDP</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.Moment_BDP</span> <span class="k">import</span> <span class="n">Moment_BDP</span>
+<span class="kn">import</span> <span class="nn">admit.util.utils</span> <span class="k">as</span> <span class="nn">utils</span>
+<span class="kn">import</span> <span class="nn">admit.util.filter.Filter1D</span> <span class="k">as</span> <span class="nn">Filter1D</span>
+<span class="kn">from</span> <span class="nn">admit.util.AdmitLogging</span> <span class="k">import</span> <span class="n">AdmitLogging</span> <span class="k">as</span> <span class="n">logging</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy.ma</span> <span class="k">as</span> <span class="nn">ma</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
+
+<span class="kn">import</span> <span class="nn">types</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="k">try</span><span class="p">:</span>
+  <span class="kn">import</span> <span class="nn">casa</span>
+  <span class="kn">import</span> <span class="nn">taskinit</span>
+<span class="k">except</span><span class="p">:</span>
+  <span class="nb">print</span> <span class="s2">&quot;WARNING: No CASA; Export task cannot function.&quot;</span>
+
+<div class="viewcode-block" id="Export_AT"><a class="viewcode-back" href="../../../module/admit.at/Export_AT.html#admit.at.Export_AT.Export_AT">[docs]</a><span class="k">class</span> <span class="nc">Export_AT</span><span class="p">(</span><span class="n">AT</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Creates a FITS file from an image BDP.</span>
+
+<span class="sd">    Unlike the more automated export facility in ADMIT, this allows you to</span>
+<span class="sd">    add a true FITS export atomically to the flow, with all of its flow</span>
+<span class="sd">    dependencies.</span>
+
+<span class="sd">    At a future date this task will also export other types of BDPs, e.g. tables</span>
+
+<span class="sd">    Note that the output file is always overwritten.</span>
+
+<span class="sd">    **Keywords**</span>
+
+<span class="sd">        **basename**: string</span>
+<span class="sd">            Basename of the file. If left blank, it will be derived from the input</span>
+<span class="sd">            BDP by replacing the extension (usually .im, .cim, .lim) with &quot;fits&quot;.</span>
+<span class="sd">            This will thus also normally include whatever directory structure</span>
+<span class="sd">            exists with the ADMIT tree.</span>
+<span class="sd">            If the basename starts with &quot;/&quot; or &quot;./&quot;, it is presumed to refer to</span>
+<span class="sd">            an absolute reference, not something within the ADMIT directory.</span>
+<span class="sd">            Default: &quot;&quot;.</span>
+<span class="sd">    </span>
+<span class="sd">    **Input BDPs**</span>
+
+<span class="sd">        **Image_BDP**: count: 1</span>
+<span class="sd">           Input 2-D or 3-D image, such as output by</span>
+<span class="sd">           `Ingest_AT &lt;Ingest_AT.html&gt;`_,</span>
+<span class="sd">           `LineCube_AT &lt;LineCube_AT.html&gt;`_ or</span>
+<span class="sd">           `Moment_AT &lt;Moment_AT.html&gt;`_.</span>
+
+<span class="sd">    **Output BDPs**</span>
+<span class="sd">        None</span>
+
+<span class="sd">    **Graphics Produced**</span>
+<span class="sd">        TBD</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">        keyval : dictionary, optional</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">        _version : string</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">keyval</span><span class="p">):</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;basename&quot;</span>   <span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>     <span class="c1"># defaults to BDP derived</span>
+        <span class="p">}</span>
+        <span class="n">AT</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">keys</span><span class="p">,</span><span class="n">keyval</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_version</span> <span class="o">=</span> <span class="s2">&quot;1.0.0&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_bdp_in</span><span class="p">([(</span><span class="n">Image_BDP</span><span class="p">,</span>     <span class="mi">1</span><span class="p">,</span> <span class="n">bt</span><span class="o">.</span><span class="n">REQUIRED</span><span class="p">)])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_bdp_out</span><span class="p">([])</span>
+
+<div class="viewcode-block" id="Export_AT.run"><a class="viewcode-back" href="../../../module/admit.at/Export_AT.html#admit.at.Export_AT.Export_AT.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; The run method creates the BDP</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">Dtime</span><span class="p">(</span><span class="s2">&quot;Export&quot;</span><span class="p">)</span>                 <span class="c1"># tagging time</span>
+
+        <span class="n">basename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;basename&quot;</span><span class="p">)</span>
+
+        <span class="n">nbdp</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Found </span><span class="si">%d</span><span class="s2"> input BDPs&quot;</span> <span class="o">%</span> <span class="n">nbdp</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">nbdp</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Only dealing with 1 BDP now&quot;</span><span class="p">)</span>
+        
+ 
+        <span class="n">b1</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>                      <span class="c1"># image/cube</span>
+        <span class="n">infile</span> <span class="o">=</span> <span class="n">b1</span><span class="o">.</span><span class="n">getimagefile</span><span class="p">(</span><span class="n">bt</span><span class="o">.</span><span class="n">CASA</span><span class="p">)</span>          <span class="c1"># ADMIT filename of the image (cube)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">basename</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">fitsname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mkext</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span><span class="s1">&#39;fits&#39;</span><span class="p">)</span>   <span class="c1"># morph to the new output name with replaced extension &#39;</span>
+            <span class="n">image_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">fitsname</span><span class="p">)</span>         <span class="c1"># absolute filename</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">basename</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;./&#39;</span> <span class="ow">or</span> <span class="n">basename</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;/&#39;</span><span class="p">:</span>
+                <span class="n">image_out</span> <span class="o">=</span> <span class="n">basename</span> <span class="o">+</span> <span class="s2">&quot;.fits&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">image_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">basename</span> <span class="o">+</span> <span class="s2">&quot;.fits&quot;</span><span class="p">)</span>
+        
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;start&quot;</span><span class="p">)</span>
+
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Writing FITS </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">image_out</span><span class="p">)</span>
+
+        <span class="c1"># @todo   check self.dir(image_out)</span>
+        <span class="n">casa</span><span class="o">.</span><span class="n">exportfits</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">infile</span><span class="p">),</span> <span class="n">image_out</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;done&quot;</span><span class="p">)</span>
+        <span class="n">dt</span><span class="o">.</span><span class="n">end</span><span class="p">()</span></div>
+
+    <span class="c1"># no summary for Export_AT</span>
+<div class="viewcode-block" id="Export_AT.summary"><a class="viewcode-back" href="../../../module/admit.at/Export_AT.html#admit.at.Export_AT.Export_AT.summary">[docs]</a>    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the summary dictionary from the AT, for merging</span>
+<span class="sd">           into the ADMIT Summary object.</span>
+
+<span class="sd">           Export_AT does not add anything to the Summary.</span>
+
+<span class="sd">           Parameters</span>
+<span class="sd">           ----------</span>
+<span class="sd">           None</span>
+
+<span class="sd">           Returns</span>
+<span class="sd">           -------</span>
+<span class="sd">           dict</span>
+<span class="sd">               Dictionary of SummaryEntry</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{}</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,675 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Table — Raw tabular data base. &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../index.html" />
+    <link rel="up" title="Python Scripting Interface (API)" href="../../api.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" accesskey="U">Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-admit.util.Table"></span><div class="section" id="table-raw-tabular-data-base">
+<span id="table-api"></span><h1><strong>Table</strong> &#8212; Raw tabular data base.<a class="headerlink" href="#table-raw-tabular-data-base" title="Permalink to this headline">¶</a></h1>
+<p>This module defines the Table class for TABLE entries in BDPs.</p>
+<dl class="class">
+<dt id="admit.util.Table.Table">
+<em class="property">class </em><code class="descclassname">admit.util.Table.</code><code class="descname">Table</code><span class="sig-paren">(</span><em>**keyval</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Table.html#Table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Table.Table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the basic table structure used in ADMIT.</p>
+<p>The Table class is a container for holding data in tabular format. The
+table can hold data in column-row format and also in plane-column-row
+format. Data can be added in instantiation, by columns, by rows, or by
+entire planes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>keyval</strong> : dict</p>
+<blockquote class="last">
+<div><p>Any valid attributes can be specified to the constructor.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>columns</td>
+<td>(List containing the column headers, optional) (defaults to an empty list)</td>
+</tr>
+<tr class="row-even"><td>units</td>
+<td>(List containing the units of each column, optional) (defaults to an empty list)</td>
+</tr>
+<tr class="row-odd"><td>planes</td>
+<td>(List containing labels for each plane, optional) (defaults to an empty list)</td>
+</tr>
+<tr class="row-even"><td>data</td>
+<td>(A numpy array containing the data, can be 1D, 2D, or 3D, optional) (defaults to an empty array)</td>
+</tr>
+<tr class="row-odd"><td>description</td>
+<td>(A string for a description/caption of the table, optional) (defaults to an empty string)</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Table.Table.addColumn" title="admit.util.Table.Table.addColumn"><code class="xref py py-obj docutils literal"><span class="pre">addColumn</span></code></a>(data[,&nbsp;col])</td>
+<td>Add a column to the table</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Table.Table.addPlane" title="admit.util.Table.Table.addPlane"><code class="xref py py-obj docutils literal"><span class="pre">addPlane</span></code></a>(data[,&nbsp;plane])</td>
+<td>Add a plane to the table</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Table.Table.addRow" title="admit.util.Table.Table.addRow"><code class="xref py py-obj docutils literal"><span class="pre">addRow</span></code></a>(row)</td>
+<td>Add a row to the table</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Table.Table.clear" title="admit.util.Table.Table.clear"><code class="xref py py-obj docutils literal"><span class="pre">clear</span></code></a>([full])</td>
+<td>Method to clear out the data from the table</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Table.Table.deserialize" title="admit.util.Table.Table.deserialize"><code class="xref py py-obj docutils literal"><span class="pre">deserialize</span></code></a>(serial)</td>
+<td>Create a Table from serialized data created by serialize().</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Table.Table.exportTable" title="admit.util.Table.Table.exportTable"><code class="xref py py-obj docutils literal"><span class="pre">exportTable</span></code></a>(fileName[,&nbsp;plane,&nbsp;cols,&nbsp;fixcols])</td>
+<td>Method to export a table to ascii text</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Table.Table.getColumn" title="admit.util.Table.Table.getColumn"><code class="xref py py-obj docutils literal"><span class="pre">getColumn</span></code></a>(col[,&nbsp;plane,&nbsp;typ])</td>
+<td>Get a single column by its index</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Table.Table.getColumnByName" title="admit.util.Table.Table.getColumnByName"><code class="xref py py-obj docutils literal"><span class="pre">getColumnByName</span></code></a>(name[,&nbsp;plane,&nbsp;typ])</td>
+<td>Get a column by its name</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Table.Table.getFullColumnByName" title="admit.util.Table.Table.getFullColumnByName"><code class="xref py py-obj docutils literal"><span class="pre">getFullColumnByName</span></code></a>(name[,&nbsp;typ])</td>
+<td>Method to get a full column (single column from all planes) by name</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Table.Table.getHeader" title="admit.util.Table.Table.getHeader"><code class="xref py py-obj docutils literal"><span class="pre">getHeader</span></code></a>()</td>
+<td>Get the header information</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Table.Table.getPlane" title="admit.util.Table.Table.getPlane"><code class="xref py py-obj docutils literal"><span class="pre">getPlane</span></code></a>(pln)</td>
+<td>Method to get a single plane from the table</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Table.Table.getRow" title="admit.util.Table.Table.getRow"><code class="xref py py-obj docutils literal"><span class="pre">getRow</span></code></a>(row)</td>
+<td>Get data from a specific row</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Table.Table.getRowAsDict" title="admit.util.Table.Table.getRowAsDict"><code class="xref py py-obj docutils literal"><span class="pre">getRowAsDict</span></code></a>(row)</td>
+<td>Get data from a specific row in dictionary format with the column headings as keys.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Table.Table.getUnits" title="admit.util.Table.Table.getUnits"><code class="xref py py-obj docutils literal"><span class="pre">getUnits</span></code></a>()</td>
+<td>Get the units information</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">getkey</span></code>(key)</td>
+<td>Method to get a data member by name</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Table.Table.html" title="admit.util.Table.Table.html"><code class="xref py py-obj docutils literal"><span class="pre">html</span></code></a>([css])</td>
+<td>Create an HTML representation of the table</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Table.Table.next" title="admit.util.Table.Table.next"><code class="xref py py-obj docutils literal"><span class="pre">next</span></code></a>()</td>
+<td>Method to get the next row from a table</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Table.Table.rewind" title="admit.util.Table.Table.rewind"><code class="xref py py-obj docutils literal"><span class="pre">rewind</span></code></a>()</td>
+<td>Reset the &#8220;next&#8221; counter to the beginning</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Table.Table.serialize" title="admit.util.Table.Table.serialize"><code class="xref py py-obj docutils literal"><span class="pre">serialize</span></code></a>()</td>
+<td>Create a string representation of the table that can be converted to native Python structures with ast.literal_eval or back to a Table with deserialize().</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Table.Table.setData" title="admit.util.Table.Table.setData"><code class="xref py py-obj docutils literal"><span class="pre">setData</span></code></a>(data)</td>
+<td>Set the data of the table all at once</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">setkey</span></code>([name,&nbsp;value])</td>
+<td>set keys, two styles are possible:</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Table.Table.shape" title="admit.util.Table.Table.shape"><code class="xref py py-obj docutils literal"><span class="pre">shape</span></code></a>()</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="admit.util.Table.Table.addColumn">
+<code class="descname">addColumn</code><span class="sig-paren">(</span><em>data</em>, <em>col=''</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Table.html#Table.addColumn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Table.Table.addColumn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a column to the table</p>
+<p>Adds the given column to the table and recomputes the minimum and maximum.
+The column must have the same length as the other columns or numpy will throw
+an exception.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>data</strong> : list or numpy array</p>
+<blockquote>
+<div><p>The data of the column to be added</p>
+</div></blockquote>
+<p><strong>col</strong> : str, optional</p>
+<blockquote>
+<div><p>The name of the column</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Table.Table.addPlane">
+<code class="descname">addPlane</code><span class="sig-paren">(</span><em>data</em>, <em>plane=''</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Table.html#Table.addPlane"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Table.Table.addPlane" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a plane to the table</p>
+<p>Adds the given plane to the table and recomputes the minimum and
+maximum. The plane must have the same dimensions as the other planes
+or numpy will throw an exception.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>data</strong> : list or numpy array</p>
+<blockquote>
+<div><p>The data of the plane to be added</p>
+</div></blockquote>
+<p><strong>plane</strong> : str, optional</p>
+<blockquote>
+<div><p>The name of the plane. See getPlane() how to access a plane</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Table.Table.addRow">
+<code class="descname">addRow</code><span class="sig-paren">(</span><em>row</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Table.html#Table.addRow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Table.Table.addRow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a row to the table</p>
+<p>Adds the given row to the table and recomputes the minimum and
+maximum.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>row</strong> : list or numpy array</p>
+<blockquote>
+<div><p>The data of the row to be added</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Table.Table.clear">
+<code class="descname">clear</code><span class="sig-paren">(</span><em>full=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Table.html#Table.clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Table.Table.clear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to clear out the data from the table</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>full</strong> : bool</p>
+<blockquote>
+<div><p>If True then clear header and other meta data also
+Default: False</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Table.Table.deserialize">
+<code class="descname">deserialize</code><span class="sig-paren">(</span><em>serial</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Table.html#Table.deserialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Table.Table.deserialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a Table from serialized data created by serialize().</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>serial</strong> : The string representation of a Table in the format from</p>
+<p><strong>deserialize().</strong></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Table.Table.exportTable">
+<code class="descname">exportTable</code><span class="sig-paren">(</span><em>fileName</em>, <em>plane=0</em>, <em>cols=[]</em>, <em>fixcols=[]</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Table.html#Table.exportTable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Table.Table.exportTable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to export a table to ascii text</p>
+<p>Note only one plane at the time can be written.  Alternatively
+one could allow multiple planes, and use another keyword for the fixcols=[],
+i.e. the columns that do not change per plane. This has not been implemented.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>fileName</strong> : str</p>
+<blockquote>
+<div><p>The name of the file to write the table to</p>
+</div></blockquote>
+<p><strong>plane</strong> : int or list, optional</p>
+<blockquote>
+<div><p>What plane to export, defaults to the first plane (0).
+A list can be given if multiple planes need to be written.</p>
+</div></blockquote>
+<p><strong>cols</strong> : if given, a subset of these named columns will be written</p>
+<blockquote>
+<div><p>Columns are written in the order they were listed originally,
+not the order in this given list.
+For multi-plane tables, these should be the columns that vary.</p>
+</div></blockquote>
+<p><strong>fixcols</strong> : if given, these are the named columns that are common for</p>
+<blockquote>
+<div><p>all planes.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Table.Table.getColumn">
+<code class="descname">getColumn</code><span class="sig-paren">(</span><em>col</em>, <em>plane=0</em>, <em>typ=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Table.html#Table.getColumn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Table.Table.getColumn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a single column by its index</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>col</strong> : int</p>
+<blockquote>
+<div><p>The index of the column to retrieve</p>
+</div></blockquote>
+<p><strong>plane</strong> : int</p>
+<blockquote>
+<div><p>The plane to retrieve it from if the table is 3D</p>
+</div></blockquote>
+<p><strong>typ</strong> : various</p>
+<blockquote>
+<div><p>The data type to convert the data to.
+Default: None</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The data from the column as a numpy array, or None if the column index</p>
+<p class="last">does not exist.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Table.Table.getColumnByName">
+<code class="descname">getColumnByName</code><span class="sig-paren">(</span><em>name</em>, <em>plane=0</em>, <em>typ=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Table.html#Table.getColumnByName"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Table.Table.getColumnByName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a column by its name</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>name</strong> : str</p>
+<blockquote>
+<div><p>The name of the column to retrieve</p>
+</div></blockquote>
+<p><strong>plane</strong> : int</p>
+<blockquote>
+<div><p>The plane to retrieve it from if the table is 3D</p>
+</div></blockquote>
+<p><strong>typ</strong> : various</p>
+<blockquote>
+<div><p>The data type to convert the returning data to.
+Default: None (no conversion)</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The data from the column as a numpy array, or None if the column name</p>
+<p class="last">does not exist.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Table.Table.getFullColumnByName">
+<code class="descname">getFullColumnByName</code><span class="sig-paren">(</span><em>name</em>, <em>typ=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Table.html#Table.getFullColumnByName"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Table.Table.getFullColumnByName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get a full column (single column from all planes) by name</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>name</strong> : str</p>
+<blockquote>
+<div><p>The name of the column to get</p>
+</div></blockquote>
+<p><strong>typ</strong> : various</p>
+<blockquote>
+<div><p>The data type to convert the returning data to.
+Default: None (no conversion)</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Numpy array containing the data of the full column.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Table.Table.getHeader">
+<code class="descname">getHeader</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Table.html#Table.getHeader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Table.Table.getHeader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the header information</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">list of the column headers</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Table.Table.getPlane">
+<code class="descname">getPlane</code><span class="sig-paren">(</span><em>pln</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Table.html#Table.getPlane"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Table.Table.getPlane" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get a single plane from the table</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>pln</strong> : int</p>
+<blockquote>
+<div><p>The plane number to get (0 based)
+No Default.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Numpy array containing the requested plane</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Table.Table.getRow">
+<code class="descname">getRow</code><span class="sig-paren">(</span><em>row</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Table.html#Table.getRow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Table.Table.getRow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get data from a specific row</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>row</strong> : int</p>
+<blockquote>
+<div><p>The row to get</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">a numpy array of the data of the specified row, or None if the</p>
+<p class="last">row does not exist</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Table.Table.getRowAsDict">
+<code class="descname">getRowAsDict</code><span class="sig-paren">(</span><em>row</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Table.html#Table.getRowAsDict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Table.Table.getRowAsDict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get data from a specific row in dictionary format with the column headings as keys.
+If there are no column headings or two column headings are identical or column header
+has an empty string an exception is thrown.   Note: this is not terribly useful for multi-plane Tables.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>row</strong> : int</p>
+<blockquote>
+<div><p>The row to get</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A dictionary of the data of the specified row, or None if the</p>
+<p class="last">row does not exist</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Table.Table.getUnits">
+<code class="descname">getUnits</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Table.html#Table.getUnits"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Table.Table.getUnits" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the units information</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">list of the units headers</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Table.Table.html">
+<code class="descname">html</code><span class="sig-paren">(</span><em>css=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Table.html#Table.html"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Table.Table.html" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an HTML representation of the table</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>css</strong> : str</p>
+<blockquote>
+<div><p>A string that may refer to a CSS or style parameter. This can be used for special
+formatting of the table, e.g. striping. Default: No extra formatting.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">string</p>
+<blockquote class="last">
+<div><p>HTML &lt;table&gt; representation.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Table.Table.next">
+<code class="descname">next</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Table.html#Table.next"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Table.Table.next" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get the next row from a table</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">List of the next row, None if there are no more.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Table.Table.rewind">
+<code class="descname">rewind</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Table.html#Table.rewind"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Table.Table.rewind" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset the &#8220;next&#8221; counter to the beginning</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Table.Table.serialize">
+<code class="descname">serialize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Table.html#Table.serialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Table.Table.serialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a string representation of the table that can
+be converted to native Python structures with ast.literal_eval
+or back to a Table with deserialize().
+Intended for the summary but can be used wherever.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>None</strong></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A string representation of the Table that can be converted back</p>
+<p class="last">to a Table with deserialize().</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Table.Table.setData">
+<code class="descname">setData</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Table.html#Table.setData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Table.Table.setData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the data of the table all at once</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>data</strong> : list or numpy array</p>
+<blockquote>
+<div><p>The actual data to insert into the table</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Table.Table.shape">
+<code class="descname">shape</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Table.html#Table.shape"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Table.Table.shape" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/module/admit.util/Table.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" >Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,216 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>SplineFit — Continuum subtraction using a spline fit. &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../../index.html" />
+    <link rel="up" title="Python Scripting Interface (API)" href="../../../../api.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../../api.html" accesskey="U">Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-admit.util.continuumsubtraction.spectral.algorithms.SplineFit"></span><div class="section" id="splinefit-continuum-subtraction-using-a-spline-fit">
+<span id="splinecontinuum"></span><h1>SplineFit &#8212; Continuum subtraction using a spline fit.<a class="headerlink" href="#splinefit-continuum-subtraction-using-a-spline-fit" title="Permalink to this headline">¶</a></h1>
+<p>Module for doing spline fitting to the continuum of a 1D spectrum.</p>
+<dl class="class">
+<dt id="admit.util.continuumsubtraction.spectral.algorithms.SplineFit.SplineFit">
+<em class="property">class </em><code class="descclassname">admit.util.continuumsubtraction.spectral.algorithms.SplineFit.</code><code class="descname">SplineFit</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/admit/util/continuumsubtraction/spectral/algorithms/SplineFit.html#SplineFit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.continuumsubtraction.spectral.algorithms.SplineFit.SplineFit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class which calculates the continuum of a 1D spectrum by
+fitting a spline to the continuum channels. The algorithm
+can be controlled by arguments to the run() method.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>x</strong> : numpy array</p>
+<blockquote>
+<div><p>An array containing the x coordinates.</p>
+</div></blockquote>
+<p><strong>y</strong> : masked array</p>
+<blockquote class="last">
+<div><p>A masked array containing the y coordinates with any
+strong emission masked.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="29%" />
+<col width="71%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>None</td>
+<td>&nbsp;</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.continuumsubtraction.spectral.algorithms.SplineFit.SplineFit.run" title="admit.util.continuumsubtraction.spectral.algorithms.SplineFit.SplineFit.run"><code class="xref py py-obj docutils literal"><span class="pre">run</span></code></a>(\*\*keyval)</td>
+<td>Method to calculate the continuum from the given masked spectrum.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="admit.util.continuumsubtraction.spectral.algorithms.SplineFit.SplineFit.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>**keyval</em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/admit/util/continuumsubtraction/spectral/algorithms/SplineFit.html#SplineFit.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.continuumsubtraction.spectral.algorithms.SplineFit.SplineFit.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to calculate the continuum from the given masked spectrum.
+If search=True is given as an argument then the algorithm will
+iterate through the different order splines to find the best fit,
+based on noise level.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>keyval</strong> : dictionary</p>
+<blockquote>
+<div><p>Dictionary containing the keyword value pair arguments</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">numpy array containing the best fit continuum</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>Arguments for the run method:</p>
+<ul>
+<li><p class="first">search : bool, whether or not to search for the best fit. Default: False</p>
+</li>
+<li><p class="first">bbox : array_like, 2-sequence specifying the boundary of the approximation
+interval. If None (default), <code class="docutils literal"><span class="pre">bbox=[x[0],</span> <span class="pre">x[-1]]</span></code>.</p>
+</li>
+<li><p class="first">k : int 1 &lt; k &lt;= 5, the degree of spline smoothing to use, Defualt: 3</p>
+</li>
+<li><p class="first">s : float or None
+Positive smoothing factor used to choose the number of knots.  Number
+of knots will be increased until the smoothing condition is satisfied:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nb">sum</span><span class="p">((</span><span class="n">w</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="n">spl</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">])))</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">s</span>
+</pre></div>
+</div>
+<p>If None (default), <code class="docutils literal"><span class="pre">s</span> <span class="pre">=</span> <span class="pre">len(w)</span></code> which should be a good value if
+<code class="docutils literal"><span class="pre">1/w[i]</span></code> is an estimate of the standard deviation of <code class="docutils literal"><span class="pre">y[i]</span></code>.
+If 0, spline will interpolate through all data points.</p>
+</li>
+<li><p class="first">ext : int or str
+Controls the extrapolation mode for elements
+not in the interval defined by the knot sequence.</p>
+<blockquote>
+<div><ul class="simple">
+<li>if ext=0 or &#8216;extrapolate&#8217;, return the extrapolated value.</li>
+<li>if ext=1 or &#8216;zeros&#8217;, return 0</li>
+<li>if ext=2 or &#8216;raise&#8217;, raise a ValueError</li>
+<li>if ext=3 of &#8216;const&#8217;, return the boundary value.</li>
+</ul>
+</div></blockquote>
+<p>The default value is 0.</p>
+</li>
+<li><p class="first">check_finite : bool
+Whether to check that the input arrays contain only finite numbers.
+Disabling may give a performance gain, but may result in problems
+(crashes, non-termination or non-sensical results) if the inputs
+do contain infinities or NaNs.
+Default is False.</p>
+</li>
+</ul>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../../../_sources/module/admit.util.continuumsubtraction/spectral/algorithms/SplineFit.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../../api.html" >Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

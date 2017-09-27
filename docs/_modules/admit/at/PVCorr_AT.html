@@ -1,0 +1,501 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.at.PVCorr_AT &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.at.PVCorr_AT</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; .. _PVCorr-at-api:</span>
+
+<span class="sd">   **PVCorr_AT** --- Determines position-velocity correlations in a map.</span>
+<span class="sd">   ---------------------------------------------------------------------</span>
+
+<span class="sd">   Defines the PVCorr_AT class.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">logging</span>
+
+<span class="kn">from</span> <span class="nn">admit.AT</span> <span class="k">import</span> <span class="n">AT</span>
+<span class="kn">from</span> <span class="nn">admit.Summary</span> <span class="k">import</span> <span class="n">SummaryEntry</span>
+<span class="kn">import</span> <span class="nn">admit.util.bdp_types</span> <span class="k">as</span> <span class="nn">bt</span>
+<span class="kn">from</span> <span class="nn">admit.util.Image</span> <span class="k">import</span> <span class="n">Image</span>
+<span class="kn">from</span> <span class="nn">admit.util.Table</span> <span class="k">import</span> <span class="n">Table</span>
+<span class="kn">import</span> <span class="nn">admit.util.utils</span> <span class="k">as</span> <span class="nn">utils</span>
+<span class="kn">import</span> <span class="nn">admit.util.casautil</span> <span class="k">as</span> <span class="nn">casautil</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.CubeStats_BDP</span> <span class="k">import</span> <span class="n">CubeStats_BDP</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.PVCorr_BDP</span> <span class="k">import</span> <span class="n">PVCorr_BDP</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.Image_BDP</span> <span class="k">import</span> <span class="n">Image_BDP</span>
+<span class="kn">from</span> <span class="nn">admit.util</span> <span class="k">import</span> <span class="n">APlot</span>
+<span class="kn">from</span> <span class="nn">admit.util</span> <span class="k">import</span> <span class="n">stats</span>
+<span class="kn">from</span> <span class="nn">admit.util.AdmitLogging</span> <span class="k">import</span> <span class="n">AdmitLogging</span> <span class="k">as</span> <span class="n">logging</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy.ma</span> <span class="k">as</span> <span class="nn">ma</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">scipy</span>
+    <span class="kn">import</span> <span class="nn">scipy.signal</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="nb">print</span> <span class="s2">&quot;WARNING: No scipy; PVCorr task cannot function.&quot;</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">casa</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="nb">print</span> <span class="s2">&quot;WARNING: No CASA; PVCorr task cannot function.&quot;</span>
+
+<span class="c1">#</span>
+<span class="c1"># Some discussion/code on https://github.com/keflavich/image_registration</span>
+<span class="c1"># about sub-pixel registration, although we probably don&#39;t need this </span>
+<span class="c1"># accuracy in PVCorr.</span>
+
+<div class="viewcode-block" id="PVCorr_AT"><a class="viewcode-back" href="../../../module/admit.at/PVCorr_AT.html#admit.at.PVCorr_AT.PVCorr_AT">[docs]</a><span class="k">class</span> <span class="nc">PVCorr_AT</span><span class="p">(</span><span class="n">AT</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;PV correllation in a PVSlice map.</span>
+
+<span class="sd">       PVCorr_AT computes a cross-correlation of a feature in a PVSlice with the </span>
+<span class="sd">       whole PVSlice, looking for repeated patterns to detect spectral lines. Much</span>
+<span class="sd">       like the output from CubeStats_AT and CubeSpectrum_AT, this table can then be</span>
+<span class="sd">       given to LineID_AT to attempt a line identification.</span>
+
+<span class="sd">       See also :ref:`PVCorr-AT-Design` for the design document.</span>
+
+<span class="sd">       **Keywords**</span>
+
+<span class="sd">          **numsigma**: float </span>
+<span class="sd">            Minimum intensity, in terms of sigma, above which a selected portion</span>
+<span class="sd">            of the spectrum will be used for cross-correlation.</span>
+<span class="sd">            Default: 3.0.</span>
+
+<span class="sd">          **range**: integer list</span>
+<span class="sd">            If given, it has to be a list with 2 channel numbers, the first and last channel</span>
+<span class="sd">            (0-based channels) of the range which to use for the cross-correlation.</span>
+<span class="sd">            Default: [].</span>
+
+<span class="sd">          **nchan**: integer</span>
+<span class="sd">            The number of channels (in case range= was not used) that defines the line.</span>
+<span class="sd">            The line is centers on the strongest point in the input PV-map.</span>
+<span class="sd">            If 0 is given, it will watershed down from the strongest line.</span>
+<span class="sd">            Default: 0.</span>
+
+<span class="sd">       **Input BDPs**</span>
+
+<span class="sd">          **PVSlice_BDP**: count: 1</span>
+<span class="sd">            Input PV slice, normally from a `PVSlice_AT &lt;PVSlice_AT.html&gt;`_.</span>
+
+<span class="sd">          **CubeStats_BDP**: count: 1</span>
+<span class="sd">            Input cube statistics from which the RMS is taken, received from a</span>
+<span class="sd">            `CubeStats_AT &lt;CubeStats_AT.html&gt;`_.</span>
+
+<span class="sd">       **Output BDPs**</span>
+
+<span class="sd">          **PVCorr_BDP**: count: 1</span>
+<span class="sd">            Output table.</span>
+<span class="sd">       </span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">**</span><span class="n">keyval</span><span class="p">):</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;numsigma&quot;</span> <span class="p">:</span> <span class="mf">3.0</span><span class="p">,</span>    <span class="c1"># N-sigma</span>
+                <span class="s2">&quot;range&quot;</span>    <span class="p">:</span> <span class="p">[],</span>     <span class="c1"># optional channel range</span>
+                <span class="s2">&quot;nchan&quot;</span>    <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>      <span class="c1"># number of channels around the channel where the peak is</span>
+               <span class="p">}</span>
+        <span class="n">AT</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">keys</span><span class="p">,</span><span class="n">keyval</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_version</span> <span class="o">=</span> <span class="s2">&quot;1.1.0&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_bdp_in</span><span class="p">([(</span><span class="n">Image_BDP</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">bt</span><span class="o">.</span><span class="n">REQUIRED</span><span class="p">),</span>
+                         <span class="c1"># @todo optional 2nd PVSlice can be used to draw the template from</span>
+                         <span class="p">(</span><span class="n">CubeStats_BDP</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">bt</span><span class="o">.</span><span class="n">REQUIRED</span><span class="p">)])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_bdp_out</span><span class="p">([(</span><span class="n">PVCorr_BDP</span><span class="p">,</span><span class="mi">1</span><span class="p">)])</span>
+
+<div class="viewcode-block" id="PVCorr_AT.summary"><a class="viewcode-back" href="../../../module/admit.at/PVCorr_AT.html#admit.at.PVCorr_AT.PVCorr_AT.summary">[docs]</a>    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the summary dictionary from the AT, for merging</span>
+<span class="sd">           into the ADMIT Summary object.</span>
+
+<span class="sd">           PVCorr_AT adds the following to ADMIT summary:</span>
+
+<span class="sd">           .. table::</span>
+<span class="sd">              :class: borderless</span>
+
+<span class="sd">              +----------+----------+-----------------------------------+</span>
+<span class="sd">              |   Key    | type     |    Description                    |</span>
+<span class="sd">              +==========+==========+===================================+</span>
+<span class="sd">              | pvcorr   | list     |   correlation diagram             |</span>
+<span class="sd">              +----------+----------+-----------------------------------+</span>
+<span class="sd">           </span>
+<span class="sd">           Parameters</span>
+<span class="sd">           ----------</span>
+<span class="sd">           None</span>
+
+<span class="sd">           Returns</span>
+<span class="sd">           -------</span>
+<span class="sd">           dict</span>
+<span class="sd">               Dictionary of SummaryEntry</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;_summary&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{}</span></div>
+
+<div class="viewcode-block" id="PVCorr_AT.run"><a class="viewcode-back" href="../../../module/admit.at/PVCorr_AT.html#admit.at.PVCorr_AT.PVCorr_AT.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">Dtime</span><span class="p">(</span><span class="s2">&quot;PVCorr&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="n">numsigma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;numsigma&quot;</span><span class="p">)</span>
+        <span class="n">mode</span> <span class="o">=</span> <span class="mi">1</span>                                            <span class="c1"># PV corr mode (1,2,3)</span>
+        <span class="n">normalize</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="c1"># normalize = False</span>
+
+        <span class="n">b1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>                                <span class="c1"># PVSlice_BDP</span>
+        <span class="n">fin</span> <span class="o">=</span> <span class="n">b1</span><span class="o">.</span><span class="n">getimagefile</span><span class="p">(</span><span class="n">bt</span><span class="o">.</span><span class="n">CASA</span><span class="p">)</span>                      <span class="c1"># CASA image</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">casautil</span><span class="o">.</span><span class="n">getdata_raw</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">fin</span><span class="p">))</span>          <span class="c1"># grab the data as a numpy array</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">myplot</span> <span class="o">=</span> <span class="n">APlot</span><span class="p">(</span><span class="n">ptype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_plot_type</span><span class="p">,</span><span class="n">pmode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_plot_mode</span><span class="p">,</span><span class="n">abspath</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">())</span>
+        <span class="c1">#print &#39;DATA[0,0]:&#39;,data[0,0]</span>
+        <span class="c1">#print &#39;pv shape: &#39;,data.shape</span>
+        <span class="n">npos</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">nvel</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;getdata&quot;</span><span class="p">)</span>
+
+        <span class="n">b2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>                                <span class="c1"># CubeStats_BDP</span>
+        <span class="n">sigma</span> <span class="o">=</span> <span class="n">b2</span><span class="o">.</span><span class="n">sigma</span>                                    <span class="c1"># global sigma in the cube</span>
+        <span class="n">cutoff</span> <span class="o">=</span> <span class="n">numsigma</span> <span class="o">*</span> <span class="n">sigma</span>
+        <span class="n">freq</span> <span class="o">=</span>  <span class="n">b2</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">getColumnByName</span><span class="p">(</span><span class="s2">&quot;frequency&quot;</span><span class="p">)</span>
+
+        <span class="n">chans</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;range&quot;</span><span class="p">)</span>                        <span class="c1"># range of channels, if used</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">chans</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">chans</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">fatal</span><span class="p">(</span><span class="s2">&quot;range=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">chans</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span><span class="s2">&quot;range= needs two values, left and right (inclusive) channel&quot;</span>
+            <span class="n">ch0</span> <span class="o">=</span> <span class="n">chans</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">ch1</span> <span class="o">=</span> <span class="n">chans</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">nchan</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;nchan&quot;</span><span class="p">)</span>
+            <span class="n">imstat0</span> <span class="o">=</span> <span class="n">casa</span><span class="o">.</span><span class="n">imstat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">fin</span><span class="p">))</span>         <span class="c1"># @todo   can use data[] now</span>
+            <span class="n">xmaxpos</span> <span class="o">=</span> <span class="n">imstat0</span><span class="p">[</span><span class="s1">&#39;maxpos&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">ymaxpos</span> <span class="o">=</span> <span class="n">imstat0</span><span class="p">[</span><span class="s1">&#39;maxpos&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;MAXPOS-VEL </span><span class="si">%s</span><span class="s2"> </span><span class="si">%g</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">imstat0</span><span class="p">[</span><span class="s1">&#39;maxpos&#39;</span><span class="p">]),</span><span class="n">imstat0</span><span class="p">[</span><span class="s1">&#39;max&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span>
+            <span class="k">if</span> <span class="n">nchan</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># expand around it, later ch0,ch1 will be checked for running off the edge</span>
+                <span class="n">ch0</span> <span class="o">=</span> <span class="n">ymaxpos</span> <span class="o">-</span> <span class="n">nchan</span><span class="o">/</span><span class="mi">2</span>
+                <span class="n">ch1</span> <span class="o">=</span> <span class="n">ymaxpos</span> <span class="o">+</span> <span class="n">nchan</span><span class="o">/</span><span class="mi">2</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># watershed down to find ch0 and ch1 ?</span>
+                <span class="c1"># this doesn&#39;t work well in crowded areas</span>
+                <span class="n">ch0</span> <span class="o">=</span> <span class="n">ymaxpos</span>
+                <span class="n">ch1</span> <span class="o">=</span> <span class="n">ymaxpos</span>
+                <span class="n">spmax</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                <span class="n">k</span> <span class="o">=</span> <span class="n">spmax</span><span class="o">.</span><span class="n">argmax</span><span class="p">()</span>
+                <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">spmax</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;spmax </span><span class="si">%s</span><span class="s1"> </span><span class="si">%d</span><span class="s1"> </span><span class="si">%g</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">spmax</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span><span class="n">k</span><span class="p">,</span><span class="n">spmax</span><span class="p">[</span><span class="n">k</span><span class="p">]))</span>
+                <span class="c1"># find lower cutoff</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+                    <span class="n">ch0</span> <span class="o">=</span> <span class="n">ymaxpos</span> <span class="o">-</span> <span class="n">i</span>
+                    <span class="k">if</span> <span class="n">ch0</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">:</span> <span class="k">break</span>
+                    <span class="k">if</span> <span class="n">spmax</span><span class="p">[</span><span class="n">ch0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">cutoff</span><span class="p">:</span> <span class="k">break</span>
+                <span class="n">ch0</span> <span class="o">=</span> <span class="n">ch0</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="c1"># find higher cutoff</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+                    <span class="n">ch1</span> <span class="o">=</span> <span class="n">ymaxpos</span> <span class="o">+</span> <span class="n">i</span>
+                    <span class="k">if</span> <span class="n">ch1</span><span class="o">==</span><span class="n">n</span><span class="p">:</span> <span class="k">break</span>
+                    <span class="k">if</span> <span class="n">spmax</span><span class="p">[</span><span class="n">ch1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">cutoff</span><span class="p">:</span> <span class="k">break</span>
+                <span class="n">ch1</span> <span class="o">=</span> <span class="n">ch1</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;imstat&quot;</span><span class="p">)</span>
+
+        
+        <span class="n">bdp_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mkext</span><span class="p">(</span><span class="n">fin</span><span class="p">,</span><span class="s2">&quot;pvc&quot;</span><span class="p">)</span>                    <span class="c1"># output PVCorr_BDP</span>
+        <span class="n">b3</span> <span class="o">=</span> <span class="n">PVCorr_BDP</span><span class="p">(</span><span class="n">bdp_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addoutput</span><span class="p">(</span><span class="n">b3</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">ch0</span><span class="o">&lt;</span><span class="mi">0</span> <span class="ow">or</span> <span class="n">ch1</span><span class="o">&gt;=</span><span class="n">nvel</span><span class="p">:</span>
+            <span class="c1"># this probably only happens to small cubes (problematic for PVCorr)</span>
+            <span class="c1"># or when the strongest line is really close to the edge of the band</span>
+            <span class="c1"># (which is probably ok)</span>
+            <span class="k">if</span> <span class="n">ch0</span><span class="o">&lt;</span><span class="mi">0</span> <span class="ow">and</span> <span class="n">ch1</span><span class="o">&gt;=</span><span class="n">nvel</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Serious issues with the size of this cube&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">ch0</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">:</span> 
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Resetting ch0 edge to 0&quot;</span><span class="p">)</span>
+                <span class="n">ch0</span><span class="o">=</span><span class="mi">0</span>
+            <span class="k">if</span> <span class="n">ch1</span><span class="o">&gt;=</span><span class="n">nvel</span><span class="p">:</span> 
+                <span class="n">ch1</span><span class="o">=</span><span class="n">nvel</span><span class="o">-</span><span class="mi">1</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Resetting ch1 edge to the maximum&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">ch0</span> <span class="o">&gt;</span> <span class="n">ch1</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Sanity swapping ch0,1 due to likely noisy data&quot;</span><span class="p">)</span>
+            <span class="n">ch0</span><span class="p">,</span><span class="n">ch1</span> <span class="o">=</span> <span class="n">ch1</span><span class="p">,</span><span class="n">ch0</span>
+
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">out</span><span class="p">,</span><span class="n">rms</span> <span class="o">=</span> <span class="n">mode1</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">ch0</span><span class="p">,</span> <span class="n">ch1</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">,</span> <span class="n">normalize</span><span class="p">)</span>
+            <span class="n">corr</span> <span class="o">=</span> <span class="n">out</span>
+        <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">out</span><span class="p">,</span><span class="n">rms</span> <span class="o">=</span> <span class="n">mode2</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">ch0</span><span class="p">,</span> <span class="n">ch1</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">)</span>             <span class="c1"># slower 2D version</span>
+            <span class="n">corr</span> <span class="o">=</span> <span class="n">out</span><span class="p">[</span><span class="n">npos</span><span class="o">/</span><span class="mi">2</span><span class="p">,:]</span>                                <span class="c1"># center cut, but could also try feature detection</span>
+        <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">out</span><span class="p">,</span><span class="n">rms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode3</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">ch0</span><span class="p">,</span> <span class="n">ch1</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">)</span>        <span class="c1"># Doug&#39;s faster 2D version</span>
+            <span class="c1"># get the peak of each column</span>
+            <span class="n">corr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">out</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="c1"># print &quot;PVCORR SHAPE &quot;,corr.shape,&quot; mode&quot;, mode</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">corr</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># print &quot;SHAPE out:&quot;,out.shape,corr.shape,npos/2</span>
+            <span class="n">ch</span>  <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">corr</span><span class="p">))</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">corr</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">):</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">fatal</span><span class="p">(</span><span class="s2">&quot;ch (</span><span class="si">%d</span><span class="s2">) and freq (</span><span class="si">%d</span><span class="s2">) do not have same size&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">corr</span><span class="p">),</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">)))</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span><span class="s2">&quot;ch and freq do not have same dimension&quot;</span>
+            <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;mode&quot;</span><span class="p">)</span>
+            <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;channel&quot;</span><span class="p">,</span>   <span class="s2">&quot;frequency&quot;</span><span class="p">,</span>  <span class="s2">&quot;pvcorr&quot;</span><span class="p">]</span>
+            <span class="n">units</span>  <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;number&quot;</span><span class="p">,</span>    <span class="s2">&quot;GHz&quot;</span><span class="p">,</span>        <span class="s2">&quot;N/A&quot;</span><span class="p">]</span>
+            <span class="n">data</span>   <span class="o">=</span> <span class="p">(</span><span class="n">ch</span><span class="p">,</span>          <span class="n">freq</span><span class="p">,</span>         <span class="n">corr</span><span class="p">)</span>
+            <span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">labels</span><span class="p">,</span><span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span><span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># still construct a table, but with no rows</span>
+            <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;channel&quot;</span><span class="p">,</span>   <span class="s2">&quot;frequency&quot;</span><span class="p">,</span>  <span class="s2">&quot;pvcorr&quot;</span><span class="p">]</span>
+            <span class="n">units</span>  <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;number&quot;</span><span class="p">,</span>    <span class="s2">&quot;GHz&quot;</span><span class="p">,</span>        <span class="s2">&quot;N/A&quot;</span><span class="p">]</span>
+            <span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">labels</span><span class="p">,</span><span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">)</span>
+        <span class="n">b3</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;table&quot;</span><span class="p">,</span><span class="n">table</span><span class="p">)</span>
+        <span class="n">b3</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;sigma&quot;</span><span class="p">,</span><span class="nb">float</span><span class="p">(</span><span class="n">rms</span><span class="p">))</span>
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;table&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">corr</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">table</span><span class="o">.</span><span class="n">exportTable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="s2">&quot;testPVCorr.tab&quot;</span><span class="p">),</span><span class="n">cols</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;frequency&#39;</span><span class="p">,</span><span class="s1">&#39;pvcorr&#39;</span><span class="p">])</span>
+            <span class="n">test_single</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span><span class="n">freq</span><span class="p">,</span><span class="n">corr</span><span class="p">)</span>
+
+            <span class="n">logging</span><span class="o">.</span><span class="n">regression</span><span class="p">(</span><span class="s2">&quot;PVC: </span><span class="si">%f</span><span class="s2"> </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">corr</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span><span class="n">corr</span><span class="o">.</span><span class="n">max</span><span class="p">()))</span>
+
+            <span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;PVCorr mode=</span><span class="si">%d</span><span class="s1"> [</span><span class="si">%d</span><span class="s1">,</span><span class="si">%d</span><span class="s1">] </span><span class="si">%g</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mode</span><span class="p">,</span><span class="n">ch0</span><span class="p">,</span><span class="n">ch1</span><span class="p">,</span><span class="n">cutoff</span><span class="p">)</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">ch</span>
+            <span class="n">xlab</span> <span class="o">=</span> <span class="s1">&#39;Channel&#39;</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="p">[</span><span class="n">corr</span><span class="p">]</span>
+            <span class="n">ylab</span> <span class="o">=</span> <span class="s1">&#39;PV Correlation&#39;</span>
+            <span class="n">p1</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">bdp_name</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">segp</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">segp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">ch</span><span class="p">),</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">]</span> <span class="p">)</span>
+            <span class="n">segp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">ch</span><span class="p">),</span><span class="mf">3.0</span><span class="o">*</span><span class="n">rms</span><span class="p">,</span> <span class="mf">3.0</span><span class="o">*</span><span class="n">rms</span><span class="p">]</span> <span class="p">)</span>
+            <span class="c1"># @todo:   in principle we know with given noise and  size of box, what the sigma in pvcorr should be</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">myplot</span><span class="o">.</span><span class="n">plotter</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">title</span><span class="p">,</span><span class="n">figname</span><span class="o">=</span><span class="n">p1</span><span class="p">,</span><span class="n">xlab</span><span class="o">=</span><span class="n">xlab</span><span class="p">,</span><span class="n">ylab</span><span class="o">=</span><span class="n">ylab</span><span class="p">,</span><span class="n">segments</span><span class="o">=</span><span class="n">segp</span><span class="p">,</span> <span class="n">thumbnail</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="c1">#out1 = np.rot90 (data.reshape((nvel,npos)) )</span>
+            <span class="k">if</span> <span class="n">mode</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">myplot</span><span class="o">.</span><span class="n">map1</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">out</span><span class="p">,</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;testing PVCorr_AT:  mode</span><span class="si">%d</span><span class="s2">&quot;</span><span class="o">%</span><span class="n">mode</span><span class="p">,</span><span class="n">figname</span><span class="o">=</span><span class="s1">&#39;testPVCorr&#39;</span><span class="p">,</span> <span class="n">thumbnail</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="n">taskargs</span> <span class="o">=</span> <span class="s2">&quot;numsigma=</span><span class="si">%.1f</span><span class="s2"> range=[</span><span class="si">%d</span><span class="s2">,</span><span class="si">%d</span><span class="s2">]&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">numsigma</span><span class="p">,</span><span class="n">ch0</span><span class="p">,</span><span class="n">ch1</span><span class="p">)</span>
+            <span class="n">caption</span> <span class="o">=</span> <span class="s2">&quot;Position-velocity correlation plot&quot;</span>
+            <span class="n">thumbname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">myplot</span><span class="o">.</span><span class="n">getThumbnail</span><span class="p">(</span><span class="n">figno</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">myplot</span><span class="o">.</span><span class="n">figno</span><span class="p">,</span><span class="n">relative</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">figname</span>   <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">myplot</span><span class="o">.</span><span class="n">getFigure</span><span class="p">(</span><span class="n">figno</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">myplot</span><span class="o">.</span><span class="n">figno</span><span class="p">,</span><span class="n">relative</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span><span class="n">images</span><span class="o">=</span><span class="p">{</span><span class="n">bt</span><span class="o">.</span><span class="n">PNG</span><span class="p">:</span> <span class="n">figname</span><span class="p">},</span> <span class="n">thumbnail</span><span class="o">=</span><span class="n">thumbname</span><span class="p">,</span> <span class="n">thumbnailtype</span><span class="o">=</span><span class="n">bt</span><span class="o">.</span><span class="n">PNG</span><span class="p">,</span>
+                <span class="n">description</span><span class="o">=</span><span class="n">caption</span><span class="p">)</span>
+            <span class="n">b3</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">addimage</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="s2">&quot;pvcorr&quot;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="s2">&quot;pvcorr&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SummaryEntry</span><span class="p">([</span><span class="n">figname</span><span class="p">,</span><span class="n">thumbname</span><span class="p">,</span><span class="n">caption</span><span class="p">,</span><span class="n">fin</span><span class="p">],</span><span class="s2">&quot;PVCorr_AT&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">(</span><span class="kc">True</span><span class="p">),</span><span class="n">taskargs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="s2">&quot;pvcorr&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No summary&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">regression</span><span class="p">(</span><span class="s2">&quot;PVC: -1&quot;</span><span class="p">)</span>
+
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;done&quot;</span><span class="p">)</span>
+        <span class="n">dt</span><span class="o">.</span><span class="n">end</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="PVCorr_AT.mode3"><a class="viewcode-back" href="../../../module/admit.at/PVCorr_AT.html#admit.at.PVCorr_AT.PVCorr_AT.mode3">[docs]</a>    <span class="k">def</span> <span class="nf">mode3</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">v0</span><span class="p">,</span> <span class="n">v1</span><span class="p">,</span> <span class="n">dmin</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; v0..v1 (both inclusive) are channel selections</span>
+<span class="sd">            threshold on dmin</span>
+<span class="sd">            @todo the frequency axis is not properly calibrated here</span>
+<span class="sd">            @todo a full 2D is slow, we only need the 1D version</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">print</span> <span class="s2">&quot;PVCorr mode3: v0,1=&quot;</span><span class="p">,</span><span class="n">v0</span><span class="p">,</span><span class="n">v1</span>
+        <span class="n">smin</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+        <span class="c1">#s = data[v0:v1+1,:]</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span><span class="n">v0</span><span class="p">:</span><span class="n">v1</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">dmin</span><span class="o">==</span><span class="mf">0.0</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Using all data in crosscorr&quot;</span><span class="p">)</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="n">s</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">s</span><span class="o">&gt;</span><span class="n">dmin</span><span class="p">,</span><span class="n">s</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+        <span class="c1"># find out where the zeros are</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">nz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
+        <span class="c1"># trim the kernel in the y direction, removing rows that are all 0.0</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="n">nz</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span><span class="n">nz</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">],:]</span>
+        <span class="n">f0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">s</span><span class="o">&gt;</span><span class="n">smin</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">f1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">s</span><span class="o">&gt;</span><span class="n">dmin</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">fmax</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+        <span class="nb">print</span> <span class="s2">&quot;PVCorr mode3:&quot;</span><span class="p">,</span><span class="n">f1</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span><span class="s1">&#39;/&#39;</span><span class="p">,</span><span class="n">f0</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span><span class="s1">&#39;min/max&#39;</span><span class="p">,</span><span class="n">smin</span><span class="p">,</span><span class="n">fmax</span>
+        <span class="n">out</span> <span class="o">=</span>  <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">correlate2d</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">f</span><span class="p">,</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;same&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">myplot</span><span class="o">.</span><span class="n">map1</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">f</span><span class="p">,</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;PVCorr 2D Kernel&quot;</span><span class="p">,</span><span class="n">figname</span><span class="o">=</span><span class="s1">&#39;PVCorrKernel&#39;</span><span class="p">,</span> <span class="n">thumbnail</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="nb">print</span> <span class="s1">&#39;PVCorr min/max:&#39;</span><span class="p">,</span><span class="n">out</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span><span class="n">out</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+        <span class="n">n1</span><span class="p">,</span><span class="n">m1</span><span class="p">,</span><span class="n">s1</span><span class="p">,</span><span class="n">n2</span><span class="p">,</span><span class="n">m2</span><span class="p">,</span><span class="n">s2</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">mystats</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+        <span class="nb">print</span> <span class="s2">&quot;PVCorr stats&quot;</span><span class="p">,</span> <span class="n">n1</span><span class="p">,</span><span class="n">m1</span><span class="p">,</span><span class="n">s1</span><span class="p">,</span><span class="n">n2</span><span class="p">,</span><span class="n">m2</span><span class="p">,</span><span class="n">s2</span>
+        <span class="n">rms_est</span> <span class="o">=</span> <span class="n">s2</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">f1</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">out</span><span class="p">,</span><span class="n">rms_est</span></div></div>
+
+<div class="viewcode-block" id="test_single"><a class="viewcode-back" href="../../../module/admit.at/PVCorr_AT.html#admit.at.PVCorr_AT.test_single">[docs]</a><span class="k">def</span> <span class="nf">test_single</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span><span class="n">x2</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">cutoff</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; test as if there is only one line via a simple moment analysis</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ymax</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">cutoff</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">cutoff</span> <span class="o">=</span> <span class="mf">0.10</span> <span class="o">*</span> <span class="n">ymax</span>
+    <span class="n">ym</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">masked_less</span><span class="p">(</span><span class="n">y</span><span class="p">,</span><span class="n">cutoff</span><span class="p">)</span>
+    <span class="n">y1</span> <span class="o">=</span> <span class="n">ym</span> <span class="o">*</span> <span class="n">x1</span>
+    <span class="n">y2</span> <span class="o">=</span> <span class="n">ym</span> <span class="o">*</span> <span class="n">x2</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Average: </span><span class="si">%d</span><span class="s2"> </span><span class="si">%d</span><span class="s2"> </span><span class="si">%d</span><span class="s2"> </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ym</span><span class="o">.</span><span class="n">count</span><span class="p">(),</span> <span class="n">y1</span><span class="o">.</span><span class="n">count</span><span class="p">(),</span> <span class="n">y2</span><span class="o">.</span><span class="n">count</span><span class="p">(),</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)))</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Average intensity weighted channel: </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">y1</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">/</span><span class="n">ym</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span><span class="n">y2</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">/</span><span class="n">ym</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span><span class="n">cutoff</span><span class="p">,</span><span class="n">ymax</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="mode1"><a class="viewcode-back" href="../../../module/admit.at/PVCorr_AT.html#admit.at.PVCorr_AT.mode1">[docs]</a><span class="k">def</span> <span class="nf">mode1</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v0</span><span class="p">,</span><span class="n">v1</span><span class="p">,</span> <span class="n">dmin</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>  <span class="n">normalize</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; faster 1D version of mode2</span>
+<span class="sd">        This works by forcing mode=&#39;valid&#39; and making the X (position)</span>
+<span class="sd">        dimension of the template the same as the PV diagram.  We then</span>
+<span class="sd">        pad the ends of the PV with zero&#39;s. Introduces some complexity</span>
+<span class="sd">        how to return the correct shape</span>
+<span class="sd">        v0..v1 (both inclusive) are channel selections</span>
+<span class="sd">        threshold on dmin</span>
+<span class="sd">        @todo the frequency axis may not be properly calibrated here</span>
+
+<span class="sd">        @todo plot the template for debug, like in mode3</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;PVCorr mode1: v0,1= </span><span class="si">%d</span><span class="s2"> </span><span class="si">%d</span><span class="s2">  dmin= </span><span class="si">%g</span><span class="s2">  normalize=</span><span class="si">%s</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">v0</span><span class="p">,</span><span class="n">v0</span><span class="p">,</span><span class="n">dmin</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="n">normalize</span><span class="p">)))</span>
+    <span class="n">smin</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+    <span class="n">nx</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">ny</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">nv</span> <span class="o">=</span> <span class="n">v1</span><span class="o">-</span><span class="n">v0</span><span class="o">+</span><span class="mi">1</span>
+    <span class="n">pad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nx</span><span class="o">*</span><span class="n">nv</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span><span class="n">nv</span><span class="p">)</span>                <span class="c1"># ValueError: negative dimensions are not allowed (EGNoG)</span>
+    <span class="n">pdata</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">pad</span><span class="p">,</span><span class="n">data</span><span class="p">,</span><span class="n">pad</span><span class="p">),</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span><span class="n">v0</span><span class="p">:</span><span class="n">v1</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>                                 <span class="c1"># the stencil where the line is</span>
+    <span class="k">if</span> <span class="n">dmin</span><span class="o">==</span><span class="mf">0.0</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Using all data in crosscorr&quot;</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">s</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">s</span><span class="o">&gt;</span><span class="n">dmin</span><span class="p">,</span><span class="n">s</span><span class="p">,</span><span class="mf">0.0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">normalize</span><span class="p">:</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">f</span> <span class="o">!=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+    <span class="n">f0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">s</span><span class="o">&gt;</span><span class="n">smin</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">f1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">s</span><span class="o">&gt;</span><span class="n">dmin</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">dmin</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Datamax=</span><span class="si">%g</span><span class="s2">, no data above dmin=</span><span class="si">%g</span><span class="s2">; data too noisy?&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span><span class="n">dmin</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span><span class="mf">0.0</span>
+    <span class="n">fmax</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="n">fsum</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="n">ssum</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="n">fssum</span> <span class="o">=</span> <span class="p">(</span><span class="n">f</span><span class="o">*</span><span class="n">s</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="n">ffsum</span> <span class="o">=</span> <span class="p">(</span><span class="n">f</span><span class="o">*</span><span class="n">f</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;PVCorr mode1: </span><span class="si">%d</span><span class="s2">/</span><span class="si">%d</span><span class="s2">  min/max  </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2">   sums: </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">f1</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span><span class="n">f0</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span><span class="n">smin</span><span class="p">,</span><span class="n">fmax</span><span class="p">,</span><span class="n">fsum</span><span class="p">,</span><span class="n">ssum</span><span class="p">,</span><span class="n">ffsum</span><span class="p">,</span><span class="n">fssum</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">normalize</span><span class="p">:</span>
+      <span class="n">out</span> <span class="o">=</span>  <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">correlate2d</span><span class="p">(</span><span class="n">pdata</span><span class="p">,</span><span class="n">f</span><span class="p">,</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;valid&#39;</span><span class="p">)</span><span class="o">/</span><span class="n">fssum</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">out</span> <span class="o">=</span>  <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">correlate2d</span><span class="p">(</span><span class="n">pdata</span><span class="p">,</span><span class="n">f</span><span class="p">,</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;valid&#39;</span><span class="p">)</span><span class="o">/</span><span class="n">ffsum</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;PVCorr min/max: </span><span class="si">%g</span><span class="s1"> </span><span class="si">%g</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span><span class="n">out</span><span class="o">.</span><span class="n">max</span><span class="p">()))</span>
+    <span class="n">n1</span><span class="p">,</span><span class="n">m1</span><span class="p">,</span><span class="n">s1</span><span class="p">,</span><span class="n">n2</span><span class="p">,</span><span class="n">m2</span><span class="p">,</span><span class="n">s2</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">mystats</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;PVCorr stats </span><span class="si">%d</span><span class="s2"> </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2">  </span><span class="si">%d</span><span class="s2"> </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">n1</span><span class="p">,</span><span class="n">m1</span><span class="p">,</span><span class="n">s1</span><span class="p">,</span><span class="n">n2</span><span class="p">,</span><span class="n">m2</span><span class="p">,</span><span class="n">s2</span><span class="p">))</span>
+    <span class="n">rms_est</span> <span class="o">=</span> <span class="n">s2</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;RMS est: </span><span class="si">%g</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">rms_est</span><span class="p">)</span>
+    <span class="c1"># CAVEAT:</span>
+    <span class="c1"># cutting it this way will agree with peaks in mode2,</span>
+    <span class="c1"># but between ny=odd or even there is a half channel freq offset</span>
+    <span class="c1"># alternatively for one of them an interpolation is needed.</span>
+    <span class="c1"># the idea is that half channel should not influence LineID.</span>
+    <span class="n">corr</span> <span class="o">=</span> <span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="n">nv</span><span class="o">/</span><span class="mi">2</span><span class="o">+</span><span class="mi">1</span><span class="p">:</span><span class="n">nv</span><span class="o">/</span><span class="mi">2</span><span class="o">+</span><span class="n">ny</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">corr</span><span class="p">,</span><span class="n">rms_est</span></div>
+
+    
+<div class="viewcode-block" id="mode2"><a class="viewcode-back" href="../../../module/admit.at/PVCorr_AT.html#admit.at.PVCorr_AT.mode2">[docs]</a><span class="k">def</span> <span class="nf">mode2</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">v0</span><span class="p">,</span><span class="n">v1</span><span class="p">,</span> <span class="n">dmin</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; v0..v1 (both inclusive) are channel selections</span>
+<span class="sd">        threshold on dmin</span>
+<span class="sd">        for odd number of channels, center line in mode2 will be same as mode1</span>
+<span class="sd">        @todo the frequency axis is not properly calibrated here</span>
+<span class="sd">        @todo a full 2D is slow, we only need the 1D version</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span> <span class="s2">&quot;PVCorr mode2: v0,1=&quot;</span><span class="p">,</span><span class="n">v0</span><span class="p">,</span><span class="n">v1</span><span class="p">,</span><span class="s2">&quot;dmin=&quot;</span><span class="p">,</span><span class="n">dmin</span>
+    <span class="n">smin</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span><span class="n">v0</span><span class="p">:</span><span class="n">v1</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">dmin</span><span class="o">==</span><span class="mf">0.0</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Using all data in crosscorr&quot;</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">s</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">s</span><span class="o">&gt;</span><span class="n">dmin</span><span class="p">,</span><span class="n">s</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+    <span class="nb">print</span> <span class="s2">&quot;PVCorr dmin:&quot;</span><span class="p">,</span><span class="n">dmin</span>
+    <span class="n">f0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">s</span><span class="o">&gt;</span><span class="n">smin</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">f1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">s</span><span class="o">&gt;</span><span class="n">dmin</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">fmax</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="n">ffsum</span> <span class="o">=</span> <span class="p">(</span><span class="n">f</span><span class="o">*</span><span class="n">f</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="nb">print</span> <span class="s2">&quot;PVCorr mode2:&quot;</span><span class="p">,</span><span class="n">f1</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span><span class="s1">&#39;/&#39;</span><span class="p">,</span><span class="n">f0</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span><span class="s1">&#39;min/max&#39;</span><span class="p">,</span><span class="n">smin</span><span class="p">,</span><span class="n">fmax</span>
+    <span class="n">out</span> <span class="o">=</span>  <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">correlate2d</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">f</span><span class="p">,</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;same&#39;</span><span class="p">)</span><span class="o">/</span><span class="n">ffsum</span>
+    <span class="nb">print</span> <span class="s1">&#39;PVCorr min/max:&#39;</span><span class="p">,</span><span class="n">out</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span><span class="n">out</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="n">n1</span><span class="p">,</span><span class="n">m1</span><span class="p">,</span><span class="n">s1</span><span class="p">,</span><span class="n">n2</span><span class="p">,</span><span class="n">m2</span><span class="p">,</span><span class="n">s2</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">mystats</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+    <span class="nb">print</span> <span class="s2">&quot;PVCorr stats&quot;</span><span class="p">,</span> <span class="n">n1</span><span class="p">,</span><span class="n">m1</span><span class="p">,</span><span class="n">s1</span><span class="p">,</span><span class="n">n2</span><span class="p">,</span><span class="n">m2</span><span class="p">,</span><span class="n">s2</span>
+    <span class="n">rms_est</span> <span class="o">=</span> <span class="n">s2</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">f1</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">out</span><span class="p">,</span><span class="n">rms_est</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

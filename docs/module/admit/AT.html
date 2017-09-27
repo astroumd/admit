@@ -1,0 +1,1902 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Task — ADMIT task (AT) base. &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../index.html" />
+    <link rel="up" title="Python Scripting Interface (API)" href="../../api.html" />
+    <link rel="prev" title="ADMIT Package" href="0-index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="0-index.html" title="ADMIT Package"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" accesskey="U">Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-admit.AT"></span><div class="section" id="task-admit-task-at-base">
+<span id="at-base-api"></span><h1><strong>Task</strong> &#8212; ADMIT task (AT) base.<a class="headerlink" href="#task-admit-task-at-base" title="Permalink to this headline">¶</a></h1>
+<p>This module defines the ADMIT task (AT) base class.</p>
+<dl class="class">
+<dt id="admit.AT.AT">
+<em class="property">class </em><code class="descclassname">admit.AT.</code><code class="descname">AT</code><span class="sig-paren">(</span><em>keys={}</em>, <em>keyvals={}</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class for Admit Task (AT) objects.</p>
+<p>The ADMIT task base class implements generic interface features common
+to concrete ATs. Tasks are the basic execution unit in ADMIT and are
+responsible for operating on <a class="reference external" href="../admit.bdp/BDP.html">BDPs</a> to perform calculations or
+otherwise transform them into new data products. Each task includes a
+unique set of keywords controlling its behavior.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>keys</strong> : dictionary of str keywords with default values, optional.</p>
+<blockquote>
+<div><p>Task keyword settings; default keyword values vary by task.</p>
+<p>Currently the following keywords, defined by the base class, are 
+activated for each task:</p>
+<dl class="docutils">
+<dt><strong>alias</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str</span><dd><p class="first last">By default ATs will use an alias by appending the file basename
+they normally use with &#8220;-alias&#8221;. For example, if an AT would
+normally transform &#8220;foo.im&#8221; to &#8220;foo.pv&#8221;, with &#8220;alias=test&#8221; you
+would get &#8220;foo-test.pv&#8221;.  The notable exception is Ingest_AT,
+where the alias replaces the (potentially long) cube file
+basename, i.e., &#8220;verylongsourcename.fits&#8221; becomes &#8220;alias.im&#8221;.
+Must be unique for each concrete type of AT (will be appended with
+a unique suffix otherwise). Alias is a system keyword,
+inaccessible (via getkey()) after the task is instantiated.</p>
+</dd>
+<dt><strong>taskid</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int</span><dd><p class="first last">Forces a pre-determined task ID number when instantiating the task.
+Normally left defaulted (-1, meaning auto-select), but useful in
+special circumstances. This is a system keyword, inaccessible (via
+getkey()) after the task is instantiated.</p>
+</dd>
+<dt><strong>variflow</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">Whether the flow emanating from an AT with variadic outputs should
+be dynamically adjusted according to the actual number of outputs.
+Normally left defaulted (<cite>True</cite>), but may be set to <cite>False</cite> if this
+will be managed separately or if the number of outputs is
+pre-determined for a particular instance. This is a system keyword,
+inaccessible (via getkey()) after the task is instantiated.</p>
+</dd>
+</dl>
+</div></blockquote>
+<p><strong>keyvals</strong> : dictionary of new values for  the keywords, optional.</p>
+<blockquote class="last">
+<div><p>These keyword value pairs can be fed in form the command line
+instantiation of the class.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#admit.AT.AT.isAutoAlias" title="admit.AT.AT.isAutoAlias"><code class="xref py py-obj docutils literal"><span class="pre">isAutoAlias</span></code></a></p>
+</div>
+<p class="rubric">Notes</p>
+<p>As a general rule the attributes of an AT should not be directly
+manipulated by the code in an AT&#8212;all are taken care of internally
+or accessed via methods (e.g., setkey).</p>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="11%" />
+<col width="89%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>_alias</td>
+<td>(str) Task alias name. Appears in various filenames, HTML output, flow diagrams, etc.</td>
+</tr>
+<tr class="row-even"><td>_taskid</td>
+<td>(int) Task ID number (defaults to <code class="docutils literal"><span class="pre">None</span></code>, normally set by FlowManager).</td>
+</tr>
+<tr class="row-odd"><td>_baseDir</td>
+<td>(str) Project base directory (None if unknown).</td>
+</tr>
+<tr class="row-even"><td>_bdp_in</td>
+<td>(list of <a class="reference external" href="../admit.bdp/BDP.html">BDPs</a>) BDP input cache.</td>
+</tr>
+<tr class="row-odd"><td>_bdp_in_map</td>
+<td>(list of ints) BDP IDs corresponding to those listed in _bdp_in.</td>
+</tr>
+<tr class="row-even"><td>_bdp_out</td>
+<td>(list of <a class="reference external" href="../admit.bdp/BDP.html">BDPs</a>) BDP output cache.</td>
+</tr>
+<tr class="row-odd"><td>_bdp_out_map</td>
+<td>(list of ints) BDP IDs corresponding to those listed in _bdp_out.</td>
+</tr>
+<tr class="row-even"><td>_keys</td>
+<td>(dict) Task keyword dictionary.</td>
+</tr>
+<tr class="row-odd"><td>_link</td>
+<td>(int) Link count (for multiflows).</td>
+</tr>
+<tr class="row-even"><td>_type</td>
+<td>(str) Concrete task type.</td>
+</tr>
+<tr class="row-odd"><td>_stale</td>
+<td>(boolean) Whether the AT needs to be run (e.g., a keyword changed).</td>
+</tr>
+<tr class="row-even"><td>_enabled</td>
+<td>(boolean) Whether the AT is enabled; if set to False, the flow manager will not execute the local run method.</td>
+</tr>
+<tr class="row-odd"><td>_running</td>
+<td>(boolean) Whether the AT is currently running (within the execute() method). Useful for crash recovery diagnostics.</td>
+</tr>
+<tr class="row-even"><td>_plot_mode</td>
+<td>(int) Plot mode, one of util.PlotControl plot mode (e.g., PlotControl.INTERACTIVE). Default: PlotControl.NOPLOT</td>
+</tr>
+<tr class="row-odd"><td>_plot_type</td>
+<td>(int) Plotting format, one of util.PlotControl plot type (e.g., PlotControl.PNG). Default: PlotControl.NONE</td>
+</tr>
+<tr class="row-even"><td>_valid_bdp_in</td>
+<td>(List) List of tuples indicating what types and how many <a class="reference external" href="../admit.bdp/BDP.html">BDPs</a> are expected as input.</td>
+</tr>
+<tr class="row-odd"><td>_valid_bdp_out</td>
+<td>(List) List of tuples indicating what types and how many <a class="reference external" href="../admit.bdp/BDP.html">BDPs</a> are expected as output.</td>
+</tr>
+<tr class="row-even"><td>_needToSave</td>
+<td>(boolean) Whether this AT and underlying BDPs need to be saved to disk.</td>
+</tr>
+<tr class="row-odd"><td>_variflow</td>
+<td>(bool) Whether sub-flows attached to the instance should be automatically cloned in the case of variadic output.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#admit.AT.AT.addinput" title="admit.AT.AT.addinput"><code class="xref py py-obj docutils literal"><span class="pre">addinput</span></code></a>(item[,&nbsp;slot])</td>
+<td>Add a BDP input to an AT.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.AT.AT.addinputbdp" title="admit.AT.AT.addinputbdp"><code class="xref py py-obj docutils literal"><span class="pre">addinputbdp</span></code></a>(item[,&nbsp;slot,&nbsp;insert])</td>
+<td>Add a BDP to the _bdp_in list.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.AT.AT.addoutput" title="admit.AT.AT.addoutput"><code class="xref py py-obj docutils literal"><span class="pre">addoutput</span></code></a>(item[,&nbsp;slot])</td>
+<td>Add a BDP output product to an AT.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.AT.AT.addoutputbdp" title="admit.AT.AT.addoutputbdp"><code class="xref py py-obj docutils literal"><span class="pre">addoutputbdp</span></code></a>(item[,&nbsp;slot,&nbsp;insert])</td>
+<td>Add a BDP to the _bdp_out list.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.AT.AT.baseDir" title="admit.AT.AT.baseDir"><code class="xref py py-obj docutils literal"><span class="pre">baseDir</span></code></a>([path])</td>
+<td>Get/set project base directory.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.AT.AT.bestMatch" title="admit.AT.AT.bestMatch"><code class="xref py py-obj docutils literal"><span class="pre">bestMatch</span></code></a>(at1,&nbsp;at2)</td>
+<td>Determines the better match of two tasks to the current one.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.AT.AT.checkfiles" title="admit.AT.AT.checkfiles"><code class="xref py py-obj docutils literal"><span class="pre">checkfiles</span></code></a>()</td>
+<td>Check if the files from all the BDP_out&#8217;s in an AT exist.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.AT.AT.checktype" title="admit.AT.AT.checktype"><code class="xref py py-obj docutils literal"><span class="pre">checktype</span></code></a>(item)</td>
+<td>Check the type of an object to see if it is a BDP.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.AT.AT.clearinput" title="admit.AT.AT.clearinput"><code class="xref py py-obj docutils literal"><span class="pre">clearinput</span></code></a>()</td>
+<td>Clear the input BDP list.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.AT.AT.clearoutput" title="admit.AT.AT.clearoutput"><code class="xref py py-obj docutils literal"><span class="pre">clearoutput</span></code></a>([delete])</td>
+<td>Clear the output BDP list.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.AT.AT.copy" title="admit.AT.AT.copy"><code class="xref py py-obj docutils literal"><span class="pre">copy</span></code></a>()</td>
+<td>Creates an independent duplicate of the task.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.AT.AT.delete" title="admit.AT.AT.delete"><code class="xref py py-obj docutils literal"><span class="pre">delete</span></code></a>()</td>
+<td>Method to delete the AT and underlying BDPs.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.AT.AT.delinput" title="admit.AT.AT.delinput"><code class="xref py py-obj docutils literal"><span class="pre">delinput</span></code></a>(slot)</td>
+<td>Delete a specific BDP in the _bdp_in list.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.AT.AT.deloutput" title="admit.AT.AT.deloutput"><code class="xref py py-obj docutils literal"><span class="pre">deloutput</span></code></a>(slot)</td>
+<td>Delete a specific BDP in the _bdp_out list.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.AT.AT.dir" title="admit.AT.AT.dir"><code class="xref py py-obj docutils literal"><span class="pre">dir</span></code></a>([filename])</td>
+<td>Absolute directory reference of the ADMIT project.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.AT.AT.dryrun" title="admit.AT.AT.dryrun"><code class="xref py py-obj docutils literal"><span class="pre">dryrun</span></code></a>()</td>
+<td>Method to do a dry run of the AT, generally just checks input values for errors.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.AT.AT.enabled" title="admit.AT.AT.enabled"><code class="xref py py-obj docutils literal"><span class="pre">enabled</span></code></a>([state])</td>
+<td>Returns current task enabled setting, with optional reset.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.AT.AT.execute" title="admit.AT.AT.execute"><code class="xref py py-obj docutils literal"><span class="pre">execute</span></code></a>([args])</td>
+<td>Executes the task.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.AT.AT.freeAlias" title="admit.AT.AT.freeAlias"><code class="xref py py-obj docutils literal"><span class="pre">freeAlias</span></code></a>(aliases[,&nbsp;alias])</td>
+<td>Deletes alias reservation, if present.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.AT.AT.get" title="admit.AT.AT.get"><code class="xref py py-obj docutils literal"><span class="pre">get</span></code></a>(attrib)</td>
+<td>Method to get the given attributes value</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.AT.AT.getProject" title="admit.AT.AT.getProject"><code class="xref py py-obj docutils literal"><span class="pre">getProject</span></code></a>()</td>
+<td>Retrieves project ID associated with the task.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.AT.AT.getVersion" title="admit.AT.AT.getVersion"><code class="xref py py-obj docutils literal"><span class="pre">getVersion</span></code></a>()</td>
+<td>Return the version string.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.AT.AT.getdtd" title="admit.AT.AT.getdtd"><code class="xref py py-obj docutils literal"><span class="pre">getdtd</span></code></a>(fl)</td>
+<td>Method to write out the dtd data.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.AT.AT.geteffectivelevel" title="admit.AT.AT.geteffectivelevel"><code class="xref py py-obj docutils literal"><span class="pre">geteffectivelevel</span></code></a>()</td>
+<td>Method to get the effective logging level of the logging subsystem</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.AT.AT.getkey" title="admit.AT.AT.getkey"><code class="xref py py-obj docutils literal"><span class="pre">getkey</span></code></a>(key)</td>
+<td>Retrieval value for a key.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.AT.AT.getloggername" title="admit.AT.AT.getloggername"><code class="xref py py-obj docutils literal"><span class="pre">getloggername</span></code></a>()</td>
+<td>Method to get the name of the logger for this AT instance</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.AT.AT.getlogginglevel" title="admit.AT.AT.getlogginglevel"><code class="xref py py-obj docutils literal"><span class="pre">getlogginglevel</span></code></a>()</td>
+<td>Method to get the current logging level of the AT</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.AT.AT.haskey" title="admit.AT.AT.haskey"><code class="xref py py-obj docutils literal"><span class="pre">haskey</span></code></a>(key)</td>
+<td>Query if a key exists for an AT.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.AT.AT.html" title="admit.AT.AT.html"><code class="xref py py-obj docutils literal"><span class="pre">html</span></code></a>(inheader)</td>
+<td>Method to represent the current AT in HTML format.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.AT.AT.id" title="admit.AT.AT.id"><code class="xref py py-obj docutils literal"><span class="pre">id</span></code></a>([strip])</td>
+<td>Returns task ID number.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.AT.AT.isAutoAlias" title="admit.AT.AT.isAutoAlias"><code class="xref py py-obj docutils literal"><span class="pre">isAutoAlias</span></code></a>([withEmpty,&nbsp;compat])</td>
+<td>Whether the task alias appears to be auto-generated.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.AT.AT.isequal" title="admit.AT.AT.isequal"><code class="xref py py-obj docutils literal"><span class="pre">isequal</span></code></a>(at)</td>
+<td>Method to determine if two ATs are the same.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.AT.AT.isstale" title="admit.AT.AT.isstale"><code class="xref py py-obj docutils literal"><span class="pre">isstale</span></code></a>()</td>
+<td>Returns whether the AT is out of date.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.AT.AT.len2" title="admit.AT.AT.len2"><code class="xref py py-obj docutils literal"><span class="pre">len2</span></code></a>()</td>
+<td>Returns the length of _bdp_in and _bdp_out in a tuple.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.AT.AT.link" title="admit.AT.AT.link"><code class="xref py py-obj docutils literal"><span class="pre">link</span></code></a>()</td>
+<td>Increments the task link count.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.AT.AT.markChanged" title="admit.AT.AT.markChanged"><code class="xref py py-obj docutils literal"><span class="pre">markChanged</span></code></a>()</td>
+<td>Mark an AT that it&#8217;s state was changed, so it would need to be rerun.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.AT.AT.markUpToDate" title="admit.AT.AT.markUpToDate"><code class="xref py py-obj docutils literal"><span class="pre">markUpToDate</span></code></a>()</td>
+<td>Resets _stale to indicate that the AT does not need to be run.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.AT.AT.merge" title="admit.AT.AT.merge"><code class="xref py py-obj docutils literal"><span class="pre">merge</span></code></a>(at[,&nbsp;aliases])</td>
+<td>Merges attributes from another task.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.AT.AT.mkdir" title="admit.AT.AT.mkdir"><code class="xref py py-obj docutils literal"><span class="pre">mkdir</span></code></a>(dirname)</td>
+<td>Make a directory in the ADMIT hierarchy.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.AT.AT.mkext" title="admit.AT.AT.mkext"><code class="xref py py-obj docutils literal"><span class="pre">mkext</span></code></a>(filename,&nbsp;ext[,&nbsp;alias])</td>
+<td>Return a new filename with a new extension with optional ADMIT alias.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.AT.AT.newId" title="admit.AT.AT.newId"><code class="xref py py-obj docutils literal"><span class="pre">newId</span></code></a>(tid)</td>
+<td>Assigns the task a new ID number.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.AT.AT.reset" title="admit.AT.AT.reset"><code class="xref py py-obj docutils literal"><span class="pre">reset</span></code></a>(a)</td>
+<td>Performs an <em>in-place</em> shallow copy.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.AT.AT.run" title="admit.AT.AT.run"><code class="xref py py-obj docutils literal"><span class="pre">run</span></code></a>()</td>
+<td>Runs the task.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.AT.AT.running" title="admit.AT.AT.running"><code class="xref py py-obj docutils literal"><span class="pre">running</span></code></a>([state])</td>
+<td>Returns current task execution flag, with optional reset.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.AT.AT.save" title="admit.AT.AT.save"><code class="xref py py-obj docutils literal"><span class="pre">save</span></code></a>()</td>
+<td>Save (write) any BDPs connected to this AT.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.AT.AT.set" title="admit.AT.AT.set"><code class="xref py py-obj docutils literal"><span class="pre">set</span></code></a>(item,&nbsp;val)</td>
+<td>Method to set protected attributes, rather than direct access</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.AT.AT.setAlias" title="admit.AT.AT.setAlias"><code class="xref py py-obj docutils literal"><span class="pre">setAlias</span></code></a>(aliases[,&nbsp;alias,&nbsp;auto])</td>
+<td>Sets and registers the task alias, guaranteed unique among  registered aliases.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.AT.AT.setProject" title="admit.AT.AT.setProject"><code class="xref py py-obj docutils literal"><span class="pre">setProject</span></code></a>(pid)</td>
+<td>Adds a project ID to task ID.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.AT.AT.set_bdp_in" title="admit.AT.AT.set_bdp_in"><code class="xref py py-obj docutils literal"><span class="pre">set_bdp_in</span></code></a>([bdpin])</td>
+<td>Validate the _valid_bdp_in list and digest it into the appropriate attributes.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.AT.AT.set_bdp_out" title="admit.AT.AT.set_bdp_out"><code class="xref py py-obj docutils literal"><span class="pre">set_bdp_out</span></code></a>([bout])</td>
+<td>Validate the _valid_bdp_out list and digest it into the appropriate attributes.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.AT.AT.seteffectivelevel" title="admit.AT.AT.seteffectivelevel"><code class="xref py py-obj docutils literal"><span class="pre">seteffectivelevel</span></code></a>(level)</td>
+<td>Method to set the effective logging level of the logging subsystem</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.AT.AT.setkey" title="admit.AT.AT.setkey"><code class="xref py py-obj docutils literal"><span class="pre">setkey</span></code></a>([name,&nbsp;value,&nbsp;isinit])</td>
+<td>Set keyword value.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.AT.AT.setloggername" title="admit.AT.AT.setloggername"><code class="xref py py-obj docutils literal"><span class="pre">setloggername</span></code></a>(name)</td>
+<td>Method to set the name of the logger for this AT instance</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.AT.AT.setlogginglevel" title="admit.AT.AT.setlogginglevel"><code class="xref py py-obj docutils literal"><span class="pre">setlogginglevel</span></code></a>(level)</td>
+<td>Method to set the logging level</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.AT.AT.show" title="admit.AT.AT.show"><code class="xref py py-obj docutils literal"><span class="pre">show</span></code></a>()</td>
+<td>Return the AT type.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.AT.AT.statusicons" title="admit.AT.AT.statusicons"><code class="xref py py-obj docutils literal"><span class="pre">statusicons</span></code></a>()</td>
+<td>return some html icons representing the enabled/stale status of this task</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.AT.AT.summary" title="admit.AT.AT.summary"><code class="xref py py-obj docutils literal"><span class="pre">summary</span></code></a>()</td>
+<td>Returns the summary dictionary from the AT, for merging into the ADMIT Summary object.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.AT.AT.unlink" title="admit.AT.AT.unlink"><code class="xref py py-obj docutils literal"><span class="pre">unlink</span></code></a>()</td>
+<td>Decrements the task link count.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.AT.AT.userdata" title="admit.AT.AT.userdata"><code class="xref py py-obj docutils literal"><span class="pre">userdata</span></code></a>()</td>
+<td>Returns the user dictionary from the AT, for merging into the ADMIT userdata object.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.AT.AT.validateinput" title="admit.AT.AT.validateinput"><code class="xref py py-obj docutils literal"><span class="pre">validateinput</span></code></a>([describe])</td>
+<td>Method to validate the _bdp_in&#8217;s against a dictionary of expected types.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.AT.AT.validatekeys" title="admit.AT.AT.validatekeys"><code class="xref py py-obj docutils literal"><span class="pre">validatekeys</span></code></a>()</td>
+<td>Method to error check all input keys.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.AT.AT.write" title="admit.AT.AT.write"><code class="xref py py-obj docutils literal"><span class="pre">write</span></code></a>(node)</td>
+<td>Method to write the AT to disk.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="admit.AT.AT.addinput">
+<code class="descname">addinput</code><span class="sig-paren">(</span><em>item</em>, <em>slot=-1</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.addinput"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.addinput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a BDP input to an AT. The BDP type will be validated
+before it is added to the input list.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>item</strong> : BDP</p>
+<blockquote>
+<div><p>The BDP to be added to the input list.</p>
+</div></blockquote>
+<p><strong>slot</strong> : int, optional</p>
+<blockquote>
+<div><p>The slot in the BDP to add it to. The BDP type must match the expected type for the slot.
+Default: -1 (i.e. insert into the first available slot)</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.addinputbdp">
+<code class="descname">addinputbdp</code><span class="sig-paren">(</span><em>item</em>, <em>slot=-1</em>, <em>insert=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.addinputbdp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.addinputbdp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a BDP to the _bdp_in list.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>item</strong> : BDP</p>
+<blockquote>
+<div><p>The BDP to add.</p>
+</div></blockquote>
+<p><strong>slot</strong> : int, optional</p>
+<blockquote>
+<div><p>Where the BDP should be added to the list;
+default : -1</p>
+</div></blockquote>
+<p><strong>insert</strong> : Boolean, optional</p>
+<blockquote>
+<div><p>Whether to insert into the middle of the list (not replace);
+defaults to False.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>This method should not be called directly, use addinput instead.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.addoutput">
+<code class="descname">addoutput</code><span class="sig-paren">(</span><em>item</em>, <em>slot=-1</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.addoutput"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.addoutput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a BDP output product to an AT. The BDP type will be validated
+before it is added to the output list.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>item</strong> : BDP</p>
+<blockquote>
+<div><p>The BDP to be added to the output list.</p>
+</div></blockquote>
+<p><strong>slot</strong> : int, optional</p>
+<blockquote>
+<div><p>The slot in the BDP to add it to. The BDP type must match the expected type for the slot.
+Default: -1 (i.e. insert into the first available slot)</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.addoutputbdp">
+<code class="descname">addoutputbdp</code><span class="sig-paren">(</span><em>item</em>, <em>slot=-1</em>, <em>insert=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.addoutputbdp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.addoutputbdp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a BDP to the _bdp_out list.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>item</strong> : BDP</p>
+<blockquote>
+<div><p>The BDP to add.</p>
+</div></blockquote>
+<p><strong>slot</strong> : int, optional</p>
+<blockquote>
+<div><p>Where the BDP should be added to the list;
+default : -1</p>
+</div></blockquote>
+<p><strong>insert</strong> : Boolean, optional</p>
+<blockquote>
+<div><p>Whether to insert into the middle of the list (not replace);
+defaults to False.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>This method should not be called directly, use addoutput instead.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.baseDir">
+<code class="descname">baseDir</code><span class="sig-paren">(</span><em>path=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.baseDir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.baseDir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get/set project base directory.</p>
+<p>Unless empty, the base directory is guaranteed to end in os.sep.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>path</strong> : str, optional</p>
+<blockquote>
+<div><p>New project base directory (ignored if None).</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Updated project base directory.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.bestMatch">
+<code class="descname">bestMatch</code><span class="sig-paren">(</span><em>at1</em>, <em>at2</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.bestMatch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.bestMatch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determines the better match of two tasks to the current one.</p>
+<p>Type is most important, then alias, then keywords (most matching
+keywords, followed by most matching values).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>at1</strong> : AT</p>
+<blockquote>
+<div><p>First task.</p>
+</div></blockquote>
+<p><strong>at2</strong> : AT</p>
+<blockquote>
+<div><p>Second task.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">int</p>
+<blockquote class="last">
+<div><p>ID number of best matching task (in the case of a tie, the first
+task ID is returned).</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.checkfiles">
+<code class="descname">checkfiles</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.checkfiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.checkfiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if the files from all the BDP_out&#8217;s in an AT exist.
+Return the list of files not found.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>In multiflows, BDPs for ATs linked from other projects 
+(distinguished by a non-zero value of getProject()) are 
+<em>not</em> (re)checked for existence; this occurs when the parent
+project is read.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.checktype">
+<code class="descname">checktype</code><span class="sig-paren">(</span><em>item</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.checktype"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.checktype" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check the type of an object to see if it is a BDP.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>item</strong> : Any</p>
+<blockquote>
+<div><p>The item to check.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Boolean</p>
+<blockquote class="last">
+<div><p>True if the item is a BDP, False otherwise.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.clearinput">
+<code class="descname">clearinput</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.clearinput"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.clearinput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clear the input BDP list.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.clearoutput">
+<code class="descname">clearoutput</code><span class="sig-paren">(</span><em>delete=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.clearoutput"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.clearoutput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clear the output BDP list.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>delete</strong> : bool</p>
+<blockquote>
+<div><p>If True then delete the output bdps.
+Default: True</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.copy">
+<code class="descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates an independent duplicate of the task.</p>
+<p>The task ID of the duplicate will be unset and the alias marked
+to allow auto-updating.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>aliases</strong> : dict of set of str</p>
+<blockquote>
+<div><p>Reserved alias registry.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Reference to the new (cloned) task.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>The current implementation performs a deepcopy() and updates a few
+members.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.delete">
+<code class="descname">delete</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to delete the AT and underlying BDPs.</p>
+<p>It is recommended that any AT that stores images inside of lists, 
+dictionaries, tuples, etc. override this method with a customized
+version.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.delinput">
+<code class="descname">delinput</code><span class="sig-paren">(</span><em>slot</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.delinput"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.delinput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete a specific BDP in the _bdp_in list.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>slot</strong> : int</p>
+<blockquote>
+<div><p>The slot to remove the BDP from</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.deloutput">
+<code class="descname">deloutput</code><span class="sig-paren">(</span><em>slot</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.deloutput"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.deloutput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete a specific BDP in the _bdp_out list.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>slot</strong> : int</p>
+<blockquote>
+<div><p>The slot to remove the BDP from</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.dir">
+<code class="descname">dir</code><span class="sig-paren">(</span><em>filename=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Absolute directory reference of the ADMIT project.</p>
+<p>Returns the absolute directory name of this ADMIT project
+or a derefenced filename address. Normally you will need
+such an absolute file or directory name when non-ADMIT tools
+are needed for I/O.  Also note that this project
+directory is guarenteed to end with the operating dependent
+directory separator (usually &#8216;/&#8217;). This way filenames can be constructed
+as follows:  <strong>Admit.dir() + &#8216;foobar.dat&#8217;</strong>  or more conveniently
+<strong>Admit.dir(&#8216;foobar.dat&#8217;)</strong></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>filename</strong> : string, optional</p>
+<blockquote>
+<div><p>Filename to be appended to the absolute directory name.
+This can include additional subdirectories.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">string</p>
+<blockquote class="last">
+<div><p>The directory name within which all ADMIT files reside.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.dryrun">
+<code class="descname">dryrun</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.dryrun"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.dryrun" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to do a dry run of the AT, generally just checks input values for errors.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">bool, True if all is ok, False otherwise</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.enabled">
+<code class="descname">enabled</code><span class="sig-paren">(</span><em>state=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.enabled"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.enabled" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns current task enabled setting, with optional reset.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>state</strong> : bool, optional</p>
+<blockquote>
+<div><p>New value of enabled flag (default <cite>None</cite> keeps current value).</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">bool</p>
+<blockquote class="last">
+<div><p>Whether task is enabled (prior to applying <cite>state</cite>, if provided).</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>args=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Executes the task.</p>
+<p>Execution performs the following actions:
+0. Mark task running.
+1. Update BDP inputs (if <cite>args</cite> is given).
+2. Validate task keywords.
+3. Validate task BDP inputs.
+4. Call task <a class="reference external" href="#admit.AT.AT.run">run()</a>.
+5. Mark task up to date.
+6. Mark persistent BDP outputs out of date.
+7. Disable running attribute.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>args</strong> : list of BDPs, optional</p>
+<blockquote>
+<div><p>List of BDP inputs used by <a class="reference external" href="#admit.AT.AT.run">run()</a> method; default is to use
+the most recently supplied inputs.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#admit.AT.AT.run" title="admit.AT.AT.run"><code class="xref py py-obj docutils literal"><span class="pre">run</span></code></a></p>
+</div>
+<p class="rubric">Notes</p>
+<p>If <cite>args</cite> is not given, the previously cached BDP inputs
+are reused; hence execution (input validation) will fail
+if required arguments are absent.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.freeAlias">
+<code class="descname">freeAlias</code><span class="sig-paren">(</span><em>aliases</em>, <em>alias=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.freeAlias"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.freeAlias" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes alias reservation, if present.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>aliases</strong> : 2-tuple of dict of str to set of str</p>
+<blockquote>
+<div><p>Reserved alias registry, keyed by alias base name (index 0) or AT
+type (index 1). For index 0, the value is the set of aliases
+created with that base name; for index 1, it is the set of default
+aliases created for ATs of that type. In both cases, the duplicate
+aliases are appended with &#8216;&#64;N&#8217; for some integer N.</p>
+</div></blockquote>
+<p><strong>alias</strong> : str, optional</p>
+<blockquote>
+<div><p>Alias name to release; default <code class="docutils literal"><span class="pre">None</span></code> means use the current AT&#8217;s
+alias.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.get">
+<code class="descname">get</code><span class="sig-paren">(</span><em>attrib</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get the given attributes value</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>attrib</strong> : str</p>
+<blockquote>
+<div><p>The name of the attribute to get</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">varies, depends on the type of the attribute</p>
+<p class="last">The value of the attribute, or None is it does not exist</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.getProject">
+<code class="descname">getProject</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.getProject"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.getProject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves project ID associated with the task.</p>
+<p>Multiflows involve adding tasks belonging to other projects into a
+single flow, the multiflow. To prevent task ID collisions, tasks
+in multiflows embed a project number into the task ID.</p>
+<p>This method returns the project ID attached to the task. This will be
+zero unless setProject() has been called&#8212;normally only by the
+ProjectManager when a project is added for use in a multiflow.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">int</p>
+<blockquote class="last">
+<div><p>Task project ID.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#admit.AT.AT.setProject" title="admit.AT.AT.setProject"><code class="xref py py-obj docutils literal"><span class="pre">setProject</span></code></a></p>
+</div>
+<p class="rubric">Notes</p>
+<p>Project IDs are local to each multiflow. Hence the same task, linked in
+two independent multiflows, may have a different project ID in each.
+This has no effect on the task in its parent flow (for which this
+method will return zero).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.getVersion">
+<code class="descname">getVersion</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.getVersion"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.getVersion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the version string.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>None</strong></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">String</p>
+<blockquote class="last">
+<div><p>The version of the AT</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.getdtd">
+<code class="descname">getdtd</code><span class="sig-paren">(</span><em>fl</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.getdtd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.getdtd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to write out the dtd data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>fl</strong> : file handle</p>
+<blockquote>
+<div><p>Open output file handle.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.geteffectivelevel">
+<code class="descname">geteffectivelevel</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.geteffectivelevel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.geteffectivelevel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get the effective logging level of the logging subsystem</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">int, the effective logging level</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.getkey">
+<code class="descname">getkey</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.getkey"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.getkey" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieval value for a key. If the key had not been set yet, 
+a default value can be returned, else None is returned.
+Notice no type checking has been done here, the caller is
+responsible for this.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>key</strong> : string</p>
+<blockquote>
+<div><p>The key whose value is to be returned.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The value of the key.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#admit.AT.AT.haskey" title="admit.AT.AT.haskey"><code class="xref py py-obj docutils literal"><span class="pre">haskey</span></code></a></p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.getloggername">
+<code class="descname">getloggername</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.getloggername"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.getloggername" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get the name of the logger for this AT instance</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">String containing the name of the logger.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.getlogginglevel">
+<code class="descname">getlogginglevel</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.getlogginglevel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.getlogginglevel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get the current logging level of the AT</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">int, the current logging level</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.haskey">
+<code class="descname">haskey</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.haskey"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.haskey" title="Permalink to this definition">¶</a></dt>
+<dd><p>Query if a key exists for an AT.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>key</strong> : string</p>
+<blockquote>
+<div><p>The key to check for existence.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Boolean</p>
+<blockquote class="last">
+<div><p>True if the key exists, False otherwise.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.html">
+<code class="descname">html</code><span class="sig-paren">(</span><em>inheader</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.html"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.html" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to represent the current AT in HTML format.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>inheader</strong> : str</p>
+<blockquote>
+<div><p>Base header info for the html output</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An html representation of the AT</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.id">
+<code class="descname">id</code><span class="sig-paren">(</span><em>strip=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns task ID number.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>strip</strong> : bool, optional</p>
+<blockquote>
+<div><p>Whether to strip project ID (if any) from returned value
+(default: False).</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">int</p>
+<blockquote class="last">
+<div><p>Task ID number.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>Raises an exception if no ID assigned (freshly constructed tasks do
+not have an ID, it is set when the task is added to a project).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.isAutoAlias">
+<code class="descname">isAutoAlias</code><span class="sig-paren">(</span><em>withEmpty=True</em>, <em>compat=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.isAutoAlias"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.isAutoAlias" title="Permalink to this definition">¶</a></dt>
+<dd><p>Whether the task alias appears to be auto-generated.</p>
+<p>The form of auto-generated aliases is a string ending in &#8216;&#64;&#8217; followed
+by a decimal integer. Users should avoid defining aliases which look
+like ADMIT-generated aliases as they may be reset automatically, but
+are not actively prevented from doing so.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>withEmpty</strong> : bool, optional</p>
+<blockquote>
+<div><p>Whether an empty alias is considered auto-generated.</p>
+</div></blockquote>
+<p><strong>compat</strong> : str, optional</p>
+<blockquote>
+<div><p>An alias name to test for compatibility. If not <code class="docutils literal"><span class="pre">None</span></code>, the alias
+stem (with its &#8216;&#64;N&#8217; removed) must match the stem for <cite>compat</cite> for 
+this method to return <code class="docutils literal"><span class="pre">True</span></code>.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">bool</p>
+<blockquote class="last">
+<div><p>Whether the task alias was auto-generated (or, optionally, empty)
+and compatible with <cite>compat</cite> (if specified).</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>It does not affect the result whether <cite>compat</cite> itself is an
+auto-generated alias; e.g., &#8216;foo&#8217; and &#8216;foo&#64;1&#8217; are equivalent arguments.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.isequal">
+<code class="descname">isequal</code><span class="sig-paren">(</span><em>at</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.isequal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.isequal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to determine if two ATs are the same. Useful for testing.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>at</strong> : AT</p>
+<blockquote>
+<div><p>The AT to compare against</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Boolean</p>
+<blockquote class="last">
+<div><p>Whether or not the ATs are equal</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.isstale">
+<code class="descname">isstale</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.isstale"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.isstale" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns whether the AT is out of date.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>None</strong></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">boolean</p>
+<blockquote class="last">
+<div><p>True if the AT is out of date, else False.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.len2">
+<code class="descname">len2</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.len2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.len2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the length of _bdp_in and _bdp_out in a tuple.</p>
+<p>If you just want the _bdp_out, the intrinsic len(my_at)
+Thus my_at.len2()[1] is the same as len(my_at).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Tuple</p>
+<blockquote class="last">
+<div><p>Tuple contains 2 values, the length of _bdp_in and _bdp_out</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.link">
+<code class="descname">link</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.link"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.link" title="Permalink to this definition">¶</a></dt>
+<dd><p>Increments the task link count.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.markChanged">
+<code class="descname">markChanged</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.markChanged"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.markChanged" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mark an AT that it&#8217;s state was changed, so it would need to be
+rerun. The FlowManager will take care of any dependants that
+will need to be marked as well.
+Use &#8220;markUpToDate&#8221; if you want the opposite function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.markUpToDate">
+<code class="descname">markUpToDate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.markUpToDate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.markUpToDate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resets _stale to indicate that the AT does not need to be run.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.merge">
+<code class="descname">merge</code><span class="sig-paren">(</span><em>at</em>, <em>aliases=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.merge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.merge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Merges attributes from another task.</p>
+<p>The purpose of this method is to facilitate re-running of flows by
+transferring select attributes from one task to a compatible
+replacement task. To maintain transparency, attributes are overwritten
+only where necessary to preserve flow integrity; in particular, items
+such as keyword values and the task ID are never modified.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>at</strong> : ADMIT task</p>
+<blockquote>
+<div><p>Task to merge with <cite>self</cite>.</p>
+</div></blockquote>
+<p><strong>aliases</strong> : 2-tuple of dict of str to set of str</p>
+<blockquote>
+<div><p>Reserved alias registry, keyed by alias base name (index 0) or AT
+type (index 1). For index 0, the value is the set of aliases
+created with that base name; for index 1, it is the set of default
+aliases created for ATs of that type. In both cases, the duplicate
+aliases are appended with &#8216;&#64;N&#8217; for some integer N.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>It is the caller&#8217;s responsibility to set the alias as desired. Doing so
+locally (here) may result in unnecessary reassignments, causing tasks
+which are otherwise unaltered to be marked stale.</p>
+<p>The task enabled/disabled status is always copied from the input task.
+This is necessary for variflow maintenance but applied uniformly for
+simplicity.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.mkdir">
+<code class="descname">mkdir</code><span class="sig-paren">(</span><em>dirname</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.mkdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.mkdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a directory in the ADMIT hierarchy.
+Checks whether the directory already exists.
+It also allows an absolute path, in the classical UNIX sense, but
+this is normally not needed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>dirname</strong> : str</p>
+<blockquote class="last">
+<div><p>Directory name.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<div class="admonition-todo admonition" id="index-0">
+<p class="first admonition-title">Todo</p>
+<p class="last">this routine is identical to the one in Admit()</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.mkext">
+<code class="descname">mkext</code><span class="sig-paren">(</span><em>filename</em>, <em>ext</em>, <em>alias=''</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.mkext"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.mkext" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a new filename with a new extension with optional ADMIT alias.</p>
+<p>This will either append an extension to a (file)name
+without an extension, or replace one.  If an alias was set by
+this task, the alias will replace the alias found in
+the basename dash.</p>
+<p>You can also provide a local alias, instead of using the task
+alias.</p>
+<dl class="docutils">
+<dt>Examples:</dt>
+<dd>(&#8220;x&#8221;  , &#8220;z&#8221;    )               -&gt; &#8220;x.z&#8221;
+(&#8220;x.y&#8221;, &#8220;z&#8221;    )               -&gt; &#8220;x.z&#8221;
+(&#8220;x.y&#8221;, &#8220;z&#8221;, &#8220;a&#8221;)              -&gt; &#8220;x-a.z&#8221;</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.newId">
+<code class="descname">newId</code><span class="sig-paren">(</span><em>tid</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.newId"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.newId" title="Permalink to this definition">¶</a></dt>
+<dd><p>Assigns the task a new ID number.</p>
+<p>Related attributes are updated accordingly.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>tid</strong> : int</p>
+<blockquote>
+<div><p>New task ID.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">int</p>
+<blockquote class="last">
+<div><p>Assigned ID number.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><em>a</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs an <em>in-place</em> shallow copy.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>a</strong> : ADMIT Task</p>
+<blockquote>
+<div><p>Task reference to copy from.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.run">
+<code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Runs the task.</p>
+<p>Running a task transforms its input BDPs into output BDPs according
+to its function. Following this call the output BDPs accurately
+reflect the current state of the task (keywords and BDP inputs).
+Each concrete AT must implement its own <strong>run()</strong> method.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#admit.AT.AT.execute" title="admit.AT.AT.execute"><code class="xref py py-obj docutils literal"><span class="pre">execute</span></code></a></p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.running">
+<code class="descname">running</code><span class="sig-paren">(</span><em>state=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.running"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.running" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns current task execution flag, with optional reset.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>state</strong> : bool, optional</p>
+<blockquote>
+<div><p>New value of enabled flag (default <cite>None</cite> keeps current value).</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">bool</p>
+<blockquote class="last">
+<div><p>Whether task is currently being executed (prior to applying
+<cite>state</cite>, if provided).</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.save">
+<code class="descname">save</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save (write) any BDPs connected to this AT.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.set">
+<code class="descname">set</code><span class="sig-paren">(</span><em>item</em>, <em>val</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.set"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to set protected attributes, rather than direct access</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>item</strong> : str</p>
+<blockquote>
+<div><p>The name of the variable to set</p>
+</div></blockquote>
+<p><strong>val</strong> : varies</p>
+<blockquote>
+<div><p>The value to set the attribute to</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.setAlias">
+<code class="descname">setAlias</code><span class="sig-paren">(</span><em>aliases</em>, <em>alias=None</em>, <em>auto=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.setAlias"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.setAlias" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets and registers the task alias, guaranteed unique among 
+registered aliases.</p>
+<p>Checks whether the input <cite>alias</cite> is already in use. If so, raises
+an exception unless the name appears auto-generated (or is empty), in
+which case the aliases is updated to ensure uniqueness. The latter are
+names appended with a string of the form &#8216;&#64;N&#8217;, where N is some decimal
+integer value. Resets the task alias name to the final result.</p>
+<p>Normally users should <em>not</em> call this function directly; user-defined
+aliases should be set via the AT constructor argument instead.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>aliases</strong> : 2-tuple of dict of str to set of str</p>
+<blockquote>
+<div><p>Reserved alias registry, keyed by alias base name (index 0) or AT
+type (index 1). For index 0, the value is the set of aliases
+created with that base name; for index 1, it is the set of default
+aliases created for ATs of that type. In both cases, the duplicate
+aliases are appended with &#8216;&#64;N&#8217; for some integer N.</p>
+</div></blockquote>
+<p><strong>alias</strong> : str, optional</p>
+<blockquote>
+<div><p>The (suggested) task alias name; default <code class="docutils literal"><span class="pre">None</span></code> uses
+the current <cite>_alias</cite> value.</p>
+</div></blockquote>
+<p><strong>auto</strong> : bool, optional</p>
+<blockquote>
+<div><p>Whether to automatically append a unique &#8216;&#64;N&#8217; suffix if the alias
+is already in use; otherwise, an exception will be raised (unless
+the alias already ends in &#8216;&#64;N&#8217;, which implies <cite>auto</cite> = <code class="docutils literal"><span class="pre">True</span></code>).</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">str</p>
+<blockquote class="last">
+<div><p>The assigned alias name.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>Performs an iterative search for the first available name following the
+(estimated) final assigned alias for the AT of the given type.</p>
+<p>Users may specify an alias of the form &#8216;foo&#64;0&#8217; to indicate that a
+sequence of aliases &#8216;foo&#64;0&#8217;, &#8216;foo&#64;1&#8217;, ... be auto-generated as
+necessary. This can be useful in scripts where tasks are generated in
+loops and a predictable series of aliases is desired.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.setProject">
+<code class="descname">setProject</code><span class="sig-paren">(</span><em>pid</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.setProject"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.setProject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a project ID to task ID.</p>
+<p>Multiflows involve adding tasks belonging to other projects into a
+single flow, the multiflow. To prevent task ID collisions, tasks
+in multiflows embed a project number into the task ID.</p>
+<p>This method performs the actual embedding operation. The project ID
+is inserted beginning at bit 32 and replaces any previous project ID.
+Since Python integers are automatically multi-precision there is never
+danger of truncation of the project ID.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>pid</strong> : int</p>
+<blockquote>
+<div><p>Project ID number.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#admit.AT.AT.getProject" title="admit.AT.AT.getProject"><code class="xref py py-obj docutils literal"><span class="pre">getProject</span></code></a></p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.set_bdp_in">
+<code class="descname">set_bdp_in</code><span class="sig-paren">(</span><em>bdpin=[]</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.set_bdp_in"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.set_bdp_in" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate the _valid_bdp_in list and digest it into the appropriate
+attributes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>bdpin</strong> : list</p>
+<blockquote>
+<div><p>List containing tuples of the valid BDP inputs and their
+counts; defaults to empty list.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.set_bdp_out">
+<code class="descname">set_bdp_out</code><span class="sig-paren">(</span><em>bout=[]</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.set_bdp_out"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.set_bdp_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate the _valid_bdp_out list and digest it into the appropriate
+attributes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>bout</strong> : list</p>
+<blockquote>
+<div><p>List containing tuples of the valid BDP outputs and their
+counts; defaults to empty list.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.seteffectivelevel">
+<code class="descname">seteffectivelevel</code><span class="sig-paren">(</span><em>level</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.seteffectivelevel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.seteffectivelevel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to set the effective logging level of the logging subsystem</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>level</strong> : int</p>
+<blockquote>
+<div><p>The logging level to use</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.setkey">
+<code class="descname">setkey</code><span class="sig-paren">(</span><em>name=''</em>, <em>value=''</em>, <em>isinit=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.setkey"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.setkey" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set keyword value.</p>
+<p>Two styles are possible:</p>
+<ol class="arabic simple">
+<li>name = {key:val}            e.g. <strong>setkey({&#8220;a&#8221;:1})</strong></li>
+<li>name = &#8220;key&#8221;, value = val     e.g. <strong>setkey(&#8220;a&#8221;, 1)</strong></li>
+</ol>
+<p>This method checks the type of the keyword value, as it must
+remain the same. Also new keywords cannot be added.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>name</strong> : dictionary or string, optional</p>
+<blockquote>
+<div><p>Dictionary of keyword value pairs, or a string containing
+a single key name; defaults to empty string.</p>
+</div></blockquote>
+<p><strong>value</strong> : any, optional</p>
+<blockquote>
+<div><p>The (string) keyword value; defaults to empty string.</p>
+</div></blockquote>
+<p><strong>isinit</strong> : bool</p>
+<blockquote>
+<div><p>Whether keyword is being set for the first time.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.setloggername">
+<code class="descname">setloggername</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.setloggername"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.setloggername" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to set the name of the logger for this AT instance</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>name</strong> : str</p>
+<blockquote>
+<div><p>The name of the logger for this AT</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.setlogginglevel">
+<code class="descname">setlogginglevel</code><span class="sig-paren">(</span><em>level</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.setlogginglevel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.setlogginglevel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to set the logging level</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>level</strong> : int</p>
+<blockquote>
+<div><p>The logging level to use</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.show">
+<code class="descname">show</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.show" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the AT type.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>None</strong></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">string</p>
+<blockquote class="last">
+<div><p>The type of the AT.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.statusicons">
+<code class="descname">statusicons</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.statusicons"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.statusicons" title="Permalink to this definition">¶</a></dt>
+<dd><p>return some html icons representing the enabled/stale status of this task</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.summary">
+<code class="descname">summary</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.summary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the summary dictionary from the AT, for merging
+into the ADMIT Summary object.   Derived classes should
+override this if they provide summary data.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.unlink">
+<code class="descname">unlink</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.unlink"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.unlink" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decrements the task link count.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.userdata">
+<code class="descname">userdata</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.userdata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.userdata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the user dictionary from the AT, for merging
+into the ADMIT userdata object.   Derived classes should
+override this if they provide user data.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.validateinput">
+<code class="descname">validateinput</code><span class="sig-paren">(</span><em>describe=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.validateinput"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.validateinput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to validate the _bdp_in&#8217;s against a dictionary of expected
+types.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>describe</strong> : bool, optional</p>
+<blockquote>
+<div><p>Whether to include a list of what was found (or not) in the
+return value (as the second item in a tuple).</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">bool</p>
+<blockquote class="last">
+<div><p>False if anything is amiss, else True.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.validatekeys">
+<code class="descname">validatekeys</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.validatekeys"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.validatekeys" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to error check all input keys. If an error is found an error message should be
+issued, not an exception. This allows for all values to be error checked before an
+ecpetion is raised. This method should return a bool where True means all key values
+are ok, and False otherwise. An exception will be raised by validatekeyvalues, which
+calls this method, if False is returned. The generic form of this method does not check
+anything, but should be overridden in individual AT&#8217;s that need to check key values.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">bool, True if all key values are ok, False otherwise.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.AT.AT.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>node</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/AT.html#AT.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.AT.AT.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to write the AT to disk.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>node</strong> : elementtree node</p>
+<blockquote>
+<div><p>The node to attach to (usually supplied by flowmanager)</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>node</strong> : elementtree node</p>
+<blockquote>
+<div><p>The modified node</p>
+</div></blockquote>
+<p class="last"><strong>dtd</strong> : Text string of the dtd</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="0-index.html"
+                        title="previous chapter">ADMIT Package</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/module/admit/AT.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="0-index.html" title="ADMIT Package"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" >Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

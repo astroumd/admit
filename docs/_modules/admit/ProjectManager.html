@@ -1,0 +1,437 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.ProjectManager &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.ProjectManager</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;**Manager** --- Multiflow project manager.</span>
+<span class="sd">   ------------------------------------------</span>
+
+<span class="sd">   This module defines the ProjectManager class.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">admit</span>
+<span class="kn">from</span> <span class="nn">admit.Admit</span> <span class="k">import</span> <span class="n">Admit</span> <span class="k">as</span> <span class="n">Project</span>
+
+<span class="c1"># ==============================================================================</span>
+
+<div class="viewcode-block" id="ProjectManager"><a class="viewcode-back" href="../../module/admit/ProjectManager.html#admit.ProjectManager.ProjectManager">[docs]</a><span class="k">class</span> <span class="nc">ProjectManager</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Manages parent projects feeding a multiflow project.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    baseDirs: list of str</span>
+<span class="sd">        Starting parent project directories.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    _projects: dict of ADMITs</span>
+<span class="sd">        Parent project dictionary, keyed by project ID (a positive integer).</span>
+
+<span class="sd">    _baseDirs: dict of project base directories</span>
+<span class="sd">        Project directory dictionary, keyed by project ID (a positive integer).</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Managed projects are numbered sequentially beginning with one.</span>
+<span class="sd">    A project ID of zero is reserved for the parent project containing this</span>
+<span class="sd">    instance. Individual projects can be accessed by indexing the manager</span>
+<span class="sd">    object using the corresponding project ID number.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">baseDirs</span><span class="o">=</span><span class="p">[]):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Constructor.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_projects</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_baseDirs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">baseDirs</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">addProject</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Number of projects under control of ProjectManager.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            Number of contained projects.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_projects</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pid</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Project membership operator.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        pid : int</span>
+<span class="sd">            Project ID number.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            Membership result.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_projects</span><span class="o">.</span><span class="n">__contains__</span><span class="p">(</span><span class="n">pid</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Project iterator.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        iterator</span>
+<span class="sd">            Project iterator.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_projects</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pid</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Obtains project reference.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        pid : int</span>
+<span class="sd">            Project ID number.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        ADMIT object</span>
+<span class="sd">            ADMIT project reference.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_projects</span><span class="p">[</span><span class="n">pid</span><span class="p">]</span>
+
+
+    <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pid</span><span class="p">,</span> <span class="n">project</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets new project.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        pid : int</span>
+<span class="sd">            Project ID number.</span>
+
+<span class="sd">        project : ADMIT project</span>
+<span class="sd">            Project reference.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Check if pid exists...</span>
+        <span class="k">for</span> <span class="n">at</span> <span class="ow">in</span> <span class="n">project</span><span class="o">.</span><span class="n">fm</span><span class="p">:</span> <span class="n">at</span><span class="o">.</span><span class="n">setProject</span><span class="p">(</span><span class="n">pid</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_projects</span><span class="p">[</span><span class="n">pid</span><span class="p">]</span> <span class="o">=</span> <span class="n">project</span>
+
+
+<div class="viewcode-block" id="ProjectManager.addProject"><a class="viewcode-back" href="../../module/admit/ProjectManager.html#admit.ProjectManager.ProjectManager.addProject">[docs]</a>    <span class="k">def</span> <span class="nf">addProject</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">baseDir</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds a project.</span>
+
+<span class="sd">        The project must be completely up to date to be accepted.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        baseDir : str</span>
+<span class="sd">            ADMIT project base directory.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            Project ID number, else -1 if the project was rejected</span>
+<span class="sd">            (not up-to-date).</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        The up-to-date requirement is a safety feature. Managed projects are</span>
+<span class="sd">        assumed to be quasi-static since tasks linked from it must provide</span>
+<span class="sd">        valid BDP output at the root of the associated multiflow.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Ignore attempts to re-add same project.</span>
+        <span class="c1"># This will commonly occur when re-running a multiflow script.</span>
+        <span class="k">for</span> <span class="n">pid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_baseDirs</span><span class="p">:</span>
+          <span class="k">if</span> <span class="n">baseDir</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_baseDirs</span><span class="p">[</span><span class="n">pid</span><span class="p">]:</span> <span class="k">return</span> <span class="n">pid</span>
+
+        <span class="c1">#project = admit.Project(baseDir)</span>
+        <span class="n">project</span> <span class="o">=</span> <span class="n">Project</span><span class="p">(</span><span class="n">baseDir</span><span class="p">)</span>
+        <span class="n">stale</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="n">fm</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="k">lambda</span> <span class="n">at</span><span class="p">:</span> <span class="n">at</span><span class="o">.</span><span class="n">isstale</span><span class="p">()</span> <span class="o">==</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">stale</span><span class="p">:</span>
+          <span class="n">pid</span> <span class="o">=</span> <span class="mi">1</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_projects</span><span class="p">)</span>
+          <span class="n">project</span><span class="o">.</span><span class="n">project_id</span> <span class="o">=</span> <span class="n">pid</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">_projects</span><span class="p">[</span><span class="n">pid</span><span class="p">]</span> <span class="o">=</span> <span class="n">project</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">_baseDirs</span><span class="p">[</span><span class="n">pid</span><span class="p">]</span> <span class="o">=</span> <span class="n">baseDir</span>
+
+          <span class="c1"># Embed project ID in tasks to indicate project ownership.</span>
+          <span class="k">for</span> <span class="n">tid</span> <span class="ow">in</span> <span class="n">project</span><span class="o">.</span><span class="n">fm</span><span class="p">:</span> <span class="n">project</span><span class="o">.</span><span class="n">fm</span><span class="p">[</span><span class="n">tid</span><span class="p">]</span><span class="o">.</span><span class="n">setProject</span><span class="p">(</span><span class="n">pid</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+          <span class="nb">print</span> <span class="s2">&quot;PM.addProject(): Project&quot;</span><span class="p">,</span> <span class="n">baseDir</span><span class="p">,</span> \
+                <span class="s2">&quot;out of date; not added.&quot;</span>
+          <span class="n">pid</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+        <span class="k">return</span> <span class="n">pid</span></div>
+
+
+<div class="viewcode-block" id="ProjectManager.removeProject"><a class="viewcode-back" href="../../module/admit/ProjectManager.html#admit.ProjectManager.ProjectManager.removeProject">[docs]</a>    <span class="k">def</span> <span class="nf">removeProject</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pid</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Removes a project.</span>
+
+<span class="sd">        The project should not have any tasks still linked in the multiflow.</span>
+<span class="sd">        Verifying this is the responsibility of the caller (multiflow project).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        pid : int</span>
+<span class="sd">            Project ID number.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            True if the project was removed successfully, else False.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        This is a low-level interface not normally called by users.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">pid</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="bp">self</span><span class="p">[</span><span class="n">pid</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">()</span>  <span class="c1"># Commit any unsaved changes.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_projects</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">pid</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="s2">&quot;PM.removeProject: Unknown project ID&quot;</span><span class="p">,</span> <span class="n">pid</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="ProjectManager.write"><a class="viewcode-back" href="../../module/admit/ProjectManager.html#admit.ProjectManager.ProjectManager.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Writes project XML files.</span>
+
+<span class="sd">        Project IDs are temporarily reset to zero to avoid polluting</span>
+<span class="sd">        the parent project XML files.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        Parent projects should be rewritten when a multiflow is run in case</span>
+<span class="sd">        linked tasks were updated.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">pid</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+          <span class="n">project</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">pid</span><span class="p">]</span>
+          <span class="n">project</span><span class="o">.</span><span class="n">project_id</span> <span class="o">=</span> <span class="mi">0</span>
+          <span class="k">for</span> <span class="n">tid</span> <span class="ow">in</span> <span class="n">project</span><span class="o">.</span><span class="n">fm</span><span class="p">:</span> <span class="n">project</span><span class="o">.</span><span class="n">fm</span><span class="p">[</span><span class="n">tid</span><span class="p">]</span><span class="o">.</span><span class="n">setProject</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+          <span class="n">project</span><span class="o">.</span><span class="n">write</span><span class="p">()</span>
+          <span class="n">project</span><span class="o">.</span><span class="n">project_id</span> <span class="o">=</span> <span class="n">pid</span>
+          <span class="k">for</span> <span class="n">tid</span> <span class="ow">in</span> <span class="n">project</span><span class="o">.</span><span class="n">fm</span><span class="p">:</span> <span class="n">project</span><span class="o">.</span><span class="n">fm</span><span class="p">[</span><span class="n">tid</span><span class="p">]</span><span class="o">.</span><span class="n">setProject</span><span class="p">(</span><span class="n">pid</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ProjectManager.getProjectId"><a class="viewcode-back" href="../../module/admit/ProjectManager.html#admit.ProjectManager.ProjectManager.getProjectId">[docs]</a>    <span class="k">def</span> <span class="nf">getProjectId</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">baseDir</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieves project ID number given the base directory.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        baseDir: str</span>
+<span class="sd">            Project base directory.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            Project ID number, else -1 if project not found.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">pid</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+          <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_baseDirs</span><span class="p">[</span><span class="n">pid</span><span class="p">]</span> <span class="o">==</span> <span class="n">baseDir</span><span class="p">:</span> <span class="k">return</span> <span class="n">pid</span>
+
+        <span class="k">return</span> <span class="o">-</span><span class="mi">1</span></div>
+
+
+<div class="viewcode-block" id="ProjectManager.getProjectDir"><a class="viewcode-back" href="../../module/admit/ProjectManager.html#admit.ProjectManager.ProjectManager.getProjectDir">[docs]</a>    <span class="k">def</span> <span class="nf">getProjectDir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pid</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieves project base directory given its ID number.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        pid: int</span>
+<span class="sd">            Project ID number.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            Project base directory, else None if project not found.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">pid</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_baseDirs</span><span class="p">[</span><span class="n">pid</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="ProjectManager.findTask"><a class="viewcode-back" href="../../module/admit/ProjectManager.html#admit.ProjectManager.ProjectManager.findTask">[docs]</a>    <span class="k">def</span> <span class="nf">findTask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pid</span><span class="p">,</span> <span class="n">isMatch</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Finds AT(s) by arbitrary matching criterion.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        pid: int</span>
+<span class="sd">            ADMIT project ID number.</span>
+
+<span class="sd">        isMatch: bool functor(AT)</span>
+<span class="sd">            Match function (returns True/False given an AT argument). </span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list of ATs</span>
+<span class="sd">            ADMIT task reference(s) matching the criterion; may be empty.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">pid</span><span class="p">]</span><span class="o">.</span><span class="n">fm</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">isMatch</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ProjectManager.findTaskAlias"><a class="viewcode-back" href="../../module/admit/ProjectManager.html#admit.ProjectManager.ProjectManager.findTaskAlias">[docs]</a>    <span class="k">def</span> <span class="nf">findTaskAlias</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pid</span><span class="p">,</span> <span class="n">alias</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Finds AT(s) by alias.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        pid: int</span>
+<span class="sd">            ADMIT project ID number.</span>
+
+<span class="sd">        alias: str</span>
+<span class="sd">            Matching task alias.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list of ATs</span>
+<span class="sd">            ADMIT task reference(s) matching the alias; may be empty.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">findTask</span><span class="p">(</span><span class="n">pid</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">at</span><span class="p">:</span> <span class="n">at</span><span class="o">.</span><span class="n">_alias</span> <span class="o">==</span> <span class="n">alias</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ProjectManager.script"><a class="viewcode-back" href="../../module/admit/ProjectManager.html#admit.ProjectManager.ProjectManager.script">[docs]</a>    <span class="k">def</span> <span class="nf">script</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">py</span><span class="p">,</span> <span class="n">baseDir</span><span class="p">,</span> <span class="n">proj</span> <span class="o">=</span> <span class="s1">&#39;p&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates a Python script recreating the current project manager.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        py : file</span>
+<span class="sd">            Open, writable Python file object.</span>
+
+<span class="sd">        baseDir : str</span>
+<span class="sd">            Master project base directory (ending in &#39;/&#39;).</span>
+
+<span class="sd">        proj : str, optional</span>
+<span class="sd">            Project variable name; defaults to &#39;p&#39;.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        This is a low-level method normally called only by Admit.script().</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span>
+
+        <span class="n">baseDir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">baseDir</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">py</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"># Managed projects.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                 <span class="s2">&quot;pm = </span><span class="si">%s</span><span class="s2">.getManager()</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">proj</span><span class="p">)</span>
+        <span class="n">pids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_baseDirs</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="n">pids</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">pid</span> <span class="ow">in</span> <span class="n">pids</span><span class="p">:</span>
+          <span class="n">pdir</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">pid</span><span class="p">]</span><span class="o">.</span><span class="n">dir</span><span class="p">()[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+          <span class="n">ht</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">pdir</span><span class="p">)</span>
+          <span class="k">if</span> <span class="n">ht</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">baseDir</span><span class="p">:</span> <span class="n">pdir</span> <span class="o">=</span> <span class="n">ht</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+          <span class="n">py</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;pm.addProject(&#39;</span><span class="si">%s</span><span class="s2">&#39;)</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">pdir</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

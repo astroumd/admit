@@ -1,0 +1,791 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Utility Functions &mdash; ADMIT 0.4.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.4.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="ADMIT 0.4.1 documentation" href="../../index.html" />
+    <link rel="up" title="Python Scripting Interface" href="../../api.html" />
+    <link rel="prev" title="Utility functions that rely on CASA" href="casautil.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="casautil.html" title="Utility functions that rely on CASA"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 0.4.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" accesskey="U">Python Scripting Interface</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-admit.util.utils"></span><div class="section" id="utility-functions">
+<h1>Utility Functions<a class="headerlink" href="#utility-functions" title="Permalink to this headline">¶</a></h1>
+<p>This module contains utility functions that do NOT rely on CASA.</p>
+<dl class="class">
+<dt id="admit.util.utils.Dtime">
+<em class="property">class </em><code class="descclassname">admit.util.utils.</code><code class="descname">Dtime</code><span class="sig-paren">(</span><em>label='.'</em>, <em>report=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/utils.html#Dtime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.utils.Dtime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class to help measuring the wall clock time between tagged events
+Typical usage:
+dt = Dtime()
+...
+dt.tag(&#8216;a&#8217;)
+...
+dt.tag(&#8216;b&#8217;)</p>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.utils.Dtime.end" title="admit.util.utils.Dtime.end"><code class="xref py py-obj docutils literal"><span class="pre">end</span></code></a>()</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.utils.Dtime.reset" title="admit.util.utils.Dtime.reset"><code class="xref py py-obj docutils literal"><span class="pre">reset</span></code></a>([report])</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.utils.Dtime.show" title="admit.util.utils.Dtime.show"><code class="xref py py-obj docutils literal"><span class="pre">show</span></code></a>()</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.utils.Dtime.tag" title="admit.util.utils.Dtime.tag"><code class="xref py py-obj docutils literal"><span class="pre">tag</span></code></a>(mytag)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.utils.Dtime.time" title="admit.util.utils.Dtime.time"><code class="xref py py-obj docutils literal"><span class="pre">time</span></code></a>()</td>
+<td>pick the actual OS routine that returns some kind of timer</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="admit.util.utils.Dtime.end">
+<code class="descname">end</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/utils.html#Dtime.end"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.utils.Dtime.end" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="admit.util.utils.Dtime.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><em>report=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/utils.html#Dtime.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.utils.Dtime.reset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="admit.util.utils.Dtime.show">
+<code class="descname">show</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/utils.html#Dtime.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.utils.Dtime.show" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="admit.util.utils.Dtime.tag">
+<code class="descname">tag</code><span class="sig-paren">(</span><em>mytag</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/utils.html#Dtime.tag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.utils.Dtime.tag" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="admit.util.utils.Dtime.time">
+<code class="descname">time</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/utils.html#Dtime.time"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.utils.Dtime.time" title="Permalink to this definition">¶</a></dt>
+<dd><p>pick the actual OS routine that returns some kind of timer
+time.time   :    wall clock time (include I/O and multitasking overhead)
+time.clock  :    cpu clock time</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="admit.util.utils.add_new_at">
+<code class="descclassname">admit.util.utils.</code><code class="descname">add_new_at</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/utils.html#add_new_at"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.utils.add_new_at" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to add a new BDP to AT to the ADMIT infrastructure.
+Alternatively, the command line tool dtdGenerator can be used.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="admit.util.utils.add_new_bdp">
+<code class="descclassname">admit.util.utils.</code><code class="descname">add_new_bdp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/utils.html#add_new_bdp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.utils.add_new_bdp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to add a new BDP or AT to the ADMIT infrastructure.
+Alternatively, the command line tool dtdGenerator can be used.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="admit.util.utils.admit_root">
+<code class="descclassname">admit.util.utils.</code><code class="descname">admit_root</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/utils.html#admit_root"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.utils.admit_root" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the root directory of the ADMIT environment</p>
+<p>Typically in ADMIT/etc there are files needed by certain functions
+and other TBD locations.
+For now we are using getenv(), but in deployment this may not
+be the case.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="admit.util.utils.casa_argv">
+<code class="descclassname">admit.util.utils.</code><code class="descname">casa_argv</code><span class="sig-paren">(</span><em>argv</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/utils.html#casa_argv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.utils.casa_argv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Processes casarun arguments into C-style argv list.</p>
+<p>Modifies the argv from a casarun script to a classic argv list
+such that the returned argv[0] is the casarun scriptname.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>argv</strong> : list of str</p>
+<blockquote>
+<div><p>Argument list.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">str</p>
+<blockquote class="last">
+<div><p>Script name.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>Does not depend on CASA being present.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="admit.util.utils.find_files">
+<code class="descclassname">admit.util.utils.</code><code class="descname">find_files</code><span class="sig-paren">(</span><em>directory</em>, <em>pattern</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/utils.html#find_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.utils.find_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find files with a given pattern down a directory tree.  This is a
+generator function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>directory</strong> : str</p>
+<blockquote>
+<div><p>Root directory to start search</p>
+</div></blockquote>
+<p><strong>pattern</strong> : str</p>
+<blockquote>
+<div><p>Pattern to match</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">list</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><code class="xref py py-obj docutils literal"><span class="pre">Admit.find_files</span></code></p>
+</div>
+<p class="rubric">Examples</p>
+<p>find_files(&#8216;/tmp/a&#8217;, &#8216;*.fits&#8217;)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="admit.util.utils.fitgauss2D">
+<code class="descclassname">admit.util.utils.</code><code class="descname">fitgauss2D</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>par=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/utils.html#fitgauss2D"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.utils.fitgauss2D" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method for fitting a gaussian to a spectrum</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>x: list</strong></p>
+<blockquote>
+<div><p>The x co-ordinates of the spectrum</p>
+</div></blockquote>
+<p><strong>y: list</strong></p>
+<blockquote>
+<div><p>The y co-ordinates of the spectrum</p>
+</div></blockquote>
+<p><strong>par: list</strong></p>
+<blockquote>
+<div><p>The initial guesses for the fit parameters</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A tuple containing the best fit parameters (as a list) and the covariance</p>
+<p class="last">of the parameters (as a list)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="admit.util.utils.format_chem">
+<code class="descclassname">admit.util.utils.</code><code class="descname">format_chem</code><span class="sig-paren">(</span><em>form</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/utils.html#format_chem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.utils.format_chem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to calculate the rough mass of a molecule</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>formula</strong> : str</p>
+<blockquote>
+<div><p>The chemical formula, usually obtained from splatalogue</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">int of the rough mass</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="admit.util.utils.freqtovel">
+<code class="descclassname">admit.util.utils.</code><code class="descname">freqtovel</code><span class="sig-paren">(</span><em>freq</em>, <em>delta</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/utils.html#freqtovel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.utils.freqtovel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to convert between offset frequency and offset velocity</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>freq</strong> : float</p>
+<blockquote>
+<div><p>The base frequency</p>
+</div></blockquote>
+<p><strong>delta</strong> : float</p>
+<blockquote>
+<div><p>The change in frequency</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The offset velocity (in km/s) corresponding to the frequency shift.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="admit.util.utils.gaussian2D">
+<code class="descclassname">admit.util.utils.</code><code class="descname">gaussian2D</code><span class="sig-paren">(</span><em>x</em>, <em>intensity</em>, <em>center</em>, <em>sigma</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/utils.html#gaussian2D"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.utils.gaussian2D" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method for generating a gaussian, primarily used ofr input to the
+line fitting routine</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>x</strong> : list</p>
+<blockquote>
+<div><p>list of points</p>
+</div></blockquote>
+<p><strong>intensity</strong> : float</p>
+<blockquote>
+<div><p>intensity of the gaussian</p>
+</div></blockquote>
+<p><strong>center</strong> : float</p>
+<blockquote>
+<div><p>The center position (peak) of the gaussian</p>
+</div></blockquote>
+<p><strong>sigma</strong> : float</p>
+<blockquote>
+<div><p>FWHM of the gaussian</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a list of intensities for the gaussian, one for each item in x</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="admit.util.utils.getClass">
+<code class="descclassname">admit.util.utils.</code><code class="descname">getClass</code><span class="sig-paren">(</span><em>typ</em>, <em>name</em>, <em>init=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/utils.html#getClass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.utils.getClass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get an instance of an ADMIT class</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>typ</strong> : str</p>
+<blockquote>
+<div><p>package name, e.g. at or bdp, &#8216;admit.&#8217; wil be prepended to this.</p>
+</div></blockquote>
+<p><strong>name</strong> : str</p>
+<blockquote>
+<div><p>The name of the class to retrieve</p>
+</div></blockquote>
+<p><strong>init</strong> : dict</p>
+<blockquote>
+<div><p>Initialization parameters. Default: None</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An instance of the requested class</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="admit.util.utils.get_references">
+<code class="descclassname">admit.util.utils.</code><code class="descname">get_references</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/utils.html#get_references"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.utils.get_references" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read a <em>references</em> file , which contain two columns,
+one with frequencies (or any float), one with line (references),
+a string. They are returned as a dictionary {   freq:line, ... }
+to be used for plotting references in e.g. APlot.makespec()</p>
+<p>Lines starting with the usual comment symbol &#8216;#&#8217; are skipped
+Blank lines are skipped
+Duplicate entries are skipped</p>
+<p>Used by e.g. LineID_AT and passed to APlot.makespec()</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="admit.util.utils.getmass">
+<code class="descclassname">admit.util.utils.</code><code class="descname">getmass</code><span class="sig-paren">(</span><em>formula</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/utils.html#getmass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.utils.getmass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to calculate the rough mass of a molecule</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>formula</strong> : str</p>
+<blockquote>
+<div><p>The chemical formula, usually obtained from splatalogue</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">int of the rough mass</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="admit.util.utils.getplain">
+<code class="descclassname">admit.util.utils.</code><code class="descname">getplain</code><span class="sig-paren">(</span><em>formula</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/utils.html#getplain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.utils.getplain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to make a chemical formula more readable for embedding in filenames
+Examples:
+CO(1-0)     -&gt;   CO</p>
+<p>CH3COOHv=0  -&gt;   CH3COOH</p>
+<p>g-CH3CH2OH  -&gt;   CH3CH2OH</p>
+<p>(CH3)2COv=0  -&gt;   ???</p>
+<p>H&amp;delta;</p>
+<p>cis-CH2OHCHOv=</p>
+<p>g&#8217;Ga-(CH2OH)2</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>formula</strong> : str</p>
+<blockquote>
+<div><p>The chemical formula to process</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">String of the more readable formula</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="admit.util.utils.interpolatespectrum">
+<code class="descclassname">admit.util.utils.</code><code class="descname">interpolatespectrum</code><span class="sig-paren">(</span><em>spec</em>, <em>left=0.0</em>, <em>right=0.0</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/utils.html#interpolatespectrum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.utils.interpolatespectrum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to interpolate over bad points in a spectrum. Bad points generally
+come from masked pixels in an image. On read in these show up as exactly 0.0
+or +/-inf, or nan in the spectrum. Edge channels that are bad are just 
+converted to 0.0.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>spec</strong> : numpy array</p>
+<blockquote>
+<div><p>The input spectrum to process</p>
+</div></blockquote>
+<p><strong>left</strong> : float</p>
+<blockquote>
+<div><p>The value to assign bad edge channels to on the left side of the 
+spectrum.
+Defualt: 0.0</p>
+</div></blockquote>
+<p><strong>right</strong> : float</p>
+<blockquote>
+<div><p>The value to assign bad edge channels to on the right side of the 
+spectrum.
+Defualt: 0.0</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A numpy array with the same length as the input with nan values converted to</p>
+<p class="last">iterpolated values between good points, and bad edge values.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="admit.util.utils.iscloseinE">
+<code class="descclassname">admit.util.utils.</code><code class="descname">iscloseinE</code><span class="sig-paren">(</span><em>v1</em>, <em>v2</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/utils.html#iscloseinE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.utils.iscloseinE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to determine if two spectral lines are very close in energy</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>v1</strong> : float</p>
+<blockquote>
+<div><p>Energy of first transition.</p>
+</div></blockquote>
+<p><strong>v2</strong> : float</p>
+<blockquote>
+<div><p>Energy of second transition</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">True/False whether or not the energies are very close</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="admit.util.utils.isotopecount">
+<code class="descclassname">admit.util.utils.</code><code class="descname">isotopecount</code><span class="sig-paren">(</span><em>formula</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/utils.html#isotopecount"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.utils.isotopecount" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to count the number of isotopes in a molecule</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>formula</strong> : str</p>
+<blockquote>
+<div><p>The chemical formula to analyze</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An integer of the number of less common isotopes found</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="admit.util.utils.makeThumbnail">
+<code class="descclassname">admit.util.utils.</code><code class="descname">makeThumbnail</code><span class="sig-paren">(</span><em>file</em>, <em>scale=0.33</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/utils.html#makeThumbnail"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.utils.makeThumbnail" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Create a thumbnail from an input image. The output</dt>
+<dd>file will be root of input plus &#8216;_thumb&#8217; plus input extension.
+For instance, if the input were &#8220;myimage.png&#8221;, the output
+would be &#8220;myimage_thumb.png&#8221;.   Note: only PNG format is currently
+supported (matplotlib restriction).</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>file</strong> : str</p>
+<blockquote>
+<div><blockquote>
+<div><p>input image file name</p>
+</div></blockquote>
+<dl class="docutils">
+<dt>scale <span class="classifier-delimiter">:</span> <span class="classifier">multiplier to scale input image, e.g. for 50% scaling, </span></dt>
+<dd><p class="first last">scale = 0.5.  Default: 0.33</p>
+</dd>
+</dl>
+</div></blockquote>
+<p><strong>&#64;todo scale could be float or pair list indicating x, y output pixels</strong></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The name of the thumbnail file</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="admit.util.utils.on_error_retry">
+<code class="descclassname">admit.util.utils.</code><code class="descname">on_error_retry</code><span class="sig-paren">(</span><em>exception</em>, <em>callback</em>, <em>timeout=2</em>, <em>timedelta=0.1</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/utils.html#on_error_retry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.utils.on_error_retry" title="Permalink to this definition">¶</a></dt>
+<dd><p>A generic method for doing retries with timeout.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>exception</strong> : Exception</p>
+<blockquote>
+<div><p>An Exception class to handle exceptions from the callback.</p>
+</div></blockquote>
+<p><strong>callback</strong> : function</p>
+<blockquote>
+<div><p>The callback method to invoke</p>
+</div></blockquote>
+<p><strong>timeout</strong> : float</p>
+<blockquote>
+<div><p>timeout in seconds before giving up. default: 2</p>
+</div></blockquote>
+<p><strong>timedelta</strong> : float</p>
+<blockquote class="last">
+<div><p>number of seconds to sleep before retries.  default: 0.1</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<dl class="docutils">
+<dt>for retry in on_error_retry(SomeSpecificException, do_stuff):</dt>
+<dd>retry()</dd>
+</dl>
+<p>stolen from stackoverflow.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="admit.util.utils.remove">
+<code class="descclassname">admit.util.utils.</code><code class="descname">remove</code><span class="sig-paren">(</span><em>item</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/utils.html#remove"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.utils.remove" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove a file or directory.</p>
+<p>The method determines if it is a file or directory and removes it
+appropriately.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>item</strong> : str</p>
+<blockquote>
+<div><p>Item to be deleted</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="admit.util.utils.rename">
+<code class="descclassname">admit.util.utils.</code><code class="descname">rename</code><span class="sig-paren">(</span><em>item1</em>, <em>item2</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/utils.html#rename"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.utils.rename" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rename a file or directory, but ensuring the destination is removed first</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>item1</strong> : string</p>
+<blockquote>
+<div><p>Source</p>
+</div></blockquote>
+<p><strong>item2</strong> : string</p>
+<blockquote>
+<div><p>Destination</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="admit.util.utils.rm">
+<code class="descclassname">admit.util.utils.</code><code class="descname">rm</code><span class="sig-paren">(</span><em>file</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/utils.html#rm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.utils.rm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove a file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>file</strong> : str</p>
+<blockquote>
+<div><p>File to be deleted</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="admit.util.utils.rmdir">
+<code class="descclassname">admit.util.utils.</code><code class="descname">rmdir</code><span class="sig-paren">(</span><em>dir</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/utils.html#rmdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.utils.rmdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove a directory. Calls shutil.rmtree</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>dir</strong> : str</p>
+<blockquote>
+<div><p>Directory to be deleted</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="admit.util.utils.rreplace">
+<code class="descclassname">admit.util.utils.</code><code class="descname">rreplace</code><span class="sig-paren">(</span><em>s</em>, <em>old</em>, <em>new</em>, <em>occurrence=1</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/utils.html#rreplace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.utils.rreplace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replace portion of a string (from the right side)
+Handy utility to change a filename extension, e.g.
+rreplace(&#8216;a/b/c.fits&#8217;, &#8216;fits&#8217;, &#8216;im&#8217;) -&gt; &#8216;a/b/c.im&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="admit.util.utils.setkey">
+<code class="descclassname">admit.util.utils.</code><code class="descname">setkey</code><span class="sig-paren">(</span><em>obj</em>, <em>key</em>, <em>val</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/utils.html#setkey"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.utils.setkey" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="admit.util.utils.undoppler">
+<code class="descclassname">admit.util.utils.</code><code class="descname">undoppler</code><span class="sig-paren">(</span><em>sky</em>, <em>vel</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/utils.html#undoppler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.utils.undoppler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to convert from sky frequency to source rest frequency</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>sky</strong> : float, list, or numpy array</p>
+<blockquote>
+<div><p>The sky frequency</p>
+</div></blockquote>
+<p><strong>vel</strong> : float</p>
+<blockquote>
+<div><p>The source vlsr in km/s</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The input value converted to rest frequency, in the same form that the input</p>
+<p class="last">was given.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="admit.util.utils.veltofreq">
+<code class="descclassname">admit.util.utils.</code><code class="descname">veltofreq</code><span class="sig-paren">(</span><em>vel</em>, <em>freq</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/utils.html#veltofreq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.utils.veltofreq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to convert between offset velocity and offset frequency</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>vel</strong> : float</p>
+<blockquote>
+<div><p>The offset velocity</p>
+</div></blockquote>
+<p><strong>freq</strong> : float</p>
+<blockquote>
+<div><p>The base frequency</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The offset frequency corresponding to the velocity shift.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="casautil.html"
+                        title="previous chapter">Utility functions that rely on CASA</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/module/admit.util/util.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="casautil.html" title="Utility functions that rely on CASA"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 0.4.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" >Python Scripting Interface</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
+  </body>
+</html>

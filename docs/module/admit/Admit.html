@@ -1,0 +1,1234 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Project — ADMIT project. &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../index.html" />
+    <link rel="up" title="Python Scripting Interface (API)" href="../../api.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" accesskey="U">Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-admit.Admit"></span><div class="section" id="project-admit-project">
+<h1><strong>Project</strong> &#8212; ADMIT project.<a class="headerlink" href="#project-admit-project" title="Permalink to this headline">¶</a></h1>
+<p>This module defines the Admit project class.</p>
+<dl class="class">
+<dt id="admit.Admit.Admit">
+<em class="property">class </em><code class="descclassname">admit.Admit.</code><code class="descname">Admit</code><span class="sig-paren">(</span><em>baseDir=None</em>, <em>name='none'</em>, <em>basefile=None</em>, <em>create=True</em>, <em>dataserver=False</em>, <em>loglevel=20</em>, <em>commit=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Container for an ADMIT project.   The project is normally based on one
+single FITS cube (in some cases two, where the ingest stage needs a
+primary beam to correct the science cube with), although this is not
+a restriction to ADMIT.</p>
+<p>A FITS cube results in an ADMIT directory, within which you will
+find an admit.xml file describing the project, it&#8217;s data products (BDP&#8217;s)
+and the AT&#8217;s (tasks) that generated the BDP&#8217;s.</p>
+<p>If input file/directory are given or admit.xml is located in the current
+directory then they are loaded into the class, else a new (empty) class is
+instantiated.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>baseDir</strong> : str</p>
+<blockquote>
+<div><p>Base directory for XML files (the &#8220;ADMIT directory&#8221;).</p>
+</div></blockquote>
+<p><strong>name</strong> : str</p>
+<blockquote>
+<div><p>Alias name.</p>
+</div></blockquote>
+<p><strong>basefile</strong> : str</p>
+<blockquote>
+<div><p>Base XML file name (default: admit.xml).</p>
+</div></blockquote>
+<p><strong>create</strong> : bool</p>
+<blockquote>
+<div><p>Whether to create any needed directories.</p>
+</div></blockquote>
+<p><strong>dataserver</strong> : bool</p>
+<blockquote>
+<div><p>Whether to start the data browser server.</p>
+</div></blockquote>
+<p><strong>loglevel</strong> : int</p>
+<blockquote>
+<div><p>The integer log level from the Python <em>logging</em> module.  One of:</p>
+<ul class="simple">
+<li>logging.CRITICAL    = 50</li>
+<li>logging.ERROR       = 40</li>
+<li>logging.WARNING     = 30</li>
+<li>logging.INFO        = 20</li>
+<li>logging.DEBUG       = 10</li>
+</ul>
+<p>Default is logging.INFO.</p>
+</div></blockquote>
+<p><strong>commit</strong> : bool, optional</p>
+<blockquote class="last">
+<div><p>Whether to commit XML-backed flows immediately; default is <code class="docutils literal"><span class="pre">True</span></code>.
+Set to <code class="docutils literal"><span class="pre">True</span></code> if the flow will <em>not</em> be reconstructed (as in a recipe
+script) before use; this is usually the case for interactive mode. Set
+to <code class="docutils literal"><span class="pre">False</span></code> in (most) scripts, which reconstruct the flow each time.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<div class="admonition-todo admonition" id="index-0">
+<p class="first admonition-title">Todo</p>
+<p>1. in the current implementation every directory, admit or not-admit, can
+be made an admit directory (i.e. contain a root admit.xml)</p>
+<ol class="last arabic simple" start="2">
+<li>we really don&#8217;t need a basefile= in the argument list</li>
+</ol>
+</div>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="11%" />
+<col width="89%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>baseDir</td>
+<td>(str) Base directory for XML files (the &#8220;ADMIT directory&#8221;). Guaranteed to end in os.sep.</td>
+</tr>
+<tr class="row-even"><td>baseFile</td>
+<td>(str) Base XML file name, usually admit.xml.</td>
+</tr>
+<tr class="row-odd"><td>currDir</td>
+<td>(str) Current working directory (at construction).</td>
+</tr>
+<tr class="row-even"><td>fm</td>
+<td>(FlowManager) Project flow manager instance.</td>
+</tr>
+<tr class="row-odd"><td>new</td>
+<td>(bool) Whether the project is new or constructed from an existing XML file.</td>
+</tr>
+<tr class="row-even"><td>pm</td>
+<td>(ProjectManager) Project manager instance.</td>
+</tr>
+<tr class="row-odd"><td>pmode</td>
+<td>(int) Plotting mode.</td>
+</tr>
+<tr class="row-even"><td>ptype</td>
+<td>(int) Plotting type.</td>
+</tr>
+<tr class="row-odd"><td>count</td>
+<td>(int) Flow counter how many times the flow has been run (stored in userData)</td>
+</tr>
+<tr class="row-even"><td>project_id</td>
+<td>(int) Static project identification number</td>
+</tr>
+<tr class="row-odd"><td>summaryData</td>
+<td>(instance of admit.Summary) AT summary data</td>
+</tr>
+<tr class="row-even"><td>userData</td>
+<td>(dict) Additional, user-defined data.</td>
+</tr>
+<tr class="row-odd"><td>_data_browser_port</td>
+<td>(int) Port number that the localhost http server for the data browser (aka data GUI) will use.  This attribute is set by the operating system.</td>
+</tr>
+<tr class="row-even"><td>_data_server</td>
+<td>(bool) Whether to start the data browser server.</td>
+</tr>
+<tr class="row-odd"><td>_server</td>
+<td>(HTTP server) Data HTTP server.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#admit.Admit.Admit.addtask" title="admit.Admit.Admit.addtask"><code class="xref py py-obj docutils literal"><span class="pre">addtask</span></code></a>(a[,&nbsp;stuples,&nbsp;dtuples])</td>
+<td>Add an AT to the project.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.Admit.Admit.atToHTML" title="admit.Admit.Admit.atToHTML"><code class="xref py py-obj docutils literal"><span class="pre">atToHTML</span></code></a>()</td>
+<td>Write individual AT data to the html form</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.Admit.Admit.browse" title="admit.Admit.Admit.browse"><code class="xref py py-obj docutils literal"><span class="pre">browse</span></code></a>()</td>
+<td>Open a web browser tab with the URL of this admit project</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.Admit.Admit.check" title="admit.Admit.Admit.check"><code class="xref py py-obj docutils literal"><span class="pre">check</span></code></a>()</td>
+<td>Check all project BDPs for name collisions.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.Admit.Admit.clean" title="admit.Admit.Admit.clean"><code class="xref py py-obj docutils literal"><span class="pre">clean</span></code></a>()</td>
+<td>Method to delete orphan bdp&#8217;s (files and underlying data)</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.Admit.Admit.dir" title="admit.Admit.Admit.dir"><code class="xref py py-obj docutils literal"><span class="pre">dir</span></code></a>()</td>
+<td>See AT.dir() but placed here for convenience as well.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.Admit.Admit.discover" title="admit.Admit.Admit.discover"><code class="xref py py-obj docutils literal"><span class="pre">discover</span></code></a>([mode,&nbsp;rootdir])</td>
+<td>Project data discovery.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.Admit.Admit.dryrun" title="admit.Admit.Admit.dryrun"><code class="xref py py-obj docutils literal"><span class="pre">dryrun</span></code></a>()</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.Admit.Admit.exit" title="admit.Admit.Admit.exit"><code class="xref py py-obj docutils literal"><span class="pre">exit</span></code></a>(exit)</td>
+<td>Early cleanup and exit if exit &gt; 0</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.Admit.Admit.export" title="admit.Admit.Admit.export"><code class="xref py py-obj docutils literal"><span class="pre">export</span></code></a>([level,&nbsp;casa,&nbsp;fits,&nbsp;out])</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.Admit.Admit.find_bdp" title="admit.Admit.Admit.find_bdp"><code class="xref py py-obj docutils literal"><span class="pre">find_bdp</span></code></a>()</td>
+<td>Find all bdp&#8217;s in the current admit.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.Admit.Admit.find_files" title="admit.Admit.Admit.find_files"><code class="xref py py-obj docutils literal"><span class="pre">find_files</span></code></a>([pattern])</td>
+<td>Find files containing a wildcard pattern.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.Admit.Admit.findtask" title="admit.Admit.Admit.findtask"><code class="xref py py-obj docutils literal"><span class="pre">findtask</span></code></a>(isMatch)</td>
+<td>Finds ATs in the flow matching a criterion.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.Admit.Admit.get" title="admit.Admit.Admit.get"><code class="xref py py-obj docutils literal"><span class="pre">get</span></code></a>(key)</td>
+<td>Get a global ADMIT parameter.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.Admit.Admit.getFlow" title="admit.Admit.Admit.getFlow"><code class="xref py py-obj docutils literal"><span class="pre">getFlow</span></code></a>()</td>
+<td>Returns flow manager instance.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.Admit.Admit.getManager" title="admit.Admit.Admit.getManager"><code class="xref py py-obj docutils literal"><span class="pre">getManager</span></code></a>()</td>
+<td>Returns project manager instance.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.Admit.Admit.getlogginglevel" title="admit.Admit.Admit.getlogginglevel"><code class="xref py py-obj docutils literal"><span class="pre">getlogginglevel</span></code></a>()</td>
+<td>Method to return the current logging level</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.Admit.Admit.has" title="admit.Admit.Admit.has"><code class="xref py py-obj docutils literal"><span class="pre">has</span></code></a>(key)</td>
+<td>Query if a global user key exists for this admit project.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.Admit.Admit.logToHTML" title="admit.Admit.Admit.logToHTML"><code class="xref py py-obj docutils literal"><span class="pre">logToHTML</span></code></a>()</td>
+<td>Write the admit.log to an html file</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.Admit.Admit.mergeFlow" title="admit.Admit.Admit.mergeFlow"><code class="xref py py-obj docutils literal"><span class="pre">mergeFlow</span></code></a>([finalize])</td>
+<td>Merges tasks from the XML-derived flow (if any).</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.Admit.Admit.mkdir" title="admit.Admit.Admit.mkdir"><code class="xref py py-obj docutils literal"><span class="pre">mkdir</span></code></a>(dirname)</td>
+<td>Make a directory in the ADMIT hierarchy, if it doesn&#8217;t exist yet.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.Admit.Admit.plotparams" title="admit.Admit.Admit.plotparams"><code class="xref py py-obj docutils literal"><span class="pre">plotparams</span></code></a>([plotmode,&nbsp;plottype])</td>
+<td>Determines if plots are saved and in what format.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.Admit.Admit.print_all" title="admit.Admit.Admit.print_all"><code class="xref py py-obj docutils literal"><span class="pre">print_all</span></code></a>()</td>
+<td>Calls all the methods of this object.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.Admit.Admit.print_attributes" title="admit.Admit.Admit.print_attributes"><code class="xref py py-obj docutils literal"><span class="pre">print_attributes</span></code></a>()</td>
+<td>Print all the attributes of this object and their value(s).</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.Admit.Admit.print_methods" title="admit.Admit.Admit.print_methods"><code class="xref py py-obj docutils literal"><span class="pre">print_methods</span></code></a>()</td>
+<td>Print all the methods of this object and their doc string(s).</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.Admit.Admit.print_summary" title="admit.Admit.Admit.print_summary"><code class="xref py py-obj docutils literal"><span class="pre">print_summary</span></code></a>()</td>
+<td>Print out summary data</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.Admit.Admit.read" title="admit.Admit.Admit.read"><code class="xref py py-obj docutils literal"><span class="pre">read</span></code></a>()</td>
+<td>Reads a project.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.Admit.Admit.run" title="admit.Admit.Admit.run"><code class="xref py py-obj docutils literal"><span class="pre">run</span></code></a>([write,&nbsp;commit])</td>
+<td>Runs the project flow.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.Admit.Admit.script" title="admit.Admit.Admit.script"><code class="xref py py-obj docutils literal"><span class="pre">script</span></code></a>(pyfile)</td>
+<td>Generates a Python script regenerating the current project.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.Admit.Admit.set" title="admit.Admit.Admit.set"><code class="xref py py-obj docutils literal"><span class="pre">set</span></code></a>(\*\*kwargs)</td>
+<td>Sets keys and values in userData.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.Admit.Admit.setAstale" title="admit.Admit.Admit.setAstale"><code class="xref py py-obj docutils literal"><span class="pre">setAstale</span></code></a>(astale[,&nbsp;verbose,&nbsp;dryrun])</td>
+<td>Method to toggle the stale flags on all tasks based on a global admit stale for the sole purpose of admit_export to work.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.Admit.Admit.setdir" title="admit.Admit.Admit.setdir"><code class="xref py py-obj docutils literal"><span class="pre">setdir</span></code></a>(dirname[,&nbsp;create])</td>
+<td>Changes current working directory.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.Admit.Admit.setlogginglevel" title="admit.Admit.Admit.setlogginglevel"><code class="xref py py-obj docutils literal"><span class="pre">setlogginglevel</span></code></a>(level)</td>
+<td>Method to set the logging level</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.Admit.Admit.show" title="admit.Admit.Admit.show"><code class="xref py py-obj docutils literal"><span class="pre">show</span></code></a>()</td>
+<td>Prints project state.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.Admit.Admit.showsetkey" title="admit.Admit.Admit.showsetkey"><code class="xref py py-obj docutils literal"><span class="pre">showsetkey</span></code></a>([outfile])</td>
+<td>Show current keys for tasks</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.Admit.Admit.startDataServer" title="admit.Admit.Admit.startDataServer"><code class="xref py py-obj docutils literal"><span class="pre">startDataServer</span></code></a>()</td>
+<td>Starts the data HTTP server.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.Admit.Admit.tesdir" title="admit.Admit.Admit.tesdir"><code class="xref py py-obj docutils literal"><span class="pre">tesdir</span></code></a>()</td>
+<td>Revert back from previous setdir (not recursive yet).</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.Admit.Admit.updateHTML" title="admit.Admit.Admit.updateHTML"><code class="xref py py-obj docutils literal"><span class="pre">updateHTML</span></code></a>()</td>
+<td>Writes out HTML views of this object.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.Admit.Admit.url" title="admit.Admit.Admit.url"><code class="xref py py-obj docutils literal"><span class="pre">url</span></code></a>()</td>
+<td>Print the URL for the data browser</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.Admit.Admit.userdata" title="admit.Admit.Admit.userdata"><code class="xref py py-obj docutils literal"><span class="pre">userdata</span></code></a>()</td>
+<td>Collects current AT userdata.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.Admit.Admit.version" title="admit.Admit.Admit.version"><code class="xref py py-obj docutils literal"><span class="pre">version</span></code></a>()</td>
+<td>return version of ADMIT</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.Admit.Admit.write" title="admit.Admit.Admit.write"><code class="xref py py-obj docutils literal"><span class="pre">write</span></code></a>()</td>
+<td>Writes out the admit.xml file, admit0.py script and project html files.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.Admit.Admit.writeXML" title="admit.Admit.Admit.writeXML"><code class="xref py py-obj docutils literal"><span class="pre">writeXML</span></code></a>([script])</td>
+<td>Writes out the admit.xml file and admit0.py script.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="admit.Admit.Admit.addtask">
+<code class="descname">addtask</code><span class="sig-paren">(</span><em>a</em>, <em>stuples=None</em>, <em>dtuples=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit.addtask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit.addtask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add an AT to the project.</p>
+<p>Also adjusts the connection mapping between tasks.
+Usually all but the first task&#8212;typically, Ingest_AT&#8212;will have
+&#8216;stuples&#8217; (a List of Source Tuples (task-id,bdp-id)). A source 2-tuple
+consists of a task ID (<code class="docutils literal"><span class="pre">task-id</span></code>, such as returned by this method) and
+BDP output slot number (<code class="docutils literal"><span class="pre">bdp-id</span></code>, zero-based). If the output slot is
+zero (the tuple refers to the <em>first</em> BDP output from the task), then
+the tuple can be replaced by the task ID for convenience&#8212;e.g.,
+stuples = [(t1,0), (t2,1)] is equivalent to
+stuples = [t1, (t2,1)].</p>
+<p>Support for re-running scripts: this method will ignore attempts to
+re-add a task of the same type and ID to the existing flow, if the
+project has been restored from XML. Between invocations, scripts may be
+edited to append new tasks to the flow, but not remove or insert them.
+Keywords for existing ATs may also be changed by the script; if changes
+are found, the existing task will be marked out-of-date.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>a</strong> : AT</p>
+<blockquote>
+<div><p>ADMIT task to append/insert into the flow.</p>
+</div></blockquote>
+<p><strong>stuples</strong> : list of 2-tuples, optional</p>
+<blockquote>
+<div><p>List of source connection 2-tuples, one per BDP input port.</p>
+</div></blockquote>
+<p><strong>dtuples</strong> : list of 4-tuples, optional</p>
+<blockquote>
+<div><p>List of destination connection 4-tuples.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">int</p>
+<blockquote class="last">
+<div><p>Input task ID on success, else -1 (error detected).</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><code class="xref py py-obj docutils literal"><span class="pre">add</span></code></p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.Admit.Admit.atToHTML">
+<code class="descname">atToHTML</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit.atToHTML"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit.atToHTML" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write individual AT data to the html form</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.Admit.Admit.browse">
+<code class="descname">browse</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit.browse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit.browse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Open a web browser tab with the URL of this admit project</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.Admit.Admit.check">
+<code class="descname">check</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit.check"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit.check" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check all project BDPs for name collisions.
+Also identifies orphaned branches of the tree.
+A topological sort is needed as well, if they are not in the correct
+execution order.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><code class="xref py py-obj docutils literal"><span class="pre">UNIX</span></code></p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.Admit.Admit.clean">
+<code class="descname">clean</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit.clean"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit.clean" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to delete orphan bdp&#8217;s (files and underlying data)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.Admit.Admit.dir">
+<code class="descname">dir</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit.dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit.dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>See AT.dir() but placed here for convenience as well.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>None</strong></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">str</p>
+<blockquote class="last">
+<div><p>Base directory.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.Admit.Admit.discover">
+<code class="descname">discover</code><span class="sig-paren">(</span><em>mode=None</em>, <em>rootdir='.'</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit.discover"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit.discover" title="Permalink to this definition">¶</a></dt>
+<dd><p>Project data discovery.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>mode</strong> : TBD</p>
+<blockquote>
+<div><p>Discovery mode.</p>
+</div></blockquote>
+<p><strong>rootdir</strong> : str, optional</p>
+<blockquote>
+<div><p>Search root directory.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">list</p>
+<blockquote class="last">
+<div><p>Search results.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.Admit.Admit.dryrun">
+<code class="descname">dryrun</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit.dryrun"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit.dryrun" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="admit.Admit.Admit.exit">
+<code class="descname">exit</code><span class="sig-paren">(</span><em>exit</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit.exit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit.exit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Early cleanup and exit if exit &gt; 0</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>exit</strong> : int</p>
+<blockquote>
+<div><p>The exit code to exit with (must be &gt; 0)</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.Admit.Admit.export">
+<code class="descname">export</code><span class="sig-paren">(</span><em>level=0</em>, <em>casa=True</em>, <em>fits=False</em>, <em>out=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit.export"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit.export" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="admit.Admit.Admit.find_bdp">
+<code class="descname">find_bdp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit.find_bdp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit.find_bdp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find all bdp&#8217;s in the current admit.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>None</strong></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">list</p>
+<blockquote class="last">
+<div><p>All *.bdp files within the admit hierarchy.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.Admit.Admit.find_files">
+<code class="descname">find_files</code><span class="sig-paren">(</span><em>pattern='*.fits'</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit.find_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit.find_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find files containing a wildcard pattern.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>pattern</strong> : str, optional</p>
+<blockquote>
+<div><p>File name wildcard pattern.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">list</p>
+<blockquote class="last">
+<div><p>File names matching the pattern.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.Admit.Admit.findtask">
+<code class="descname">findtask</code><span class="sig-paren">(</span><em>isMatch</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit.findtask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit.findtask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds ATs in the flow matching a criterion.</p>
+<p>Applies the function <cite>isMatch</cite> to all ATs in the flow, in proper
+dependency order, accumulating matching ATs in a list (the return
+value). Downstream ATs are guaranteed to follow their predecessors in
+this list. Often <cite>isMatch</cite> may be conveniently expressed as a lambda
+function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>isMatch</strong> : bool functor(AT)</p>
+<blockquote>
+<div><p>Function object taking one AT as input and returning a Boolean.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">list of ATs</p>
+<blockquote class="last">
+<div><p>ATs testing True using <cite>isMatch</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>This method is a wrapper for <a class="reference external" href="FlowManager.html#admit.FlowManager.FlowManager.find">FlowManager.find()</a>.</p>
+<p class="rubric">Examples</p>
+<p>To find all ATs with ID less than 100 in project <cite>p</cite>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="k">lambda</span> <span class="n">at</span><span class="p">:</span> <span class="n">at</span><span class="o">.</span><span class="n">id</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.Admit.Admit.get">
+<code class="descname">get</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a global ADMIT parameter.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>key</strong> : str</p>
+<blockquote>
+<div><p>User-defined data keyword.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">str</p>
+<blockquote class="last">
+<div><p>User-defined (userData) keyword value.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<div class="admonition-todo admonition" id="index-1">
+<p class="first admonition-title">Todo</p>
+<p class="last">This method should mirror the way we do this in the AT
+(setkey/getkey)</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.Admit.Admit.getFlow">
+<code class="descname">getFlow</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit.getFlow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit.getFlow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns flow manager instance.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>None</strong></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">FlowManager</p>
+<blockquote class="last">
+<div><p>Flow manager instance.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.Admit.Admit.getManager">
+<code class="descname">getManager</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit.getManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit.getManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns project manager instance.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>None</strong></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">ProjectManager</p>
+<blockquote class="last">
+<div><p>Project manager instance.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.Admit.Admit.getlogginglevel">
+<code class="descname">getlogginglevel</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit.getlogginglevel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit.getlogginglevel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to return the current logging level</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">An int representing the current logging level</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.Admit.Admit.has">
+<code class="descname">has</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit.has"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit.has" title="Permalink to this definition">¶</a></dt>
+<dd><p>Query if a global user key exists for this admit project.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>key</strong> : str</p>
+<blockquote>
+<div><p>User-defined data keyword.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">bool</p>
+<blockquote class="last">
+<div><p>True if keyword is present in userData, else False.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.Admit.Admit.logToHTML">
+<code class="descname">logToHTML</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit.logToHTML"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit.logToHTML" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the admit.log to an html file</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="admit.Admit.Admit.loginit">
+<code class="descname">loginit</code><em class="property"> = False</em><a class="headerlink" href="#admit.Admit.Admit.loginit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="admit.Admit.Admit.mergeFlow">
+<code class="descname">mergeFlow</code><span class="sig-paren">(</span><em>finalize=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit.mergeFlow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit.mergeFlow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Merges tasks from the XML-derived flow (if any).</p>
+<p>When projects are restored to memory from persistent XML files, that
+task flow is initially held in stasis while the (possibly modified)
+flow is being reconstructed, typically by re-running a script. This
+reconstruction phase lasts from the point where the XML is read up to
+the first call to this method with <cite>finalize</cite> set (most typically, the
+first call to run(), which calls this method internally). Calling this
+method during reconstruction compares the old flow to the newly
+constructed flow and tasks present unaltered in the new flow (i.e.,
+same BDP inputs and keyword values as before) are marked up to date, if
+they were up to date in the original flow. Other relevant attributes
+are transferred as appropriate.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>finalize</strong> : bool, optional</p>
+<blockquote>
+<div><p>Whether to discard the XML-derived flow after merge analysis,
+preventing future merge attempts.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>It is permissible to add or remove arbitrary tasks from the flow, in an
+arbitrary order, while reconstructing it. Tasks unaffected by the
+changes (if any) will not be re-executed gratuitously.</p>
+<p>After finalization, the old flow is forgotten and subsequent calls will
+have no effect (and likewise for fresh projects not backed by XML).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.Admit.Admit.mkdir">
+<code class="descname">mkdir</code><span class="sig-paren">(</span><em>dirname</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit.mkdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit.mkdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a directory in the ADMIT hierarchy, if it doesn&#8217;t exist yet.
+It also allows an absolute path, in the classical unix sense, but
+this is normally not needed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>dirname</strong> : str</p>
+<blockquote>
+<div><p>Directory name.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.Admit.Admit.plotparams">
+<code class="descname">plotparams</code><span class="sig-paren">(</span><em>plotmode=32</em>, <em>plottype=5</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit.plotparams"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit.plotparams" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determines if plots are saved and in what format.
+These are based on simple matplotlib diagrams.
+Common output formats are png and pdf.
+Note: this only applies to new AT&#8217;s started in a flow,
+to change existing parameters in a re-run for example,
+you will need to manually change the AT._plot_mode
+and AT._plot_type</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>plotmode</strong> : int</p>
+<blockquote>
+<div><p>Plotting mode.  Default: PlotControl.BATCH</p>
+</div></blockquote>
+<p><strong>plottype</strong> : int</p>
+<blockquote>
+<div><p>Plot format type.  Default: PlotControl.PNG.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><code class="xref py py-obj docutils literal"><span class="pre">util.PlotControl</span></code></p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.Admit.Admit.print_all">
+<code class="descname">print_all</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit.print_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit.print_all" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls all the methods of this object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.Admit.Admit.print_attributes">
+<code class="descname">print_attributes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit.print_attributes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit.print_attributes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print all the attributes of this object and their value(s).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.Admit.Admit.print_methods">
+<code class="descname">print_methods</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit.print_methods"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit.print_methods" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print all the methods of this object and their doc string(s).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.Admit.Admit.print_summary">
+<code class="descname">print_summary</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit.print_summary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit.print_summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print out summary data</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="admit.Admit.Admit.project_id">
+<code class="descname">project_id</code><em class="property"> = 0</em><a class="headerlink" href="#admit.Admit.Admit.project_id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="admit.Admit.Admit.read">
+<code class="descname">read</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads a project.</p>
+<p class="rubric">Notes</p>
+<p>Not implemented.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.Admit.Admit.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>write=True</em>, <em>commit=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Runs the project flow.</p>
+<p>Run those pieces of the pipeline flow
+deemed out of date. After the run, the flow
+tasks  gather their summary into ADMIT&#8217;s summaryData,
+ensuring that summaryData always is consistent with the
+current flow, and does not contain remnants from orphans.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>write</strong> : bool, optional</p>
+<blockquote>
+<div><p>Whether to write the project XML files after running the flow;
+default is <code class="docutils literal"><span class="pre">True</span></code>.</p>
+</div></blockquote>
+<p><strong>commit: bool, optional</strong></p>
+<blockquote>
+<div><p>Whether to commit the current flow after merging flow tasks with
+the XML-derived flow (if present). Set to <code class="docutils literal"><span class="pre">False</span></code> during incremental
+run()/addtask() flow reconstruction. Once a flow is committed, all
+requests to add or remove flow tasks will vest immediately. Default
+is <code class="docutils literal"><span class="pre">True</span></code>.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#admit.Admit.Admit.mergeFlow" title="admit.Admit.Admit.mergeFlow"><code class="xref py py-obj docutils literal"><span class="pre">mergeFlow</span></code></a></p>
+</div>
+<p class="rubric">Notes</p>
+<p>This method supports intelligent re-running of projects read from XML.
+Task flows may be reconstructed (as in a script) in any order, from the
+point where the XML is read up to the first call to run() (with
+commit=True). Tasks present (unaltered) in the new flow and marked up
+to date in the XML will not be re-executed.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.Admit.Admit.script">
+<code class="descname">script</code><span class="sig-paren">(</span><em>pyfile</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit.script"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit.script" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates a Python script regenerating the current project.</p>
+<p>The resulting script is intended to recreate the project results from
+scratch and to be run from the <em>parent</em> of the project directory.
+Running the script over existing project results is unpredictable and
+not supported.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>pyfile</strong> : str</p>
+<blockquote>
+<div><p>Output Python script file name.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.Admit.Admit.set">
+<code class="descname">set</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit.set"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit.set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets keys and values in userData.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>kwargs</strong> : dictionary like</p>
+<blockquote>
+<div><p>Command line arguments for the function, can be a=x,b=y or
+**{a:x, b:y} format</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.Admit.Admit.setAstale">
+<code class="descname">setAstale</code><span class="sig-paren">(</span><em>astale</em>, <em>verbose=False</em>, <em>dryrun=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit.setAstale"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit.setAstale" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to toggle the stale flags on all tasks based on a global admit stale
+for the sole purpose of admit_export to work.  It is dangerous to call this
+routine when not all tasks are either stale or not stale.</p>
+<p>This function needs to be called with True first, so it makes a stale backup,
+then during the 2nd False call, the stale backup is pushed back.</p>
+<p>&#64;todo This is a patch solution for admit 1.1 - general solution needed</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.Admit.Admit.setdir">
+<code class="descname">setdir</code><span class="sig-paren">(</span><em>dirname</em>, <em>create=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit.setdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit.setdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Changes current working directory. The directory is
+assumed to contain parameter file.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Deprecated.
+See pushd()/popd() for a better version.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>dirname</strong> : str</p>
+<blockquote>
+<div><p>Directory to work in.</p>
+</div></blockquote>
+<p><strong>create</strong> : bool, optional</p>
+<blockquote class="last">
+<div><p>Whether to create the directory if it doesn&#8217;t exist.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<div class="admonition-todo admonition" id="index-2">
+<p class="first admonition-title">Todo</p>
+<p class="last">the new mkdir() and self.baseDir are the way to work in ADMIT</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.Admit.Admit.setlogginglevel">
+<code class="descname">setlogginglevel</code><span class="sig-paren">(</span><em>level</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit.setlogginglevel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit.setlogginglevel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to set the logging level</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>level</strong> : int</p>
+<blockquote>
+<div><p>The logging level to use</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.Admit.Admit.show">
+<code class="descname">show</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit.show" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prints project state.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>Currently only display FlowManager contents.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.Admit.Admit.showsetkey">
+<code class="descname">showsetkey</code><span class="sig-paren">(</span><em>outfile=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit.showsetkey"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit.showsetkey" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show current keys for tasks
+For now on screen, but meant to aid writing a template file for rerun</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>outfile</strong> : str</p>
+<blockquote>
+<div><p>The name of the output file</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.Admit.Admit.startDataServer">
+<code class="descname">startDataServer</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit.startDataServer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit.startDataServer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Starts the data HTTP server.
+On a separate thread, start the http server on localhost:_data_browser_port
+that will allow web browsing of data products.   Also attempt
+to open a browser window at that URL. When this method returns,
+the variable self._data_browser_port will have the value of
+the port returned by the OS.  
+See util.AdmitHTTP.AdmitHTTPServer</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.Admit.Admit.tesdir">
+<code class="descname">tesdir</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit.tesdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit.tesdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Revert back from previous setdir (not recursive yet).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Deprecated.
+See pushd()/popd() for a better version.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.Admit.Admit.updateHTML">
+<code class="descname">updateHTML</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit.updateHTML"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit.updateHTML" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes out HTML views of this object.
+It is expected that summary() has been called first.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.Admit.Admit.url">
+<code class="descname">url</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit.url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit.url" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print the URL for the data browser</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">String representing localhost url on which data can be viewed.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.Admit.Admit.userdata">
+<code class="descname">userdata</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit.userdata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit.userdata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collects current AT userdata. <strong>warning:</strong> No check is done for duplicate keys!</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.Admit.Admit.version">
+<code class="descname">version</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit.version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit.version" title="Permalink to this definition">¶</a></dt>
+<dd><p>return version of ADMIT</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.Admit.Admit.write">
+<code class="descname">write</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes out the admit.xml file, admit0.py script and
+project html files.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.Admit.Admit.writeXML">
+<code class="descname">writeXML</code><span class="sig-paren">(</span><em>script=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/Admit.html#Admit.writeXML"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.Admit.Admit.writeXML" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes out the admit.xml file and admit0.py script.</p>
+<p>Reading the XML file occurs in the constructor.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/module/admit/Admit.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" >Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

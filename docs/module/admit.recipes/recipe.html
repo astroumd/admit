@@ -1,0 +1,156 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>recipe — Executes a pre-defined ADMIT recipe (script). &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../index.html" />
+    <link rel="up" title="Python Scripting Interface (API)" href="../../api.html" />
+    <link rel="next" title="Utilities Package" href="../admit.util/0-index.html" />
+    <link rel="prev" title="Source_Spectra — Generates spectra for a series of map locations." href="Source_Spectra.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../admit.util/0-index.html" title="Utilities Package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="Source_Spectra.html" title="Source_Spectra — Generates spectra for a series of map locations."
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" accesskey="U">Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-admit.recipes.recipe"></span><div class="section" id="recipe-executes-a-pre-defined-admit-recipe-script">
+<h1><strong>recipe</strong> &#8212; Executes a pre-defined ADMIT recipe (script).<a class="headerlink" href="#recipe-executes-a-pre-defined-admit-recipe-script" title="Permalink to this headline">¶</a></h1>
+<p>This module implements a uniform interface for executing pre-defined ADMIT
+recipes.</p>
+<dl class="function">
+<dt id="admit.recipes.recipe.recipe">
+<code class="descclassname">admit.recipes.recipe.</code><code class="descname">recipe</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/recipes/recipe.html#recipe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.recipes.recipe.recipe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to run an ADMIT recipe. The parameters are passed without
+any keywords. The first parameter must be the name of the recipe
+and subsequent parameters the arguments of that recipe in order.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>recipe_name: str</strong></p>
+<blockquote>
+<div><p>The name of the recipe</p>
+</div></blockquote>
+<p><strong>args</strong></p>
+<blockquote>
+<div><p>The rest of the keyword-less arguments</p>
+</div></blockquote>
+<p><strong>kwargs</strong></p>
+<blockquote class="last">
+<div><p>Any keywords this recipe understand</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<dl class="docutils">
+<dt>Example: admit.recipe(&#8220;LineMoment&#8221;,&#8221;test0.fits&#8221;)</dt>
+<dd>admit.recipe(&#8220;LineMoment&#8221;,&#8221;test0.fits&#8221;,minchan=10)</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="Source_Spectra.html"
+                        title="previous chapter"><strong>Source_Spectra</strong> &#8212; Generates spectra for a series of map locations.</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../admit.util/0-index.html"
+                        title="next chapter">Utilities Package</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/module/admit.recipes/recipe.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../admit.util/0-index.html" title="Utilities Package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="Source_Spectra.html" title="Source_Spectra — Generates spectra for a series of map locations."
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" >Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

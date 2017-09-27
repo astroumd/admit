@@ -1,0 +1,249 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>DtdReader — Reads a DTD file. &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../index.html" />
+    <link rel="up" title="Python Scripting Interface (API)" href="../../api.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" accesskey="U">Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-admit.xmlio.DtdReader"></span><div class="section" id="dtdreader-reads-a-dtd-file">
+<span id="dtdreader-api"></span><h1>DtdReader &#8212; Reads a DTD file.<a class="headerlink" href="#dtdreader-reads-a-dtd-file" title="Permalink to this headline">¶</a></h1>
+<p>This module defines the DtdReader class.</p>
+<dl class="class">
+<dt id="admit.xmlio.DtdReader.DtdReader">
+<em class="property">class </em><code class="descclassname">admit.xmlio.DtdReader.</code><code class="descname">DtdReader</code><span class="sig-paren">(</span><em>fileName</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/xmlio/DtdReader.html#DtdReader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.xmlio.DtdReader.DtdReader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class for reading in a dtd file and accumulating all of the different 
+bits.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>fileName</strong> : str</p>
+<blockquote class="last">
+<div><p>The name of the dtd file to read (e.g. Moment_BDP.dtd).</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>fileName</td>
+<td>(str) The name of the dtd file to read (e.g. Moment_BDP.dtd).</td>
+</tr>
+<tr class="row-even"><td>order</td>
+<td>(List) Listing of the order that nodes in the xml should appear.</td>
+</tr>
+<tr class="row-odd"><td>types</td>
+<td>(Dict) Dictionary for the type of data for each node (e.g. bt.INT).</td>
+</tr>
+<tr class="row-even"><td>dtd</td>
+<td>(List) Listing of the dtd contents to be written at the top of an xml file.</td>
+</tr>
+<tr class="row-odd"><td>keys</td>
+<td>(List) List of the keys found for the top level nodes.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#admit.xmlio.DtdReader.DtdReader.getDtd" title="admit.xmlio.DtdReader.DtdReader.getDtd"><code class="xref py py-obj docutils literal"><span class="pre">getDtd</span></code></a>()</td>
+<td>Returns the contents of the dtd attribute</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.xmlio.DtdReader.DtdReader.getKeys" title="admit.xmlio.DtdReader.DtdReader.getKeys"><code class="xref py py-obj docutils literal"><span class="pre">getKeys</span></code></a>()</td>
+<td>Returns the contents of the keys attribute</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.xmlio.DtdReader.DtdReader.getOrder" title="admit.xmlio.DtdReader.DtdReader.getOrder"><code class="xref py py-obj docutils literal"><span class="pre">getOrder</span></code></a>()</td>
+<td>Returns the order attribute</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.xmlio.DtdReader.DtdReader.getTypes" title="admit.xmlio.DtdReader.DtdReader.getTypes"><code class="xref py py-obj docutils literal"><span class="pre">getTypes</span></code></a>()</td>
+<td>Returns the contents of the types attribute</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.xmlio.DtdReader.DtdReader.parse" title="admit.xmlio.DtdReader.DtdReader.parse"><code class="xref py py-obj docutils literal"><span class="pre">parse</span></code></a>()</td>
+<td>Method to parse the given dtd file</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="admit.xmlio.DtdReader.DtdReader.getDtd">
+<code class="descname">getDtd</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/xmlio/DtdReader.html#DtdReader.getDtd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.xmlio.DtdReader.DtdReader.getDtd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the contents of the dtd attribute</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">List of the lines of the dtd</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.xmlio.DtdReader.DtdReader.getKeys">
+<code class="descname">getKeys</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/xmlio/DtdReader.html#DtdReader.getKeys"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.xmlio.DtdReader.DtdReader.getKeys" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the contents of the keys attribute</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">List containing the keys in the main node</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.xmlio.DtdReader.DtdReader.getOrder">
+<code class="descname">getOrder</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/xmlio/DtdReader.html#DtdReader.getOrder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.xmlio.DtdReader.DtdReader.getOrder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the order attribute</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">List containing the order nodes should appear</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.xmlio.DtdReader.DtdReader.getTypes">
+<code class="descname">getTypes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/xmlio/DtdReader.html#DtdReader.getTypes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.xmlio.DtdReader.DtdReader.getTypes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the contents of the types attribute</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Dictionary with the node names and data types</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.xmlio.DtdReader.DtdReader.parse">
+<code class="descname">parse</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/xmlio/DtdReader.html#DtdReader.parse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.xmlio.DtdReader.DtdReader.parse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to parse the given dtd file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/module/admit.xmlio/DtdReader.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" >Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

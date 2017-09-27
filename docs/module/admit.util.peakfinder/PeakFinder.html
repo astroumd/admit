@@ -1,0 +1,231 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>PeakFinder — Peak finding with derivatives. &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../index.html" />
+    <link rel="up" title="Python Scripting Interface (API)" href="../../api.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" accesskey="U">Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-admit.util.peakfinder.PeakFinder"></span><div class="section" id="peakfinder-peak-finding-with-derivatives">
+<span id="peakfinder"></span><h1>PeakFinder &#8212; Peak finding with derivatives.<a class="headerlink" href="#peakfinder-peak-finding-with-derivatives" title="Permalink to this headline">¶</a></h1>
+<p>This module defines a peak finding utility using the derivative of
+the spectral line profile.</p>
+<dl class="class">
+<dt id="admit.util.peakfinder.PeakFinder.PeakFinder">
+<em class="property">class </em><code class="descclassname">admit.util.peakfinder.PeakFinder.</code><code class="descname">PeakFinder</code><span class="sig-paren">(</span><em>spec</em>, <em>x=None</em>, <em>**kwarg</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/peakfinder/PeakFinder.html#PeakFinder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.peakfinder.PeakFinder.PeakFinder" title="Permalink to this definition">¶</a></dt>
+<dd><p>PeakFinder searches for spectral peaks by taking the first derivative of the
+spectrum and looks for zero crossings. Noise spikes are eliminated by
+a noise cutoff, minimum separation of points, and minimum width of lines.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>spec</strong> : List or numpy array</p>
+<blockquote>
+<div><p>The spectrum to be analyzed.</p>
+</div></blockquote>
+<p><strong>x</strong> : List or numpy array, optional</p>
+<blockquote>
+<div><p>The x co-ordinates for the spectrum.
+Default: None.</p>
+</div></blockquote>
+<p><strong>kwarg</strong> : Dict</p>
+<blockquote class="last">
+<div><p>Any additional arguments, see the Attributes list for a complete
+listing.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="5%" />
+<col width="95%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>spec</td>
+<td>(numpy array) The spectrum to be analyzed.</td>
+</tr>
+<tr class="row-even"><td>x</td>
+<td>(numpy array) The x co-ordinates of the spectrum.</td>
+</tr>
+<tr class="row-odd"><td>thresh</td>
+<td>(float, optional) The cutoff used to determine if a peak is above the noise. The absolute value of the spectrum is compared to this so that absorption lines are also detected. Default: 0.0.</td>
+</tr>
+<tr class="row-even"><td>min_sep</td>
+<td>(int) The minimum separation between peaks in channels. Default: 5.</td>
+</tr>
+<tr class="row-odd"><td>min_width</td>
+<td>(int) The minimum width of a line to consider, in channels. Default: 5.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.peakfinder.PeakFinder.PeakFinder.find" title="admit.util.peakfinder.PeakFinder.PeakFinder.find"><code class="xref py py-obj docutils literal"><span class="pre">find</span></code></a>()</td>
+<td>Method to locate peaks in an input spectrum</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.peakfinder.PeakFinder.PeakFinder.wideenough" title="admit.util.peakfinder.PeakFinder.PeakFinder.wideenough"><code class="xref py py-obj docutils literal"><span class="pre">wideenough</span></code></a>(pk[,&nbsp;mult])</td>
+<td>Method to determine whether a line is wide enough, based on the given  parameters.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="admit.util.peakfinder.PeakFinder.PeakFinder.find">
+<code class="descname">find</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/peakfinder/PeakFinder.html#PeakFinder.find"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.peakfinder.PeakFinder.PeakFinder.find" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to locate peaks in an input spectrum</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Numpy array containing the located peaks</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="admit.util.peakfinder.PeakFinder.PeakFinder.min_sep">
+<code class="descname">min_sep</code><em class="property"> = 5</em><a class="headerlink" href="#admit.util.peakfinder.PeakFinder.PeakFinder.min_sep" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="admit.util.peakfinder.PeakFinder.PeakFinder.min_width">
+<code class="descname">min_width</code><em class="property"> = 5</em><a class="headerlink" href="#admit.util.peakfinder.PeakFinder.PeakFinder.min_width" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="admit.util.peakfinder.PeakFinder.PeakFinder.thresh">
+<code class="descname">thresh</code><em class="property"> = 0.0</em><a class="headerlink" href="#admit.util.peakfinder.PeakFinder.PeakFinder.thresh" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="admit.util.peakfinder.PeakFinder.PeakFinder.wideenough">
+<code class="descname">wideenough</code><span class="sig-paren">(</span><em>pk</em>, <em>mult=1</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/peakfinder/PeakFinder.html#PeakFinder.wideenough"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.peakfinder.PeakFinder.PeakFinder.wideenough" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to determine whether a line is wide enough, based on the given 
+parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>pk</strong> : int</p>
+<blockquote>
+<div><p>The peak to examine (in channel units)</p>
+</div></blockquote>
+<p><strong>mult</strong> : int</p>
+<blockquote>
+<div><p>A mulitpiler to use for the noise level cutoff
+Default: 1</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">True of the line meets the minimum width criteria in self.min_width, False</p>
+<p class="last">otherwise</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/module/admit.util.peakfinder/PeakFinder.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" >Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,307 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>SpectrumIngest — Converts non-ADMIT spectral data to ADMIT format. &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../index.html" />
+    <link rel="up" title="Python Scripting Interface (API)" href="../../api.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" accesskey="U">Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-admit.util.SpectrumIngest"></span><div class="section" id="spectrumingest-converts-non-admit-spectral-data-to-admit-format">
+<span id="spectrumingest-api"></span><h1><strong>SpectrumIngest</strong> &#8212; Converts non-ADMIT spectral data to ADMIT format.<a class="headerlink" href="#spectrumingest-converts-non-admit-spectral-data-to-admit-format" title="Permalink to this headline">¶</a></h1>
+<p>This module defines the SpectrumIngest class.</p>
+<dl class="class">
+<dt id="admit.util.SpectrumIngest.SpectrumIngest">
+<em class="property">class </em><code class="descclassname">admit.util.SpectrumIngest.</code><code class="descname">SpectrumIngest</code><a class="reference internal" href="../../_modules/admit/util/SpectrumIngest.html#SpectrumIngest"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.SpectrumIngest.SpectrumIngest" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class is used to convert foreign data (either files or arrays) into a CubeSpectrum_BDP
+suitable for use as an input to LineID_AT. If files are used then then the columns
+containing the frequency and the intensity must be given (channel numbers are optional). Any
+number of files can be given, but all spectra must have the same length as they are assumed
+to come from the same data source. Blank lines and lines starting with a comment &#8216;#&#8217; will be
+skipped, additionally any line with too few columns will be skipped. If arrays are used an
+input then both the frequency and intensity must be specified (the channel numbers are
+optional). Both lists and numpy arrays are accepted as inputs. Multidimmensional arrays are
+supported with the following parameters:</p>
+<ul class="simple">
+<li>A single frequency list can be given to cover all input spectra, otherwise the shape
+of the frequency array must match that of the spectra</li>
+<li>A single channel list can be given to cover all input spectra, otherwise the shape
+of the channel array must match that of the spectra</li>
+<li>All spectra must have the same length</li>
+</ul>
+<p>If a channel array is not specified then one will be constructed with the following
+parameters:</p>
+<ul class="simple">
+<li>The channel numbers will start at 0 (casa convention)</li>
+<li>The first entry in the spectrum will be considered the first channel, regardless of
+whether the frequency array increases or decreases.</li>
+</ul>
+<p>The convert method will return a single CubeSpectrum_BDP instance holding all input spectra
+along with an image of each.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="7%" />
+<col width="93%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>chan</td>
+<td>(array) An array holding the channel numbers for the data, multidimmensional arrays are supported. Default: None.</td>
+</tr>
+<tr class="row-even"><td>chancol</td>
+<td>(int) The column of the input file(s) that corresponds to the channel listing. Column numbers are 1 based. Default: -1.</td>
+</tr>
+<tr class="row-odd"><td>freq</td>
+<td>(array) An array holding the frequencies for the data, multidimmensional arrays are supported. Default: None.</td>
+</tr>
+<tr class="row-even"><td>freqcol</td>
+<td>(int) The column of the input file(s) that corresponds to the frequency listing. Column numbers are 1 based. Default: -1.</td>
+</tr>
+<tr class="row-odd"><td>spec</td>
+<td>(array) An array holding the intesities of the data, multidimmensional arrays are supported. Default: None.</td>
+</tr>
+<tr class="row-even"><td>speccol</td>
+<td>(int) The column of the input file(s) that corresponds to the intensity listing. Column numbers are 1 based. Default: -1.</td>
+</tr>
+<tr class="row-odd"><td>file</td>
+<td>(list or str) A single file name or a list of file names to be read in for spectra. Default: None.</td>
+</tr>
+<tr class="row-even"><td>seperator</td>
+<td>(str) The column separator for reading in the data files. Default: None (any whitespace).</td>
+</tr>
+<tr class="row-odd"><td>length</td>
+<td>(int) Internal tracking of the length of the spectra.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.SpectrumIngest.SpectrumIngest.convert" title="admit.util.SpectrumIngest.SpectrumIngest.convert"><code class="xref py py-obj docutils literal"><span class="pre">convert</span></code></a>([chan,&nbsp;freq,&nbsp;velocity,&nbsp;spec,&nbsp;file,&nbsp;...])</td>
+<td>Method to convert input data (either files or arrays) into a CubeSpectrum_BDP.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.SpectrumIngest.SpectrumIngest.getfile" title="admit.util.SpectrumIngest.SpectrumIngest.getfile"><code class="xref py py-obj docutils literal"><span class="pre">getfile</span></code></a>(file)</td>
+<td>Method to read in a file and convert it to a Spectrum.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="admit.util.SpectrumIngest.SpectrumIngest.convert">
+<code class="descname">convert</code><span class="sig-paren">(</span><em>chan=None</em>, <em>freq=None</em>, <em>velocity=None</em>, <em>spec=None</em>, <em>file=None</em>, <em>separator=None</em>, <em>restfreq=None</em>, <em>vlsr=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/SpectrumIngest.html#SpectrumIngest.convert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.SpectrumIngest.SpectrumIngest.convert" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to convert input data (either files or arrays) into a CubeSpectrum_BDP. If files
+are used then then the columns containing the frequency and the intensity must be given
+(channel numbers are optional). Any number of files can be given, but all spectra must
+have the same length as they are assumed to come from the same data source. Blank lines
+and lines starting with a comment &#8216;#&#8217; will be skipped, additionally any line with too
+few columns will be skipped. If arrays are used an input then both the frequency and
+intensity must be specified (the channel numbers are optional). Both lists and numpy
+arrays are accepted as inputs. Multidimmensional arrays are supported with the following
+parameters:</p>
+<ul class="simple">
+<li>A single frequency list can be given to cover all input spectra, otherwise the shape
+of the frequency array must match that of the spectra</li>
+<li>A single channel list can be given to cover all input spectra, otherwise the shape
+of the channel array must match that of the spectra</li>
+<li>All spectra must have the same length</li>
+</ul>
+<p>If a channel array is not specified then one will be constructed with the following
+parameters:</p>
+<ul class="simple">
+<li>The channel numbers will start at 0 (casa convention)</li>
+<li>The first entry in the spectrum will be considered the first channel, regardless of
+whether the frequency array increases or decreases.</li>
+</ul>
+<p>Additionally, if there is velocity axis, but no frequency axis, a frequency axis can
+be constructed by specifying a rest frequency (restfreq), and vlsr.</p>
+<p>The convert method will return a single CubeSpectrum_BDP instance holding all input spectra
+along with an image of each.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>chan</strong> : array or int</p>
+<blockquote>
+<div><p>An array holding the channel numbers for the data, multidimmensional arrays are
+supported. If an integer is specified then it is the number of the column
+in the file which contains the channel numbers, column numbers are 1 based.
+Default: None</p>
+</div></blockquote>
+<p><strong>freq</strong> : array</p>
+<blockquote>
+<div><p>An array holding the frequencies for the data, multidimmensional arrays are
+supported. If an integer is specified then it is the number of the column
+in the file which contains the frequencies, column numbers are 1 based.
+Default: None</p>
+</div></blockquote>
+<p><strong>velocity</strong> : array</p>
+<blockquote>
+<div><p>An array holding the velocity for the data, multidimmensional arrays are
+supported. If an integer is specified then it is the number of the column
+in the file which contains the velcoties, column numbers are 1 based. If this
+parameter is specified then restfreq and vlsr must also be specified.
+Default: None</p>
+</div></blockquote>
+<p><strong>spec</strong> : array</p>
+<blockquote>
+<div><p>An array holding the intesities of the data, multidimmensional arrays are supported.
+If an integer is specified then it is the number of the column in the file which
+contains the intensities, column numbers are 1 based.
+Default: None</p>
+</div></blockquote>
+<p><strong>file</strong> : list or str</p>
+<blockquote>
+<div><p>A single file name or a list of file names to be read in for spectra.
+Default: None</p>
+</div></blockquote>
+<p><strong>separator</strong> : str</p>
+<blockquote>
+<div><p>The column separator for reading in the data files.
+Default: None (any whitespace)</p>
+</div></blockquote>
+<p><strong>restfreq</strong> : float</p>
+<blockquote>
+<div><p>The rest frequency to use to convert the spectra from velocity to frequency units.
+The rest frequency is in GHz.
+Default: None (no conversion done)</p>
+</div></blockquote>
+<p><strong>vlsr</strong> : float</p>
+<blockquote>
+<div><p>The reference velocity for converting a velocity axis to frequency. The units are
+km/s. If this is not set then it is assumed that the vlsr is 0.0.
+Default: None</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">CubeSpectrum_BDP instance containing all of the inpur spectra.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.SpectrumIngest.SpectrumIngest.getfile">
+<code class="descname">getfile</code><span class="sig-paren">(</span><em>file</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/SpectrumIngest.html#SpectrumIngest.getfile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.SpectrumIngest.SpectrumIngest.getfile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to read in a file and convert it to a Spectrum. Columns must already have been
+specified.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>file</strong> : str</p>
+<blockquote>
+<div><p>Name of the file to read in</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Spectrum instance containing the data read in from the file</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/module/admit.util/SpectrumIngest.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" >Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

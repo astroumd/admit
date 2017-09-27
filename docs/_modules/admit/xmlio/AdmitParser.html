@@ -1,0 +1,744 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.xmlio.AdmitParser &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.xmlio.AdmitParser</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    AdmitParser --- Specialized parser for ADMIT XML files.</span>
+<span class="sd">    -------------------------------------------------------</span>
+
+<span class="sd">    This module defines the AdmitParser class.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">xml</span> <span class="k">import</span> <span class="n">sax</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">admit.util.AdmitLogging</span> <span class="k">import</span> <span class="n">AdmitLogging</span> <span class="k">as</span> <span class="n">logging</span>
+<span class="kn">from</span> <span class="nn">admit.xmlio.DTDParser</span> <span class="k">import</span> <span class="n">DTDParser</span>
+<span class="kn">import</span> <span class="nn">admit.util.bdp_types</span> <span class="k">as</span> <span class="nn">bt</span>
+<span class="kn">import</span> <span class="nn">admit.util.utils</span> <span class="k">as</span> <span class="nn">utils</span>
+<span class="kn">import</span> <span class="nn">admit.Summary</span> <span class="k">as</span> <span class="nn">Summary</span>
+<span class="kn">from</span> <span class="nn">admit.AT</span> <span class="k">import</span> <span class="n">AT</span>
+<span class="kn">import</span> <span class="nn">admit.FlowManager</span> <span class="k">as</span> <span class="nn">fm</span>
+<span class="kn">import</span> <span class="nn">admit.util.admit_ast</span> <span class="k">as</span> <span class="nn">aast</span>
+
+<div class="viewcode-block" id="AdmitParser"><a class="viewcode-back" href="../../../module/admit.xmlio/AdmitParser.html#admit.xmlio.AdmitParser.AdmitParser">[docs]</a><span class="k">class</span> <span class="nc">AdmitParser</span><span class="p">(</span><span class="n">sax</span><span class="o">.</span><span class="n">handler</span><span class="o">.</span><span class="n">ContentHandler</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Specialized XML parser for admit and bdp parsing.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        basedir : str</span>
+<span class="sd">            The base directory being used to read in the ADMIT files.</span>
+
+<span class="sd">        xmlFile : str</span>
+<span class="sd">            The file to parse.</span>
+<span class="sd">            Deafult: &quot;admit.xml&quot;.</span>
+
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        xmlFile : str</span>
+<span class="sd">            The file to parse.</span>
+
+<span class="sd">        basedir : str</span>
+<span class="sd">            The base directory being used to read in the ADMIT files.</span>
+
+<span class="sd">        dtd : DtdReader</span>
+<span class="sd">            Instance of the DtdReader to use.</span>
+
+<span class="sd">        AT : List</span>
+<span class="sd">            List for keeping track of the AT&#39;s found.</span>
+
+<span class="sd">        curAT : AT</span>
+<span class="sd">            Instance of the current AT being reconstructed.</span>
+
+<span class="sd">        type : str</span>
+<span class="sd">            Type of the curAT.</span>
+
+<span class="sd">        name : str</span>
+<span class="sd">            Name of the current node being parsed.</span>
+
+<span class="sd">        ndarr : List</span>
+<span class="sd">            List of elements that are numpy arrays.</span>
+
+<span class="sd">        sets : List</span>
+<span class="sd">            List of elements that are sets.</span>
+
+<span class="sd">        userData : Dict</span>
+<span class="sd">            Dictionary for the user data.</span>
+
+<span class="sd">        summaryData : Dict</span>
+<span class="sd">            Dictionary for the summaryData.</span>
+
+<span class="sd">        summaryEntry : SummaryEntry</span>
+<span class="sd">            Current instance of the SummaryEntry being reconstructed.</span>
+
+<span class="sd">        flowmanager : FlowManager</span>
+<span class="sd">            Local copy of the FlowManager for reconstruction.</span>
+
+<span class="sd">        projmanager : Dict</span>
+<span class="sd">            Project ID to base directory map.</span>
+
+<span class="sd">        Util : various classes</span>
+<span class="sd">            The current utility class being reconstructed.</span>
+
+<span class="sd">        MultiImage : MultiImage class instance</span>
+<span class="sd">            The current MultiImage being reconstructed.</span>
+
+<span class="sd">        inflow : Boolean</span>
+<span class="sd">            Whether the parser is currently reconstructing the flow manager.</span>
+
+<span class="sd">        inAdmit : Boolean</span>
+<span class="sd">            Whether the parser is currently reconstructing the ADMIT base</span>
+<span class="sd">            class.</span>
+
+<span class="sd">        inUtil : Boolean</span>
+<span class="sd">            Whether the parser is currently reconstructing a utility class.</span>
+
+<span class="sd">        inMulti : Boolean</span>
+<span class="sd">            Whether the parser is currently reconstructung a MultiImage.</span>
+
+<span class="sd">        inKeys : Boolean</span>
+<span class="sd">            Whether the parser is currently reconstructing the keys of an AT.</span>
+
+<span class="sd">        inSummary : Boolean</span>
+<span class="sd">            Whether the parser is currently reconstructing the summary data.</span>
+
+<span class="sd">        inSummaryEntry : Boolean</span>
+<span class="sd">            Whether the parser is currently reconstructing a SummaryEntry.</span>
+
+<span class="sd">        utilType : str</span>
+<span class="sd">            The type of the current utility class being reconstructed.</span>
+
+<span class="sd">        utilName : str</span>
+<span class="sd">            The name of the current utility class being reconstructed.</span>
+
+<span class="sd">        multiName : str</span>
+<span class="sd">            The name of the MultiImage currently being reconstructed.</span>
+
+<span class="sd">        summaryName : str</span>
+<span class="sd">            The name of the summary being reconstructed.</span>
+
+<span class="sd">        summaryEntryName : str</span>
+<span class="sd">            The name of the SummaryEntry being reconstructed.</span>
+
+<span class="sd">        admit : ADMIT</span>
+<span class="sd">            The base class being reconstructed.</span>
+
+<span class="sd">        metadataName : str</span>
+<span class="sd">            The name of the current metadata node.</span>
+
+<span class="sd">        inBDP : Boolean</span>
+<span class="sd">            Whether the parser is currently reconstructing a BDP.</span>
+
+<span class="sd">        inAT : Boolean</span>
+<span class="sd">            Whether the parser is currently reconstructing an AT.</span>
+
+<span class="sd">        tempdata : str</span>
+<span class="sd">            String for holding large data that need to be reconstructed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">basedir</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">xmlFile</span><span class="o">=</span><span class="s2">&quot;admit.xml&quot;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xmlFile</span> <span class="o">=</span> <span class="n">xmlFile</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">basedir</span> <span class="o">=</span> <span class="n">basedir</span>
+        <span class="c1"># initialize the parent class</span>
+        <span class="n">sax</span><span class="o">.</span><span class="n">handler</span><span class="o">.</span><span class="n">ContentHandler</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="c1"># get the dtd info</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dtd</span> <span class="o">=</span> <span class="n">DTDParser</span><span class="p">(</span><span class="n">xmlFile</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dtd</span><span class="o">.</span><span class="n">parse</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AT</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># intialize all of the variables that track everything as it is</span>
+        <span class="c1"># being reconstructed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">curAT</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">BDP</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ndarr</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sets</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">userData</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">summaryData</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">summaryEntry</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flowmanager</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">projmanager</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inflow</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inAdmit</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inKeys</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inSummary</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inSummaryEntry</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">summaryName</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">summaryEntryName</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metadataName</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">admit</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Util</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">MultiImage</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inUtil</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inMulti</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">utilType</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">utilName</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">multiName</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inBDP</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inAT</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tempdata</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flowdata</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+<div class="viewcode-block" id="AdmitParser.getBDP"><a class="viewcode-back" href="../../../module/admit.xmlio/AdmitParser.html#admit.xmlio.AdmitParser.AdmitParser.getBDP">[docs]</a>    <span class="k">def</span> <span class="nf">getBDP</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return the current BDP</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            The current BDP</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># return the generated BDP</span>
+        <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">BDP</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AdmitParser.setadmit"><a class="viewcode-back" href="../../../module/admit.xmlio/AdmitParser.html#admit.xmlio.AdmitParser.AdmitParser.setadmit">[docs]</a>    <span class="k">def</span> <span class="nf">setadmit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">admit</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Set the base class to the given class</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            admit : ADMIT</span>
+<span class="sd">                The class to set the base to</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">admit</span> <span class="o">=</span> <span class="n">admit</span></div>
+
+<div class="viewcode-block" id="AdmitParser.getflowmanager"><a class="viewcode-back" href="../../../module/admit.xmlio/AdmitParser.html#admit.xmlio.AdmitParser.AdmitParser.getflowmanager">[docs]</a>    <span class="k">def</span> <span class="nf">getflowmanager</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns the FlowManager instance</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            The current FlowManager instance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">flowmanager</span></div>
+
+<div class="viewcode-block" id="AdmitParser.getAT"><a class="viewcode-back" href="../../../module/admit.xmlio/AdmitParser.html#admit.xmlio.AdmitParser.AdmitParser.getAT">[docs]</a>    <span class="k">def</span> <span class="nf">getAT</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return the list of reconstructed AT&#39;s</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            List of AT&#39;s</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># return the generated AT list</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">AT</span></div>
+
+<div class="viewcode-block" id="AdmitParser.startElement"><a class="viewcode-back" href="../../../module/admit.xmlio/AdmitParser.html#admit.xmlio.AdmitParser.AdmitParser.startElement">[docs]</a>    <span class="k">def</span> <span class="nf">startElement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">attrib</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method called whenever a new element is found. Dtd validation is</span>
+<span class="sd">            done for each node and attribute. This method is only called by the</span>
+<span class="sd">            SAX parser iteself.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            name : str</span>
+<span class="sd">                The name of the current node</span>
+
+<span class="sd">            attrib : Dict</span>
+<span class="sd">                Dictionary of any attributes and their values that was found by</span>
+<span class="sd">                the parser</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># get the type of the data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tempdata</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">attrib</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">))</span>
+        <span class="c1"># figure out where the node belongs</span>
+        <span class="k">if</span> <span class="n">bt</span><span class="o">.</span><span class="n">ADMIT</span> <span class="o">==</span> <span class="n">name</span> <span class="ow">or</span> <span class="n">temp</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">AT</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dtd</span><span class="o">.</span><span class="n">check</span><span class="p">(</span><span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inAT</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dtd</span><span class="o">.</span><span class="n">check</span><span class="p">(</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">curAT</span><span class="o">.</span><span class="n">show</span><span class="p">()</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="s2">&quot;type&quot;</span><span class="p">,</span>
+                               <span class="n">temp</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dtd</span><span class="o">.</span><span class="n">check</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="n">temp</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">FLOWMANAGER</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">inflow</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inBDP</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dtd</span><span class="o">.</span><span class="n">check</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="n">temp</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;_keys&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">inKeys</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">return</span>
+        <span class="c1"># find out what type of data the node contains</span>
+        <span class="k">if</span> <span class="n">temp</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">STRING</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="nb">str</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">temp</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">BOOL</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">temp</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">FLOAT</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="nb">float</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">temp</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">LONG</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">long</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">temp</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">NONE</span><span class="p">:</span>
+            <span class="n">target</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="c1"># handle the utility, BDP and AT classes</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inUtil</span><span class="p">:</span>
+                <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Util</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">inBDP</span><span class="p">:</span>
+                <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">BDP</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">inAT</span><span class="p">:</span>
+                <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">curAT</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">admit</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                <span class="nb">print</span> <span class="s2">&quot;Data member </span><span class="si">%s</span><span class="s2"> is not a member of </span><span class="si">%s</span><span class="s2">. This may be due to a version mismatch between the data and your software, attempting to continue.&quot;</span> <span class="o">%</span> \
+                      <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">target</span><span class="p">)))</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">raise</span>
+        <span class="k">elif</span> <span class="n">temp</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">DICT</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ndarr</span> <span class="o">=</span> <span class="n">aast</span><span class="o">.</span><span class="n">literal_eval</span><span class="p">(</span><span class="n">attrib</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ndarray&quot;</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sets</span> <span class="o">=</span> <span class="n">aast</span><span class="o">.</span><span class="n">literal_eval</span><span class="p">(</span><span class="n">attrib</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;set&quot;</span><span class="p">))</span>
+            <span class="n">tname</span> <span class="o">=</span> <span class="n">name</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inAT</span><span class="p">:</span>
+                <span class="n">tname</span> <span class="o">+=</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">curAT</span><span class="o">.</span><span class="n">show</span><span class="p">()</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dtd</span><span class="o">.</span><span class="n">check</span><span class="p">(</span><span class="n">tname</span><span class="p">,</span> <span class="s2">&quot;ndarray&quot;</span><span class="p">,</span> <span class="n">bt</span><span class="o">.</span><span class="n">STRING</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dtd</span><span class="o">.</span><span class="n">check</span><span class="p">(</span><span class="n">tname</span><span class="p">,</span> <span class="s2">&quot;set&quot;</span><span class="p">,</span> <span class="n">bt</span><span class="o">.</span><span class="n">STRING</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">temp</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">LIST</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ndarr</span> <span class="o">=</span> <span class="n">aast</span><span class="o">.</span><span class="n">literal_eval</span><span class="p">(</span><span class="n">attrib</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ndarray&quot;</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sets</span> <span class="o">=</span> <span class="n">aast</span><span class="o">.</span><span class="n">literal_eval</span><span class="p">(</span><span class="n">attrib</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;set&quot;</span><span class="p">))</span>
+            <span class="n">tname</span> <span class="o">=</span> <span class="n">name</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inAT</span><span class="p">:</span>
+                <span class="n">tname</span> <span class="o">+=</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">curAT</span><span class="o">.</span><span class="n">show</span><span class="p">()</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dtd</span><span class="o">.</span><span class="n">check</span><span class="p">(</span><span class="n">tname</span><span class="p">,</span> <span class="s2">&quot;ndarray&quot;</span><span class="p">,</span> <span class="n">bt</span><span class="o">.</span><span class="n">STRING</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dtd</span><span class="o">.</span><span class="n">check</span><span class="p">(</span><span class="n">tname</span><span class="p">,</span> <span class="s2">&quot;set&quot;</span><span class="p">,</span> <span class="n">bt</span><span class="o">.</span><span class="n">STRING</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">temp</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">SET</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ndarr</span> <span class="o">=</span> <span class="n">aast</span><span class="o">.</span><span class="n">literal_eval</span><span class="p">(</span><span class="n">attrib</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ndarray&quot;</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sets</span> <span class="o">=</span> <span class="n">aast</span><span class="o">.</span><span class="n">literal_eval</span><span class="p">(</span><span class="n">attrib</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;set&quot;</span><span class="p">))</span>
+            <span class="n">tname</span> <span class="o">=</span> <span class="n">name</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inAT</span><span class="p">:</span>
+                <span class="n">tname</span> <span class="o">+=</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">curAT</span><span class="o">.</span><span class="n">show</span><span class="p">()</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dtd</span><span class="o">.</span><span class="n">check</span><span class="p">(</span><span class="n">tname</span><span class="p">,</span> <span class="s2">&quot;ndarray&quot;</span><span class="p">,</span> <span class="n">bt</span><span class="o">.</span><span class="n">STRING</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dtd</span><span class="o">.</span><span class="n">check</span><span class="p">(</span><span class="n">tname</span><span class="p">,</span> <span class="s2">&quot;set&quot;</span><span class="p">,</span> <span class="n">bt</span><span class="o">.</span><span class="n">STRING</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">temp</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">INT</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="nb">int</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">temp</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">TUPLE</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ndarr</span> <span class="o">=</span> <span class="n">aast</span><span class="o">.</span><span class="n">literal_eval</span><span class="p">(</span><span class="n">attrib</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ndarray&quot;</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sets</span> <span class="o">=</span> <span class="n">aast</span><span class="o">.</span><span class="n">literal_eval</span><span class="p">(</span><span class="n">attrib</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;set&quot;</span><span class="p">))</span>
+            <span class="n">tname</span> <span class="o">=</span> <span class="n">name</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inAT</span><span class="p">:</span>
+                <span class="n">tname</span> <span class="o">+=</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">curAT</span><span class="o">.</span><span class="n">show</span><span class="p">()</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dtd</span><span class="o">.</span><span class="n">check</span><span class="p">(</span><span class="n">tname</span><span class="p">,</span> <span class="s2">&quot;ndarray&quot;</span><span class="p">,</span> <span class="n">bt</span><span class="o">.</span><span class="n">STRING</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dtd</span><span class="o">.</span><span class="n">check</span><span class="p">(</span><span class="n">tname</span><span class="p">,</span> <span class="s2">&quot;set&quot;</span><span class="p">,</span> <span class="n">bt</span><span class="o">.</span><span class="n">STRING</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">temp</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">NDARRAY</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">([])</span>
+        <span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">ADMIT</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">inAdmit</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="n">temp</span><span class="o">.</span><span class="n">title</span><span class="p">()</span> <span class="ow">in</span> <span class="n">bt</span><span class="o">.</span><span class="n">UTIL_LIST</span> <span class="ow">or</span> <span class="n">temp</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">MULTIIMAGE</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">inUtil</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="n">temp</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">MULTIIMAGE</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">multiName</span> <span class="o">=</span> <span class="n">name</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">MultiImage</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">getClass</span><span class="p">(</span><span class="s2">&quot;util&quot;</span><span class="p">,</span> <span class="s2">&quot;MultiImage&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">inMulti</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">Util</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">getClass</span><span class="p">(</span><span class="s2">&quot;util&quot;</span><span class="p">,</span> <span class="n">temp</span><span class="o">.</span><span class="n">title</span><span class="p">())</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">utilName</span> <span class="o">=</span> <span class="n">name</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">utilType</span> <span class="o">=</span> <span class="n">temp</span>
+        <span class="k">elif</span> <span class="n">temp</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">AT</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">flowmanager</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;FlowManager not initialized, xml in wrong order&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">inAT</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">curAT</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">getClass</span><span class="p">(</span><span class="s2">&quot;at&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Could not create class of type </span><span class="si">%s</span><span class="s2"> because </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)))</span>
+        <span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">BDP</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">temp</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">inBDP</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">BDP</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">getClass</span><span class="p">(</span><span class="s2">&quot;bdp&quot;</span><span class="p">,</span> <span class="n">temp</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Could not create class of type </span><span class="si">%s</span><span class="s2"> because </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)))</span>
+        <span class="k">elif</span> <span class="n">temp</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">SUMMARY</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">summaryData</span> <span class="o">=</span> <span class="n">Summary</span><span class="o">.</span><span class="n">Summary</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">inSummary</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">summaryName</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="k">elif</span> <span class="n">temp</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">SUMMARYENTRY</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">summaryEntry</span> <span class="o">=</span> <span class="n">Summary</span><span class="o">.</span><span class="n">SummaryEntry</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">inSummaryEntry</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">summaryEntryName</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;metadata&quot;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">inSummary</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">metadataName</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">attrib</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dtd</span><span class="o">.</span><span class="n">check</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="n">bt</span><span class="o">.</span><span class="n">STRING</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">summaryData</span><span class="o">.</span><span class="n">_metadata</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">metadataName</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span></div>
+
+<div class="viewcode-block" id="AdmitParser.endElement"><a class="viewcode-back" href="../../../module/admit.xmlio/AdmitParser.html#admit.xmlio.AdmitParser.AdmitParser.endElement">[docs]</a>    <span class="k">def</span> <span class="nf">endElement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method called whenever the end of an xml element is reached. This</span>
+<span class="sd">            method is only called by the SAX parser iteself.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            name : str</span>
+<span class="sd">                The name of the node that just ended</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># reset the tracking stuff, add BDP&#39;s to AT&#39;s, AT&#39;s to the flowmanager</span>
+        <span class="c1"># reconstruct any nodes that spanned multiple lines</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">utilName</span><span class="p">:</span>
+            <span class="c1"># add the utility classes to the appropriate parent class</span>
+            <span class="c1"># Images always get added to MultiImages</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inMulti</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">MultiImage</span><span class="o">.</span><span class="n">addimage</span><span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Util</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">Util</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">inBDP</span><span class="p">:</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">BDP</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">utilName</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Util</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">inAT</span><span class="p">:</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">curAT</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">utilName</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Util</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">inUtil</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">utilName</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">multiName</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inBDP</span><span class="p">:</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">BDP</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">multiName</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">MultiImage</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">inAT</span><span class="p">:</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">curAT</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">multiName</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">MultiImage</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">multiImageName</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">inMulti</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">inUtil</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">BDP</span><span class="p">:</span>
+            <span class="c1"># one last validation run</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">BDP</span><span class="o">.</span><span class="n">_baseDir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">basedir</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtd</span><span class="o">.</span><span class="n">checkAll</span><span class="p">():</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Some required nodes missing from xml file, attempting to continue anyway.&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">FLOWMANAGER</span><span class="p">:</span>
+            <span class="n">temp</span> <span class="o">=</span> <span class="n">aast</span><span class="o">.</span><span class="n">literal_eval</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">flowdata</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;depsmap&quot;</span><span class="p">,</span> <span class="s2">&quot;varimap&quot;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">temp</span><span class="p">:</span>
+                    <span class="n">temp</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">temp</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">flowmanager</span> <span class="o">=</span> <span class="n">fm</span><span class="o">.</span><span class="n">FlowManager</span><span class="p">(</span><span class="o">**</span><span class="n">temp</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">inflow</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inUtil</span><span class="p">:</span>
+                <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Util</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">inBDP</span><span class="p">:</span>
+                <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">BDP</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">inAT</span><span class="p">:</span>
+                <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">curAT</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">inSummaryEntry</span><span class="p">:</span>
+                <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">summaryEntry</span>
+            <span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;projmanager&quot;</span><span class="p">:</span>
+                <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">admit</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">setattr</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tempdata</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tempdata</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> \
+           <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="nb">set</span><span class="p">):</span>
+            <span class="n">temp</span> <span class="o">=</span> <span class="n">aast</span><span class="o">.</span><span class="n">literal_eval</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tempdata</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inUtil</span><span class="p">:</span>
+                <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Util</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">inBDP</span><span class="p">:</span>
+                <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">BDP</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">inAT</span><span class="p">:</span>
+                <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">curAT</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">inSummaryEntry</span><span class="p">:</span>
+                <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">summaryEntry</span>
+            <span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;projmanager&quot;</span><span class="p">:</span>
+                <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">admit</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndarr</span><span class="p">:</span>
+                <span class="n">temp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">temp</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sets</span><span class="p">:</span>
+                <span class="n">temp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">temp</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+                <span class="n">temp</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="nb">set</span><span class="p">):</span>
+                <span class="n">temp</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setattr</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">temp</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Data member </span><span class="si">%s</span><span class="s2"> is not a member of </span><span class="si">%s</span><span class="s2">. This may be due to a version mismatch between the data and your software, attempting to continue.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">target</span><span class="p">))))</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">raise</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="n">temp</span> <span class="o">=</span> <span class="n">aast</span><span class="o">.</span><span class="n">literal_eval</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tempdata</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inUtil</span><span class="p">:</span>
+                <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Util</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">inBDP</span><span class="p">:</span>
+                <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">BDP</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">inAT</span><span class="p">:</span>
+                <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">curAT</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">admit</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setattr</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">))</span>
+            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Data member </span><span class="si">%s</span><span class="s2"> is not a member of </span><span class="si">%s</span><span class="s2">. This may be due to a version mismatch between the data and your software, attempting to continue.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">target</span><span class="p">))))</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">raise</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">inAT</span> <span class="ow">and</span> <span class="n">name</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">curAT</span><span class="o">.</span><span class="n">show</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">inAdmit</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="c1"># one last validation run</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">curAT</span><span class="o">.</span><span class="n">_bdp_in</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">curAT</span><span class="o">.</span><span class="n">_bdp_in_map</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">curAT</span><span class="o">.</span><span class="n">_bdp_out</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">curAT</span><span class="o">.</span><span class="n">_bdp_out_map</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">curAT</span><span class="o">.</span><span class="n">_baseDir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">basedir</span>
+            <span class="n">at</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">curAT</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">AT</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">at</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">flowmanager</span><span class="p">[</span><span class="n">at</span><span class="o">.</span><span class="n">_taskid</span><span class="p">]</span> <span class="o">=</span> <span class="n">at</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">curAT</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">inAT</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">ADMIT</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">inAdmit</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtd</span><span class="o">.</span><span class="n">checkAll</span><span class="p">():</span>
+                <span class="nb">print</span> <span class="s2">&quot;Some required nodes missing from admit.xml file, attempting to continue anyway&quot;</span>
+        <span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;_keys&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">inKeys</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">summaryEntryName</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">summaryData</span><span class="o">.</span><span class="n">_metadata</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">metadataName</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">summaryEntry</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">summaryEntryName</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">inSummaryEntry</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">summaryName</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">inSummary</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadataName</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">metadataName</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ndarr</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sets</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ndarr</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="AdmitParser.setattr"><a class="viewcode-back" href="../../../module/admit.xmlio/AdmitParser.html#admit.xmlio.AdmitParser.AdmitParser.setattr">[docs]</a>    <span class="k">def</span> <span class="nf">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to set attributes in a class</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            target : object</span>
+<span class="sd">                The class to which the paremeters is being set</span>
+
+<span class="sd">            name : str</span>
+<span class="sd">                The name of the attribute to set</span>
+
+<span class="sd">            value : various</span>
+<span class="sd">                The value to set the attribute to</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># if we are in the keys the treat the special</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inKeys</span><span class="p">:</span>
+            <span class="n">target</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AdmitParser.getattr"><a class="viewcode-back" href="../../../module/admit.xmlio/AdmitParser.html#admit.xmlio.AdmitParser.AdmitParser.getattr">[docs]</a>    <span class="k">def</span> <span class="nf">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to get the value of a specific data member from the given class</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            target : object</span>
+<span class="sd">                The class from which the data value will be obtained</span>
+
+<span class="sd">            name : str</span>
+<span class="sd">                The name of the data member whose value will be obtained</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            Various, the value of the requested data member, None if it does not exist</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inKeys</span><span class="p">:</span>
+            <span class="n">target</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">target</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="AdmitParser.characters"><a class="viewcode-back" href="../../../module/admit.xmlio/AdmitParser.html#admit.xmlio.AdmitParser.AdmitParser.characters">[docs]</a>    <span class="k">def</span> <span class="nf">characters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ch</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method called whenever characters are detected in an xml node</span>
+<span class="sd">            This method does some dtd validation. This</span>
+<span class="sd">            method is only called by the SAX parser iteself.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            ch : unicode characters</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">target</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">char</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">char</span><span class="o">.</span><span class="n">isspace</span><span class="p">()</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">char</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="c1"># determine which class the data are getting writtrn to</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inUtil</span><span class="p">:</span>
+            <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Util</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">inBDP</span><span class="p">:</span>
+            <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">BDP</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">inAT</span><span class="p">:</span>
+            <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">curAT</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">inSummaryEntry</span><span class="p">:</span>
+            <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">summaryEntry</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">inSummary</span><span class="p">:</span>
+            <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">summaryData</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">admit</span>
+        <span class="c1"># a list or dictionary has to be decoded</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> \
+           <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="nb">set</span><span class="p">)</span> \
+           <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inflow</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">flowdata</span> <span class="o">+=</span> <span class="n">char</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tempdata</span> <span class="o">+=</span> <span class="n">char</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># check the version</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;_version&quot;</span><span class="p">:</span>
+                <span class="n">ver</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getattr</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                <span class="n">vercheck</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">compareversions</span><span class="p">(</span><span class="n">ver</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">char</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">vercheck</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span> <span class="c1"># newer read in</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Version mismatch for </span><span class="si">%s</span><span class="s2">, data are a newer version than current software, attempting to continue.&quot;</span> <span class="o">%</span> <span class="n">target</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;_type&quot;</span><span class="p">))</span>
+                <span class="k">elif</span> <span class="n">vercheck</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="c1"># older read in</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Version mismatch for </span><span class="si">%s</span><span class="s2">, data are an older version than current software, attempting to continue.&quot;</span> <span class="o">%</span> <span class="n">target</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;_type&quot;</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">setattr</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">getData</span><span class="p">(</span><span class="n">char</span><span class="p">))</span>
+                <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Data member </span><span class="si">%s</span><span class="s2"> is not a member of </span><span class="si">%s</span><span class="s2">. This may be due to a version mismatch between the data and your software, attempting to continue.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">target</span><span class="p">))))</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="k">raise</span>
+        <span class="k">del</span> <span class="n">ch</span></div>
+
+<div class="viewcode-block" id="AdmitParser.close"><a class="viewcode-back" href="../../../module/admit.xmlio/AdmitParser.html#admit.xmlio.AdmitParser.AdmitParser.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to close out the reader, called only by the sax parser</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span></div>
+
+<div class="viewcode-block" id="AdmitParser.getData"><a class="viewcode-back" href="../../../module/admit.xmlio/AdmitParser.html#admit.xmlio.AdmitParser.AdmitParser.getData">[docs]</a>    <span class="k">def</span> <span class="nf">getData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method used to convert string to designated type.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            input: str</span>
+<span class="sd">                The string to convert</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            Various types, based on the expected type of the xml node</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">item</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">long</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">long</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">item</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

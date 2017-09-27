@@ -1,0 +1,214 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Installation Guide &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="index.html" />
+    <link rel="next" title="Design Overview" href="design.html" />
+    <link rel="prev" title="Scripts that show real-world flows" href="examplescripts.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="design.html" title="Design Overview"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="examplescripts.html" title="Scripts that show real-world flows"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">ADMIT 1.0.6 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="installation-guide">
+<h1>Installation Guide<a class="headerlink" href="#installation-guide" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="admit-pre-installed">
+<h2>ADMIT pre-installed<a class="headerlink" href="#admit-pre-installed" title="Permalink to this headline">¶</a></h2>
+<p>If ADMIT has been installed on your system already, the only thing you
+need to do is source the appropriate <strong>admit_start</strong> script in your Unix shell.
+Use the <strong>.sh</strong>
+or <strong>.csh</strong> version depending on what flavor shell you are
+using. On most Linux and Mac systems these days give you <strong>bash</strong> as
+the default shell, so this would be</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span><span class="nb">source</span> /path/to/admit_start.sh
+</pre></div>
+</div>
+<p>but the csh/tcsh version is also fully functional.
+Then test if the basics work with the command</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>admit
+</pre></div>
+</div>
+<p>You should now also be able to <strong>import admit</strong> from within your CASA session
+and/or run an appropriate ADMIT script.
+Note that typing &#8220;admit&#8221; does not put you into an &#8220;admit&#8221; shell; it just prints
+out path definitions to show you that ADMIT is set-up for use.</p>
+</div>
+<div class="section" id="admit-install-from-scratch">
+<h2>ADMIT install from scratch<a class="headerlink" href="#admit-install-from-scratch" title="Permalink to this headline">¶</a></h2>
+<p>If you do not have ADMIT installed, or want a fresh install, grab the
+latest export version of the source code and install it. This will typically
+not even take a minute, as no compilation is needed! It just assumes you have
+CASA pre-installed, and know of its location on the system.
+Or head over to <a class="reference external" href="http://casa.nrao.edu/casa_obtaining.shtml">http://casa.nrao.edu/casa_obtaining.shtml</a> to install this
+for your system. ADMIT should work with CASA V4.5 and up.</p>
+<p>Grab a version of the source code,
+pick one of many ways to do this:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>wget http://admit.astro.umd.edu/admit.tar.gz
+
+curl http://admit.astro.umd.edu/admit.tar.gz  <span class="p">|</span> tar -zxf -
+</pre></div>
+</div>
+<p>and untar this file, then execute the configure step to create the
+two admit_start scripts. You will need to know where on your system
+the casa root directory is located. Here is a sample session for
+both Linux and Darwin:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>tar zxf admit.tar.gz
+ls
+<span class="nb">cd</span> admit_1.X.x
+./configure --with-casa-root<span class="o">=</span>/path/to/casa-release-4.7.2-el6
+
+./configure --with-casa-root<span class="o">=</span>/Applications/CASA.app/Contents
+</pre></div>
+</div>
+<p>where a CASA release had been placed in the /path/to/casa-release-4.7.2-el6
+(a typical Linux example) or /Applications/CASA.app/Contents (the common Darwin
+example)
+and admit_1.X.x is the downloaded version of ADMIT. You can also <em>wget</em> that
+fully named version, but the latest is always available under the generic name.
+If you have a version of ADMIT without the configure script , you might be able
+to use the scripts/configure script instead (formally configure should be
+created with the autoconf command).</p>
+<p>Now you can source the startup file and you are set:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span><span class="nb">source</span> admit_start.sh
+</pre></div>
+</div>
+<p>If you want to check that ADMIT is set-up you can type:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>admit
+</pre></div>
+</div>
+<p>and will now see the directory paths and versions. Congratulations!</p>
+<p>Even though this discussion is out of scope here, the ADMIT development version
+can be obtained from <a class="reference external" href="http://github.com/astroumd/admit">http://github.com/astroumd/admit</a></p>
+</div>
+<div class="section" id="documentation">
+<h2>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h2>
+<p>Your export version should come with an html as well as PDF version of the manual.
+Point your favorite tool at one of the following</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span><span class="nv">$ADMIT</span>/docs/latex/ADMIT.pdf
+
+<span class="nv">$ADMIT</span>/docs/html/index.html
+</pre></div>
+</div>
+</div>
+<div class="section" id="admit-mailing-list">
+<h2>ADMIT mailing list<a class="headerlink" href="#admit-mailing-list" title="Permalink to this headline">¶</a></h2>
+<p>It is highly recommended you subscribe to the  ADMIT mailing list to hear
+about ADMIT updates, bug fixes, discussions etc. The address is
+<strong>admit-users&#64;googlegroups.com</strong> and you can subscribe via
+<a class="reference external" href="https://groups.google.com/forum/#!forum/admit-users">https://groups.google.com/forum/#!forum/admit-users</a></p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Installation Guide</a><ul>
+<li><a class="reference internal" href="#admit-pre-installed">ADMIT pre-installed</a></li>
+<li><a class="reference internal" href="#admit-install-from-scratch">ADMIT install from scratch</a></li>
+<li><a class="reference internal" href="#documentation">Documentation</a></li>
+<li><a class="reference internal" href="#admit-mailing-list">ADMIT mailing list</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="examplescripts.html"
+                        title="previous chapter">Scripts that show real-world flows</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="design.html"
+                        title="next chapter">Design Overview</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/installguide.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="design.html" title="Design Overview"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="examplescripts.html" title="Scripts that show real-world flows"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">ADMIT 1.0.6 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,291 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.util.MultiImage &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.util.MultiImage</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; .. _MultiImage-api:</span>
+
+<span class="sd">    **MultiImage** --- Multiple image container base.</span>
+<span class="sd">    -------------------------------------------------</span>
+
+<span class="sd">    This module defines the MultiImage class for multiple Image instances.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># system imports</span>
+<span class="kn">import</span> <span class="nn">xml.etree.cElementTree</span> <span class="k">as</span> <span class="nn">et</span>
+<span class="kn">import</span> <span class="nn">ast</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="c1"># ADMIT imports</span>
+<span class="kn">import</span> <span class="nn">bdp_types</span> <span class="k">as</span> <span class="nn">bt</span>
+<span class="kn">from</span> <span class="nn">Image</span> <span class="k">import</span> <span class="n">Image</span>
+<span class="kn">from</span> <span class="nn">UtilBase</span> <span class="k">import</span> <span class="n">UtilBase</span>
+
+
+<div class="viewcode-block" id="MultiImage"><a class="viewcode-back" href="../../../module/admit.util/MultiImage.html#admit.util.MultiImage.MultiImage">[docs]</a><span class="k">class</span> <span class="nc">MultiImage</span><span class="p">(</span><span class="n">UtilBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Class tha allows multiple image instances to be stored as one Image</span>
+<span class="sd">        instance. There can be 0 to N different images (no limit) and the</span>
+<span class="sd">        number does not need to be specified as they are allocated and removed</span>
+<span class="sd">        dynamically.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        mimages : dict</span>
+<span class="sd">            A dictionary for holding the Image instances. Each Image instance</span>
+<span class="sd">            must have a unique name (the key).</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mimages</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">UtilBase</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="p">{})</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mimages</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="nb">print</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+
+<div class="viewcode-block" id="MultiImage.addimage"><a class="viewcode-back" href="../../../module/admit.util/MultiImage.html#admit.util.MultiImage.MultiImage.addimage">[docs]</a>    <span class="k">def</span> <span class="nf">addimage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to add a new image to the dictionary. The image key must not</span>
+<span class="sd">            already exist.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            image : Image</span>
+<span class="sd">                The image instance to add</span>
+
+<span class="sd">            name : str</span>
+<span class="sd">                The unique name to use for the image</span>
+<span class="sd">                Default : &quot;&quot;</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">Image</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Only an image can be added to MultiImage&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mimages</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;An image named </span><span class="si">%s</span><span class="s2"> already exists, use replaceimage to replace it&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">))</span>
+        <span class="n">image</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mimages</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">image</span></div>
+
+<div class="viewcode-block" id="MultiImage.replaceimage"><a class="viewcode-back" href="../../../module/admit.util/MultiImage.html#admit.util.MultiImage.MultiImage.replaceimage">[docs]</a>    <span class="k">def</span> <span class="nf">replaceimage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to replace an image in the dictionary. This will no throw an</span>
+<span class="sd">            error if the image does not already exist.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            image : Image</span>
+<span class="sd">                The image instance to insert</span>
+
+<span class="sd">            name : str</span>
+<span class="sd">                The name of the image to replace</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">Image</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Only an image can be added to MultiImage&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mimage</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">image</span></div>
+
+<div class="viewcode-block" id="MultiImage.removeimage"><a class="viewcode-back" href="../../../module/admit.util/MultiImage.html#admit.util.MultiImage.MultiImage.removeimage">[docs]</a>    <span class="k">def</span> <span class="nf">removeimage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to remove an image from the dictionary</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            name : str</span>
+<span class="sd">                The name of the image to remove</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="p">:</span>
+            <span class="c1">#self.mimages[name].delete(BASEDIR)</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">mimages</span><span class="p">[</span><span class="n">name</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="MultiImage.getimage"><a class="viewcode-back" href="../../../module/admit.util/MultiImage.html#admit.util.MultiImage.MultiImage.getimage">[docs]</a>    <span class="k">def</span> <span class="nf">getimage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">typ</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to get the requested image from the named instance as an</span>
+<span class="sd">            imagedescriptor.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            typ : string</span>
+<span class="sd">                Can be any of the following: bdp_types.AUX to retrieve the</span>
+<span class="sd">                auxiliary file, bdp_types.THUMB to retrieve the thumbnail,</span>
+<span class="sd">                or a file format (e.g. bdp_types.FITS) to retrieve the</span>
+<span class="sd">                requested format of the main image. If the requested image</span>
+<span class="sd">                does not exist then None is returned.</span>
+
+<span class="sd">            name : str</span>
+<span class="sd">                The name if the image instance to get.</span>
+<span class="sd">                Default : &quot;&quot;</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            ImageDescriptor</span>
+<span class="sd">                An imagedescriptor of the requested image or None if the image</span>
+<span class="sd">                does not exist in the class.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mimages</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">getimage</span><span class="p">(</span><span class="n">typ</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MultiImage.getimageclass"><a class="viewcode-back" href="../../../module/admit.util/MultiImage.html#admit.util.MultiImage.MultiImage.getimageclass">[docs]</a>    <span class="k">def</span> <span class="nf">getimageclass</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to return the requested Image instance</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            name : str</span>
+<span class="sd">                The name of the Image instance to get</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            Image class instance of the requested image</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mimages</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mimages</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="MultiImage.delete"><a class="viewcode-back" href="../../../module/admit.util/MultiImage.html#admit.util.MultiImage.MultiImage.delete">[docs]</a>    <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">basedir</span><span class="p">,</span> <span class="n">delfiles</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to delete all of the Images</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            basedir : str</span>
+<span class="sd">                The base directory where the image(s) are</span>
+
+<span class="sd">            delfiles : bool</span>
+<span class="sd">                Whether or not to delete the actual image files</span>
+<span class="sd">                Default : True</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mimages</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="n">v</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">basedir</span><span class="p">,</span> <span class="n">delfiles</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MultiImage.serialize"><a class="viewcode-back" href="../../../module/admit.util/MultiImage.html#admit.util.MultiImage.MultiImage.serialize">[docs]</a>    <span class="k">def</span> <span class="nf">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">imlist</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mimages</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="n">imlist</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">serialize</span><span class="p">()</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">imlist</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MultiImage.deserialize"><a class="viewcode-back" href="../../../module/admit.util/MultiImage.html#admit.util.MultiImage.MultiImage.deserialize">[docs]</a>    <span class="k">def</span> <span class="nf">deserialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">serial</span><span class="p">):</span>
+        <span class="n">imlist</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">literal_eval</span><span class="p">(</span><span class="n">serial</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">imlist</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="c1">#print &quot;deserializing: %s&quot; % k</span>
+            <span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="p">()</span>
+            <span class="n">image</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+            <span class="c1">#print image</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">addimage</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">retstr</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mimages</span><span class="p">:</span>
+           <span class="n">retstr</span> <span class="o">=</span> <span class="n">retstr</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mimages</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span>
+        <span class="k">return</span> <span class="n">retstr</span>
+
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">other</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mimages</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">mimages</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">mimages</span><span class="p">[</span><span class="n">k</span><span class="p">]:</span>
+                    <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+             <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

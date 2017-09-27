@@ -1,0 +1,271 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.util.segmentfinder.SegmentFinder &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.util.segmentfinder.SegmentFinder</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; .. _segmentfinder:</span>
+
+<span class="sd">    SegmentFinder --- Top-level spectral emission segment finder.</span>
+<span class="sd">    -------------------------------------------------------------</span>
+
+<span class="sd">    This module defines base segment finder for ADMIT. It calls the requested segment finder.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># system imports</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+
+<span class="c1"># ADMIT imports</span>
+<span class="kn">from</span> <span class="nn">admit.util</span> <span class="k">import</span> <span class="n">utils</span>
+
+<div class="viewcode-block" id="SegmentFinder"><a class="viewcode-back" href="../../../../module/admit.util.segmentfinder/SegmentFinder.html#admit.util.segmentfinder.SegmentFinder.SegmentFinder">[docs]</a><span class="k">class</span> <span class="nc">SegmentFinder</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; This class is used to find segments of emission in spectra. It calls the requested</span>
+<span class="sd">        segment finder and can iterate over the inputs to find both wider weaker segments as</span>
+<span class="sd">        well as stronger narrower ones. The iteration is done by conserving the product of</span>
+<span class="sd">        numsigma * minchan. The first run keeps both values as they were input, subsequent</span>
+<span class="sd">        runs decrease the minchan by 1 and increase numsigma so that the product is conserved.</span>
+<span class="sd">        This is repeated as long as minchan &gt; 1. The results of the iterations are merged together</span>
+<span class="sd">        and a single list of channel ranges is returned.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        spectrum : array like</span>
+<span class="sd">            The input spectrum from which the segments are detected.</span>
+
+<span class="sd">        freq : array like</span>
+<span class="sd">            The frequency axis of the spectrum, must have the same length as</span>
+<span class="sd">            spectrum.</span>
+
+<span class="sd">        method : str</span>
+<span class="sd">            The segment finding method to use (e.g. &quot;ADMIT&quot;, &quot;ASAP&quot;).</span>
+
+<span class="sd">        minchan : int</span>
+<span class="sd">            The minimum number of channels that a segment must span.</span>
+
+<span class="sd">        maxgap : int</span>
+<span class="sd">            The maximum number of channels below the cutoff, to allow in the middle</span>
+<span class="sd">            of a segment. Gaps larger than this will start a new segment.</span>
+
+<span class="sd">        numsigma : float</span>
+<span class="sd">            The minimum number of sigma a channel must be in order to consider it part</span>
+<span class="sd">            of a segment.</span>
+
+<span class="sd">        iterate : bool</span>
+<span class="sd">            If True then iterate over the minchan and numsigma to detect stronger, but</span>
+<span class="sd">            narrower lines.</span>
+<span class="sd">            Default: False.</span>
+
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        spectrum : array like</span>
+<span class="sd">            The input spectrum from which the segments are detected.</span>
+
+<span class="sd">        freq : array like</span>
+<span class="sd">            The frequency axis of the spectrum, must have the same length as</span>
+<span class="sd">            spectrum.</span>
+
+<span class="sd">        method : str</span>
+<span class="sd">            The segment finding method to use (e.g. &quot;ADMIT&quot;, &quot;ASAP&quot;).</span>
+
+<span class="sd">        minchan : int</span>
+<span class="sd">            The minimum number of channels that a segment must span.</span>
+
+<span class="sd">        maxgap : int</span>
+<span class="sd">            The maximum number of channels below the cutoff, to allow in the middle</span>
+<span class="sd">            of a segment. Gaps larger than this will start a new segment.</span>
+
+<span class="sd">        numsigma : float</span>
+<span class="sd">            The minimum number of sigma a channel must be in order to consider it part</span>
+<span class="sd">            of a segment.</span>
+
+<span class="sd">        iterate : bool</span>
+<span class="sd">            If True then iterate over the minchan and numsigma to detect stronger, but</span>
+<span class="sd">            narrower lines.</span>
+
+<span class="sd">        area : float</span>
+<span class="sd">            The area (numsigma * minchan) which is conserved while iterating.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spectrum</span><span class="p">,</span> <span class="n">freq</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">minchan</span><span class="p">,</span> <span class="n">maxgap</span><span class="p">,</span> <span class="n">numsigma</span><span class="p">,</span> <span class="n">iterate</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">noise</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nomean</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spectrum</span> <span class="o">=</span> <span class="n">spectrum</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">freq</span> <span class="o">=</span> <span class="n">freq</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">method</span> <span class="o">=</span> <span class="n">method</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">minchan</span> <span class="o">=</span> <span class="n">minchan</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">numsigma</span> <span class="o">=</span> <span class="n">numsigma</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">maxgap</span> <span class="o">=</span> <span class="n">maxgap</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">iterate</span> <span class="o">=</span> <span class="n">iterate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">noise</span> <span class="o">=</span> <span class="n">noise</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nomean</span> <span class="o">=</span> <span class="n">nomean</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">area</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">numsigma</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">minchan</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SegmentFinder.find"><a class="viewcode-back" href="../../../../module/admit.util.segmentfinder/SegmentFinder.html#admit.util.segmentfinder.SegmentFinder.SegmentFinder.find">[docs]</a>    <span class="k">def</span> <span class="nf">find</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to find segments in the input spectrum, using the given method.</span>
+<span class="sd">            If iterate is set to True then the segment finder is called multiple</span>
+<span class="sd">            times, each run decreasing the minchan by one and increasing numsigma</span>
+<span class="sd">            (while conserving the product of the two), until minchan = 1, then the</span>
+<span class="sd">            cycle is stopped (single channel spikes, no matter how strong, will</span>
+<span class="sd">            not be detected).</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            Four items: list of the segment start and end points, the cutoff, the noise</span>
+<span class="sd">            of the spectrum, and the mean of the spectrum.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>        <span class="c1"># list to hold the results of each iteration</span>
+        <span class="n">cutoff</span> <span class="o">=</span> <span class="p">[]</span>         <span class="c1"># list to hold the cutoff from each iteration</span>
+        <span class="n">noise</span> <span class="o">=</span> <span class="p">[]</span>          <span class="c1"># list to hold the noise from each iteration</span>
+        <span class="n">mean</span> <span class="o">=</span> <span class="p">[]</span>           <span class="c1"># list to hold the mean from each iteration</span>
+
+        <span class="c1"># keep iterating as long as minchan is greater than 1</span>
+        <span class="k">while</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">minchan</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">iterate</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">minchan</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">iterate</span><span class="p">):</span>
+            <span class="c1"># find the segments with the current parameters</span>
+            <span class="n">sfinder</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">getClass</span><span class="p">(</span><span class="s2">&quot;util.segmentfinder&quot;</span><span class="p">,</span>
+                                     <span class="bp">self</span><span class="o">.</span><span class="n">method</span> <span class="o">+</span> <span class="s2">&quot;SegmentFinder&quot;</span><span class="p">,</span>
+                                     <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span>    <span class="s2">&quot;Line_ID.</span><span class="si">%i</span><span class="s2">.asap&quot;</span> <span class="o">%</span> <span class="mi">100</span><span class="p">,</span>
+                                      <span class="s2">&quot;spec&quot;</span><span class="p">:</span>    <span class="bp">self</span><span class="o">.</span><span class="n">spectrum</span><span class="p">,</span>
+                                      <span class="s2">&quot;pmin&quot;</span><span class="p">:</span>    <span class="bp">self</span><span class="o">.</span><span class="n">numsigma</span><span class="p">,</span>
+                                      <span class="s2">&quot;minchan&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">minchan</span><span class="p">,</span>
+                                      <span class="s2">&quot;maxgap&quot;</span><span class="p">:</span>  <span class="bp">self</span><span class="o">.</span><span class="n">maxgap</span><span class="p">,</span>
+                                      <span class="s2">&quot;freq&quot;</span><span class="p">:</span>    <span class="bp">self</span><span class="o">.</span><span class="n">freq</span><span class="p">,</span>
+                                      <span class="s2">&quot;noise&quot;</span><span class="p">:</span>   <span class="bp">self</span><span class="o">.</span><span class="n">noise</span><span class="p">,</span>
+                                      <span class="s2">&quot;nomean&quot;</span><span class="p">:</span>  <span class="bp">self</span><span class="o">.</span><span class="n">nomean</span><span class="p">})</span>
+            <span class="n">sfinder</span><span class="o">.</span><span class="n">set_options</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numsigma</span><span class="p">)),</span>
+                                <span class="n">min_nchan</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">minchan</span><span class="p">,</span> <span class="n">box_size</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+                                <span class="n">average_limit</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">noise_box</span><span class="o">=</span><span class="s2">&quot;box&quot;</span><span class="p">)</span>
+            <span class="c1"># find the segments</span>
+            <span class="n">seg</span><span class="p">,</span> <span class="n">cut</span><span class="p">,</span> <span class="n">noi</span><span class="p">,</span> <span class="n">mn</span> <span class="o">=</span> <span class="n">sfinder</span><span class="o">.</span><span class="n">find</span><span class="p">()</span>
+            <span class="k">del</span> <span class="n">sfinder</span>
+            <span class="c1"># append the results</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">iterate</span><span class="p">:</span>
+                <span class="c1"># if not iterating then just return the results</span>
+                <span class="k">return</span> <span class="n">seg</span><span class="p">,</span> <span class="n">cut</span><span class="p">,</span> <span class="n">noi</span><span class="p">,</span> <span class="n">mn</span>
+            <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">seg</span><span class="p">)</span>
+            <span class="n">cutoff</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cut</span><span class="p">)</span>
+            <span class="n">noise</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">noi</span><span class="p">)</span>
+            <span class="n">mean</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mn</span><span class="p">)</span>
+            <span class="c1"># decrease minchan and recompute numsigma (conserving the area)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">minchan</span> <span class="o">-=</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">numsigma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">area</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">minchan</span><span class="p">)</span>
+        <span class="c1"># put the first results on top</span>
+        <span class="n">results</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+
+        <span class="c1"># get the first results as they will be the widest</span>
+        <span class="n">segments</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+        <span class="c1"># for each of the remaining runs merge the results</span>
+        <span class="k">for</span> <span class="n">tempsegs</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">seg</span> <span class="ow">in</span> <span class="n">tempsegs</span><span class="p">:</span>
+                <span class="n">found</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">segments</span><span class="p">)):</span>
+                    <span class="c1"># fully contained segment</span>
+                    <span class="k">if</span> <span class="n">seg</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">segments</span><span class="p">[</span><span class="n">m</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="ow">and</span> <span class="n">seg</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">segments</span><span class="p">[</span><span class="n">m</span><span class="p">][</span><span class="mi">1</span><span class="p">]:</span>
+                        <span class="n">found</span> <span class="o">=</span> <span class="kc">True</span>
+                        <span class="k">break</span>
+                    <span class="c1"># partial overlap of segments, then merge them</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">seg</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">segments</span><span class="p">[</span><span class="n">m</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="ow">and</span> <span class="n">seg</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">segments</span><span class="p">[</span><span class="n">m</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+                        <span class="ow">and</span> <span class="p">(</span><span class="n">seg</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">segments</span><span class="p">[</span><span class="n">m</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="ow">or</span> <span class="n">seg</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">segments</span><span class="p">[</span><span class="n">m</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span>\
+                       <span class="ow">or</span> <span class="p">(</span><span class="n">seg</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">segments</span><span class="p">[</span><span class="n">m</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="ow">and</span> <span class="n">seg</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">segments</span><span class="p">[</span><span class="n">m</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+                        <span class="ow">and</span> <span class="p">(</span><span class="n">seg</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">segments</span><span class="p">[</span><span class="n">m</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="ow">or</span> <span class="n">seg</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">segments</span><span class="p">[</span><span class="n">m</span><span class="p">][</span><span class="mi">0</span><span class="p">])):</span>
+                        <span class="n">seg</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">segments</span><span class="p">[</span><span class="n">m</span><span class="p">],</span> <span class="n">seg</span><span class="p">)</span>
+                        <span class="n">segments</span><span class="p">[</span><span class="n">m</span><span class="p">]</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">seg</span><span class="p">)</span>
+                        <span class="n">found</span> <span class="o">=</span> <span class="kc">True</span>
+                        <span class="k">break</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">found</span><span class="p">:</span>
+                    <span class="c1"># just add it if there is no overlap</span>
+                    <span class="n">segments</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="nb">min</span><span class="p">(</span><span class="n">seg</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">seg</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">max</span><span class="p">(</span><span class="n">seg</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">seg</span><span class="p">[</span><span class="mi">1</span><span class="p">])])</span>
+        <span class="c1"># find the run with the lowest noise</span>
+        <span class="n">indx</span> <span class="o">=</span> <span class="n">noise</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">noise</span><span class="p">))</span>
+        <span class="c1"># return the results</span>
+        <span class="k">return</span> <span class="n">segments</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">[</span><span class="n">indx</span><span class="p">],</span> <span class="n">noise</span><span class="p">[</span><span class="n">indx</span><span class="p">],</span> <span class="n">mean</span><span class="p">[</span><span class="n">indx</span><span class="p">]</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

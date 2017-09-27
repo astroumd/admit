@@ -1,0 +1,165 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Source_Spectra — Generates spectra for a series of map locations. &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../index.html" />
+    <link rel="up" title="Python Scripting Interface (API)" href="../../api.html" />
+    <link rel="next" title="recipe — Executes a pre-defined ADMIT recipe (script)." href="recipe.html" />
+    <link rel="prev" title="Source_Find — Finds sources in a 2-D image." href="Source_Find.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="recipe.html" title="recipe — Executes a pre-defined ADMIT recipe (script)."
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="Source_Find.html" title="Source_Find — Finds sources in a 2-D image."
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" accesskey="U">Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-admit.recipes.Source_Spectra"></span><div class="section" id="source-spectra-generates-spectra-for-a-series-of-map-locations">
+<span id="source-spectra-api"></span><h1><strong>Source_Spectra</strong> &#8212; Generates spectra for a series of map locations.<a class="headerlink" href="#source-spectra-generates-spectra-for-a-series-of-map-locations" title="Permalink to this headline">¶</a></h1>
+<p>Usage: admit_recipe Source_Spectra BDP-Source-Table Your-Image-Cube [Your-Primary-Beam]</p>
+<p>or</p>
+<p>admit.recipe(&#8220;Source_Spectra&#8221;, &#8220;BDP-Source-Table&#8221;, &#8220;Your-Image-Cube&#8221;,&#8221;Your-Primary-Beam&#8221;)</p>
+<p>This ADMIT script to create spectra for a list of positions in a BDP. The flow is:</p>
+<ol class="arabic simple">
+<li>Ingest BDP which contains the desired source table.</li>
+<li>Ingest your cube into ADMIT (creates a CASA image if starts as FITS)</li>
+<li>Calculate the spectrum for each position</li>
+</ol>
+<div class="section" id="parameters">
+<h2>Parameters<a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>param1</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">BDP</span><dd>The Basic Data Product that contains the source table of positions where 
+you want spectra. Typically created by SFind2D_AT (or Source_Find.py recipe).</dd>
+<dt>param2</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">image</span><dd>Your CASA or FITS image. If the image file is not primary beam
+corrected, then input only this cube. Default cubes from <em>clean</em>
+are like this. The noise does not rise up at the edge of the field</dd>
+<dt>param3</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">image, optional</span><dd>Your CASA or FITS primary beam image.  Cubes from 
+the ALMA archive are often primary beam corrected.  In these images,
+the noise rises out from the center of the imaged field. In this 
+case, you need to input both the image file and the primary beam 
+cube. Both are available to you from the archive.</dd>
+</dl>
+</div>
+<div class="section" id="optional-keywords">
+<h2>Optional Keywords<a class="headerlink" href="#optional-keywords" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><em>xaxis</em> in CubeSpectrum_AT: sets x-axis type: channel number, frequency,
+velocity. Current default is channel for full cubes and velocity for
+cubes created for each emission line by LineCube_AT. Default:</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><strong>Source_Spectra</strong> &#8212; Generates spectra for a series of map locations.</a><ul>
+<li><a class="reference internal" href="#parameters">Parameters</a></li>
+<li><a class="reference internal" href="#optional-keywords">Optional Keywords</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="Source_Find.html"
+                        title="previous chapter"><strong>Source_Find</strong> &#8212; Finds sources in a 2-D image.</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="recipe.html"
+                        title="next chapter"><strong>recipe</strong> &#8212; Executes a pre-defined ADMIT recipe (script).</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/module/admit.recipes/Source_Spectra.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="recipe.html" title="recipe — Executes a pre-defined ADMIT recipe (script)."
+             >next</a> |</li>
+        <li class="right" >
+          <a href="Source_Find.html" title="Source_Find — Finds sources in a 2-D image."
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" >Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

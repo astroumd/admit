@@ -1,0 +1,186 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>VLSR — Simple VLSR catalog and calculator. &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../index.html" />
+    <link rel="up" title="Python Scripting Interface (API)" href="../../api.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" accesskey="U">Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-admit.util.VLSR"></span><div class="section" id="vlsr-simple-vlsr-catalog-and-calculator">
+<h1><strong>VLSR</strong> &#8212; Simple VLSR catalog and calculator.<a class="headerlink" href="#vlsr-simple-vlsr-catalog-and-calculator" title="Permalink to this headline">¶</a></h1>
+<p>This module defines the VLSR class.</p>
+<dl class="class">
+<dt id="admit.util.VLSR.VLSR">
+<em class="property">class </em><code class="descclassname">admit.util.VLSR.</code><code class="descname">VLSR</code><span class="sig-paren">(</span><em>upper=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/VLSR.html#VLSR"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.VLSR.VLSR" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple VLSR catalog and calculator.</p>
+<p>Possible extensions:</p>
+<ul class="simple">
+<li>merge in multiple tables, now hardcoded to a single
+table in $ADMIT/etc/vlsr.tab</li>
+<li>allow astroquery from NED and/or SIMBAD
+(this may need to run in pure-python, outside of ADMIT/CASA)</li>
+<li>name matching is now done in upper case by default</li>
+</ul>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="29%" />
+<col width="71%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>None</td>
+<td>&nbsp;</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.VLSR.VLSR.try_NED" title="admit.util.VLSR.VLSR.try_NED"><code class="xref py py-obj docutils literal"><span class="pre">try_NED</span></code></a>(name)</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.VLSR.VLSR.try_SB" title="admit.util.VLSR.VLSR.try_SB"><code class="xref py py-obj docutils literal"><span class="pre">try_SB</span></code></a>(name)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.VLSR.VLSR.vlsr" title="admit.util.VLSR.VLSR.vlsr"><code class="xref py py-obj docutils literal"><span class="pre">vlsr</span></code></a>(name[,&nbsp;upper])</td>
+<td>return VLSR from requested object</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.VLSR.VLSR.vlsr2" title="admit.util.VLSR.VLSR.vlsr2"><code class="xref py py-obj docutils literal"><span class="pre">vlsr2</span></code></a>(name)</td>
+<td>experimental Simbad/NED</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="admit.util.VLSR.VLSR.try_NED">
+<code class="descname">try_NED</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/VLSR.html#VLSR.try_NED"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.VLSR.VLSR.try_NED" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="admit.util.VLSR.VLSR.try_SB">
+<code class="descname">try_SB</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/VLSR.html#VLSR.try_SB"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.VLSR.VLSR.try_SB" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="admit.util.VLSR.VLSR.vlsr">
+<code class="descname">vlsr</code><span class="sig-paren">(</span><em>name</em>, <em>upper=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/VLSR.html#VLSR.vlsr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.VLSR.VLSR.vlsr" title="Permalink to this definition">¶</a></dt>
+<dd><p>return VLSR from requested object
+name matching is done in upper case by default
+If no match is found, 0.0 is returned.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.VLSR.VLSR.vlsr2">
+<code class="descname">vlsr2</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/VLSR.html#VLSR.vlsr2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.VLSR.VLSR.vlsr2" title="Permalink to this definition">¶</a></dt>
+<dd><p>experimental Simbad/NED</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="admit.util.VLSR.read_vlsr">
+<code class="descclassname">admit.util.VLSR.</code><code class="descname">read_vlsr</code><span class="sig-paren">(</span><em>filename</em>, <em>upper=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/VLSR.html#read_vlsr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.VLSR.read_vlsr" title="Permalink to this definition">¶</a></dt>
+<dd><p>read the ADMIT vlsr.cat table</p>
+<p>This table is peculiar in allowing spaces in source names,
+but then requires the name to be single (or double) quotes.
+The source name is stored without these quotes.
+The 2nd column is VLSR in km/s
+Anything beyond is ignored, so comments are allowed 
+Also note we are taking the source names &#8220;as is&#8221;, so 
+it is suggested they are in upper case.</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/module/admit.util/VLSR.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" >Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

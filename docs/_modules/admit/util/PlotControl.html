@@ -1,0 +1,284 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.util.PlotControl &mdash; ADMIT 0.4.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.4.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="ADMIT 0.4.1 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 0.4.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.util.PlotControl</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot; .. _PlotControl-api:</span>
+
+<span class="sd">    Plotting Control</span>
+<span class="sd">    ----------------</span>
+<span class="sd">    Singleton class to encapsulate plot types and plot modes as enums, as well a</span>
+<span class="sd">    convention for file extension strings.  All plot types may not be supported</span>
+<span class="sd">    by individual plotting tools.  For instance, matplotlib only supports</span>
+<span class="sd">    PNG for thumbnail creation.</span>
+
+<span class="sd">    Plot types are: </span>
+<span class="sd">        - PlotControl.GIF  (should we get rid of this?)</span>
+<span class="sd">        - PlotControl.JPG</span>
+<span class="sd">        - PlotControl.PDF </span>
+<span class="sd">        - PlotControl.PNG</span>
+<span class="sd">        - PlotControl.PS</span>
+<span class="sd">        - PlotControl.SVG</span>
+
+<span class="sd">    Plot modes are: </span>
+<span class="sd">        - PlotControl.NOPLOT </span>
+<span class="sd">        - PlotControl.BATCH </span>
+<span class="sd">        - PlotControl.INTERACTIVE </span>
+<span class="sd">        - PlotControl.SHOW_AT_END </span>
+
+<span class="sd">    Plot Orientations are:</span>
+<span class="sd">        - PlotControl.LANDSCAPE</span>
+<span class="sd">        - PlotControl.PORTRAIT</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="PlotControl"><a class="viewcode-back" href="../../../module/admit.util/PlotControl.html#admit.util.PlotControl.PlotControl">[docs]</a><span class="k">class</span> <span class="nc">PlotControl</span><span class="p">:</span>
+
+     <span class="n">_NUM_SUPPORTED_TYPES</span> <span class="o">=</span> <span class="mi">8</span>
+     <span class="n">PLOTTYPE_NONE</span><span class="p">,</span> <span class="n">PLOTTYPE_EPS</span><span class="p">,</span> <span class="n">PLOTTYPE_GIF</span><span class="p">,</span> <span class="n">PLOTTYPE_JPG</span><span class="p">,</span> <span class="n">PLOTTYPE_PDF</span><span class="p">,</span> <span class="n">PLOTTYPE_PNG</span><span class="p">,</span> <span class="n">PLOTTYPE_PS</span><span class="p">,</span> <span class="n">PLOTTYPE_SVG</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">_NUM_SUPPORTED_TYPES</span><span class="p">)</span>
+
+     <span class="c"># xbm, xpm, ppm?  - imview supports these. what about matlab?</span>
+     <span class="n">PLOTMODE_NOPLOT</span>         <span class="o">=</span>  <span class="o">-</span><span class="mi">1</span> 
+     <span class="n">PLOTMODE_BATCH</span>          <span class="o">=</span>  <span class="mi">32</span>
+     <span class="n">PLOTMODE_INTERACTIVE</span>    <span class="o">=</span>  <span class="mi">33</span>
+     <span class="n">PLOTMODE_SHOW_AT_END</span>    <span class="o">=</span>  <span class="mi">34</span>
+     <span class="n">PLOTORIENTATION_LANDSCAPE</span> <span class="o">=</span> <span class="s">&#39;landscape&#39;</span>
+     <span class="n">PLOTORIENTATION_PORTRAIT</span>  <span class="o">=</span> <span class="s">&#39;portrait&#39;</span>
+
+     <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="PlotControl.mkext"><a class="viewcode-back" href="../../../module/admit.util/PlotControl.html#admit.util.PlotControl.PlotControl.mkext">[docs]</a>     <span class="k">def</span> <span class="nf">mkext</span><span class="p">(</span><span class="n">plottype</span><span class="p">,</span><span class="n">with_dot</span><span class="p">):</span>
+         <span class="sd">&quot;&quot;&quot; Return a standard file extension, with or without dot, for a given </span>
+<span class="sd">             plot type.</span>
+
+<span class="sd">             Parameters</span>
+<span class="sd">             ----------</span>
+<span class="sd">             plottype : plot type, one of the supported enumerations</span>
+<span class="sd">             with_dot : True or False to prepend &#39;.&#39; to the extension.</span>
+
+<span class="sd">             Returns</span>
+<span class="sd">             -------</span>
+<span class="sd">             str</span>
+<span class="sd">                 file extension</span>
+
+<span class="sd">         &quot;&quot;&quot;</span>
+         <span class="k">if</span> <span class="n">plottype</span> <span class="o">==</span> <span class="n">PlotControl</span><span class="o">.</span><span class="n">PLOTTYPE_NONE</span><span class="p">:</span>
+             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span> <span class="s">&quot;PlotControl.NONE has no file extension!&quot;</span>
+         <span class="k">if</span> <span class="n">plottype</span> <span class="o">==</span> <span class="n">PlotControl</span><span class="o">.</span><span class="n">PLOTTYPE_GIF</span><span class="p">:</span>
+             <span class="n">ext</span> <span class="o">=</span> <span class="s">&quot;gif&quot;</span>
+         <span class="k">elif</span> <span class="n">plottype</span> <span class="o">==</span> <span class="n">PlotControl</span><span class="o">.</span><span class="n">PLOTTYPE_JPG</span><span class="p">:</span>
+             <span class="n">ext</span> <span class="o">=</span> <span class="s">&quot;jpg&quot;</span>
+         <span class="k">elif</span> <span class="n">plottype</span> <span class="o">==</span> <span class="n">PlotControl</span><span class="o">.</span><span class="n">PLOTTYPE_PDF</span><span class="p">:</span>
+             <span class="n">ext</span> <span class="o">=</span> <span class="s">&quot;pdf&quot;</span>
+         <span class="k">elif</span> <span class="n">plottype</span> <span class="o">==</span> <span class="n">PlotControl</span><span class="o">.</span><span class="n">PLOTTYPE_PNG</span><span class="p">:</span>
+             <span class="n">ext</span> <span class="o">=</span> <span class="s">&quot;png&quot;</span>
+         <span class="k">elif</span> <span class="n">plottype</span> <span class="o">==</span> <span class="n">PlotControl</span><span class="o">.</span><span class="n">PLOTTYPE_PS</span><span class="p">:</span>
+             <span class="n">ext</span> <span class="o">=</span> <span class="s">&quot;ps&quot;</span>
+         <span class="k">elif</span> <span class="n">plottype</span> <span class="o">==</span> <span class="n">PlotControl</span><span class="o">.</span><span class="n">PLOTTYPE_SVG</span><span class="p">:</span>
+             <span class="n">ext</span> <span class="o">=</span> <span class="s">&quot;svg&quot;</span>
+         <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span> <span class="s">&quot;Unrecognized input plot type: </span><span class="si">%s</span><span class="s">. Expecting PlotControl enumeration&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">plottype</span><span class="p">)</span>
+
+         <span class="k">if</span> <span class="n">with_dot</span> <span class="o">==</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&quot;.&quot;</span> <span class="o">+</span> <span class="n">ext</span>
+         <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ext</span>
+</div>
+     <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="PlotControl.plottype"><a class="viewcode-back" href="../../../module/admit.util/PlotControl.html#admit.util.PlotControl.PlotControl.plottype">[docs]</a>     <span class="k">def</span> <span class="nf">plottype</span><span class="p">(</span><span class="n">plottype</span><span class="p">):</span>
+         <span class="sd">&quot;&quot;&quot; Return a string representation of the plot type.</span>
+
+<span class="sd">             Parameters</span>
+<span class="sd">             ----------</span>
+<span class="sd">             plottype : int </span>
+<span class="sd">                 Plot type, one of the supported enumerations</span>
+
+<span class="sd">             Returns</span>
+<span class="sd">             -------</span>
+<span class="sd">             str</span>
+<span class="sd">                 String representation of plot type</span>
+
+<span class="sd">         &quot;&quot;&quot;</span>
+         <span class="k">if</span> <span class="n">plottype</span> <span class="o">==</span> <span class="n">PlotControl</span><span class="o">.</span><span class="n">PLOTTYPE_NONE</span><span class="p">:</span>
+             <span class="k">return</span> <span class="s">&quot;PLOTTYPE_NONE&quot;</span>
+         <span class="k">elif</span> <span class="n">plottype</span> <span class="o">==</span> <span class="n">PlotControl</span><span class="o">.</span><span class="n">PLOTTYPE_EPS</span><span class="p">:</span>
+             <span class="k">return</span> <span class="s">&quot;PLOTTYPE_EPS&quot;</span>
+         <span class="k">if</span> <span class="n">plottype</span> <span class="o">==</span> <span class="n">PlotControl</span><span class="o">.</span><span class="n">PLOTTYPE_GIF</span><span class="p">:</span>
+             <span class="k">return</span> <span class="s">&quot;PLOTTYPE_GIF&quot;</span>
+         <span class="k">elif</span> <span class="n">plottype</span> <span class="o">==</span> <span class="n">PlotControl</span><span class="o">.</span><span class="n">PLOTTYPE_JPG</span><span class="p">:</span>
+             <span class="k">return</span> <span class="s">&quot;PLOTTYPE_JPG&quot;</span>
+         <span class="k">elif</span> <span class="n">plottype</span> <span class="o">==</span> <span class="n">PlotControl</span><span class="o">.</span><span class="n">PLOTTYPE_PDF</span><span class="p">:</span>
+             <span class="k">return</span> <span class="s">&quot;PLOTTYPE_PDF&quot;</span>
+         <span class="k">elif</span> <span class="n">plottype</span> <span class="o">==</span> <span class="n">PlotControl</span><span class="o">.</span><span class="n">PLOTTYPE_PNG</span><span class="p">:</span>
+             <span class="k">return</span> <span class="s">&quot;PLOTTYPE_PNG&quot;</span>
+         <span class="k">elif</span> <span class="n">plottype</span> <span class="o">==</span> <span class="n">PlotControl</span><span class="o">.</span><span class="n">PLOTTYPE_PS</span><span class="p">:</span>
+             <span class="k">return</span> <span class="s">&quot;PLOTTYPE_PS&quot;</span>
+         <span class="k">elif</span> <span class="n">plottype</span> <span class="o">==</span> <span class="n">PlotControl</span><span class="o">.</span><span class="n">PLOTTYPE_SVG</span><span class="p">:</span>
+             <span class="k">return</span> <span class="s">&quot;PLOTTYPE_SVG&quot;</span>
+         <span class="k">else</span><span class="p">:</span>
+             <span class="k">return</span> <span class="s">&quot;UNKNOWN PLOT TYPE </span><span class="si">%d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">plottype</span>
+</div>
+     <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="PlotControl.isSupportedType"><a class="viewcode-back" href="../../../module/admit.util/PlotControl.html#admit.util.PlotControl.PlotControl.isSupportedType">[docs]</a>     <span class="k">def</span> <span class="nf">isSupportedType</span><span class="p">(</span><span class="n">plottype</span><span class="p">):</span>
+          <span class="sd">&quot;&quot;&quot;Test if the input plot type is supported.  Supported</span>
+<span class="sd">             means that either CASA imview or matplotlib supports</span>
+<span class="sd">             the type, but not necessarily both!</span>
+
+<span class="sd">             Parameters</span>
+<span class="sd">             ----------</span>
+<span class="sd">             plottype : int </span>
+<span class="sd">                 An integer plot type</span>
+
+<span class="sd">             Returns </span>
+<span class="sd">             ----------</span>
+<span class="sd">             boolean</span>
+<span class="sd">                 True if supported, False if unsupported</span>
+<span class="sd">          &quot;&quot;&quot;</span>
+          <span class="k">return</span> <span class="n">plottype</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">PlotControl</span><span class="o">.</span><span class="n">_NUM_SUPPORTED_TYPES</span><span class="p">)</span>
+</div>
+     <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="PlotControl.plotmode"><a class="viewcode-back" href="../../../module/admit.util/PlotControl.html#admit.util.PlotControl.PlotControl.plotmode">[docs]</a>     <span class="k">def</span> <span class="nf">plotmode</span><span class="p">(</span><span class="n">plotmode</span><span class="p">):</span>
+         <span class="sd">&quot;&quot;&quot; Return a string representation of the plot mode.</span>
+
+<span class="sd">             Parameters</span>
+<span class="sd">             ----------</span>
+<span class="sd">             plotmode : int </span>
+<span class="sd">                 Plot mode, one of the supported enumerations</span>
+
+<span class="sd">             Returns</span>
+<span class="sd">             -------</span>
+<span class="sd">             string  </span>
+<span class="sd">                 String representation of plot mode</span>
+
+<span class="sd">         &quot;&quot;&quot;</span>
+         <span class="k">if</span> <span class="n">plotmode</span> <span class="o">==</span> <span class="n">PlotControl</span><span class="o">.</span><span class="n">PLOTMODE_NOPLOT</span><span class="p">:</span>
+             <span class="k">return</span> <span class="s">&quot;PLOTMODE_NOPLOT&quot;</span>
+         <span class="k">if</span> <span class="n">plotmode</span> <span class="o">==</span> <span class="n">PlotControl</span><span class="o">.</span><span class="n">PLOTMODE_BATCH</span><span class="p">:</span>
+             <span class="k">return</span> <span class="s">&quot;PLOTMODE_BATCH&quot;</span>
+         <span class="k">elif</span> <span class="n">plotmode</span> <span class="o">==</span> <span class="n">PlotControl</span><span class="o">.</span><span class="n">PLOTMODE_INTERACTIVE</span><span class="p">:</span>
+             <span class="k">return</span> <span class="s">&quot;PLOTMODE_INTERACTIVE&quot;</span>
+         <span class="k">elif</span> <span class="n">plotmode</span> <span class="o">==</span> <span class="n">PlotControl</span><span class="o">.</span><span class="n">PLOTMODE_SHOW_AT_END</span><span class="p">:</span>
+             <span class="k">return</span> <span class="s">&quot;PLOTMODE_SHOW_AT_END&quot;</span>
+         <span class="k">else</span><span class="p">:</span>
+             <span class="k">return</span> <span class="s">&quot;UNKNOWN PLOT MODE (</span><span class="si">%d</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="n">plotmode</span>
+
+
+<span class="c">#-------------------------------</span>
+<span class="c"># This is a singleton    </span>
+<span class="c">#-------------------------------</span></div></div>
+<span class="n">_inst</span> <span class="o">=</span> <span class="n">PlotControl</span><span class="p">()</span>
+
+<span class="c">#-------------------------------</span>
+<span class="c"># shortcuts for the enumerations</span>
+<span class="c">#-------------------------------</span>
+
+<span class="c">#Plot types</span>
+<span class="n">NONE</span>  <span class="o">=</span> <span class="n">_inst</span><span class="o">.</span><span class="n">PLOTTYPE_NONE</span>
+<span class="n">EPS</span>   <span class="o">=</span> <span class="n">_inst</span><span class="o">.</span><span class="n">PLOTTYPE_EPS</span>
+<span class="n">GIF</span>   <span class="o">=</span> <span class="n">_inst</span><span class="o">.</span><span class="n">PLOTTYPE_GIF</span> <span class="c"># do we really support GIF?</span>
+<span class="n">JPG</span>   <span class="o">=</span> <span class="n">_inst</span><span class="o">.</span><span class="n">PLOTTYPE_JPG</span>
+<span class="n">PDF</span>   <span class="o">=</span> <span class="n">_inst</span><span class="o">.</span><span class="n">PLOTTYPE_PDF</span>
+<span class="n">PNG</span>   <span class="o">=</span> <span class="n">_inst</span><span class="o">.</span><span class="n">PLOTTYPE_PNG</span>
+<span class="n">PS</span>    <span class="o">=</span> <span class="n">_inst</span><span class="o">.</span><span class="n">PLOTTYPE_PS</span>
+<span class="n">SVG</span>   <span class="o">=</span> <span class="n">_inst</span><span class="o">.</span><span class="n">PLOTTYPE_SVG</span>
+
+<span class="c">#Plot modes</span>
+<span class="n">NOPLOT</span>         <span class="o">=</span> <span class="n">_inst</span><span class="o">.</span><span class="n">PLOTMODE_NOPLOT</span>
+<span class="n">BATCH</span>          <span class="o">=</span> <span class="n">_inst</span><span class="o">.</span><span class="n">PLOTMODE_BATCH</span>
+<span class="n">INTERACTIVE</span>    <span class="o">=</span> <span class="n">_inst</span><span class="o">.</span><span class="n">PLOTMODE_INTERACTIVE</span>
+<span class="n">SHOW_AT_END</span>    <span class="o">=</span> <span class="n">_inst</span><span class="o">.</span><span class="n">PLOTMODE_SHOW_AT_END</span>
+<span class="n">LANDSCAPE</span>      <span class="o">=</span> <span class="n">_inst</span><span class="o">.</span><span class="n">PLOTORIENTATION_LANDSCAPE</span>
+<span class="n">PORTRAIT</span>       <span class="o">=</span> <span class="n">_inst</span><span class="o">.</span><span class="n">PLOTORIENTATION_PORTRAIT</span>
+
+<span class="c">#-------------------------------</span>
+<span class="c"># shortcuts for the methods</span>
+<span class="c">#-------------------------------</span>
+<span class="n">mkext</span>    <span class="o">=</span> <span class="n">_inst</span><span class="o">.</span><span class="n">mkext</span>
+<span class="n">plottype</span> <span class="o">=</span> <span class="n">_inst</span><span class="o">.</span><span class="n">plottype</span>
+<span class="n">plotmode</span> <span class="o">=</span> <span class="n">_inst</span><span class="o">.</span><span class="n">plotmode</span>
+<span class="n">isSupportedType</span> <span class="o">=</span> <span class="n">_inst</span><span class="o">.</span><span class="n">isSupportedType</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 0.4.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
+  </body>
+</html>

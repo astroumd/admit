@@ -1,0 +1,645 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Splatalogue — Module for performing splatalogue queries. &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../index.html" />
+    <link rel="up" title="Python Scripting Interface (API)" href="../../api.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" accesskey="U">Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-admit.util.Splatalogue"></span><div class="section" id="splatalogue-module-for-performing-splatalogue-queries">
+<span id="splatalogue"></span><h1><strong>Splatalogue</strong> &#8212; Module for performing splatalogue queries.<a class="headerlink" href="#splatalogue-module-for-performing-splatalogue-queries" title="Permalink to this headline">¶</a></h1>
+<p>Module to search Splatalogue.net via splat, modeled loosely on
+<a class="reference external" href="ftp://ftp.cv.nrao.edu/NRAO-staff/bkent/slap/idl/">ftp://ftp.cv.nrao.edu/NRAO-staff/bkent/slap/idl/</a>
+:author: Adam Ginsburg &lt;<a class="reference external" href="mailto:adam&#46;g&#46;ginsburg&#37;&#52;&#48;gmail&#46;com">adam<span>&#46;</span>g<span>&#46;</span>ginsburg<span>&#64;</span>gmail<span>&#46;</span>com</a>&gt;
+:updated for CASA:  Brian Kent &lt;<a class="reference external" href="mailto:bkent&#37;&#52;&#48;nrao&#46;edu">bkent<span>&#64;</span>nrao<span>&#46;</span>edu</a>&gt;
+:updated for ADMIT: Douglas Friedel &lt;<a class="reference external" href="mailto:friedel&#37;&#52;&#48;illinois&#46;edu">friedel<span>&#64;</span>illinois<span>&#46;</span>edu</a>&gt;</p>
+<p>Dependencies for python requests and astropy modules have been removed.</p>
+<dl class="class">
+<dt id="admit.util.Splatalogue.SpeciesLookuptable">
+<em class="property">class </em><code class="descclassname">admit.util.Splatalogue.</code><code class="descname">SpeciesLookuptable</code><a class="reference internal" href="../../_modules/admit/util/Splatalogue.html#SpeciesLookuptable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Splatalogue.SpeciesLookuptable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple class that extends the dictionary class so that keys can be searched</p>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">clear</span></code>(()&nbsp;-&gt;&nbsp;None.&nbsp;&nbsp;Remove&nbsp;all&nbsp;items&nbsp;from&nbsp;D.)</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">copy</span></code>(()&nbsp;-&gt;&nbsp;a&nbsp;shallow&nbsp;copy&nbsp;of&nbsp;D)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Splatalogue.SpeciesLookuptable.find" title="admit.util.Splatalogue.SpeciesLookuptable.find"><code class="xref py py-obj docutils literal"><span class="pre">find</span></code></a>(s[,&nbsp;flags,&nbsp;return_dict])</td>
+<td>Search dictionary keys for a regex match to string s</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">fromkeys</span></code>(...)</td>
+<td>v defaults to None.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">get</span></code>((k[,d])&nbsp;-&gt;&nbsp;D[k]&nbsp;if&nbsp;k&nbsp;in&nbsp;D,&nbsp;...)</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">has_key</span></code>((k)&nbsp;-&gt;&nbsp;True&nbsp;if&nbsp;D&nbsp;has&nbsp;a&nbsp;key&nbsp;k,&nbsp;else&nbsp;False)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">items</span></code>(()&nbsp;-&gt;&nbsp;list&nbsp;of&nbsp;D&#8217;s&nbsp;(key,&nbsp;value)&nbsp;pairs,&nbsp;...)</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">iteritems</span></code>(()&nbsp;-&gt;&nbsp;an&nbsp;iterator&nbsp;over&nbsp;the&nbsp;(key,&nbsp;...)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">iterkeys</span></code>(()&nbsp;-&gt;&nbsp;an&nbsp;iterator&nbsp;over&nbsp;the&nbsp;keys&nbsp;of&nbsp;D)</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">itervalues</span></code>(...)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">keys</span></code>(()&nbsp;-&gt;&nbsp;list&nbsp;of&nbsp;D&#8217;s&nbsp;keys)</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">pop</span></code>((k[,d])&nbsp;-&gt;&nbsp;v,&nbsp;...)</td>
+<td>If key is not found, d is returned if given, otherwise KeyError is raised</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">popitem</span></code>(()&nbsp;-&gt;&nbsp;(k,&nbsp;v),&nbsp;...)</td>
+<td>2-tuple; but raise KeyError if D is empty.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">setdefault</span></code>((k[,d])&nbsp;-&gt;&nbsp;D.get(k,d),&nbsp;...)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">update</span></code>(([E,&nbsp;...)</td>
+<td>If E present and has a .keys() method, does:     for k in E: D[k] = E[k]</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">values</span></code>(()&nbsp;-&gt;&nbsp;list&nbsp;of&nbsp;D&#8217;s&nbsp;values)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">viewitems</span></code>(...)</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">viewkeys</span></code>(...)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">viewvalues</span></code>(...)</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="admit.util.Splatalogue.SpeciesLookuptable.find">
+<code class="descname">find</code><span class="sig-paren">(</span><em>s</em>, <em>flags=0</em>, <em>return_dict=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Splatalogue.html#SpeciesLookuptable.find"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Splatalogue.SpeciesLookuptable.find" title="Permalink to this definition">¶</a></dt>
+<dd><p>Search dictionary keys for a regex match to string s</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>s</strong> : str</p>
+<blockquote>
+<div><p>String to compile as a regular expression</p>
+</div></blockquote>
+<p><strong>return_dict</strong> : bool</p>
+<blockquote>
+<div><p>Return a dictionary if true or just the matching values if false.
+Default: True</p>
+</div></blockquote>
+<p><strong>flags</strong> : int</p>
+<blockquote>
+<div><p>re (regular expression) flags. Default: 0</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Subset of parent dictionary if return_dict, else list of values</p>
+<p class="last">corresponding to matches</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="admit.util.Splatalogue.Splatalogue">
+<em class="property">class </em><code class="descclassname">admit.util.Splatalogue.</code><code class="descname">Splatalogue</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Splatalogue.html#Splatalogue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Splatalogue.Splatalogue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class for searching for lines in the online Splatalogue database.
+The resulting Splatalogue tables can be returned as a list of dictionaries.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>kwargs</strong> : dict</p>
+<blockquote class="last">
+<div><p>The keyword value pairs of the arguments, possible keywords are:</p>
+<dl class="docutils">
+<dt><strong>min_frequency</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">float</span><dd><p class="first last">Lower limit of frequency search range in GHz. Default: 0.0</p>
+</dd>
+<dt><strong>max_frequency</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">float</span><dd><p class="first last">Upper limit of frequency search range in GHz. Defualt: 100000.0</p>
+</dd>
+<dt><strong>band</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str</span><dd><p class="first">The frequency band to search in. &#8216;min/max_frequency&#8217; and &#8216;band&#8217; are mutually
+exclusive. If both are given then &#8216;band&#8217; is preferred. Possibles are</p>
+<p>&#8220;any&#8221;: All bands</p>
+<p>&#8220;alma3&#8221;: ALMA Band 3 (84-116 GHz)</p>
+<p>&#8220;alma4&#8221;: ALMA Band 4 (125-163 GHz)</p>
+<p>&#8220;alma5&#8221;: ALMA Band 5 (163-211 GHz)</p>
+<p>&#8220;alma6&#8221;: ALMA Band 6 (211-275 GHz)</p>
+<p>&#8220;alma7&#8221;: ALMA Band 7 (275-373 GHz)</p>
+<p>&#8220;alma8&#8221;: ALMA Band 8 (385-500 GHz)</p>
+<p>&#8220;alma9&#8221;: ALMA Band 9 (602-720 GHz)</p>
+<p>&#8220;alma10&#8221;: ALMA Band 10 (787-950 GHz)</p>
+<p>&#8220;pf1&#8221;: GBT PF1 (0.29-0.92 GHz)</p>
+<p>&#8220;pf2&#8221;: GBT PF2 (0.91-1.23 GHz)</p>
+<p>&#8220;l&#8221;: GBT/VLA L (1-2 GHz)</p>
+<p>&#8220;s&#8221;: GBT/VLA S (1.7-4 GHz)</p>
+<p>&#8220;c&#8221;: GBT/VLA C (3.9-8 GHz)</p>
+<p>&#8220;x&#8221;: GBT/VLA X (8-12 GHz)</p>
+<p>&#8220;ku&#8221;: GBT/VLA Ku (12-18 GHz)</p>
+<p>&#8220;kfpa&#8221;: GBT KFPA (18-27.5 GHz)</p>
+<p>&#8220;k&#8221;: VLA K (18-26.5 GHz)</p>
+<p>&#8220;ka&#8221;: GBT/VLA Ka (26-40 GHz)</p>
+<p>&#8220;q&#8221;: GBT/VLA Q (38-50 GHz)</p>
+<p>&#8220;w&#8221;: GBT W (67-93.3 GHz)</p>
+<p>&#8220;mustang&#8221;: GBT Mustang (80-100 GHz)</p>
+<p class="last">Default: &#8216;any&#8217;</p>
+</dd>
+<dt><strong>top20</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">list</span><dd><p class="first">Limit results to the given top20 list(s). Possibles are:</p>
+<p>&#8216;comet&#8217;: molecules most likely found in comets</p>
+<p>&#8216;planet&#8217;: molecules most likely planetary atmospheres</p>
+<p>&#8216;top20&#8217;: most common molecules</p>
+<p>&#8216;ism_hotcore&#8217;: molecules most likely found in hot cores</p>
+<p>&#8216;ism_darkcloud&#8217;: molecules most likely found in dark clouds</p>
+<p>&#8216;ism_diffusecloud&#8217;: molecules most likely found in diffuse clouds</p>
+<p class="last">Default: None</p>
+</dd>
+<dt><strong>chemical_name</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str</span><dd><p class="first last">Limit results to the specified chemical, by name. Default: &#8216;&#8217;</p>
+</dd>
+<dt><strong>line_lists</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">list</span><dd><p class="first">Which line list(s) to use for the search. Possibles are:</p>
+<p>&#8216;Lovas&#8217;: Search the Lovas/NIST list of molecules</p>
+<p>&#8216;SLAIM&#8217;: Search the SLAIM list of molecules</p>
+<p>&#8216;JPL&#8217;: Search the Jet Propulsion Lab list of molecules</p>
+<p>&#8216;CDMS&#8217;: Search the Cologne database of molecules</p>
+<p>&#8216;ToyoMA&#8217;: Search the ToyoMA list of moleules</p>
+<p>&#8216;OSU&#8217;: Search the Ohio State list of molecules</p>
+<p>&#8216;Recomb&#8217;: Search for recombination lines</p>
+<p>&#8216;Lisa&#8217;: Search the TopModel list</p>
+<p>&#8216;RFI&#8217;: Search for radio frequency interference lines</p>
+<p class="last">Default: [&#8216;Lovas&#8217;, &#8216;SLAIM&#8217;, &#8216;JPL&#8217;, &#8216;CDMS&#8217;, &#8216;ToyoMA&#8217;, &#8216;OSU&#8217;, &#8216;Recomb&#8217;, &#8216;Lisa&#8217;, &#8216;RFI&#8217;]</p>
+</dd>
+<dt><strong>line_strengths</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">list</span><dd><p class="first">Which line strength units should be reported, several can be given.
+Possibles are:</p>
+<p>&#8216;ls1&#8217;: JPL/CDMS</p>
+<p>&#8216;ls2&#8217;: Sijmu^2</p>
+<p>&#8216;ls3&#8217;: Sij</p>
+<p>&#8216;ls4&#8217;: Aij</p>
+<p>&#8216;ls5&#8217;: Lovas/SLAIM</p>
+<p class="last">Default: (&#8216;ls1&#8217;, &#8216;ls2&#8217;, &#8216;ls3&#8217;, &#8216;ls4&#8217;, &#8216;ls5&#8217;)</p>
+</dd>
+<dt><strong>energy_levels</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">list</span><dd><p class="first">Which energies should be reported. Possibles are:</p>
+<p>&#8216;el1&#8217;: Lower state in cm^-1</p>
+<p>&#8216;el2&#8217;: Lower state in K</p>
+<p>&#8216;el3&#8217;: Upper state in cm^-1</p>
+<p>&#8216;el4&#8217;: Upper state in K</p>
+<p class="last">Default: [&#8216;el1&#8217;, &#8216;el2&#8217;, &#8216;el3&#8217;, &#8216;el4&#8217;]</p>
+</dd>
+<dt><strong>exclude</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">list</span><dd><p class="first">Which types of molecules to exclude from the search. Possibles are:</p>
+<p>&#8216;potential&#8217;: Species that may be found in the ISM</p>
+<p>&#8216;atmospheric&#8217;: Species know to be in the Earth&#8217;s atmosphere</p>
+<p>&#8216;probable&#8217;: Species that might be found in the ISM</p>
+<p class="last">Default: [&#8216;potential&#8217;, &#8216;atmospheric&#8217;, &#8216;probable&#8217;]</p>
+</dd>
+<dt><strong>version</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str</span><dd><p class="first last">Which Splatalogue interface is being used. Default: &#8216;v2.0&#8217;</p>
+</dd>
+<dt><strong>only_NRAO_recommended</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">Only return lines that are recommended by NROA. Can eliminate duplicate
+lines from multiple databases. Default: False</p>
+</dd>
+<dt><strong>export</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">Wherther splatalogue should return an export formatted list rather than HTML.
+Default: True</p>
+</dd>
+<dt><strong>export_limit</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int</span><dd><p class="first last">The maximum number of lines to return. Default: 10000</p>
+</dd>
+<dt><strong>noHFS</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">Whether or not to suppress hyperfine components in the results.
+Default: False</p>
+</dd>
+<dt><strong>displayHFS</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">Whether or not to return the hyperfine line strength.
+Default: False</p>
+</dd>
+<dt><strong>show_unres_qn</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">Whether or not to return the unresolved quantum numbers. Typically in a
+machine readable format. Default: False</p>
+</dd>
+<dt><strong>show_upper_degeneracy</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">Whether or not th return the upper state degeneracy of each transition.
+Default: False</p>
+</dd>
+<dt><strong>show_molecule_tag</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">Whether or not to return the molecule tag. Default: False</p>
+</dd>
+<dt><strong>show_qn_code</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">Whether or not to return the quantum number encoding (the encoding of
+&#8216;show_unres_qn&#8217;). Default: False</p>
+</dd>
+<dt><strong>show_lovas_labref</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">Whether or not to return the lab reference frequency from the Lovas/NIST list.
+Default: False</p>
+</dd>
+<dt><strong>show_lovas_obsref</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">Whether or not to return the observational reference from the Loval/NIST list.
+Default: False</p>
+</dd>
+<dt><strong>show_orderedfreq_only</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">Default: False</p>
+</dd>
+<dt><strong>show_nrao_recommended</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">Whether or not to return the NRAO recommended rest frequency. Default: False</p>
+</dd>
+<dt><strong>chem_re_flags</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int</span><dd><p class="first last">Default: 0</p>
+</dd>
+<dt><strong>energy_min</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">float</span><dd><p class="first last">Minimum lower/upper state energy to search for. Units are specified in
+&#8216;energy_type&#8217;. Default None</p>
+</dd>
+<dt><strong>energy_max</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">float</span><dd><p class="first last">Maximum lower/upper state energy to search for. Units are specified in
+&#8216;energy_type&#8217;. Default None</p>
+</dd>
+<dt><strong>energy_type</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str</span><dd><p class="first">The energy units for the &#8216;energy_min&#8217; and &#8216;energy_max&#8217; columns. Possibles are:</p>
+<p>&#8216;el_cm1&#8217;: Lower state in cm^-1</p>
+<p>&#8216;el_k&#8217;: Lower state in K</p>
+<p>&#8216;eu_cm1&#8217;: Upper state in cm^-1</p>
+<p>&#8216;eu_k&#8217;: Upper state in K</p>
+<p class="last">Default: None</p>
+</dd>
+<dt><strong>intensity_lower_limit</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">float</span><dd><p class="first last">Lower limit for the transition strength, units are specified in &#8216;intensity_type&#8217;.
+Default: None</p>
+</dd>
+<dt><strong>intensity_type</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str</span><dd><p class="first">The units for the &#8216;intensity_lower_limit&#8217; parameter. Possibles are:</p>
+<p>&#8216;cdms_jpl&#8217;: Cologne database/JPL intensity units</p>
+<p>&#8216;aij&#8217;: Einstein A units</p>
+<dl class="docutils">
+<dt>&#8216;sijmu2&#8217;: Smu^2, line strength times the square of the relevant dipole</dt>
+<dd><p class="first last">moment</p>
+</dd>
+</dl>
+<p class="last">Default: None</p>
+</dd>
+<dt><strong>transition</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str</span><dd><p class="first last">Seach for a specific transition (i.e. &#8216;(1-0)&#8217;&#8216;). Default: None</p>
+</dd>
+<dt><strong>fel</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">Whether or not to remove results that have an uncertainty of over 50 MHz.
+Default: False</p>
+</dd>
+</dl>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">splatalogue</span> <span class="k">import</span> <span class="n">Splatalogue</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sp</span> <span class="o">=</span> <span class="n">Splatalogue</span>  <span class="c1">#Create an object of type Splatalogue</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Query by frequency range in units of GHz</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sp</span><span class="o">.</span><span class="n">query_lines</span><span class="p">(</span><span class="n">min_frequency</span><span class="o">=</span><span class="mf">114.0</span><span class="p">,</span> <span class="n">max_frequency</span><span class="o">=</span><span class="mf">116.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Query by frequency range and chemical name</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sp</span><span class="o">.</span><span class="n">query_lines</span><span class="p">(</span><span class="n">min_frequency</span><span class="o">=</span><span class="mf">114.0</span><span class="p">,</span> <span class="n">max_frequency</span><span class="o">=</span><span class="mf">116.0</span><span class="p">,</span> <span class="n">chemical_name</span><span class="o">=</span><span class="s2">&quot; CO &quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Query by frequency range (no keywords needed and chemical name)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sp</span><span class="o">.</span><span class="n">query_lines</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">1000.0</span><span class="p">,</span> <span class="n">chemical_name</span><span class="o">=</span><span class="s1">&#39;Ethylene Glycol&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Query by line list and energy</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sp</span><span class="o">.</span><span class="n">query_lines</span><span class="p">(</span><span class="mf">218.40</span><span class="p">,</span> <span class="mf">218.50</span><span class="p">,</span> <span class="n">energy_max</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">energy_type</span><span class="o">=</span><span class="s1">&#39;eu_k&#39;</span><span class="p">,</span> <span class="n">line_lists</span><span class="o">=</span><span class="s1">&#39;JPL&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Parse response into a list of dictionaries and store in result</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">parse_response</span><span class="p">()</span>
+</pre></div>
+</div>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="29%" />
+<col width="71%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>None</td>
+<td>&nbsp;</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Splatalogue.Splatalogue.get_species_ids" title="admit.util.Splatalogue.Splatalogue.get_species_ids"><code class="xref py py-obj docutils literal"><span class="pre">get_species_ids</span></code></a>([restr,&nbsp;reflags])</td>
+<td>Get a dictionary of &#8220;species&#8221; IDs, where species refers to the molecule name, mass, and chemical composition.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Splatalogue.Splatalogue.parse_response" title="admit.util.Splatalogue.Splatalogue.parse_response"><code class="xref py py-obj docutils literal"><span class="pre">parse_response</span></code></a>()</td>
+<td>Parse a response (of type urllib2.urlopen) into a list of dictionaries.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Splatalogue.Splatalogue.query_lines" title="admit.util.Splatalogue.Splatalogue.query_lines"><code class="xref py py-obj docutils literal"><span class="pre">query_lines</span></code></a>([min_frequency,&nbsp;max_frequency])</td>
+<td>Query Splatalogue for transitions between min_frequency and max_frequency with the given kwargs.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Splatalogue.Splatalogue.set_default_options" title="admit.util.Splatalogue.Splatalogue.set_default_options"><code class="xref py py-obj docutils literal"><span class="pre">set_default_options</span></code></a>(\*\*kwargs)</td>
+<td>Method to modify the default options.</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="admit.util.Splatalogue.Splatalogue.ALL_LINE_LISTS">
+<code class="descname">ALL_LINE_LISTS</code><em class="property"> = ('Lovas', 'SLAIM', 'JPL', 'CDMS', 'ToyoMA', 'OSU', 'Recomb', 'Lisa', 'RFI')</em><a class="headerlink" href="#admit.util.Splatalogue.Splatalogue.ALL_LINE_LISTS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="admit.util.Splatalogue.Splatalogue.FREQUENCY_BANDS">
+<code class="descname">FREQUENCY_BANDS</code><em class="property"> = {'pf1': 'GBT PF1 (0.29-0.92 GHz)', 'pf2': 'GBT PF2 (0.91-1.23 GHz)', 'mustang': 'GBT Mustang (80-100 GHz)', 'any': 'Any', 'kfpa': 'GBT KFPA (18-27.5 GHz)', 'alma10': 'ALMA Band 10 (787-950 GHz)', 'ku': ' GBT/VLA Ku (12-18 GHz)', 'ka': ' GBT/VLA Ka (26-40 GHz)', 'alma6': 'ALMA Band 6 (211-275 GHz)', 'alma7': 'ALMA Band 7 (275-373 GHz)', 'alma4': ' ALMA Band 4 (125-163 GHz)', 'alma5': ' ALMA Band 5 (163-211 GHz)', 'alma3': 'ALMA Band 3 (84-116 GHz)', 'alma8': 'ALMA Band 8 (385-500 GHz)', 'alma9': 'ALMA Band 9 (602-720 GHz)', 'c': 'GBT/VLA C (3.9-8 GHz)', 'k': 'VLA K (18-26.5 GHz)', 'l': 'GBT/VLA L (1-2 GHz)', 'q': 'GBT/VLA Q (38-50 GHz)', 's': 'GBT/VLA S (1.7-4 GHz)', 'w': 'GBT W (67-93.3 GHz)', 'x': 'GBT/VLA X (8-12 GHz)'}</em><a class="headerlink" href="#admit.util.Splatalogue.Splatalogue.FREQUENCY_BANDS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="admit.util.Splatalogue.Splatalogue.LINES_LIMIT">
+<code class="descname">LINES_LIMIT</code><em class="property"> = 10000</em><a class="headerlink" href="#admit.util.Splatalogue.Splatalogue.LINES_LIMIT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="admit.util.Splatalogue.Splatalogue.QUERY_URL">
+<code class="descname">QUERY_URL</code><em class="property"> = 'http://www.cv.nrao.edu/php/splat/c_export.php'</em><a class="headerlink" href="#admit.util.Splatalogue.Splatalogue.QUERY_URL" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="admit.util.Splatalogue.Splatalogue.TIMEOUT">
+<code class="descname">TIMEOUT</code><em class="property"> = 60</em><a class="headerlink" href="#admit.util.Splatalogue.Splatalogue.TIMEOUT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="admit.util.Splatalogue.Splatalogue.TOP20_LIST">
+<code class="descname">TOP20_LIST</code><em class="property"> = ('comet', 'planet', 'top20', 'ism_hotcore', 'ism_darkcloud', 'ism_diffusecloud')</em><a class="headerlink" href="#admit.util.Splatalogue.Splatalogue.TOP20_LIST" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Splatalogue.Splatalogue.get_species_ids">
+<code class="descname">get_species_ids</code><span class="sig-paren">(</span><em>restr=None</em>, <em>reflags=0</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Splatalogue.html#Splatalogue.get_species_ids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Splatalogue.Splatalogue.get_species_ids" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a dictionary of &#8220;species&#8221; IDs, where species refers to the molecule
+name, mass, and chemical composition.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>restr</strong> : str</p>
+<blockquote>
+<div><p>String to compile into an re, if specified.   Searches table for
+species whose names match. Default: None</p>
+</div></blockquote>
+<p><strong>reflags</strong> : int</p>
+<blockquote>
+<div><p>Flags to pass to <cite>re</cite>. Default: 0</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The id of the species</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Splatalogue.Splatalogue.parse_response">
+<code class="descname">parse_response</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Splatalogue.html#Splatalogue.parse_response"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Splatalogue.Splatalogue.parse_response" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse a response (of type urllib2.urlopen) into a list of dictionaries.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A dictonary of the response</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Splatalogue.Splatalogue.query_lines">
+<code class="descname">query_lines</code><span class="sig-paren">(</span><em>min_frequency=None</em>, <em>max_frequency=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Splatalogue.html#Splatalogue.query_lines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Splatalogue.Splatalogue.query_lines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Query Splatalogue for transitions between min_frequency and max_frequency
+with the given kwargs.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>min_frequency</strong> : float</p>
+<blockquote>
+<div><p>The starting frequency for the search in GHz. Default: None</p>
+</div></blockquote>
+<p><strong>max_frequency</strong> : float</p>
+<blockquote>
+<div><p>The ending frequency for the search in GHz. Default: None</p>
+</div></blockquote>
+<p><strong>kwargs</strong> : dict</p>
+<blockquote>
+<div><p>Any additional arguments for the search.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>response</strong> : <cite>requests.Response</cite></p>
+<blockquote class="last">
+<div><p>The response of the HTTP request.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Splatalogue.Splatalogue.set_default_options">
+<code class="descname">set_default_options</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Splatalogue.html#Splatalogue.set_default_options"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Splatalogue.Splatalogue.set_default_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to modify the default options.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>kwargs</strong> : dict</p>
+<blockquote>
+<div><p>See the class description for the key words and their meaning</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="admit.util.Splatalogue.Splatalogue.versions">
+<code class="descname">versions</code><em class="property"> = ('v1.0', 'v2.0')</em><a class="headerlink" href="#admit.util.Splatalogue.Splatalogue.versions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="admit.util.Splatalogue.clean_column_headings">
+<code class="descclassname">admit.util.Splatalogue.</code><code class="descname">clean_column_headings</code><span class="sig-paren">(</span><em>header</em>, <em>renaming_dict={'Resolved QNs': 'QNs'</em>, <em>'Log&lt;sub&gt;10&lt;/sub&gt; (A&lt;sub&gt;ij&lt;/sub&gt;)': 'log10(Aij)'</em>, <em>'E_U (K)': 'EU_K'</em>, <em>'S&lt;sub&gt;ij&lt;/sub&gt;': 'Sij'}</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Splatalogue.html#clean_column_headings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Splatalogue.clean_column_headings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rename column headings to shorter version that are easier for display
+on-screen / at the terminal</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>header</strong> : dict</p>
+<blockquote>
+<div><p>A dictionary of the header keywords</p>
+</div></blockquote>
+<p><strong>renaming_dict</strong> : dict</p>
+<blockquote>
+<div><p>A dictionary containing the old names (as the key) and the new
+names (as the value)</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The new header.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="admit.util.Splatalogue.species_lookuptable">
+<code class="descclassname">admit.util.Splatalogue.</code><code class="descname">species_lookuptable</code><span class="sig-paren">(</span><em>filename='species.json'</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Splatalogue.html#species_lookuptable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Splatalogue.species_lookuptable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to read in a file and turn it into a searchable dictionary</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>filename</strong> : str</p>
+<blockquote>
+<div><p>The name of the file to read. Default: &#8216;species.json&#8217;</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A lookup table with the contents of the input file</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/module/admit.util/Splatalogue.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" >Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,200 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.bdp.Image_BDP &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.bdp.Image_BDP</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   .. _Image-bdp-api:</span>
+
+<span class="sd">   **Image_BDP** --- Image data base.</span>
+<span class="sd">   ----------------------------------</span>
+
+<span class="sd">   This module defines the Image_BDP class.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># get the main BDP base class</span>
+<span class="kn">from</span> <span class="nn">BDP</span> <span class="k">import</span> <span class="n">BDP</span>
+
+<span class="c1"># get the multiimage base class</span>
+<span class="kn">from</span> <span class="nn">admit.util.MultiImage</span> <span class="k">import</span> <span class="n">MultiImage</span>
+<span class="kn">from</span> <span class="nn">admit.util.Image</span> <span class="k">import</span> <span class="n">Image</span>
+<span class="kn">import</span> <span class="nn">admit.util.bdp_types</span> <span class="k">as</span> <span class="nn">bt</span>
+
+
+<span class="c1"># set up the inheritance</span>
+<div class="viewcode-block" id="Image_BDP"><a class="viewcode-back" href="../../../module/admit.bdp/Image_BDP.html#admit.bdp.Image_BDP.Image_BDP">[docs]</a><span class="k">class</span> <span class="nc">Image_BDP</span><span class="p">(</span><span class="n">BDP</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; MultiImage Basic Data Product</span>
+
+<span class="sd">        Image base class for use in BDP&#39;s. BDP&#39;s that contain images</span>
+<span class="sd">        should inherit from this class. In the instance where more than</span>
+<span class="sd">        one image is needed then the class should instantiate instances</span>
+<span class="sd">        of the Image class directly.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        xmlFile : string</span>
+<span class="sd">            Output XML file name.</span>
+
+<span class="sd">        keyval : dictionary</span>
+<span class="sd">            Dictionary of keyword value pairs.</span>
+
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        image : Image</span>
+<span class="sd">            An Image class to hold the data.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xmlFile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">keyval</span><span class="p">):</span>
+        <span class="n">BDP</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xmlFile</span><span class="p">)</span>
+        <span class="c1"># instantiate an image as a data member</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">image</span> <span class="o">=</span> <span class="n">MultiImage</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="n">keyval</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_version</span><span class="o">=</span> <span class="s2">&quot;0.1.0&quot;</span>
+
+<div class="viewcode-block" id="Image_BDP.addimage"><a class="viewcode-back" href="../../../module/admit.bdp/Image_BDP.html#admit.bdp.Image_BDP.Image_BDP.addimage">[docs]</a>    <span class="k">def</span> <span class="nf">addimage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to add an image to the class</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            image : Image</span>
+<span class="sd">                The image instance to add</span>
+
+<span class="sd">            name : str</span>
+<span class="sd">                The name of the image, must be unique within the BDP instance</span>
+<span class="sd">                Default: &quot;&quot;</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">Image</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Only Image classes can be added with addimage.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">addimage</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Image_BDP.getimage"><a class="viewcode-back" href="../../../module/admit.bdp/Image_BDP.html#admit.bdp.Image_BDP.Image_BDP.getimage">[docs]</a>    <span class="k">def</span> <span class="nf">getimage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imtype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to get a specific image type from the class</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            image : string</span>
+<span class="sd">                The name of the image to get</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            The requested Image or None if it does not exist</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">imtype</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">getimageclass</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">getimage</span><span class="p">(</span><span class="n">imtype</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Image_BDP.getimagefile"><a class="viewcode-back" href="../../../module/admit.bdp/Image_BDP.html#admit.bdp.Image_BDP.Image_BDP.getimagefile">[docs]</a>    <span class="k">def</span> <span class="nf">getimagefile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imtype</span><span class="o">=</span><span class="n">bt</span><span class="o">.</span><span class="n">CASA</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to get the requested image file name from the named instance</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            imtyp : string</span>
+<span class="sd">                Can be any of the following: bdp_types.AUX to retrieve the</span>
+<span class="sd">                auxiliary file, bdp_types.THUMB to retrieve the thumbnail, </span>
+<span class="sd">                or a file format (e.g. bdp_types.FITS) to retrieve the</span>
+<span class="sd">                requested format of the main image. If the requested image</span>
+<span class="sd">                does not exist then None is returned.</span>
+
+<span class="sd">            name : str</span>
+<span class="sd">                The name if the image instance to get.</span>
+<span class="sd">                Default : &quot;&quot;</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            String containing the image name, or None if it does not exist</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">getimage</span><span class="p">(</span><span class="n">imtype</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">file</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

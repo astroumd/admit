@@ -1,0 +1,342 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Tier1DB — Tier 1 molecular line database services. &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../index.html" />
+    <link rel="up" title="Python Scripting Interface (API)" href="../../api.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" accesskey="U">Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-admit.util.Tier1DB"></span><div class="section" id="tier1db-tier-1-molecular-line-database-services">
+<span id="tier1db-api"></span><h1><strong>Tier1DB</strong> &#8212; Tier 1 molecular line database services.<a class="headerlink" href="#tier1db-tier-1-molecular-line-database-services" title="Permalink to this headline">¶</a></h1>
+<p>This module is used to interact with the Tier 1 database.</p>
+<dl class="class">
+<dt id="admit.util.Tier1DB.Tier1DB">
+<em class="property">class </em><code class="descclassname">admit.util.Tier1DB.</code><code class="descname">Tier1DB</code><a class="reference internal" href="../../_modules/admit/util/Tier1DB.html#Tier1DB"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Tier1DB.Tier1DB" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class for interacting with the Tier 1 database. Methods are supplied to
+query the database and get restults of the query. See the DOCUMENTATION
+on the Tier 1 database for specifics.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="9%" />
+<col width="91%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>conn</td>
+<td>(sql connection) The main sql database connection.</td>
+</tr>
+<tr class="row-even"><td>cursor</td>
+<td>(sql cursor) The cursor used to interact with the database.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Tier1DB.Tier1DB.add" title="admit.util.Tier1DB.Tier1DB.add"><code class="xref py py-obj docutils literal"><span class="pre">add</span></code></a>(string)</td>
+<td>Method to append to the query string, automatically adding where/and if necessary.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Tier1DB.Tier1DB.close" title="admit.util.Tier1DB.Tier1DB.close"><code class="xref py py-obj docutils literal"><span class="pre">close</span></code></a>()</td>
+<td>Method to cleanly close the database connection</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Tier1DB.Tier1DB.get" title="admit.util.Tier1DB.Tier1DB.get"><code class="xref py py-obj docutils literal"><span class="pre">get</span></code></a>(num)</td>
+<td>Method to get many results from the query</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Tier1DB.Tier1DB.getall" title="admit.util.Tier1DB.Tier1DB.getall"><code class="xref py py-obj docutils literal"><span class="pre">getall</span></code></a>()</td>
+<td>Method to get all results from the query</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Tier1DB.Tier1DB.getone" title="admit.util.Tier1DB.Tier1DB.getone"><code class="xref py py-obj docutils literal"><span class="pre">getone</span></code></a>()</td>
+<td>Method to get the next result from the query</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Tier1DB.Tier1DB.query" title="admit.util.Tier1DB.Tier1DB.query"><code class="xref py py-obj docutils literal"><span class="pre">query</span></code></a>(querystring)</td>
+<td>Method to execute the requested query against the transitions database</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Tier1DB.Tier1DB.searchhfs" title="admit.util.Tier1DB.Tier1DB.searchhfs"><code class="xref py py-obj docutils literal"><span class="pre">searchhfs</span></code></a>(hfsid)</td>
+<td>Method to search the HFS table for the requested transitions</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Tier1DB.Tier1DB.searchtransitions" title="admit.util.Tier1DB.Tier1DB.searchtransitions"><code class="xref py py-obj docutils literal"><span class="pre">searchtransitions</span></code></a>([freq,&nbsp;eu,&nbsp;el,&nbsp;linestr,&nbsp;...])</td>
+<td>Method to construct the query and send it to the database.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="admit.util.Tier1DB.Tier1DB.add">
+<code class="descname">add</code><span class="sig-paren">(</span><em>string</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Tier1DB.html#Tier1DB.add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Tier1DB.Tier1DB.add" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to append to the query string, automatically adding where/and if
+necessary.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>string</strong> : str</p>
+<blockquote>
+<div><p>The string to add to the query</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Tier1DB.Tier1DB.close">
+<code class="descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Tier1DB.html#Tier1DB.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Tier1DB.Tier1DB.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to cleanly close the database connection</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Tier1DB.Tier1DB.get">
+<code class="descname">get</code><span class="sig-paren">(</span><em>num</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Tier1DB.html#Tier1DB.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Tier1DB.Tier1DB.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get many results from the query</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>num</strong> : int</p>
+<blockquote>
+<div><p>The number of results to get</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A tuple containing the requested results as a list</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Tier1DB.Tier1DB.getall">
+<code class="descname">getall</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Tier1DB.html#Tier1DB.getall"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Tier1DB.Tier1DB.getall" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get all results from the query</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">List of LineData objects, one for each transition</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Tier1DB.Tier1DB.getone">
+<code class="descname">getone</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Tier1DB.html#Tier1DB.getone"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Tier1DB.Tier1DB.getone" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get the next result from the query</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">LineData object containing the transition data</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Tier1DB.Tier1DB.query">
+<code class="descname">query</code><span class="sig-paren">(</span><em>querystring</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Tier1DB.html#Tier1DB.query"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Tier1DB.Tier1DB.query" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to execute the requested query against the transitions database</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>query</strong> : str</p>
+<blockquote>
+<div><p>The query to perform, no error checking is done</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Tier1DB.Tier1DB.searchhfs">
+<code class="descname">searchhfs</code><span class="sig-paren">(</span><em>hfsid</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Tier1DB.html#Tier1DB.searchhfs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Tier1DB.Tier1DB.searchhfs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to search the HFS table for the requested transitions</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>hfsid</strong> : int</p>
+<blockquote>
+<div><p>The id of the HFS line to get</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Tier1DB.Tier1DB.searchtransitions">
+<code class="descname">searchtransitions</code><span class="sig-paren">(</span><em>freq=[]</em>, <em>eu=[]</em>, <em>el=[]</em>, <em>linestr=[]</em>, <em>species=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Tier1DB.html#Tier1DB.searchtransitions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Tier1DB.Tier1DB.searchtransitions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to construct the query and send it to the database.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>freq</strong> : list or float</p>
+<blockquote>
+<div><p>The frequency range to search over. If a list is given it is treated
+as [min,max]. If a single float is given then it is treated as a maximum
+allowable frequency. The units are GHz.</p>
+</div></blockquote>
+<p><strong>eu</strong> : list or float</p>
+<blockquote>
+<div><p>The upper energy range to search over. If a list is given it is treated
+as [min,max]. If a single float is given then it is treated as a maximum
+allowable upper state energy.</p>
+</div></blockquote>
+<p><strong>el</strong> : list or float</p>
+<blockquote>
+<div><p>The lower energy range to search over. If a list is given it is treated
+as [min,max]. If a single float is given then it is treated as a maximum
+allowable lower state energy.</p>
+</div></blockquote>
+<p><strong>linestr</strong> : list or float</p>
+<blockquote>
+<div><p>The line strength range to search over. If a list is given it is treated
+as [min,max]. If a single float is given then it is treated as a maximum
+allowable line strength.</p>
+</div></blockquote>
+<p><strong>species</strong> : str</p>
+<blockquote class="last">
+<div><p>The species to restrict the search to. It is executed as an sql &#8220;like&#8221;
+statement, and thus an exact match is not required.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/module/admit.util/Tier1DB.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" >Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

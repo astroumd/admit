@@ -1,0 +1,675 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.at.PVSlice_AT &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.at.PVSlice_AT</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; .. _PVSlice-AT-api:</span>
+
+<span class="sd">   **PVSlice_AT** --- Creates a position-velocity slice through a cube.</span>
+<span class="sd">   --------------------------------------------------------------------</span>
+
+<span class="sd">   This module defines the PVSlice_AT class.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">admit.AT</span> <span class="k">import</span> <span class="n">AT</span>
+<span class="kn">from</span> <span class="nn">admit.Summary</span> <span class="k">import</span> <span class="n">SummaryEntry</span>
+<span class="kn">import</span> <span class="nn">admit.util.bdp_types</span> <span class="k">as</span> <span class="nn">bt</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.PVSlice_BDP</span> <span class="k">import</span> <span class="n">PVSlice_BDP</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.Image_BDP</span> <span class="k">import</span> <span class="n">Image_BDP</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.Moment_BDP</span> <span class="k">import</span> <span class="n">Moment_BDP</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.CubeStats_BDP</span> <span class="k">import</span> <span class="n">CubeStats_BDP</span>
+
+
+<span class="kn">from</span> <span class="nn">admit.util.Image</span> <span class="k">import</span> <span class="n">Image</span>
+<span class="kn">from</span> <span class="nn">admit.util</span> <span class="k">import</span> <span class="n">APlot</span>
+<span class="kn">from</span> <span class="nn">admit.util</span> <span class="k">import</span> <span class="n">utils</span>
+<span class="kn">from</span> <span class="nn">admit.util</span> <span class="k">import</span> <span class="n">stats</span>
+<span class="kn">import</span> <span class="nn">admit.util.ImPlot</span> <span class="k">as</span> <span class="nn">ImPlot</span>
+<span class="kn">import</span> <span class="nn">admit.util.casautil</span> <span class="k">as</span> <span class="nn">casautil</span>
+<span class="kn">from</span> <span class="nn">admit.util.AdmitLogging</span> <span class="k">import</span> <span class="n">AdmitLogging</span> <span class="k">as</span> <span class="n">logging</span>
+
+<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy.ma</span> <span class="k">as</span> <span class="nn">ma</span>
+<span class="kn">import</span> <span class="nn">numpy.linalg</span> <span class="k">as</span> <span class="nn">la</span>
+<span class="kn">import</span> <span class="nn">math</span>
+
+<span class="k">try</span><span class="p">:</span>
+  <span class="kn">import</span> <span class="nn">casa</span>
+  <span class="kn">import</span> <span class="nn">taskinit</span>
+<span class="k">except</span><span class="p">:</span>
+  <span class="nb">print</span> <span class="s2">&quot;WARNING: No CASA; PVSlice task cannot function.&quot;</span>
+
+<div class="viewcode-block" id="PVSlice_AT"><a class="viewcode-back" href="../../../module/admit.at/PVSlice_AT.html#admit.at.PVSlice_AT.PVSlice_AT">[docs]</a><span class="k">class</span> <span class="nc">PVSlice_AT</span><span class="p">(</span><span class="n">AT</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create a PV Slice through a cube.</span>
+
+<span class="sd">    See also :ref:`PVSlice-AT-Design` for the design document.</span>
+
+<span class="sd">    **Keywords**</span>
+<span class="sd">      **slice**: 4 element list </span>
+<span class="sd">        Beginning and ending positions of the slice: [x0,y0,x1,y1]</span>
+<span class="sd">        Only (0 based) pixel coordinates are allowed.</span>
+
+<span class="sd">      **slit**: 4 element list</span>
+<span class="sd">        XCenter, Ycenter, SlitLength and SlitPA.</span>
+<span class="sd">        Pixel coordinates for now, for both center (0 based) and</span>
+<span class="sd">        length.  PA in degrees, east of north,</span>
+<span class="sd">        in the traditional astronomy convention.</span>
+
+<span class="sd">      **width**: int</span>
+<span class="sd">        Width of the slice/slit in the XY plane. Higher numbers will of</span>
+<span class="sd">        course increase the signal to noise, but also blurr the</span>
+<span class="sd">        signal in velocity if there are velocity gradients across</span>
+<span class="sd">        the slit, defeating the purpose if this PVSlice is used.</span>
+<span class="sd">        for LineID.</span>
+<span class="sd">        Numbers need to be odd, since it includes the central pixel,</span>
+<span class="sd">        as well as a number on either side of the slit/slice.</span>
+<span class="sd">        Warning: large widths can also cause CASA&#39;s impv program</span>
+<span class="sd">        to crash as it runs over the edge near the endpoints of</span>
+<span class="sd">        the slit.</span>
+<span class="sd">        **Default:** 1.</span>
+
+<span class="sd">      **clip**: float</span>
+<span class="sd">        Clip value applied to input Moment_BDP map in case the slice/slit is to</span>
+<span class="sd">        be derived from an automated moment of inertia analysis. It is interpreted</span>
+<span class="sd">        as a &quot;numsigma&quot;, i.e. how many times over the noise in the map it should</span>
+<span class="sd">        use. If no signal is found, it iteratively lowers this value until some</span>
+<span class="sd">        signal is found (but probably creating a lousy PV Slice)</span>
+<span class="sd">        **Default:**  0.0.</span>
+
+<span class="sd">      **gamma**: float</span>
+<span class="sd">        Gamma factor applied to input Moment_BDP map in case the slice/slit is to</span>
+<span class="sd">        be derived from an automated moment of inertia analysis.</span>
+<span class="sd">        **Default:**  1.0.</span>
+
+<span class="sd">      **pvsmooth**: list of 2</span>
+<span class="sd">        Smoothing (in pixels) to apply to PV Slice. By default no smoothing is done.</span>
+<span class="sd">        Currently no further processing on this smoothed version is done, although</span>
+<span class="sd">        it is available for inspection.</span>
+<span class="sd">        **Default:**  [].</span>
+
+<span class="sd">      **zoom**: int</span>
+<span class="sd">        Image zoom ratio applied to the map plots. This does not</span>
+<span class="sd">        impact the base (CASA) images. Default: 1.</span>
+
+<span class="sd">    **Input BDPs**</span>
+
+<span class="sd">      **SpwCube_BDP**: count: 1</span>
+<span class="sd">        Spectral window cube, as from an `Ingest_AT &lt;Ingest_AT.html&gt;`_ or</span>
+<span class="sd">        `ContinuumSub_AT &lt;ContinuumSub_AT.html&gt;`_.</span>
+
+<span class="sd">      **Moment_BDP**: count: 1 (optional)</span>
+<span class="sd">        Map from a `CubeSum_AT &lt;CubeSum_AT.html&gt;`_ or</span>
+<span class="sd">        `Moment_AT &lt;Moment_AT.html&gt;`_</span>
+<span class="sd">        where a moment of inertia is used to derive a best slice.</span>
+
+<span class="sd">      **CubeStats_BDP**: count: 1 (optional)</span>
+<span class="sd">        The peakpoints from this table are used to compute a moment of inertia</span>
+<span class="sd">        to obtain a best slice. Normally the output of a</span>
+<span class="sd">        `CubeStats_AT &lt;CubeStats_AT.html&gt;`_.</span>
+<span class="sd">    </span>
+<span class="sd">    **Output BDPs**</span>
+
+<span class="sd">      **PVSlice_BDP**: count: 1</span>
+<span class="sd">        Output PV Slice, a 2D map.</span>
+<span class="sd">        Naming convention:    extension replaced with &quot;pv&quot;  (e.g. x.im -&gt; x.pv).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    keyval : dictionary, optional</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    _version : string</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">**</span><span class="n">keyval</span><span class="p">):</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;slice&quot;</span>    <span class="p">:</span> <span class="p">[],</span>            <span class="c1"># x0,y0,x1,y1    ? could be line= ?</span>
+                <span class="s2">&quot;slit&quot;</span>     <span class="p">:</span> <span class="p">[],</span>            <span class="c1"># xc,yc,len,pa   pick one of slice= or slit=</span>
+                <span class="s2">&quot;width&quot;</span>    <span class="p">:</span> <span class="mi">1</span><span class="p">,</span>             <span class="c1"># odd integer!</span>
+                <span class="s2">&quot;clip&quot;</span>     <span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>           <span class="c1"># clip value (in terms of sigma)</span>
+                <span class="s2">&quot;gamma&quot;</span>    <span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>           <span class="c1"># gamma factor for analyzing map MOI</span>
+                <span class="s2">&quot;pvsmooth&quot;</span> <span class="p">:</span> <span class="p">[],</span>            <span class="c1"># P and V smoothing (in pixel)</span>
+                <span class="s2">&quot;zoom&quot;</span>     <span class="p">:</span> <span class="mi">1</span><span class="p">,</span>             <span class="c1"># default map plot zoom ratio</span>
+                <span class="c1">#&quot;major&quot;   : True,          # (TODO) major or minor axis, not used yet</span>
+                <span class="p">}</span>
+        <span class="n">AT</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">keys</span><span class="p">,</span><span class="n">keyval</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_version</span>       <span class="o">=</span> <span class="s2">&quot;1.1.3&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_bdp_in</span><span class="p">([(</span><span class="n">Image_BDP</span><span class="p">,</span>     <span class="mi">1</span><span class="p">,</span> <span class="n">bt</span><span class="o">.</span><span class="n">REQUIRED</span><span class="p">),</span>      <span class="c1"># SpwCube</span>
+                         <span class="p">(</span><span class="n">Moment_BDP</span><span class="p">,</span>    <span class="mi">1</span><span class="p">,</span> <span class="n">bt</span><span class="o">.</span><span class="n">OPTIONAL</span><span class="p">),</span>      <span class="c1"># Moment0 or CubeSum</span>
+                         <span class="p">(</span><span class="n">CubeStats_BDP</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">bt</span><span class="o">.</span><span class="n">OPTIONAL</span><span class="p">)])</span>     <span class="c1"># was: PeakPointPlot</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_bdp_out</span><span class="p">([(</span><span class="n">PVSlice_BDP</span><span class="p">,</span>  <span class="mi">1</span><span class="p">)])</span>
+
+<div class="viewcode-block" id="PVSlice_AT.summary"><a class="viewcode-back" href="../../../module/admit.at/PVSlice_AT.html#admit.at.PVSlice_AT.PVSlice_AT.summary">[docs]</a>    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the summary dictionary from the AT, for merging</span>
+<span class="sd">           into the ADMIT Summary object.</span>
+
+<span class="sd">           PVSlice_AT adds the following to ADMIT summary:</span>
+
+<span class="sd">           .. table::</span>
+<span class="sd">              :class: borderless</span>
+
+<span class="sd">              +----------+----------+-----------------------------------+</span>
+<span class="sd">              |   Key    | type     |    Description                    |</span>
+<span class="sd">              +==========+==========+===================================+</span>
+<span class="sd">              | pvcorr   | list     |   correlation diagram             |</span>
+<span class="sd">              +----------+----------+-----------------------------------+</span>
+<span class="sd">           </span>
+<span class="sd">           Parameters</span>
+<span class="sd">           ----------</span>
+<span class="sd">           None</span>
+
+<span class="sd">           Returns</span>
+<span class="sd">           -------</span>
+<span class="sd">           dict</span>
+<span class="sd">               Dictionary of SummaryEntry</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;_summary&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{}</span></div>
+
+<div class="viewcode-block" id="PVSlice_AT.run"><a class="viewcode-back" href="../../../module/admit.at/PVSlice_AT.html#admit.at.PVSlice_AT.PVSlice_AT.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Runs the task.</span>
+
+<span class="sd">           Parameters</span>
+<span class="sd">           ----------</span>
+<span class="sd">           None</span>
+
+<span class="sd">           Returns</span>
+<span class="sd">           -------</span>
+<span class="sd">           None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">pvslicesummary</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">sumslicetype</span> <span class="o">=</span> <span class="s1">&#39;slice&#39;</span>
+        <span class="n">sliceargs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">Dtime</span><span class="p">(</span><span class="s2">&quot;PVSlice&quot;</span><span class="p">)</span>
+        <span class="c1"># import here, otherwise sphinx cannot parse</span>
+        <span class="kn">from</span> <span class="nn">impv</span>     <span class="k">import</span> <span class="n">impv</span>
+        <span class="kn">from</span> <span class="nn">imsmooth</span> <span class="k">import</span> <span class="n">imsmooth</span>
+
+        <span class="n">pvslice</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s1">&#39;slice&#39;</span><span class="p">)</span>       <span class="c1"># x_s,y_s,x_e,y_e (start and end of line)</span>
+        <span class="n">pvslit</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s1">&#39;slit&#39;</span><span class="p">)</span>        <span class="c1"># x_c,y_c,len,pa  (center, length and PA of line)</span>
+
+        <span class="c1"># BDP&#39;s used :</span>
+
+        <span class="c1">#   b10 = input BDP</span>
+        <span class="c1">#   b11 = input BDP (moment)</span>
+        <span class="c1">#   b12 = input BDP (new style cubestats w/ maxpos)</span>
+        <span class="c1">#   b2 = output BDP</span>
+
+        <span class="n">b10</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>                 <span class="c1"># input SpwCube</span>
+        <span class="n">fin</span> <span class="o">=</span> <span class="n">b10</span><span class="o">.</span><span class="n">getimagefile</span><span class="p">(</span><span class="n">bt</span><span class="o">.</span><span class="n">CASA</span><span class="p">)</span>       <span class="c1"># input name</span>
+
+        <span class="n">b11</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>                 <span class="c1"># </span>
+        <span class="n">b12</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+
+        <span class="n">clip</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s1">&#39;clip&#39;</span><span class="p">)</span>           <span class="c1"># clipping to data for Moment-of-Inertia</span>
+        <span class="n">gamma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s1">&#39;gamma&#39;</span><span class="p">)</span>          <span class="c1"># gamma factor to data for Moment-of-Inertia</span>
+
+        <span class="k">if</span> <span class="n">b11</span> <span class="o">!=</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">pvslice</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">pvslit</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># if a map (e.g. cubesum ) given, and no slice/slit, get a best pvslice from that</span>
+            <span class="p">(</span><span class="n">pvslice</span><span class="p">,</span><span class="n">clip</span><span class="p">)</span> <span class="o">=</span> <span class="n">map_to_slit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">b11</span><span class="o">.</span><span class="n">getimagefile</span><span class="p">(</span><span class="n">bt</span><span class="o">.</span><span class="n">CASA</span><span class="p">)),</span><span class="n">clip</span><span class="o">=</span><span class="n">clip</span><span class="p">,</span><span class="n">gamma</span><span class="o">=</span><span class="n">gamma</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">b12</span> <span class="o">!=</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">pvslice</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">pvslit</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># PPP doesn&#39;t seem to work too well yet</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;testing new slice computation from a PPP&quot;</span><span class="p">)</span>
+            <span class="nb">max</span>     <span class="o">=</span> <span class="n">b12</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">getColumnByName</span><span class="p">(</span><span class="s2">&quot;max&quot;</span><span class="p">)</span>
+            <span class="n">maxposx</span> <span class="o">=</span> <span class="n">b12</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">getColumnByName</span><span class="p">(</span><span class="s2">&quot;maxposx&quot;</span><span class="p">)</span>
+            <span class="n">maxposy</span> <span class="o">=</span> <span class="n">b12</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">getColumnByName</span><span class="p">(</span><span class="s2">&quot;maxposy&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">maxposx</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+              <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span><span class="s2">&quot;PPP was not enabled in your CubeStats&quot;</span>
+            <span class="p">(</span><span class="n">pvslice</span><span class="p">,</span><span class="n">clip</span><span class="p">)</span> <span class="o">=</span> <span class="n">tab_to_slit</span><span class="p">([</span><span class="n">maxposx</span><span class="p">,</span><span class="n">maxposy</span><span class="p">,</span><span class="nb">max</span><span class="p">],</span><span class="n">clip</span><span class="o">=</span><span class="n">clip</span><span class="p">,</span><span class="n">gamma</span><span class="o">=</span><span class="n">gamma</span><span class="p">)</span>
+        <span class="n">sliceargs</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">pvslice</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sliceargs</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;no slice for plot yet&quot;</span><span class="p">)</span>
+        <span class="c1"># ugh, this puts single quotes around the numbers</span>
+        <span class="n">formattedslice</span> <span class="o">=</span> <span class="nb">str</span><span class="p">([</span><span class="s2">&quot;</span><span class="si">%.2f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">sliceargs</span><span class="p">])</span>
+        <span class="n">taskargs</span> <span class="o">=</span> <span class="s2">&quot;slice=&quot;</span><span class="o">+</span><span class="n">formattedslice</span>
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;slice&quot;</span><span class="p">)</span>
+
+        <span class="n">pvname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mkext</span><span class="p">(</span><span class="n">fin</span><span class="p">,</span><span class="s1">&#39;pv&#39;</span><span class="p">)</span>        <span class="c1"># output image name</span>
+        <span class="n">b2</span> <span class="o">=</span> <span class="n">PVSlice_BDP</span><span class="p">(</span><span class="n">pvname</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addoutput</span><span class="p">(</span><span class="n">b2</span><span class="p">)</span>
+
+        <span class="n">width</span>   <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s1">&#39;width&#39;</span><span class="p">)</span>       <span class="c1"># @todo also:  &quot;4arcsec&quot;  (can&#39;t work since it&#39;s a single keyword)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pvslice</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">pvslice</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>   <span class="c1"># @todo also allow:   [&quot;14h20m20.5s&quot;,&quot;-30d45m25.4s&quot;]</span>
+            <span class="n">end</span>   <span class="o">=</span> <span class="n">pvslice</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span>
+            <span class="n">impv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">fin</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">pvname</span><span class="p">),</span><span class="s2">&quot;coords&quot;</span><span class="p">,</span><span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span><span class="n">end</span><span class="o">=</span><span class="n">end</span><span class="p">,</span><span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span><span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">pvslit</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="n">sumslicetype</span> <span class="o">=</span> <span class="s1">&#39;slit&#39;</span>
+            <span class="n">sliceargs</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">pvslit</span><span class="p">)</span>
+            <span class="n">formattedslice</span> <span class="o">=</span> <span class="nb">str</span><span class="p">([</span><span class="s2">&quot;</span><span class="si">%.2f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">sliceargs</span><span class="p">])</span>
+            <span class="n">taskargs</span> <span class="o">=</span> <span class="s2">&quot;slit=&quot;</span><span class="o">+</span><span class="n">formattedslice</span>
+            <span class="c1"># length=&quot;40arcsec&quot; same as {&quot;value&quot;: 40, &quot;unit&quot;: &quot;arcsec&quot;})</span>
+            <span class="n">center</span> <span class="o">=</span> <span class="n">pvslit</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>   <span class="c1"># @todo also:   [&quot;14h20m20.5s&quot;,&quot;-30d45m25.4s&quot;].</span>
+            <span class="n">length</span> <span class="o">=</span> <span class="n">pvslit</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>    <span class="c1"># @todo also:   &quot;40arcsec&quot;, {&quot;value&quot;: 40, &quot;unit&quot;: &quot;arcsec&quot;})</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">pvslit</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span> <span class="ow">is</span> <span class="nb">float</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">pvslit</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span> <span class="ow">is</span> <span class="nb">int</span><span class="p">:</span>
+                <span class="n">pa</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%g</span><span class="s2">deg&quot;</span> <span class="o">%</span> <span class="n">pvslit</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">pa</span> <span class="o">=</span> <span class="n">pvslit</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+            <span class="n">impv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">fin</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">pvname</span><span class="p">),</span><span class="s2">&quot;length&quot;</span><span class="p">,</span><span class="n">center</span><span class="o">=</span><span class="n">center</span><span class="p">,</span><span class="n">length</span><span class="o">=</span><span class="n">length</span><span class="p">,</span><span class="n">pa</span><span class="o">=</span><span class="n">pa</span><span class="p">,</span><span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span><span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span><span class="s2">&quot;no valid input  slit= or slice= or bad Moment_BDP input&quot;</span>
+        <span class="n">sliceargs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">width</span><span class="p">)</span>
+        <span class="n">taskargs</span> <span class="o">=</span> <span class="n">taskargs</span> <span class="o">+</span> <span class="s2">&quot; width=</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">width</span>
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;impv&quot;</span><span class="p">)</span>
+
+        <span class="n">smooth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s1">&#39;pvsmooth&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">smooth</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">smooth</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">smooth</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">smooth</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">major</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">pix&#39;</span> <span class="o">%</span> <span class="n">smooth</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">minor</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">pix&#39;</span> <span class="o">%</span> <span class="n">smooth</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;imsmooth PV slice: </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">major</span><span class="p">,</span><span class="n">minor</span><span class="p">))</span>
+            <span class="n">imsmooth</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">pvname</span><span class="p">),</span> <span class="n">outfile</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">pvname</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;.smooth&#39;</span><span class="p">,</span><span class="n">kernel</span><span class="o">=</span><span class="s1">&#39;boxcar&#39;</span><span class="p">,</span><span class="n">major</span><span class="o">=</span><span class="n">major</span><span class="p">,</span><span class="n">minor</span><span class="o">=</span><span class="n">minor</span><span class="p">)</span>
+            <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;imsmooth&quot;</span><span class="p">)</span>
+            <span class="c1"># utils.rename(self.dir(pvname)+&#39;.smooth&#39;,self.dir(pvname))</span>
+            <span class="c1"># @todo  we will keep the smooth PVslice for inspection, no further flow work</span>
+
+        <span class="c1"># get some statistics</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">casautil</span><span class="o">.</span><span class="n">getdata_raw</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">pvname</span><span class="p">))</span>
+        <span class="n">rpix</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">robust</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+        <span class="n">r_mean</span> <span class="o">=</span> <span class="n">rpix</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+        <span class="n">r_std</span>  <span class="o">=</span> <span class="n">rpix</span><span class="o">.</span><span class="n">std</span><span class="p">()</span>
+        <span class="n">r_max</span> <span class="o">=</span> <span class="n">rpix</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;PV stats: mean/std/max </span><span class="si">%f</span><span class="s2"> </span><span class="si">%f</span><span class="s2"> </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">r_mean</span><span class="p">,</span> <span class="n">r_std</span><span class="p">,</span> <span class="n">r_max</span><span class="p">))</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">regression</span><span class="p">(</span><span class="s2">&quot;PVSLICE: </span><span class="si">%f</span><span class="s2"> </span><span class="si">%f</span><span class="s2"> </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">r_mean</span><span class="p">,</span> <span class="n">r_std</span><span class="p">,</span> <span class="n">r_max</span><span class="p">))</span>
+
+        <span class="n">myplot</span> <span class="o">=</span> <span class="n">APlot</span><span class="p">(</span><span class="n">ptype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_plot_type</span><span class="p">,</span><span class="n">pmode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_plot_mode</span><span class="p">,</span><span class="n">abspath</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">())</span>
+
+        <span class="c1"># hack to get a slice on a mom0map </span>
+        <span class="c1"># @todo   if pmode is not png, can viewer handle this?</span>
+        <span class="n">figname</span>   <span class="o">=</span> <span class="n">pvname</span> <span class="o">+</span> <span class="s2">&quot;.png&quot;</span>
+        <span class="n">slicename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">figname</span><span class="p">)</span>
+        <span class="n">overlay</span>   <span class="o">=</span> <span class="n">pvname</span><span class="o">+</span><span class="s2">&quot;_overlay&quot;</span> 
+        <span class="k">if</span> <span class="n">b11</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">f11</span> <span class="o">=</span> <span class="n">b11</span><span class="o">.</span><span class="n">getimagefile</span><span class="p">(</span><span class="n">bt</span><span class="o">.</span><span class="n">CASA</span><span class="p">)</span>
+            <span class="n">tb</span> <span class="o">=</span> <span class="n">taskinit</span><span class="o">.</span><span class="n">tbtool</span><span class="p">()</span>
+            <span class="n">tb</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">f11</span><span class="p">))</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">tb</span><span class="o">.</span><span class="n">getcol</span><span class="p">(</span><span class="s1">&#39;map&#39;</span><span class="p">)</span>
+            <span class="n">nx</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">ny</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">tb</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="n">d1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flipud</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">rot90</span> <span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">nx</span><span class="p">,</span><span class="n">ny</span><span class="p">))))</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pvslice</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+              <span class="n">segm</span> <span class="o">=</span> <span class="p">[[</span><span class="n">pvslice</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">pvslice</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="n">pvslice</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">pvslice</span><span class="p">[</span><span class="mi">3</span><span class="p">]]]</span>
+              <span class="n">pa</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">pvslice</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">-</span><span class="n">pvslice</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">pvslice</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">pvslice</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span><span class="o">*</span><span class="mf">180.0</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+              <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;PV Slice location : slice PA=</span><span class="si">%.1f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">pa</span>
+              <span class="n">xcen</span> <span class="o">=</span> <span class="p">(</span><span class="n">pvslice</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">pvslice</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span><span class="o">/</span><span class="mf">2.0</span>
+              <span class="n">ycen</span> <span class="o">=</span> <span class="p">(</span><span class="n">pvslice</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">pvslice</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span><span class="o">/</span><span class="mf">2.0</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">pvslit</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+              <span class="c1"># can only do this now if using pixel coordinates</span>
+              <span class="n">xcen</span> <span class="o">=</span> <span class="n">pvslit</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+              <span class="n">ycen</span> <span class="o">=</span> <span class="n">pvslit</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+              <span class="n">slen</span> <span class="o">=</span> <span class="n">pvslit</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+              <span class="n">pard</span> <span class="o">=</span> <span class="n">pvslit</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mf">180.0</span>
+              <span class="n">cosp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">pard</span><span class="p">)</span>
+              <span class="n">sinp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">pard</span><span class="p">)</span>
+              <span class="n">halflen</span> <span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">slen</span>
+              <span class="n">segm</span> <span class="o">=</span> <span class="p">[[</span><span class="n">xcen</span><span class="o">-</span><span class="n">halflen</span><span class="o">*</span><span class="n">sinp</span><span class="p">,</span><span class="n">xcen</span><span class="o">+</span><span class="n">halflen</span><span class="o">*</span><span class="n">sinp</span><span class="p">,</span><span class="n">ycen</span><span class="o">+</span><span class="n">halflen</span><span class="o">*</span><span class="n">cosp</span><span class="p">,</span><span class="n">ycen</span><span class="o">-</span><span class="n">halflen</span><span class="o">*</span><span class="n">cosp</span><span class="p">]]</span>
+              <span class="n">pa</span>   <span class="o">=</span> <span class="n">pvslit</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+              <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;PV Slice location : slit PA=</span><span class="si">%g</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">pa</span>
+            <span class="k">else</span><span class="p">:</span>
+              <span class="c1"># bogus, some error in pvslice</span>
+              <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;bogus segm since pvslice=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">pvslice</span><span class="p">))</span>
+              <span class="n">segm</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">10</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">20</span><span class="p">]]</span>
+              <span class="n">pa</span>   <span class="o">=</span> <span class="o">-</span><span class="mf">999.999</span>
+              <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;PV Slice location - bad PA&quot;</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;MAP1 segm </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">segm</span><span class="p">),</span><span class="nb">str</span><span class="p">(</span><span class="n">pvslice</span><span class="p">)))</span>
+            <span class="k">if</span> <span class="n">d1</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">clip</span><span class="p">:</span>
+              <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;datamax=</span><span class="si">%g</span><span class="s2">,  clip=</span><span class="si">%g</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">d1</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">clip</span><span class="p">))</span>
+              <span class="n">title</span> <span class="o">=</span> <span class="n">title</span> <span class="o">+</span> <span class="s1">&#39; (no signal over </span><span class="si">%g</span><span class="s1">?)&#39;</span> <span class="o">%</span> <span class="n">clip</span>
+              <span class="n">myplot</span><span class="o">.</span><span class="n">map1</span><span class="p">(</span><span class="n">d1</span><span class="p">,</span><span class="n">title</span><span class="p">,</span><span class="n">overlay</span><span class="p">,</span><span class="n">segments</span><span class="o">=</span><span class="n">segm</span><span class="p">,</span><span class="n">thumbnail</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                          <span class="n">zoom</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;zoom&quot;</span><span class="p">),</span><span class="n">star</span><span class="o">=</span><span class="p">[</span><span class="n">xcen</span><span class="p">,</span><span class="n">ycen</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+              <span class="n">myplot</span><span class="o">.</span><span class="n">map1</span><span class="p">(</span><span class="n">d1</span><span class="p">,</span><span class="n">title</span><span class="p">,</span><span class="n">overlay</span><span class="p">,</span><span class="n">segments</span><span class="o">=</span><span class="n">segm</span><span class="p">,</span><span class="nb">range</span><span class="o">=</span><span class="p">[</span><span class="n">clip</span><span class="p">],</span><span class="n">thumbnail</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                          <span class="n">zoom</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;zoom&quot;</span><span class="p">),</span><span class="n">star</span><span class="o">=</span><span class="p">[</span><span class="n">xcen</span><span class="p">,</span><span class="n">ycen</span><span class="p">])</span>
+            <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;plot&quot;</span><span class="p">)</span>
+            <span class="n">overlayname</span> <span class="o">=</span> <span class="n">myplot</span><span class="o">.</span><span class="n">getFigure</span><span class="p">(</span><span class="n">figno</span><span class="o">=</span><span class="n">myplot</span><span class="o">.</span><span class="n">figno</span><span class="p">,</span><span class="n">relative</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">overlaythumbname</span> <span class="o">=</span> <span class="n">myplot</span><span class="o">.</span><span class="n">getThumbnail</span><span class="p">(</span><span class="n">figno</span><span class="o">=</span><span class="n">myplot</span><span class="o">.</span><span class="n">figno</span><span class="p">,</span><span class="n">relative</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">Qover</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">Qover</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="n">implot</span> <span class="o">=</span> <span class="n">ImPlot</span><span class="p">(</span><span class="n">pmode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_plot_mode</span><span class="p">,</span><span class="n">ptype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_plot_type</span><span class="p">,</span><span class="n">abspath</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">())</span>
+        <span class="n">implot</span><span class="o">.</span><span class="n">plotter</span><span class="p">(</span><span class="n">rasterfile</span><span class="o">=</span><span class="n">pvname</span><span class="p">,</span> <span class="n">figname</span><span class="o">=</span><span class="n">pvname</span><span class="p">,</span> <span class="n">colorwedge</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">thumbname</span> <span class="o">=</span> <span class="n">implot</span><span class="o">.</span><span class="n">getThumbnail</span><span class="p">(</span><span class="n">figno</span><span class="o">=</span><span class="n">implot</span><span class="o">.</span><span class="n">figno</span><span class="p">,</span><span class="n">relative</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">figname</span>   <span class="o">=</span> <span class="n">implot</span><span class="o">.</span><span class="n">getFigure</span><span class="p">(</span><span class="n">figno</span><span class="o">=</span><span class="n">implot</span><span class="o">.</span><span class="n">figno</span><span class="p">,</span><span class="n">relative</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="c1"># debug:</span>
+            <span class="c1">#</span>
+            <span class="c1"># @todo    tmp1 is ok, tmp2 is not displaying the whole thing</span>
+            <span class="c1"># old style:   viewer() seems to plot full image, but imview() wants square pixels?</span>
+            <span class="n">casa</span><span class="o">.</span><span class="n">viewer</span><span class="p">(</span><span class="n">infile</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">pvname</span><span class="p">),</span> <span class="n">outfile</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="s1">&#39;tmp1.pv.png&#39;</span><span class="p">),</span> <span class="n">gui</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">outformat</span><span class="o">=</span><span class="s2">&quot;png&quot;</span><span class="p">)</span>
+            <span class="n">casa</span><span class="o">.</span><span class="n">imview</span><span class="p">(</span><span class="n">raster</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;file&#39;</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">pvname</span><span class="p">),</span>  <span class="s1">&#39;colorwedge&#39;</span> <span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;scaling&#39;</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">},</span>
+                    <span class="n">axes</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;y&#39;</span><span class="p">:</span><span class="s1">&#39;Declination&#39;</span><span class="p">},</span>
+                    <span class="n">out</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="s1">&#39;tmp2.pv.png&#39;</span><span class="p">))</span>
+            <span class="c1">#</span>
+            <span class="c1"># -&gt; this one works, axes= should be correct</span>
+            <span class="c1"># imview(raster={&#39;file&#39;:&#39;x.pv&#39;,  &#39;colorwedge&#39; : True, &#39;scaling&#39;:-1},axes={&#39;y&#39;:&#39;Frequency&#39;})</span>
+            <span class="c1">#</span>
+            <span class="c1"># @TODO big fixme, we&#39;re going to reuse &#39;tmp1.pv.png&#39; because implot give a broken view</span>
+            <span class="n">figname</span> <span class="o">=</span> <span class="s1">&#39;tmp1.pv.png&#39;</span>
+                    
+        <span class="c1"># @todo   technically we don&#39;t know what map it was overlay&#39;d on.... CubeSum/Moment0</span>
+        <span class="n">overlaycaption</span> <span class="o">=</span> <span class="s2">&quot;Location of position-velocity slice overlaid on a CubeSum map&quot;</span>
+        <span class="n">pvcaption</span> <span class="o">=</span> <span class="s2">&quot;Position-velocity diagram through emission centroid&quot;</span>
+        <span class="n">pvimage</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span><span class="n">images</span><span class="o">=</span><span class="p">{</span><span class="n">bt</span><span class="o">.</span><span class="n">CASA</span> <span class="p">:</span> <span class="n">pvname</span><span class="p">,</span> <span class="n">bt</span><span class="o">.</span><span class="n">PNG</span> <span class="p">:</span> <span class="n">figname</span><span class="p">},</span><span class="n">thumbnail</span><span class="o">=</span><span class="n">thumbname</span><span class="p">,</span><span class="n">thumbnailtype</span><span class="o">=</span><span class="n">bt</span><span class="o">.</span><span class="n">PNG</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="n">pvcaption</span><span class="p">)</span>
+        <span class="n">b2</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;image&quot;</span><span class="p">,</span><span class="n">pvimage</span><span class="p">)</span>
+        <span class="n">b2</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span><span class="nb">float</span><span class="p">(</span><span class="n">r_mean</span><span class="p">))</span>
+        <span class="n">b2</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;sigma&quot;</span><span class="p">,</span><span class="nb">float</span><span class="p">(</span><span class="n">r_std</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">Qover</span><span class="p">:</span>
+          <span class="n">thispvsummary</span> <span class="o">=</span> <span class="p">[</span><span class="n">sumslicetype</span><span class="p">,</span><span class="n">sliceargs</span><span class="p">,</span><span class="n">figname</span><span class="p">,</span><span class="n">thumbname</span><span class="p">,</span><span class="n">pvcaption</span><span class="p">,</span><span class="n">overlayname</span><span class="p">,</span><span class="n">overlaythumbname</span><span class="p">,</span><span class="n">overlaycaption</span><span class="p">,</span><span class="n">pvname</span><span class="p">,</span><span class="n">fin</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+          <span class="n">thispvsummary</span> <span class="o">=</span> <span class="p">[</span><span class="n">sumslicetype</span><span class="p">,</span><span class="n">sliceargs</span><span class="p">,</span><span class="n">figname</span><span class="p">,</span><span class="n">thumbname</span><span class="p">,</span><span class="n">pvcaption</span><span class="p">,</span><span class="n">pvname</span><span class="p">,</span><span class="n">fin</span><span class="p">]</span>
+        
+        <span class="c1"># Yes, this is a nested list.  Against the day when PVSLICE can</span>
+        <span class="c1"># compute multiple slices per map.</span>
+        <span class="n">pvslicesummary</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">thispvsummary</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="s2">&quot;pvslices&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SummaryEntry</span><span class="p">(</span><span class="n">pvslicesummary</span><span class="p">,</span><span class="s2">&quot;PVSlice_AT&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">(</span><span class="kc">True</span><span class="p">),</span><span class="n">taskargs</span><span class="p">)</span>
+
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;done&quot;</span><span class="p">)</span>
+        <span class="n">dt</span><span class="o">.</span><span class="n">end</span><span class="p">()</span></div></div>
+
+
+<span class="c1"># Big Fat Warning (using the default image in CASA) about images in CASA and numpy/astropy</span>
+<span class="c1">#</span>
+<span class="c1"># ia.maketestimage()</span>
+<span class="c1"># data = ia.getchunk().squeeze()</span>
+<span class="c1"># data.shape -&gt; 113,76 = NX,NY</span>
+<span class="c1"># data[1,0]  = -0.0927   data[ix,iy]</span>
+<span class="c1">#</span>
+<span class="c1">#</span>
+<span class="c1">#  from astropy.io import fits</span>
+<span class="c1">#  hdu = fits.open(&#39;tmp.fits&#39;)</span>
+<span class="c1">#  data = hdu[0].data</span>
+<span class="c1">#  data.shape -&gt; 76,113  = NY,NX</span>
+<span class="c1">#  data[1,0]  = 0.407   data[iy,ix]</span>
+
+
+<div class="viewcode-block" id="map_to_slit"><a class="viewcode-back" href="../../../module/admit.at/PVSlice_AT.html#admit.at.PVSlice_AT.map_to_slit">[docs]</a><span class="k">def</span> <span class="nf">map_to_slit</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">clip</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;take all values from a map over clip, compute best slit for PV Slice</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ia</span> <span class="o">=</span> <span class="n">taskinit</span><span class="o">.</span><span class="n">iatool</span><span class="p">()</span>
+    <span class="n">ia</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+    <span class="n">imshape</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">shape</span><span class="p">()</span>
+    <span class="n">pix</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">getchunk</span><span class="p">()</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>     <span class="c1"># this should now be a numpy pix[ix][iy] map</span>
+    <span class="n">pixmax</span> <span class="o">=</span> <span class="n">pix</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="n">pixrms</span> <span class="o">=</span> <span class="n">pix</span><span class="o">.</span><span class="n">std</span><span class="p">()</span>
+    <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="n">pix1</span> <span class="o">=</span> <span class="n">pix</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="n">rpix</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">robust</span><span class="p">(</span><span class="n">pix1</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;stats: mean: </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pix1</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="n">rpix</span><span class="o">.</span><span class="n">mean</span><span class="p">()))</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;stats: rms: </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pix1</span><span class="o">.</span><span class="n">std</span><span class="p">(),</span> <span class="n">rpix</span><span class="o">.</span><span class="n">std</span><span class="p">()))</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;stats: max: </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pix1</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">rpix</span><span class="o">.</span><span class="n">max</span><span class="p">()))</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;shape: </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pix</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span><span class="nb">str</span><span class="p">(</span><span class="n">pix1</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span><span class="nb">str</span><span class="p">(</span><span class="n">imshape</span><span class="p">)))</span>
+    <span class="n">ia</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">nx</span> <span class="o">=</span> <span class="n">pix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">ny</span> <span class="o">=</span> <span class="n">pix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">x</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">pix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span> <span class="p">(</span><span class="n">nx</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span> <span class="p">)</span>
+    <span class="n">y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">pix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">ny</span><span class="p">)</span> <span class="p">)</span>
+    <span class="k">if</span> <span class="n">clip</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>
+        <span class="n">nmax</span> <span class="o">=</span> <span class="n">nx</span><span class="o">*</span><span class="n">ny</span>
+        <span class="n">clip</span> <span class="o">=</span> <span class="n">clip</span> <span class="o">*</span> <span class="n">pixrms</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Using initial clip=</span><span class="si">%g</span><span class="s2"> for rms=</span><span class="si">%g</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">clip</span><span class="p">,</span><span class="n">pixrms</span><span class="p">))</span>
+        <span class="n">m</span><span class="o">=</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_less</span><span class="p">(</span><span class="n">pix</span><span class="p">,</span><span class="n">clip</span><span class="p">)</span>
+        <span class="k">while</span> <span class="n">m</span><span class="o">.</span><span class="n">count</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+          <span class="n">clip</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">clip</span>
+          <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;no masking...trying lower clip=</span><span class="si">%g</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">clip</span><span class="p">)</span>
+          <span class="n">m</span><span class="o">=</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_less</span><span class="p">(</span><span class="n">pix</span><span class="p">,</span><span class="n">clip</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+          <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Clip=</span><span class="si">%g</span><span class="s2"> now found </span><span class="si">%d</span><span class="s2">/</span><span class="si">%d</span><span class="s2"> points&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">clip</span><span class="p">,</span><span class="n">m</span><span class="o">.</span><span class="n">count</span><span class="p">(),</span><span class="n">nmax</span><span class="p">))</span>
+        
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1">#@ todo   sigma-clipping with iterations?  see also astropy.stats.sigma_clip()</span>
+        <span class="n">rpix</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">robust</span><span class="p">(</span><span class="n">pix</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+        <span class="n">r_mean</span> <span class="o">=</span> <span class="n">rpix</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+        <span class="n">r_std</span>  <span class="o">=</span> <span class="n">rpix</span><span class="o">.</span><span class="n">std</span><span class="p">()</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;ROBUST MAP mean/std: </span><span class="si">%f</span><span class="s2"> </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">r_mean</span><span class="p">,</span><span class="n">r_std</span><span class="p">))</span>
+        <span class="n">m</span><span class="o">=</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_less</span><span class="p">(</span><span class="n">pix</span><span class="p">,</span><span class="o">-</span><span class="n">clip</span><span class="o">*</span><span class="n">r_std</span><span class="p">)</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Found &gt; clip=</span><span class="si">%g</span><span class="s2"> : </span><span class="si">%g</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">clip</span><span class="p">,</span><span class="n">m</span><span class="o">.</span><span class="n">count</span><span class="p">()))</span>
+    <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">count</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Returning a dummy slit, no points above clip </span><span class="si">%g</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">clip</span><span class="p">)</span>
+        <span class="n">edge</span> <span class="o">=</span> <span class="mf">3.0</span>
+        <span class="c1">#slit = [edge,0.5*ny,nx-1.0-edge,0.5*ny]          # @todo    file a bug, this failed</span>
+        <span class="c1">#  RuntimeError: (/var/rpmbuild/BUILD/casa-test/casa-test-4.5.7/code/imageanalysis/ImageAnalysis/PVGenerator.cc : 334) Failed AlwaysAssert abs( (endPixRot[0] - startPixRot[0]) - sqrt(xdiff*xdiff + ydiff*ydiff) ) &lt; 1e-6</span>
+        <span class="n">slit</span> <span class="o">=</span> <span class="p">[</span><span class="n">edge</span><span class="p">,</span><span class="mf">0.5</span><span class="o">*</span><span class="n">ny</span><span class="o">-</span><span class="mf">0.1</span><span class="p">,</span><span class="n">nx</span><span class="o">-</span><span class="mf">1.0</span><span class="o">-</span><span class="n">edge</span><span class="p">,</span><span class="mf">0.5</span><span class="o">*</span><span class="n">ny</span><span class="o">+</span><span class="mf">0.1</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">slit</span> <span class="o">=</span> <span class="n">convert_to_slit</span><span class="p">(</span><span class="n">m</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">nx</span><span class="p">,</span><span class="n">ny</span><span class="p">,</span><span class="n">gamma</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">slit</span><span class="p">,</span><span class="n">clip</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="tab_to_slit"><a class="viewcode-back" href="../../../module/admit.at/PVSlice_AT.html#admit.at.PVSlice_AT.tab_to_slit">[docs]</a><span class="k">def</span> <span class="nf">tab_to_slit</span><span class="p">(</span><span class="n">xym</span><span class="p">,</span> <span class="n">clip</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;take all values from a map over clip, compute best slit for PV Slice</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">xym</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>   <span class="c1"># maxposx</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">xym</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>   <span class="c1"># maxposy</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">xym</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>   <span class="c1"># max</span>
+
+    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;CLIP </span><span class="si">%g</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">clip</span><span class="p">)</span>
+
+    <span class="n">slit</span> <span class="o">=</span> <span class="n">convert_to_slit</span><span class="p">(</span><span class="n">m</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="n">gamma</span><span class="p">,</span><span class="n">expand</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">slit</span><span class="p">,</span><span class="n">clip</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="convert_to_slit"><a class="viewcode-back" href="../../../module/admit.at/PVSlice_AT.html#admit.at.PVSlice_AT.convert_to_slit">[docs]</a><span class="k">def</span> <span class="nf">convert_to_slit</span><span class="p">(</span><span class="n">m</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">nx</span><span class="p">,</span><span class="n">ny</span><span class="p">,</span><span class="n">gamma</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span><span class="n">expand</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;compute best slit for PV Slice from set of points or masked array</span>
+<span class="sd">    using moments of inertia</span>
+<span class="sd">    m=mass (intensity)  x,y = positions</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># sanity</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">m</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">m</span><span class="p">)</span> <span class="o">==</span> <span class="n">ma</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">MaskedArray</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">count</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>  <span class="k">return</span> <span class="p">[]</span>
+    <span class="c1"># apply gamma factor</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Gamma = </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">gamma</span><span class="p">)</span>
+    <span class="n">mw</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">m</span><span class="p">,</span><span class="n">gamma</span><span class="p">)</span>
+    <span class="c1"># first find a rough center</span>
+    <span class="n">smx</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">mw</span><span class="o">*</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">smy</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">mw</span><span class="o">*</span><span class="n">y</span><span class="p">)</span>
+    <span class="n">sm</span>  <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">mw</span><span class="p">)</span>
+    <span class="n">xm</span> <span class="o">=</span> <span class="n">smx</span><span class="o">/</span><span class="n">sm</span>
+    <span class="n">ym</span> <span class="o">=</span> <span class="n">smy</span><span class="o">/</span><span class="n">sm</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;MOI::center: </span><span class="si">%f</span><span class="s1"> </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">xm</span><span class="p">,</span><span class="n">ym</span><span class="p">))</span>
+    <span class="p">(</span><span class="n">xpeak</span><span class="p">,</span><span class="n">ypeak</span><span class="p">)</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unravel_index</span><span class="p">(</span><span class="n">mw</span><span class="o">.</span><span class="n">argmax</span><span class="p">(),</span><span class="n">mw</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;PEAK: </span><span class="si">%f</span><span class="s1"> </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">xpeak</span><span class="p">,</span><span class="n">ypeak</span><span class="p">))</span>
+    <span class="k">if</span> <span class="kc">True</span><span class="p">:</span>
+      <span class="c1"># center on peak</span>
+      <span class="c1"># @todo but if (xm,ym) and (xpeak,ypeak) differ too much, e.g.</span>
+      <span class="c1">#       outside of the MOI body, something else is wrong</span>
+      <span class="n">xm</span> <span class="o">=</span> <span class="n">xpeak</span>
+      <span class="n">ym</span> <span class="o">=</span> <span class="n">ypeak</span>
+    <span class="c1"># take 2nd moments w.r.t. this center</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">-</span><span class="n">xm</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="o">-</span><span class="n">ym</span>
+    <span class="n">mxx</span><span class="o">=</span><span class="n">m</span><span class="o">*</span><span class="n">x</span><span class="o">*</span><span class="n">x</span>
+    <span class="n">mxy</span><span class="o">=</span><span class="n">m</span><span class="o">*</span><span class="n">x</span><span class="o">*</span><span class="n">y</span>
+    <span class="n">myy</span><span class="o">=</span><span class="n">m</span><span class="o">*</span><span class="n">y</span><span class="o">*</span><span class="n">y</span>
+    <span class="c1">#</span>
+    <span class="n">smxx</span><span class="o">=</span><span class="n">ma</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">mxx</span><span class="p">)</span><span class="o">/</span><span class="n">sm</span>
+    <span class="n">smxy</span><span class="o">=</span><span class="n">ma</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">mxy</span><span class="p">)</span><span class="o">/</span><span class="n">sm</span>
+    <span class="n">smyy</span><span class="o">=</span><span class="n">ma</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">myy</span><span class="p">)</span><span class="o">/</span><span class="n">sm</span>
+    <span class="c1">#  MOI2</span>
+    <span class="n">moi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">smxx</span><span class="p">,</span><span class="n">smxy</span><span class="p">,</span><span class="n">smxy</span><span class="p">,</span><span class="n">smyy</span><span class="p">])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">w</span><span class="p">,</span><span class="n">v</span> <span class="o">=</span> <span class="n">la</span><span class="o">.</span><span class="n">eig</span><span class="p">(</span><span class="n">moi</span><span class="p">)</span>
+    <span class="n">a</span>   <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">w</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">b</span>   <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">w</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">phi</span> <span class="o">=</span> <span class="o">-</span><span class="n">math</span><span class="o">.</span><span class="n">atan2</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">a</span> <span class="o">&lt;</span> <span class="n">b</span><span class="p">:</span>  
+        <span class="n">phi</span> <span class="o">=</span> <span class="n">phi</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;MOI::a,b,phi(deg): </span><span class="si">%g</span><span class="s1"> </span><span class="si">%g</span><span class="s1"> </span><span class="si">%g</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">,</span><span class="n">phi</span><span class="o">*</span><span class="mf">180.0</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">))</span>
+    <span class="c1">#  ds9.reg format (image coords)</span>
+    <span class="n">sinp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span>
+    <span class="n">cosp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span>
+    <span class="c1"># compute the line take both a and b into account,</span>
+    <span class="c1"># since we don&#39;t even know or care which is the bigger one</span>
+    <span class="n">r</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">a</span><span class="o">*</span><span class="n">a</span><span class="o">+</span><span class="n">b</span><span class="o">*</span><span class="n">b</span><span class="p">)</span>
+    <span class="n">x0</span> <span class="o">=</span> <span class="n">xm</span> <span class="o">-</span> <span class="n">expand</span><span class="o">*</span><span class="n">r</span><span class="o">*</span><span class="n">cosp</span> 
+    <span class="n">y0</span> <span class="o">=</span> <span class="n">ym</span> <span class="o">-</span> <span class="n">expand</span><span class="o">*</span><span class="n">r</span><span class="o">*</span><span class="n">sinp</span> 
+    <span class="n">x1</span> <span class="o">=</span> <span class="n">xm</span> <span class="o">+</span> <span class="n">expand</span><span class="o">*</span><span class="n">r</span><span class="o">*</span><span class="n">cosp</span> 
+    <span class="n">y1</span> <span class="o">=</span> <span class="n">ym</span> <span class="o">+</span> <span class="n">expand</span><span class="o">*</span><span class="n">r</span><span class="o">*</span><span class="n">sinp</span> 
+    <span class="c1"># add 1 for ds9, which used 1 based pixels</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;ds9 short line(</span><span class="si">%g</span><span class="s2">,</span><span class="si">%g</span><span class="s2">,</span><span class="si">%g</span><span class="s2">,</span><span class="si">%g</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">x0</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="n">y0</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="n">x1</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="n">y1</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">nx</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="n">s</span> <span class="o">=</span> <span class="n">expand_line</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span><span class="n">y0</span><span class="p">,</span><span class="n">x1</span><span class="p">,</span><span class="n">y1</span><span class="p">,</span><span class="n">nx</span><span class="p">,</span><span class="n">ny</span><span class="p">)</span>
+      <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;ds9 full line(</span><span class="si">%g</span><span class="s2">,</span><span class="si">%g</span><span class="s2">,</span><span class="si">%g</span><span class="s2">,</span><span class="si">%g</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">s</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="n">s</span><span class="p">[</span><span class="mi">3</span><span class="p">]))</span>
+      <span class="k">return</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span><span class="nb">float</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span><span class="nb">float</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span><span class="nb">float</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">3</span><span class="p">])]</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="k">return</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">x0</span><span class="p">),</span><span class="nb">float</span><span class="p">(</span><span class="n">y0</span><span class="p">),</span><span class="nb">float</span><span class="p">(</span><span class="n">x1</span><span class="p">),</span><span class="nb">float</span><span class="p">(</span><span class="n">y1</span><span class="p">)]</span></div>
+
+
+<div class="viewcode-block" id="expand_line"><a class="viewcode-back" href="../../../module/admit.at/PVSlice_AT.html#admit.at.PVSlice_AT.expand_line">[docs]</a><span class="k">def</span> <span class="nf">expand_line</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span><span class="n">y0</span><span class="p">,</span><span class="n">x1</span><span class="p">,</span><span class="n">y1</span><span class="p">,</span><span class="n">nx</span><span class="p">,</span><span class="n">ny</span><span class="p">,</span><span class="n">edge</span><span class="o">=</span><span class="mi">6</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;expand a line, but stay inside the box [0..nx,0..ny]</span>
+<span class="sd">    sadly casa.impv cannot think outside the box,</span>
+<span class="sd">    this routine takes a line, and makes it fit within the box, minus</span>
+<span class="sd">    edge pixels from the edges, since that&#39;s what impv wants.</span>
+<span class="sd">    CASA bug?   edge=2 is advertised should work, but 5 still fails, 6 is ok</span>
+<span class="sd">    </span>
+<span class="sd">    returns: [x0,y0,x1,y1]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">d2</span><span class="p">(</span><span class="n">x0</span><span class="p">,</span><span class="n">y0</span><span class="p">,</span><span class="n">x1</span><span class="p">,</span><span class="n">y1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;squared distance between two points&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">x0</span><span class="o">-</span><span class="n">x1</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">x0</span><span class="o">-</span><span class="n">x1</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">y0</span><span class="o">-</span><span class="n">y1</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">y0</span><span class="o">-</span><span class="n">y1</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">inside</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">e</span><span class="p">,</span><span class="n">n</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;return if x is within e and n-e-1</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="n">e</span><span class="p">:</span> <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">x</span> <span class="o">&gt;</span> <span class="n">n</span><span class="o">-</span><span class="n">e</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="c1"># bypass everything</span>
+    <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">x0</span><span class="p">,</span><span class="n">y0</span><span class="p">,</span><span class="n">x1</span><span class="p">,</span><span class="n">y1</span><span class="p">]</span>
+    <span class="c1"># pathetic cases</span>
+    <span class="k">if</span> <span class="n">x0</span><span class="o">==</span><span class="n">x1</span><span class="p">:</span> <span class="k">return</span> <span class="p">[</span><span class="n">x0</span><span class="p">,</span> <span class="n">edge</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">ny</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">edge</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">y0</span><span class="o">==</span><span class="n">y1</span><span class="p">:</span> <span class="k">return</span> <span class="p">[</span><span class="n">edge</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">nx</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">edge</span><span class="p">,</span> <span class="n">y1</span><span class="p">]</span>
+    <span class="c1"># slope and center point of line</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="p">(</span><span class="n">y1</span><span class="o">-</span><span class="n">y0</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">x1</span><span class="o">-</span><span class="n">x0</span><span class="p">)</span>
+    <span class="n">xc</span> <span class="o">=</span> <span class="p">(</span><span class="n">x0</span><span class="o">+</span><span class="n">x1</span><span class="p">)</span><span class="o">/</span><span class="mf">2.0</span>
+    <span class="n">yc</span> <span class="o">=</span> <span class="p">(</span><span class="n">y0</span><span class="o">+</span><span class="n">y1</span><span class="p">)</span><span class="o">/</span><span class="mf">2.0</span>
+    <span class="c1"># intersections with the box vertices</span>
+    <span class="n">x_e</span> <span class="o">=</span> <span class="n">xc</span> <span class="o">+</span> <span class="p">(</span><span class="n">edge</span><span class="o">-</span><span class="n">yc</span><span class="p">)</span><span class="o">/</span><span class="n">a</span>
+    <span class="n">y_e</span> <span class="o">=</span> <span class="n">yc</span> <span class="o">+</span> <span class="n">a</span><span class="o">*</span><span class="p">(</span><span class="n">edge</span><span class="o">-</span><span class="n">xc</span><span class="p">)</span>
+    <span class="n">x_n</span> <span class="o">=</span> <span class="n">xc</span> <span class="o">+</span> <span class="p">(</span><span class="n">ny</span><span class="o">-</span><span class="n">edge</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">yc</span><span class="p">)</span><span class="o">/</span><span class="n">a</span>
+    <span class="n">y_n</span> <span class="o">=</span> <span class="n">yc</span> <span class="o">+</span> <span class="n">a</span><span class="o">*</span><span class="p">(</span><span class="n">nx</span><span class="o">-</span><span class="n">edge</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">xc</span><span class="p">)</span>
+    <span class="nb">print</span> <span class="s2">&quot;x,y(0)  x,y(1):&quot;</span><span class="p">,</span><span class="n">x0</span><span class="p">,</span><span class="n">y0</span><span class="p">,</span><span class="n">x1</span><span class="p">,</span><span class="n">y1</span>
+    <span class="nb">print</span> <span class="s2">&quot;x,y(e)  x,y(n):&quot;</span><span class="p">,</span><span class="n">x_e</span><span class="p">,</span><span class="n">y_e</span><span class="p">,</span><span class="n">x_n</span><span class="p">,</span><span class="n">y_n</span>
+    <span class="n">e</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">inside</span><span class="p">(</span><span class="n">x_e</span><span class="p">,</span><span class="n">edge</span><span class="p">,</span><span class="n">nx</span><span class="p">):</span>  
+        <span class="n">e</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x_e</span><span class="p">)</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">inside</span><span class="p">(</span><span class="n">y_e</span><span class="p">,</span><span class="n">edge</span><span class="p">,</span><span class="n">ny</span><span class="p">):</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">y_e</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">inside</span><span class="p">(</span><span class="n">x_n</span><span class="p">,</span><span class="n">edge</span><span class="p">,</span><span class="n">nx</span><span class="p">):</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x_n</span><span class="p">)</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ny</span><span class="o">-</span><span class="n">edge</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">inside</span><span class="p">(</span><span class="n">y_n</span><span class="p">,</span><span class="n">edge</span><span class="p">,</span><span class="n">ny</span><span class="p">):</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nx</span><span class="o">-</span><span class="n">edge</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">y_n</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="c1"># can happen for small maps?</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Math Error in expand_line: &quot;</span><span class="p">,</span><span class="n">e</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span><span class="n">msg</span>
+    <span class="k">return</span> <span class="n">e</span></div>
+
+
+<div class="viewcode-block" id="expand_slice"><a class="viewcode-back" href="../../../module/admit.at/PVSlice_AT.html#admit.at.PVSlice_AT.expand_slice">[docs]</a><span class="k">def</span> <span class="nf">expand_slice</span><span class="p">(</span><span class="nb">slice</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="mf">1.2</span><span class="p">):</span>
+    <span class="n">x0</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">y0</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">x1</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">y1</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+    <span class="n">dx</span> <span class="o">=</span> <span class="n">x1</span><span class="o">-</span><span class="n">x0</span>
+    <span class="n">dy</span> <span class="o">=</span> <span class="n">y1</span><span class="o">-</span><span class="n">y0</span>
+    <span class="n">x0</span> <span class="o">=</span> <span class="n">x0</span> <span class="o">-</span> <span class="n">expand</span><span class="o">*</span><span class="n">dx</span>
+    <span class="n">y0</span> <span class="o">=</span> <span class="n">y0</span> <span class="o">-</span> <span class="n">expand</span><span class="o">*</span><span class="n">dy</span>
+    <span class="n">x1</span> <span class="o">=</span> <span class="n">x1</span> <span class="o">+</span> <span class="n">expand</span><span class="o">*</span><span class="n">dx</span>
+    <span class="n">y1</span> <span class="o">=</span> <span class="n">y1</span> <span class="o">+</span> <span class="n">expand</span><span class="o">*</span><span class="n">dy</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">x0</span><span class="p">,</span><span class="n">y0</span><span class="p">,</span><span class="n">x1</span><span class="p">,</span><span class="n">y1</span><span class="p">]</span></div>
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

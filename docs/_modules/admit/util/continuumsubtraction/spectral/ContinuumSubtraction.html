@@ -1,0 +1,226 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.util.continuumsubtraction.spectral.ContinuumSubtraction &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.util.continuumsubtraction.spectral.ContinuumSubtraction</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; .. _spectralcontinsub:</span>
+
+<span class="sd">    ContinuumSubtraction --- Subtracts the continuum from a spectrum.</span>
+<span class="sd">    -----------------------------------------------------------------</span>
+
+<span class="sd">    This module defines the class for continuum subtraction from spectra.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">admit.util</span> <span class="k">import</span> <span class="n">utils</span><span class="p">,</span> <span class="n">stats</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">admit.util.segmentfinder</span> <span class="k">import</span> <span class="n">SegmentFinder</span>
+
+<div class="viewcode-block" id="ContinuumSubtraction"><a class="viewcode-back" href="../../../../../module/admit.util.continuumsubtraction/spectral/ContinuumSubtraction.html#admit.util.continuumsubtraction.spectral.ContinuumSubtraction.ContinuumSubtraction">[docs]</a><span class="k">class</span> <span class="nc">ContinuumSubtraction</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Perform continuum subtraction on a spectrum. There are several</span>
+<span class="sd">        algorithms to choose from, using the algorithm keyword. This</span>
+<span class="sd">        class defines a consistent API for spectral continuum subtraction</span>
+<span class="sd">        in ADMIT. Any continuum subtraction method can be added provided</span>
+<span class="sd">        it is a class with the following:</span>
+
+<span class="sd">        - init signature of (self, x, y), where x is the x axis as a numpy</span>
+<span class="sd">          and y is the spectrum as a masked array</span>
+<span class="sd">        - run method with the signature (self, \*\*keyval), where keyval</span>
+<span class="sd">          is a dictionary which contains all the arguments for the method</span>
+<span class="sd">          as key value pairs, the run method should have the ability to</span>
+<span class="sd">          ignore keywords that it does not know about.</span>
+<span class="sd">        - the run method should return the continuum as a numpy array</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        None (all parameters are passed to the run method)</span>
+
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        None</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+<div class="viewcode-block" id="ContinuumSubtraction.run"><a class="viewcode-back" href="../../../../../module/admit.util.continuumsubtraction/spectral/ContinuumSubtraction.html#admit.util.continuumsubtraction.spectral.ContinuumSubtraction.ContinuumSubtraction.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">,</span> <span class="n">spec</span><span class="p">,</span> <span class="n">freq</span><span class="p">,</span> <span class="n">segmentfinder</span><span class="p">,</span> <span class="n">segargs</span><span class="p">,</span> <span class="n">algorithm</span><span class="p">,</span> <span class="o">**</span><span class="n">keyval</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Calculate the continuum using the given parameters. The method is as</span>
+<span class="sd">            follows:</span>
+
+<span class="sd">            locate regions of spectral emission</span>
+<span class="sd">            mask out these regions</span>
+<span class="sd">            pass the masked spectra to the given algorithm</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            id : int</span>
+<span class="sd">                Task id of the AT calling this method</span>
+
+<span class="sd">            spec : numpy array</span>
+<span class="sd">                The spectrum from which the continuum is determined</span>
+
+<span class="sd">            freq : numpy array</span>
+<span class="sd">                The frequency axis of the spectrum</span>
+
+<span class="sd">            segmentfinder : str</span>
+<span class="sd">                The segment finder to use (i.e. ADMIT, ASAP, etc.)</span>
+
+<span class="sd">            segargs : dict</span>
+<span class="sd">                Dictionary containing the arguments for the segmentfinder</span>
+
+<span class="sd">            algorithm : str</span>
+<span class="sd">                The continuum finding algorithm to use (i.e. SplineFit, SVD_Vander, etc.)</span>
+
+<span class="sd">            keyval : dict</span>
+<span class="sd">                Dictionary containing the arguments for the continuum finding algorithm</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cspec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">spec</span><span class="p">))</span>
+        <span class="c1"># auto add spectral info to segment finder args. </span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s2">&quot;spec&quot;</span> <span class="ow">in</span> <span class="n">segargs</span><span class="p">:</span>
+             <span class="n">segargs</span><span class="p">[</span><span class="s2">&quot;spec&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">spec</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s2">&quot;freq&quot;</span> <span class="ow">in</span> <span class="n">segargs</span><span class="p">:</span>
+             <span class="n">segargs</span><span class="p">[</span><span class="s2">&quot;freq&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">freq</span>
+
+        <span class="n">segments</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]:</span>
+            <span class="n">spectrum</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="o">-</span> <span class="n">cspec</span>
+            <span class="c1"># first get the segments of potential line emission</span>
+            <span class="n">sfargs</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="c1"># double the minimum intensity, we just want to remove the strongest peaks</span>
+            <span class="c1"># set other arguments for the segment finder</span>
+            <span class="n">sfargs</span><span class="p">[</span><span class="s2">&quot;pmin&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">2.0</span>
+            <span class="n">sfargs</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Line_ID.csub.</span><span class="si">%i</span><span class="s2">.asap&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">id</span><span class="p">)</span>
+            <span class="n">sfargs</span><span class="p">[</span><span class="s2">&quot;spec&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">spectrum</span>
+            <span class="n">sfargs</span><span class="p">[</span><span class="s2">&quot;freq&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">freq</span>
+            <span class="n">sfargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">segargs</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">sfargs</span><span class="p">[</span><span class="s2">&quot;abs&quot;</span><span class="p">]</span>  <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">sfinder</span> <span class="o">=</span> <span class="n">SegmentFinder</span><span class="o">.</span><span class="n">SegmentFinder</span><span class="p">(</span><span class="n">spectrum</span><span class="p">,</span> <span class="n">freq</span><span class="p">,</span> 
+                            <span class="n">segmentfinder</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span>
+                            <span class="mf">3.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+            <span class="n">segs</span><span class="p">,</span> <span class="n">statcutoff</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">mean</span> <span class="o">=</span> <span class="n">sfinder</span><span class="o">.</span><span class="n">find</span><span class="p">()</span>
+            <span class="n">sf</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">getClass</span><span class="p">(</span><span class="s2">&quot;util.segmentfinder&quot;</span><span class="p">,</span> 
+                               <span class="n">segmentfinder</span> <span class="o">+</span> <span class="s2">&quot;SegmentFinder&quot;</span><span class="p">,</span> 
+                               <span class="n">sfargs</span><span class="p">)</span>
+            <span class="c1">#sf.set_options(threshold=math.sqrt(sfargs[&quot;pmin&quot;]), </span>
+            <span class="c1">#               min_nchan=sfargs[&quot;minchan&quot;], box_size=0.1, </span>
+            <span class="c1">#               average_limit=1, noise_box=&quot;box&quot;)</span>
+            <span class="c1"># find the lines</span>
+            <span class="c1">#segs, statcutoff, noise, mean = sfinder.find()</span>
+            <span class="k">if</span> <span class="n">segs</span> <span class="o">==</span> <span class="n">segments</span><span class="p">:</span>
+                <span class="c1"># no need to continue, we found the best fit</span>
+                <span class="k">return</span> <span class="n">cspec</span>
+
+            <span class="n">keyval</span><span class="p">[</span><span class="s2">&quot;noise&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">noise</span>
+            <span class="c1"># now set the identified regions to 0.0</span>
+            <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">segs</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ch</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">ch</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                    <span class="n">spectrum</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="c1"># mask all values that are 0.0, effectively masking all line data</span>
+            <span class="c1"># this should leave only continuum</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">segs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">mspec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">spectrum</span><span class="p">,</span><span class="n">mask</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">shrink</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">mspec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_values</span><span class="p">(</span><span class="n">spectrum</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="n">atol</span><span class="o">=</span><span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">10</span><span class="p">,</span><span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">shrink</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">tempc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">noise</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">mspec</span><span class="p">))</span>
+            <span class="n">keyval</span><span class="p">[</span><span class="s2">&quot;chisq&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">reducedchisquared</span><span class="p">(</span><span class="n">mspec</span><span class="p">,</span> <span class="n">tempc</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">noise</span><span class="p">)</span>
+
+            <span class="c1"># calculate the continuum</span>
+            <span class="n">cs</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">getClass</span><span class="p">(</span><span class="s2">&quot;util.continuumsubtraction.spectral.algorithms&quot;</span><span class="p">,</span>
+                                <span class="n">algorithm</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;y&quot;</span> <span class="p">:</span> <span class="n">mspec</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mspec</span><span class="p">))})</span>
+            <span class="n">continuum</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="o">**</span><span class="n">keyval</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">continuum</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">cspec</span> <span class="o">+=</span> <span class="n">continuum</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Setting continuum to a constant value of: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">noise</span><span class="p">))</span>
+                <span class="k">return</span> <span class="n">tempc</span>
+        <span class="k">return</span> <span class="n">cspec</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

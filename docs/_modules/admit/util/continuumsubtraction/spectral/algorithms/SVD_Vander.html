@@ -1,0 +1,256 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.util.continuumsubtraction.spectral.algorithms.SVD_Vander &mdash; ADMIT 0.4.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../../../',
+        VERSION:     '0.4.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="ADMIT 0.4.1 documentation" href="../../../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../../../index.html">ADMIT 0.4.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../../../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.util.continuumsubtraction.spectral.algorithms.SVD_Vander</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot; .. _svdvander:</span>
+
+<span class="sd">    Van der Monde Matrix/Polynomial Fit to Continuum</span>
+<span class="sd">    ------------------------------------------------</span>
+
+<span class="sd">    Method to fit a polynomial to the continuum using a</span>
+<span class="sd">    Van der Monde Matrix.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="k">try</span><span class="p">:</span>
+  <span class="kn">import</span> <span class="nn">scipy.signal</span> <span class="kn">as</span> <span class="nn">ssig</span>
+  <span class="kn">import</span> <span class="nn">scipy.linalg</span> <span class="kn">as</span> <span class="nn">LA</span>
+<span class="k">except</span><span class="p">:</span>
+  <span class="k">print</span> <span class="s">&quot;WARNING: No scipy; SVD_Vander fitter cannot function.&quot;</span>
+
+<div class="viewcode-block" id="SVD_Vander"><a class="viewcode-back" href="../../../../../../module/admit.util.continuumsubtraction/spectral/algorithms/SVD_Vander.html#admit.util.continuumsubtraction.spectral.algorithms.SVD_Vander.SVD_Vander">[docs]</a><span class="k">class</span> <span class="nc">SVD_Vander</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Class which calculates the continuum of a 1D spectrum.</span>
+<span class="sd">        The algorithm can be controlled by arguments to the run() method.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x : numpy array</span>
+<span class="sd">            An array containing the x coordinates</span>
+
+<span class="sd">        y : masked array</span>
+<span class="sd">            A masked array containing the y coordinates with any</span>
+<span class="sd">            strong emission masked</span>
+
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">y</span>
+
+<div class="viewcode-block" id="SVD_Vander.run"><a class="viewcode-back" href="../../../../../../module/admit.util.continuumsubtraction/spectral/algorithms/SVD_Vander.html#admit.util.continuumsubtraction.spectral.algorithms.SVD_Vander.SVD_Vander.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">keyval</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to calculate the continuum from the given masked spectrum.</span>
+<span class="sd">            If search=True is given as an argument then the algorithm will</span>
+<span class="sd">            iterate through the different order polynomials to find the best fit,</span>
+<span class="sd">            based on noise level.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            keyval : dictionary</span>
+<span class="sd">                Dictionary containing the keyword value pair arguments</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            numpy array containing the best fit continuum</span>
+
+<span class="sd">            Notes</span>
+<span class="sd">            -----</span>
+<span class="sd">            Arguments for the run method:</span>
+
+<span class="sd">            - search : bool, whether or not to search for the best fit. Default: False</span>
+<span class="sd">            - deg : int, the order of polynomial to fit. Default: 0</span>
+<span class="sd">            - max_it : int, the maximum number of iterations to perform. Default: 100</span>
+<span class="sd">            - tol : float, tolerance used to determine the fit has converged. Default: 1e-3</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># set up default parameters</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;spec&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">,</span>
+                <span class="s">&quot;deg&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s">&quot;max_it&quot;</span><span class="p">:</span><span class="mi">100</span><span class="p">,</span>
+                <span class="s">&quot;tol&quot;</span><span class="p">:</span> <span class="mf">1e-3</span><span class="p">}</span>
+        <span class="n">search</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="s">&quot;search&quot;</span> <span class="ow">in</span> <span class="n">keyval</span><span class="p">:</span>
+            <span class="n">search</span> <span class="o">=</span> <span class="n">keyval</span><span class="p">[</span><span class="s">&quot;search&quot;</span><span class="p">]</span>
+        <span class="c"># integrate any user given parameters</span>
+        <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&quot;deg&quot;</span><span class="p">,</span><span class="s">&quot;max_it&quot;</span><span class="p">,</span><span class="s">&quot;tol&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">keyval</span><span class="p">:</span>
+                <span class="n">args</span><span class="p">[</span><span class="n">arg</span><span class="p">]</span> <span class="o">=</span> <span class="n">keyval</span><span class="p">[</span><span class="n">arg</span><span class="p">]</span>
+        <span class="c"># if searching for the best fit</span>
+        <span class="c"># limited to 3rd order as higher orders could fit weak wide lines </span>
+        <span class="k">if</span> <span class="n">search</span><span class="p">:</span>
+            <span class="n">rms</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span><span class="mf">1000.</span><span class="p">,</span>
+                   <span class="mi">1</span><span class="p">:</span><span class="mf">1000.</span><span class="p">,</span>
+                   <span class="mi">2</span><span class="p">:</span><span class="mf">1000.</span><span class="p">,</span>
+                   <span class="mi">3</span><span class="p">:</span><span class="mf">1000.</span><span class="p">}</span>
+            <span class="c"># iterate over each possible order</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">rms</span><span class="p">:</span>
+                <span class="n">args</span><span class="p">[</span><span class="s">&quot;deg&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">k</span>
+                <span class="k">print</span> <span class="n">args</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+                <span class="n">fit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">baseline</span><span class="p">(</span><span class="o">**</span><span class="n">args</span><span class="p">)</span>
+                <span class="n">diff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">-</span> <span class="n">fit</span>
+                <span class="n">rms</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">diff</span><span class="p">)</span>
+            <span class="c"># find the lowest noise fit</span>
+            <span class="n">mv</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">rms</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">rms</span><span class="o">.</span><span class="n">get</span><span class="p">)</span>
+            <span class="n">args</span><span class="p">[</span><span class="s">&quot;deg&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mv</span>
+            <span class="k">print</span> <span class="s">&quot;Using polynomial of order </span><span class="si">%i</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mv</span><span class="p">)</span>
+            <span class="c"># do the final fit</span>
+            <span class="n">fit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">baseline</span><span class="p">(</span><span class="o">**</span><span class="n">args</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># do the fit with the given parameters</span>
+            <span class="n">fit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">baseline</span><span class="p">(</span><span class="o">**</span><span class="n">args</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fit</span>
+</div>
+<div class="viewcode-block" id="SVD_Vander.baseline"><a class="viewcode-back" href="../../../../../../module/admit.util.continuumsubtraction/spectral/algorithms/SVD_Vander.html#admit.util.continuumsubtraction.spectral.algorithms.SVD_Vander.SVD_Vander.baseline">[docs]</a>    <span class="k">def</span> <span class="nf">baseline</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">spec</span><span class="o">=</span><span class="p">[],</span> <span class="n">deg</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_it</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Computes the baseline of a given data.</span>
+
+<span class="sd">           Iteratively performs a polynomial fitting in the data to detect its</span>
+<span class="sd">           baseline. At every iteration, the fitting weights on the regions </span>
+<span class="sd">           with peaks is reduced to identify the baseline only.</span>
+
+<span class="sd">           Parameters</span>
+<span class="sd">           ----------</span>
+<span class="sd">           spec : numpy array</span>
+<span class="sd">               The spectrum from which the baseline is determined</span>
+
+<span class="sd">           deg : int</span>
+<span class="sd">               Degree of the polynomial that will estimate the data baseline.</span>
+<span class="sd">               A low degree may fail to detect all the baseline present, while</span>
+<span class="sd">               a high degree may make the data too oscillatory, especially at</span>
+<span class="sd">               the edges.</span>
+<span class="sd">               Default: 0</span>
+
+<span class="sd">           max_it : int</span>
+<span class="sd">               Maximum number of iterations to perform.</span>
+<span class="sd">               Default: 100</span>
+
+<span class="sd">           tol : float</span>
+<span class="sd">               Tolerance to use when comparing the difference between the</span>
+<span class="sd">               current fit coefficient and the ones from the last iteration.</span>
+<span class="sd">               The iteration procedure will stop when the difference between</span>
+<span class="sd">               them is lower than *tol*.</span>
+<span class="sd">               Default: 1e-3</span>
+
+<span class="sd">           dropzero : bool</span>
+<span class="sd">               Whether or not to drop values of 0.0. Useful when the end channels</span>
+<span class="sd">               are 0.0, can cause poor baseline determination if used when 0.0</span>
+<span class="sd">               is in the middle and order is not 0.</span>
+<span class="sd">               Default: False</span>
+
+<span class="sd">           Returns</span>
+<span class="sd">           -------</span>
+<span class="sd">           ndarray</span>
+<span class="sd">               Array with the baseline amplitude for every original point in *y*</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">order</span> <span class="o">=</span> <span class="n">deg</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">coeffs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
+
+        <span class="c"># try to avoid numerical issues</span>
+        <span class="n">cond</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">order</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="n">spec</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+
+        <span class="n">vander</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vander</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">order</span><span class="p">)</span>
+        <span class="n">vander_pinv</span> <span class="o">=</span> <span class="n">LA</span><span class="o">.</span><span class="n">pinv2</span><span class="p">(</span><span class="n">vander</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">max_it</span><span class="p">):</span>
+            <span class="n">coeffs_new</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">vander_pinv</span><span class="p">,</span> <span class="n">spec</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">LA</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">coeffs_new</span> <span class="o">-</span> <span class="n">coeffs</span><span class="p">)</span> <span class="o">/</span> <span class="n">LA</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">coeffs</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">tol</span><span class="p">:</span>
+                <span class="k">break</span>
+
+            <span class="n">coeffs</span> <span class="o">=</span> <span class="n">coeffs_new</span>
+            <span class="n">base</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">vander</span><span class="p">,</span> <span class="n">coeffs</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">base</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../../../index.html">ADMIT 0.4.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../../../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,533 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.util.Image &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.util.Image</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; .. _Image-api:</span>
+
+<span class="sd">    **Image** --- Image data base.</span>
+<span class="sd">    ------------------------------</span>
+
+<span class="sd">    This module defines the Image class for IMAGE entries in BDPs as well as</span>
+<span class="sd">    the imagedescriptor container class.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># system imports</span>
+<span class="kn">import</span> <span class="nn">xml.etree.cElementTree</span> <span class="k">as</span> <span class="nn">et</span>
+<span class="kn">import</span> <span class="nn">utils</span>
+<span class="kn">import</span> <span class="nn">ast</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="c1"># ADMIT imports</span>
+<span class="kn">import</span> <span class="nn">bdp_types</span> <span class="k">as</span> <span class="nn">bt</span>
+<span class="kn">from</span> <span class="nn">UtilBase</span> <span class="k">import</span> <span class="n">UtilBase</span>
+
+
+<div class="viewcode-block" id="Image"><a class="viewcode-back" href="../../../module/admit.util/Image.html#admit.util.Image.Image">[docs]</a><span class="k">class</span> <span class="nc">Image</span><span class="p">(</span><span class="n">UtilBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Defines the basic Image structure used in ADMIT.</span>
+
+<span class="sd">        The class can store multiple types of the same image (e.g. png, jpg,</span>
+<span class="sd">        CASA),  however no check is made that they are the same image, this</span>
+<span class="sd">        must be ensured by the AT using the class. A thumbnail, caption, and</span>
+<span class="sd">        auxiliary file (for e.g. a histogram) are also included.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        keyvals : dictionary of new values for  the keywords, optional.</span>
+<span class="sd">          These keyword value pairs can be fed in form the command line</span>
+<span class="sd">          instantiation of the class.</span>
+
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        images : dictionary</span>
+<span class="sd">            Dictionary containing the image data, one entry per format type.</span>
+
+<span class="sd">        thumbnail : string</span>
+<span class="sd">            File name of the thumbnail image.</span>
+
+<span class="sd">        thumbnailtype : string</span>
+<span class="sd">            The format of the thumbnail, see bt for a list of available</span>
+<span class="sd">            formats.</span>
+
+<span class="sd">        auxiliary : string</span>
+<span class="sd">            The name of the auxiliary file.</span>
+
+<span class="sd">        auxtype : string</span>
+<span class="sd">            The format of the auxiliary file, see bt for a list of</span>
+<span class="sd">            available formats.</span>
+
+<span class="sd">        description : string</span>
+<span class="sd">            A description or caption for the image.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">keyval</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">images</span> <span class="o">=</span> <span class="p">{}</span>                <span class="c1"># dictionary of images {Format:filename}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">thumbnail</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>             <span class="c1"># thumbnail of image</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">thumbnailtype</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>         <span class="c1"># format of thumbnail</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">auxiliary</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>             <span class="c1"># auxiliary file (typically a histogram)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">auxtype</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>               <span class="c1"># format of auxiliary file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>           <span class="c1"># image description/caption</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">UtilBase</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">keyval</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">retstr</span> <span class="o">=</span> <span class="n">bt</span><span class="o">.</span><span class="n">format</span><span class="o">.</span><span class="n">BOLD</span> <span class="o">+</span> <span class="n">bt</span><span class="o">.</span><span class="n">color</span><span class="o">.</span><span class="n">GREEN</span> <span class="o">+</span> <span class="s2">&quot;Image :&quot;</span> <span class="o">+</span> <span class="n">bt</span><span class="o">.</span><span class="n">format</span><span class="o">.</span><span class="n">END</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="n">retstr</span> <span class="o">=</span> <span class="n">retstr</span> <span class="o">+</span> <span class="n">bt</span><span class="o">.</span><span class="n">format</span><span class="o">.</span><span class="n">BOLD</span> <span class="o">+</span> <span class="n">i</span> <span class="o">+</span> <span class="s2">&quot;: &quot;</span> <span class="o">+</span> <span class="n">bt</span><span class="o">.</span><span class="n">format</span><span class="o">.</span><span class="n">END</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">j</span><span class="p">)</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span>
+        <span class="k">return</span> <span class="n">retstr</span>
+
+<div class="viewcode-block" id="Image.serialize"><a class="viewcode-back" href="../../../module/admit.util/Image.html#admit.util.Image.Image.serialize">[docs]</a>    <span class="k">def</span> <span class="nf">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a string representation of the Image that can</span>
+<span class="sd">           be converted to native Python structures with ast.literal_eval</span>
+<span class="sd">           or back to a Table with deserialize().</span>
+<span class="sd">           Intended for the summary but can be used wherever.</span>
+
+<span class="sd">           Parameters</span>
+<span class="sd">           ----------</span>
+<span class="sd">           None</span>
+
+<span class="sd">           Returns</span>
+<span class="sd">           -------</span>
+<span class="sd">           A string representation of the Image that can be converted back</span>
+<span class="sd">           to a Image with deserialize().</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Image.deserialize"><a class="viewcode-back" href="../../../module/admit.util/Image.html#admit.util.Image.Image.deserialize">[docs]</a>    <span class="k">def</span> <span class="nf">deserialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">serial</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create an Image from serialized data created by serialize().</span>
+
+<span class="sd">           Parameters</span>
+<span class="sd">           ----------</span>
+<span class="sd">           serial : The string representation of an Image in the format from</span>
+<span class="sd">           deserialize().</span>
+
+<span class="sd">           Returns</span>
+<span class="sd">           -------</span>
+<span class="sd">           None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Do not convert directly to self.__dict__ because</span>
+        <span class="c1"># the Image structure may change between versions, e.g.</span>
+        <span class="c1"># an attribute may be added or deleted.</span>
+        <span class="c1"># So we can only safely convert attributes which are valid</span>
+        <span class="c1"># for this Image instance.</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">literal_eval</span><span class="p">(</span><span class="n">serial</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">:</span>
+           <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">x</span><span class="p">:</span>
+               <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Image.setkey"><a class="viewcode-back" href="../../../module/admit.util/Image.html#admit.util.Image.Image.setkey">[docs]</a>    <span class="k">def</span> <span class="nf">setkey</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            set keys, two styles are possible:</span>
+
+<span class="sd">            1. name = {key:val}            e.g. **setkey({&quot;a&quot;:1})**</span>
+
+<span class="sd">            2. name = &quot;key&quot;, value = val     e.g. **setkey(&quot;a&quot;, 1)**</span>
+
+<span class="sd">            This method checks the type of the keyword value, as it must</span>
+<span class="sd">            remain the same. Also new keywords cannot be added.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+
+<span class="sd">            name : dictionary or string</span>
+<span class="sd">                Dictionary of keyword value pais to set or a string with the</span>
+<span class="sd">                name of a single key</span>
+
+<span class="sd">            value : any</span>
+<span class="sd">                The value to change the keyword to</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">name</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="s2">&quot;images&quot;</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">k1</span><span class="p">,</span> <span class="n">v1</span> <span class="ow">in</span> <span class="n">v</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+                        <span class="k">if</span> <span class="n">k1</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">THUMB</span> <span class="ow">or</span> <span class="n">k1</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">AUX</span><span class="p">:</span>
+                            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Thumnails and auxiliary files cannot be added as part of the images item, they must be added under the thumbnail or auxiliary item.&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">)):</span>
+                        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Cannot change data type for </span><span class="si">%s</span><span class="s2">, expected </span><span class="si">%s</span><span class="s2"> but got </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">))),</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">))))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Invalid key given to Image class: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;images&quot;</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">value</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">THUMB</span> <span class="ow">or</span> <span class="n">k</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">AUX</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Thumnails and auxiliary files cannot be added as part of the images item, they must be added under the thumbnail or auxiliary item.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+                    <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Cannot change data type for </span><span class="si">%s</span><span class="s2">, expected </span><span class="si">%s</span><span class="s2"> but got </span><span class="si">%s</span><span class="s2">&quot;</span>
+                                    <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">))),</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">))))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Invalid key given to Image class: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Invalid name parameter given, it must be a string or a dictionary of keys:values.&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Image.addimage"><a class="viewcode-back" href="../../../module/admit.util/Image.html#admit.util.Image.Image.addimage">[docs]</a>    <span class="k">def</span> <span class="nf">addimage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to add an image to the class</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            image : List/ImageDescriptor</span>
+<span class="sd">                Can be either a list of imagedescriptors or just an individual</span>
+<span class="sd">                imagedescriptor. If the image type already exists in the class</span>
+<span class="sd">                then it is replaced and the original removed. Any images</span>
+<span class="sd">                labeled DATA will be added to the dictionary (overwriting any</span>
+<span class="sd">                previous instances of the format)</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">image</span><span class="p">:</span>
+                <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">t</span><span class="o">.</span><span class="n">format</span> <span class="ow">in</span> <span class="n">bt</span><span class="o">.</span><span class="n">image_types</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> is not a valid image type, accepted types are: </span><span class="si">%s</span><span class="s2">&quot;</span>
+                                    <span class="o">%</span> <span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">bt</span><span class="o">.</span><span class="n">image_types</span><span class="p">)))</span>
+                <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">imagedescriptor</span><span class="p">))</span> <span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Input image is not of imagedescriptor type or an imagedescriptor list&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">addfile</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="k">elif</span><span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">imagedescriptor</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Input image is not of imagedescriptor type or an imagedescriptor list&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">image</span><span class="o">.</span><span class="n">type</span> <span class="ow">in</span> <span class="n">bt</span><span class="o">.</span><span class="n">image_types</span> <span class="o">+</span> <span class="n">bt</span><span class="o">.</span><span class="n">imagedescriptor_types</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> is not a valid image type, accepted types are: </span><span class="si">%s</span><span class="s2">&quot;</span>
+                         <span class="o">%</span> <span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">bt</span><span class="o">.</span><span class="n">image_types</span> <span class="o">+</span> <span class="n">bt</span><span class="o">.</span><span class="n">imagedescriptor_types</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addfile</span><span class="p">(</span><span class="n">image</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Image.addfile"><a class="viewcode-back" href="../../../module/admit.util/Image.html#admit.util.Image.Image.addfile">[docs]</a>    <span class="k">def</span> <span class="nf">addfile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to add a file to the class, it should not be called directly,</span>
+<span class="sd">            instead addimage should be called</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            image : ImageDescriptor</span>
+<span class="sd">                An imagedescriptor of the image to be added. Removes any file</span>
+<span class="sd">                that is being replaced</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">DATA</span><span class="p">)</span> <span class="p">:</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">format</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">removeimage</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">format</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="p">[</span><span class="n">image</span><span class="o">.</span><span class="n">format</span><span class="p">]</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">file</span>
+        <span class="k">elif</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">THUMB</span><span class="p">):</span>
+            <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">thumbnail</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">removeimage</span><span class="p">(</span><span class="n">bt</span><span class="o">.</span><span class="n">THUMB</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">thumbnail</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">file</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">thumbnailtype</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">format</span>
+        <span class="k">elif</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">AUX</span><span class="p">):</span>
+            <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">auxiliary</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">removeimage</span><span class="p">(</span><span class="n">bt</span><span class="o">.</span><span class="n">AUX</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">auxiliary</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">file</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">auxtype</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">format</span></div>
+
+<div class="viewcode-block" id="Image.getimage"><a class="viewcode-back" href="../../../module/admit.util/Image.html#admit.util.Image.Image.getimage">[docs]</a>    <span class="k">def</span> <span class="nf">getimage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">type</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method which returns the requested image from the class as an</span>
+<span class="sd">            imagedescriptor.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            type : string</span>
+<span class="sd">                Can be any of the following: bt.AUX to retrieve the</span>
+<span class="sd">                auxiliary file, bt.THUMB to retrieve the thumbnail,</span>
+<span class="sd">                or a file format (e.g. bt.FITS) to retrieve the</span>
+<span class="sd">                requested format of the main image. If the requested image</span>
+<span class="sd">                does not exist then None is returned.</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            ImageDescriptor</span>
+<span class="sd">                An imagedescriptor of the requested image or None if the image</span>
+<span class="sd">                does not exist in the class.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span><span class="p">(</span><span class="nb">type</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">AUX</span><span class="p">):</span>
+            <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">auxiliary</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">imagedescriptor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">auxiliary</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">auxtype</span><span class="p">,</span> <span class="n">bt</span><span class="o">.</span><span class="n">AUX</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">if</span><span class="p">(</span><span class="nb">type</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">THUMB</span><span class="p">):</span>
+            <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">thumbnail</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">imagedescriptor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">thumbnail</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">thumbnailtype</span><span class="p">,</span> <span class="n">bt</span><span class="o">.</span><span class="n">THUMB</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span><span class="p">(</span><span class="nb">type</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">imagedescriptor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="p">[</span><span class="nb">type</span><span class="p">],</span> <span class="nb">type</span><span class="p">,</span> <span class="n">bt</span><span class="o">.</span><span class="n">DATA</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="s2">&quot;NOT FOUND&quot;</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="Image.getimagefile"><a class="viewcode-back" href="../../../module/admit.util/Image.html#admit.util.Image.Image.getimagefile">[docs]</a>    <span class="k">def</span> <span class="nf">getimagefile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imtype</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to get the name of a file for the given image type</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            imtype : str</span>
+<span class="sd">                Can be any of the following: bt.AUX to retrieve the</span>
+<span class="sd">                auxiliary file, bt.THUMB to retrieve the thumbnail,</span>
+<span class="sd">                or a file format (e.g. bt.FITS) to retrieve the</span>
+<span class="sd">                requested format of the main image. If the requested image</span>
+<span class="sd">                does not exist then None is returned.</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            String containing the image name, or None if the image does not</span>
+<span class="sd">            exist</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getimage</span><span class="p">(</span><span class="n">imtype</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">temp</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">temp</span><span class="o">.</span><span class="n">file</span></div>
+
+<div class="viewcode-block" id="Image.removeimage"><a class="viewcode-back" href="../../../module/admit.util/Image.html#admit.util.Image.Image.removeimage">[docs]</a>    <span class="k">def</span> <span class="nf">removeimage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">typ</span><span class="p">,</span> <span class="n">basedir</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">delete</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to remove a specific image from the class, including from</span>
+<span class="sd">            disk if requested.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            type : string</span>
+<span class="sd">                The type of the image to be removed. Can be any of the</span>
+<span class="sd">                following: bt.AUX to remove the auxiliary file,</span>
+<span class="sd">                bt.THUMB to remove the thumbnail, or a file format</span>
+<span class="sd">                (e.g. bt.FITS) to remove the requested format from</span>
+<span class="sd">                the main image dictionary.</span>
+
+<span class="sd">            delete : Boolean</span>
+<span class="sd">                Whether to delete the actual image from disk (default is True)</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># go through each image component and delete the file and instance</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">typ</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">THUMB</span><span class="p">):</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">delete</span><span class="p">):</span>
+                <span class="n">utils</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">basedir</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">thumbnail</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">thumbnail</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">thumbnailtype</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">elif</span><span class="p">(</span><span class="n">typ</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">AUX</span><span class="p">):</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">delete</span><span class="p">):</span>
+                <span class="n">utils</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">basedir</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">auxiliary</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">auxiliary</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">auxtype</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">elif</span><span class="p">(</span><span class="n">typ</span> <span class="ow">in</span> <span class="n">bt</span><span class="o">.</span><span class="n">image_types</span> <span class="ow">and</span> <span class="n">typ</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="p">):</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">delete</span><span class="p">):</span>
+                <span class="n">utils</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">basedir</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="p">[</span><span class="n">typ</span><span class="p">])</span>
+        <span class="k">elif</span><span class="p">(</span><span class="n">typ</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+                <span class="k">if</span><span class="p">(</span><span class="n">typ</span> <span class="o">==</span> <span class="n">val</span><span class="p">):</span>
+                    <span class="n">k</span> <span class="o">=</span> <span class="n">key</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">delete</span><span class="p">)</span> <span class="p">:</span>
+                <span class="n">utils</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">basedir</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="n">k</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="Image.delete"><a class="viewcode-back" href="../../../module/admit.util/Image.html#admit.util.Image.Image.delete">[docs]</a>    <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">basedir</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">delfile</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to delete everything</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            delfile : Boolean</span>
+<span class="sd">                Whether or not do delete the underlying files</span>
+<span class="sd">                (default is True)</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">f</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">images</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">removeimage</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">basedir</span><span class="p">,</span> <span class="n">delfile</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">images</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">thumbnail</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">removeimage</span><span class="p">(</span><span class="n">bt</span><span class="o">.</span><span class="n">THUMB</span><span class="p">,</span> <span class="n">basedir</span><span class="p">,</span> <span class="n">delfile</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">auxiliary</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">removeimage</span><span class="p">(</span><span class="n">bt</span><span class="o">.</span><span class="n">AUX</span><span class="p">,</span> <span class="n">basedir</span><span class="p">,</span> <span class="n">delfile</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Image.getthumbnail"><a class="viewcode-back" href="../../../module/admit.util/Image.html#admit.util.Image.Image.getthumbnail">[docs]</a>    <span class="k">def</span> <span class="nf">getthumbnail</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to get the thumbnail image file name</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            string</span>
+<span class="sd">                The file name of the thumbnail image, relative to the encasing</span>
+<span class="sd">                BDP</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getimage</span><span class="p">(</span><span class="n">bt</span><span class="o">.</span><span class="n">THUMB</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Image.getaux"><a class="viewcode-back" href="../../../module/admit.util/Image.html#admit.util.Image.Image.getaux">[docs]</a>    <span class="k">def</span> <span class="nf">getaux</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to get the auxiliary file name</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            string</span>
+<span class="sd">                The name of the auxiliry file, relative to the encasing BDP</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getimage</span><span class="p">(</span><span class="n">bt</span><span class="o">.</span><span class="n">AUX</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to determine if two images are equivalent</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            img : Image</span>
+<span class="sd">                The image to compare to this one</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            Boolean</span>
+<span class="sd">                Whether or not the two image classes are equivalent</span>
+
+<span class="sd">            Notes</span>
+<span class="sd">            -----</span>
+<span class="sd">            Useful for testing purposes, still experimental</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">cmp</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="imagedescriptor"><a class="viewcode-back" href="../../../module/admit.util/Image.html#admit.util.Image.imagedescriptor">[docs]</a><span class="k">class</span> <span class="nc">imagedescriptor</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; A lightweight class for transporting an image, its format and type.</span>
+<span class="sd">        This class has three and only three data members, and no added methods.</span>
+<span class="sd">        The members are file for the image file name on disk, format for the</span>
+<span class="sd">        image format (e.g. bt.FITS), and type (one of bt.THUMB,</span>
+<span class="sd">        bt.AUX, or bt.DATA) specifying what type of image this</span>
+<span class="sd">        is.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        file : string</span>
+<span class="sd">            The name of the file containing the image</span>
+<span class="sd">            No default</span>
+
+<span class="sd">        format : string</span>
+<span class="sd">            The format the image is in (see bt for a list of formats)</span>
+<span class="sd">            No default</span>
+
+<span class="sd">        type : string</span>
+<span class="sd">            The data type this image is filling in the class auxiliary,</span>
+<span class="sd">            thumbnail or data (where most images go). Use: bt.AUX, bt.THUMB, or</span>
+<span class="sd">            bt.DATA</span>
+<span class="sd">            Default : bt.DATA)</span>
+
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        Same as parameters.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;file&quot;</span><span class="p">,</span> <span class="s2">&quot;format&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="nb">format</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">bt</span><span class="o">.</span><span class="n">DATA</span><span class="p">)</span> <span class="p">:</span>
+        <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="nb">type</span> <span class="ow">in</span> <span class="n">bt</span><span class="o">.</span><span class="n">imagedescriptor_types</span><span class="p">)</span> <span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;type </span><span class="si">%s</span><span class="s2"> is not a valid value. Valid values are </span><span class="si">%s</span><span class="s2">&quot;</span>
+                            <span class="o">%</span> <span class="p">(</span><span class="nb">type</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">bt</span><span class="o">.</span><span class="n">imagedescriptor_types</span><span class="p">)))</span>
+        <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="nb">format</span> <span class="ow">in</span> <span class="n">bt</span><span class="o">.</span><span class="n">image_types</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Format </span><span class="si">%s</span><span class="s2"> is not an acceptable format type&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">format</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">file</span> <span class="o">=</span> <span class="n">file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">format</span> <span class="o">=</span> <span class="nb">format</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="nb">type</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

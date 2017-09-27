@@ -1,0 +1,329 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>AbstractPlot — Plotting base class. &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../index.html" />
+    <link rel="up" title="Python Scripting Interface (API)" href="../../api.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" accesskey="U">Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-admit.util.AbstractPlot"></span><div class="section" id="abstractplot-plotting-base-class">
+<span id="abstractplot-base-api"></span><h1><strong>AbstractPlot</strong> &#8212; Plotting base class.<a class="headerlink" href="#abstractplot-plotting-base-class" title="Permalink to this headline">¶</a></h1>
+<p>This module defines the base class for ADMIT plotters (APlot, ImPlot):</p>
+<ul class="simple">
+<li>keeps track of figure numbers</li>
+<li>plotmodes as in util.PlotControl</li>
+<li>thumbnail generation built-in</li>
+</ul>
+<dl class="class">
+<dt id="admit.util.AbstractPlot.AbstractPlot">
+<em class="property">class </em><code class="descclassname">admit.util.AbstractPlot.</code><code class="descname">AbstractPlot</code><span class="sig-paren">(</span><em>pmode=None</em>, <em>ptype=None</em>, <em>figno=None</em>, <em>abspath=''</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/AbstractPlot.html#AbstractPlot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.AbstractPlot.AbstractPlot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class of ADMIT plotters.</p>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="7%" />
+<col width="93%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>figno</td>
+<td>(int) Figure number (1 and up). This is a static class variable.</td>
+</tr>
+<tr class="row-even"><td>_figurefiles</td>
+<td>(dict) Dictionary of figure file names with key equal to figno.</td>
+</tr>
+<tr class="row-odd"><td>_thumbnailfiles</td>
+<td>(dict) Dictionary of thumbnail file names with key equal to figno.</td>
+</tr>
+<tr class="row-even"><td>_plot_mode</td>
+<td>(int) Plot mode, one of util.PlotControl plot mode (e.g., PlotControl.INTERACTIVE). Default: PlotControl.NOPLOT .</td>
+</tr>
+<tr class="row-odd"><td>_plot_type</td>
+<td>(int) Plotting format, one of util.PlotControl plot type (e.g., PlotControl.PNG). Default: PlotControl.NONE.</td>
+</tr>
+<tr class="row-even"><td>_abspath</td>
+<td>(str) Fully-qualified path where images will be written.  Default: empty string,      meaning write in current working directory or the path will be given in the figname argument to plot methods.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.AbstractPlot.AbstractPlot.backend" title="admit.util.AbstractPlot.AbstractPlot.backend"><code class="xref py py-obj docutils literal"><span class="pre">backend</span></code></a>(thebackend)</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.AbstractPlot.AbstractPlot.figure" title="admit.util.AbstractPlot.AbstractPlot.figure"><code class="xref py py-obj docutils literal"><span class="pre">figure</span></code></a>([figno])</td>
+<td>set the figure number.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.AbstractPlot.AbstractPlot.getFigure" title="admit.util.AbstractPlot.AbstractPlot.getFigure"><code class="xref py py-obj docutils literal"><span class="pre">getFigure</span></code></a>(figno,&nbsp;relative)</td>
+<td>Get the name of the figure file for given figure number</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.AbstractPlot.AbstractPlot.getThumbnail" title="admit.util.AbstractPlot.AbstractPlot.getThumbnail"><code class="xref py py-obj docutils literal"><span class="pre">getThumbnail</span></code></a>(figno,&nbsp;relative)</td>
+<td>Get the name of the thumbnail file for given figure number</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.AbstractPlot.AbstractPlot.makeThumbnail" title="admit.util.AbstractPlot.AbstractPlot.makeThumbnail"><code class="xref py py-obj docutils literal"><span class="pre">makeThumbnail</span></code></a>([figno,&nbsp;scale,&nbsp;fig])</td>
+<td>Create a thumbnail for a given figure number.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.AbstractPlot.AbstractPlot.show" title="admit.util.AbstractPlot.AbstractPlot.show"><code class="xref py py-obj docutils literal"><span class="pre">show</span></code></a>()</td>
+<td>show internals for debugging</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="admit.util.AbstractPlot.AbstractPlot.backend">
+<code class="descname">backend</code><span class="sig-paren">(</span><em>thebackend</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/AbstractPlot.html#AbstractPlot.backend"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.AbstractPlot.AbstractPlot.backend" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="admit.util.AbstractPlot.AbstractPlot.figno">
+<code class="descname">figno</code><em class="property"> = 0</em><a class="headerlink" href="#admit.util.AbstractPlot.AbstractPlot.figno" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="admit.util.AbstractPlot.AbstractPlot.figure">
+<code class="descname">figure</code><span class="sig-paren">(</span><em>figno=1</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/AbstractPlot.html#AbstractPlot.figure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.AbstractPlot.AbstractPlot.figure" title="Permalink to this definition">¶</a></dt>
+<dd><p>set the figure number. 
+This should normally not be needed, unless you want to alternate drawing in different figures.
+This option has not been tested at all.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.AbstractPlot.AbstractPlot.getFigure">
+<code class="descname">getFigure</code><span class="sig-paren">(</span><em>figno</em>, <em>relative</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/AbstractPlot.html#AbstractPlot.getFigure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.AbstractPlot.AbstractPlot.getFigure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the name of the figure file for given figure number</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>figno</strong> : int</p>
+<blockquote>
+<div><p>Figure number to look up</p>
+</div></blockquote>
+<p><strong>relative</strong> : boolean</p>
+<blockquote>
+<div><p>Whether to return with relative path or absolute path.  If True,
+plot _abspath will be removed from retured string.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">str</p>
+<blockquote class="last">
+<div><p>Figure file name</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.AbstractPlot.AbstractPlot.getThumbnail">
+<code class="descname">getThumbnail</code><span class="sig-paren">(</span><em>figno</em>, <em>relative</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/AbstractPlot.html#AbstractPlot.getThumbnail"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.AbstractPlot.AbstractPlot.getThumbnail" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the name of the thumbnail file for given figure number</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>figno</strong> : int</p>
+<blockquote>
+<div><p>Figure number to look up</p>
+</div></blockquote>
+<p><strong>relative</strong> : boolean</p>
+<blockquote>
+<div><p>Whether to return with relative path or absolute path.  If True,
+plot _abspath will be removed from retured string.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">str</p>
+<blockquote class="last">
+<div><p>Thumbnail file name</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.AbstractPlot.AbstractPlot.makeThumbnail">
+<code class="descname">makeThumbnail</code><span class="sig-paren">(</span><em>figno=None</em>, <em>scale=0.33</em>, <em>fig=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/AbstractPlot.html#AbstractPlot.makeThumbnail"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.AbstractPlot.AbstractPlot.makeThumbnail" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a thumbnail for a given figure number. The output
+file will be root of input plus &#8216;_thumb&#8217; plus plot type extension.
+For instance, if the input were &#8220;myimage.png&#8221;, the output
+would be &#8220;myimage_thumb.png&#8221;.   Note: only PNG format is currently
+supported (matplotlib restriction, Exception raised otherwise).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>figno: int</strong></p>
+<blockquote>
+<div><p>figure number for a plot that has been created by this Plot 
+instance.</p>
+</div></blockquote>
+<p><strong>scale: float</strong></p>
+<blockquote>
+<div><p>multiplier to scale input image, e.g. for 50% scaling, 
+scale = 0.5.  Default: 0.33</p>
+</div></blockquote>
+<p><strong>fig</strong> : figure, optional</p>
+<blockquote>
+<div><p>Populated matplotlib.figure.Figure instance
+(if <cite>None</cite>, input plot type must be PNG).</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="admit.util.AbstractPlot.AbstractPlot.plotmode">
+<code class="descname">plotmode</code><a class="headerlink" href="#admit.util.AbstractPlot.AbstractPlot.plotmode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the plotting mode</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">int</p>
+<blockquote class="last">
+<div><p>Plotting mode.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><code class="xref py py-obj docutils literal"><span class="pre">util.PlotControl</span></code></p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="admit.util.AbstractPlot.AbstractPlot.plottype">
+<code class="descname">plottype</code><a class="headerlink" href="#admit.util.AbstractPlot.AbstractPlot.plottype" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the plot type</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">int</p>
+<blockquote class="last">
+<div><p>Plot format type.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><code class="xref py py-obj docutils literal"><span class="pre">util.PlotControl</span></code></p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.AbstractPlot.AbstractPlot.show">
+<code class="descname">show</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/AbstractPlot.html#AbstractPlot.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.AbstractPlot.AbstractPlot.show" title="Permalink to this definition">¶</a></dt>
+<dd><p>show internals for debugging</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/module/admit.util/AbstractPlot.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" >Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

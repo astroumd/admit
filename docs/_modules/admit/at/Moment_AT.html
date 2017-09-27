@@ -1,0 +1,556 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.at.Moment_AT &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.at.Moment_AT</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; .. _Moment-at-api:</span>
+
+<span class="sd">   **Moment_AT** --- Generates various moment maps of a cube.</span>
+<span class="sd">   ----------------------------------------------------------</span>
+
+<span class="sd">   This module defines the Moment_AT class.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># ADMIT imports</span>
+<span class="kn">import</span> <span class="nn">admit</span>
+<span class="kn">from</span> <span class="nn">admit.AT</span> <span class="k">import</span> <span class="n">AT</span>
+<span class="kn">from</span> <span class="nn">admit.Summary</span> <span class="k">import</span> <span class="n">SummaryEntry</span>
+<span class="kn">import</span> <span class="nn">admit.util.bdp_types</span> <span class="k">as</span> <span class="nn">bt</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.Moment_BDP</span> <span class="k">import</span> <span class="n">Moment_BDP</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.Image_BDP</span> <span class="k">import</span> <span class="n">Image_BDP</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.CubeStats_BDP</span> <span class="k">import</span> <span class="n">CubeStats_BDP</span>
+<span class="kn">import</span> <span class="nn">admit.util.Image</span> <span class="k">as</span> <span class="nn">Image</span>
+<span class="kn">import</span> <span class="nn">admit.util.Line</span> <span class="k">as</span> <span class="nn">Line</span>
+<span class="kn">import</span> <span class="nn">admit.util.ImPlot</span> <span class="k">as</span> <span class="nn">ImPlot</span>
+<span class="kn">import</span> <span class="nn">admit.util.utils</span> <span class="k">as</span> <span class="nn">utils</span>
+<span class="kn">import</span> <span class="nn">admit.util.casautil</span> <span class="k">as</span> <span class="nn">casautil</span>
+<span class="kn">from</span> <span class="nn">admit.util</span> <span class="k">import</span> <span class="n">APlot</span>
+<span class="kn">from</span> <span class="nn">admit.util.AdmitLogging</span> <span class="k">import</span> <span class="n">AdmitLogging</span> <span class="k">as</span> <span class="n">logging</span>
+
+<span class="c1"># CASA imports</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">taskinit</span>
+    <span class="kn">import</span> <span class="nn">casa</span>
+    <span class="kn">from</span> <span class="nn">makemask</span> <span class="k">import</span> <span class="n">makemask</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="nb">print</span> <span class="s2">&quot;WARNING: No CASA; Moment task cannot function.&quot;</span>
+
+<span class="c1"># system imports</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy.ma</span> <span class="k">as</span> <span class="nn">ma</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
+
+
+<div class="viewcode-block" id="Moment_AT"><a class="viewcode-back" href="../../../module/admit.at/Moment_AT.html#admit.at.Moment_AT.Moment_AT">[docs]</a><span class="k">class</span> <span class="nc">Moment_AT</span><span class="p">(</span><span class="n">AT</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; AT for generating moments from an input cube BDP.</span>
+
+<span class="sd">        See also :ref:`Moment-AT-design` for design documentation.</span>
+
+<span class="sd">        The produced Moment_BDP(s) hold moment images and line information</span>
+<span class="sd">        for the produced moments.</span>
+
+<span class="sd">        **Keywords**</span>
+<span class="sd">          **moments**: list of ints</span>
+<span class="sd">            The moments to be computed. An individual BDP is created for each</span>
+<span class="sd">            moment. See CASA&#39;s immoments documentation for a description of the</span>
+<span class="sd">            moments that can be computed. Default: [0]. Moments are:</span>
+
+<span class="sd">            + \-1   - mean value of the spectrum</span>
+<span class="sd">            + 0   - integrated value of the spectrum</span>
+<span class="sd">            + 1   - intensity weighted coordinate;traditionally used to get &#39;velocity fields&#39;</span>
+<span class="sd">            + 2   - intensity weighted dispersion of the coordinate; traditionally used to get &quot;velocity dispersion&quot;</span>
+<span class="sd">            + 3   - median of I</span>
+<span class="sd">            + 4   - median coordinate</span>
+<span class="sd">            + 5   - standard deviation about the mean of the spectrum</span>
+<span class="sd">            + 6   - root mean square of the spectrum</span>
+<span class="sd">            + 7   - absolute mean deviation of the spectrum</span>
+<span class="sd">            + 8   - maximum value of the spectrum</span>
+<span class="sd">            + 9   - coordinate of the maximum value of the spectrum</span>
+<span class="sd">            + 10  - minimum value of the spectrum</span>
+
+
+<span class="sd">          **numsigma**: list of floats</span>
+<span class="sd">            The lower cutoff level for each moment in terms of sigma, an entry</span>
+<span class="sd">            for each moment can be given, or a single value can be given which</span>
+<span class="sd">            will be applied to all moments.</span>
+<span class="sd">            Default: [2.0].</span>
+
+<span class="sd">          **sigma**: float</span>
+<span class="sd">            The noise level to be used for calculating the cutoff values.</span>
+<span class="sd">            Negative values indicate that the AT should compute the value.</span>
+<span class="sd">            Inherited from the global RMS found in the CubeStats_BDP, if </span>
+<span class="sd">            provided.</span>
+<span class="sd">            Default: -1.0.</span>
+
+<span class="sd">          **chans**: string</span>
+<span class="sd">            The 0-based channels to operate on, in normal CASA style. Examples are &quot;2~10&quot;</span>
+<span class="sd">            for channels 2 through 10.</span>
+<span class="sd">            Default: &quot;&quot; (all channels).</span>
+
+<span class="sd">          **mom0clip**: float</span>
+<span class="sd">            The clip level in the mom0 map below which other moment maps will</span>
+<span class="sd">            be masked, but not to the mom0 map. This is in sigma units</span>
+<span class="sd">            of that moment-0 map.</span>
+<span class="sd">            Default: 0.0 (not applied).</span>
+
+<span class="sd">          **zoom**: int</span>
+<span class="sd">            Image zoom ratio applied to the moment map plots. This does not</span>
+<span class="sd">            affect the base (CASA) image itself. Default: 1.</span>
+
+<span class="sd">        **Input BDPs**</span>
+
+<span class="sd">          **SpwCube_BDP** or **LineCube_BDP**: count: 1</span>
+<span class="sd">            Spectral cube to take the moment(s) of, as from an</span>
+<span class="sd">            `Ingest_AT &lt;Ingest_AT.html&gt;`_,</span>
+<span class="sd">            `ContinuumSub_AT &lt;ContinuumSub_AT.html&gt;`_ or</span>
+<span class="sd">            `LineCube_AT &lt;LineCube_AT.html&gt;`_.</span>
+
+<span class="sd">          **CubeStats_BDP**: count: 1 (optional)</span>
+<span class="sd">            Use for determining the noise level for cutoffs.</span>
+<span class="sd">            Normally from a `CubeStats_AT &lt;CubeStats_AT.html&gt;`_.</span>
+
+<span class="sd">        **Output BDPs**</span>
+
+<span class="sd">          **Moment_BDP**: count: `varies`</span>
+<span class="sd">            Calculated moments, one for each moment requested.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        keyval : dictionary of keyword:value pairs, optional</span>
+
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        _version : string</span>
+<span class="sd">          Version information.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">keyval</span><span class="p">):</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;moments&quot;</span>  <span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span>          <span class="c1"># default to moment 0</span>
+            <span class="s2">&quot;numsigma&quot;</span> <span class="p">:</span> <span class="p">[</span><span class="mf">2.0</span><span class="p">],</span>        <span class="c1"># default to 2 sigma</span>
+            <span class="s2">&quot;sigma&quot;</span>    <span class="p">:</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span>         <span class="c1"># default to determine sigma internally</span>
+            <span class="s2">&quot;chans&quot;</span>    <span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>           <span class="c1"># default to select all channels</span>
+            <span class="s2">&quot;mom0clip&quot;</span> <span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>          <span class="c1"># default to not clip</span>
+            <span class="s2">&quot;variflow&quot;</span> <span class="p">:</span> <span class="kc">False</span><span class="p">,</span>        <span class="c1"># default to manual sub-flow management</span>
+            <span class="s2">&quot;zoom&quot;</span>     <span class="p">:</span> <span class="mi">1</span><span class="p">,</span>            <span class="c1"># default map plot zoom ratio</span>
+        <span class="p">}</span>
+        <span class="n">AT</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">keyval</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_version</span> <span class="o">=</span> <span class="s2">&quot;1.1.0&quot;</span>
+        <span class="c1"># set input types</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_bdp_in</span><span class="p">([(</span><span class="n">Image_BDP</span><span class="p">,</span>     <span class="mi">1</span><span class="p">,</span> <span class="n">bt</span><span class="o">.</span><span class="n">REQUIRED</span><span class="p">),</span>
+                         <span class="p">(</span><span class="n">CubeStats_BDP</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">bt</span><span class="o">.</span><span class="n">OPTIONAL</span><span class="p">)])</span>
+        <span class="c1"># set output types</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_bdp_out</span><span class="p">([(</span><span class="n">Moment_BDP</span><span class="p">,</span> <span class="mi">0</span><span class="p">)])</span>
+
+<div class="viewcode-block" id="Moment_AT.summary"><a class="viewcode-back" href="../../../module/admit.at/Moment_AT.html#admit.at.Moment_AT.Moment_AT.summary">[docs]</a>    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the summary dictionary from the AT, for merging</span>
+<span class="sd">           into the ADMIT Summary object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_summary&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{}</span></div>
+
+<div class="viewcode-block" id="Moment_AT.run"><a class="viewcode-back" href="../../../module/admit.at/Moment_AT.html#admit.at.Moment_AT.Moment_AT.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; The run method, calculates the moments and creates the BDP(s)</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">momentsummary</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">Dtime</span><span class="p">(</span><span class="s2">&quot;Moment&quot;</span><span class="p">)</span>
+
+        <span class="c1"># variable to track if we are using a single cutoff for all moment maps</span>
+        <span class="n">allsame</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">moments</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;moments&quot;</span><span class="p">)</span>
+        <span class="n">numsigma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;numsigma&quot;</span><span class="p">)</span>
+        <span class="n">mom0clip</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;mom0clip&quot;</span><span class="p">)</span>
+        <span class="c1"># determine if there is only 1 cutoff or if there is a cutoff for each moment</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">moments</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">numsigma</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">numsigma</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Length of numsigma and moment lists do not match. They must be the same length or the length of the cutoff list must be 1.&quot;</span><span class="p">)</span>
+            <span class="n">allsame</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="c1"># default moment file extensions, this is information copied from casa.immoments()</span>
+        <span class="n">momentFileExtensions</span> <span class="o">=</span> <span class="p">{</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;.average&quot;</span><span class="p">,</span>
+                                 <span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;.integrated&quot;</span><span class="p">,</span>
+                                 <span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;.weighted_coord&quot;</span><span class="p">,</span>
+                                 <span class="mi">2</span><span class="p">:</span> <span class="s2">&quot;.weighted_dispersion_coord&quot;</span><span class="p">,</span>
+                                 <span class="mi">3</span><span class="p">:</span> <span class="s2">&quot;.median&quot;</span><span class="p">,</span>
+                                 <span class="mi">4</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                                 <span class="mi">5</span><span class="p">:</span> <span class="s2">&quot;.standard_deviation&quot;</span><span class="p">,</span>
+                                 <span class="mi">6</span><span class="p">:</span> <span class="s2">&quot;.rms&quot;</span><span class="p">,</span>
+                                 <span class="mi">7</span><span class="p">:</span> <span class="s2">&quot;.abs_mean_dev&quot;</span><span class="p">,</span>
+                                 <span class="mi">8</span><span class="p">:</span> <span class="s2">&quot;.maximum&quot;</span><span class="p">,</span>
+                                 <span class="mi">9</span><span class="p">:</span> <span class="s2">&quot;.maximum_coord&quot;</span><span class="p">,</span>
+                                <span class="mi">10</span><span class="p">:</span> <span class="s2">&quot;.minimum&quot;</span><span class="p">,</span>
+                                <span class="mi">11</span><span class="p">:</span> <span class="s2">&quot;.minimum_coord&quot;</span><span class="p">,</span>
+                                <span class="p">}</span>
+
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;MOMENT: </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span>  <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">moments</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">numsigma</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">allsame</span><span class="p">)))</span>
+
+        <span class="c1"># get the input casa image from bdp[0]</span>
+        <span class="c1"># also get the channels the line actually covers (if any)</span>
+        <span class="n">bdpin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">infile</span> <span class="o">=</span> <span class="n">bdpin</span><span class="o">.</span><span class="n">getimagefile</span><span class="p">(</span><span class="n">bt</span><span class="o">.</span><span class="n">CASA</span><span class="p">)</span>
+        <span class="n">chans</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;chans&quot;</span><span class="p">)</span>
+        <span class="c1"># the basename of the moments, we will append _0, _1, etc.</span>
+        <span class="n">basename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mkext</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span> <span class="s2">&quot;mom&quot;</span><span class="p">)</span>
+        <span class="n">fluxname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mkext</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span> <span class="s2">&quot;flux&quot;</span><span class="p">)</span>
+        <span class="c1"># beamarea = nppb(self.dir(infile))</span>
+        <span class="n">beamarea</span> <span class="o">=</span> <span class="mf">1.0</span>  <span class="c1"># until we have it from the MOM0 map</span>
+
+        <span class="n">sigma0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;sigma&quot;</span><span class="p">)</span>
+        <span class="n">sigma</span>  <span class="o">=</span> <span class="n">sigma0</span>
+
+        <span class="n">ia</span> <span class="o">=</span> <span class="n">taskinit</span><span class="o">.</span><span class="n">iatool</span><span class="p">()</span>
+
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;open&quot;</span><span class="p">)</span>
+
+        <span class="c1"># if no CubseStats BDP was given and no sigma was specified, find a </span>
+        <span class="c1"># noise level via casa.imstat()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">sigma</span> <span class="o">&lt;=</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;A sigma or a CubeStats_BDP must be input to calculate the cutoff&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">sigma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;sigma&quot;</span><span class="p">)</span>
+
+        <span class="c1"># immoments is a bit peculiar. If you give one moment, it will use </span>
+        <span class="c1"># exactly the outfile you picked for multiple moments, it will pick</span>
+        <span class="c1"># extensions such as .integrated [0], .weighted_coord [1] etc.</span>
+        <span class="c1"># we loop over the moments and will use the numeric extension instead. </span>
+        <span class="c1"># Might be laborious loop for big input cubes</span>
+        <span class="c1">#</span>
+        <span class="c1"># arguments for immoments</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;imagename&quot;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">infile</span><span class="p">),</span>
+                <span class="s2">&quot;moments&quot;</span>   <span class="p">:</span> <span class="n">moments</span><span class="p">,</span>
+                <span class="s2">&quot;outfile&quot;</span>   <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">basename</span><span class="p">)}</span>
+
+        <span class="c1"># set the channels if given</span>
+        <span class="k">if</span> <span class="n">chans</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="n">args</span><span class="p">[</span><span class="s2">&quot;chans&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">chans</span>
+        <span class="c1"># error check the mom0clip input</span>
+        <span class="k">if</span> <span class="n">mom0clip</span> <span class="o">&gt;</span> <span class="mf">0.0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="mi">0</span> <span class="ow">in</span> <span class="n">moments</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;mom0clip given, but no moment0 map was requested. One will be generated anyway.&quot;</span><span class="p">)</span>
+            <span class="c1"># add moment0 to the list of computed moments, but it has to be first</span>
+            <span class="n">moments</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">allsame</span><span class="p">:</span>
+                <span class="n">numsigma</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">2.0</span><span class="o">*</span><span class="n">sigma</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">allsame</span><span class="p">:</span>
+            <span class="c1"># this is only executed now if len(moments) &gt; 1 and len(cutoff)==1</span>
+            <span class="n">args</span><span class="p">[</span><span class="s2">&quot;excludepix&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="n">numsigma</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">numsigma</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">sigma</span><span class="p">]</span>
+            <span class="n">casa</span><span class="o">.</span><span class="n">immoments</span><span class="p">(</span><span class="o">**</span><span class="n">args</span><span class="p">)</span>
+            <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;immoments-all&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># this is execute if len(moments)==len(cutoff) , even when len=1</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">moments</span><span class="p">)):</span>
+                <span class="n">args</span><span class="p">[</span><span class="s2">&quot;excludepix&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="n">numsigma</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">numsigma</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">sigma</span><span class="p">]</span>
+                <span class="n">args</span><span class="p">[</span><span class="s2">&quot;moments&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">moments</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">args</span><span class="p">[</span><span class="s2">&quot;outfile&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">basename</span> <span class="o">+</span> <span class="n">momentFileExtensions</span><span class="p">[</span><span class="n">moments</span><span class="p">[</span><span class="n">i</span><span class="p">]])</span>
+                <span class="n">casa</span><span class="o">.</span><span class="n">immoments</span><span class="p">(</span><span class="o">**</span><span class="n">args</span><span class="p">)</span>
+                <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;immoments-</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">moments</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+        <span class="n">taskargs</span> <span class="o">=</span> <span class="s2">&quot;moments=</span><span class="si">%s</span><span class="s2"> numsigma=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">moments</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">numsigma</span><span class="p">))</span> 
+        <span class="k">if</span> <span class="n">sigma0</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">taskargs</span> <span class="o">=</span> <span class="n">taskargs</span> <span class="o">+</span> <span class="s2">&quot; sigma=</span><span class="si">%.2f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">sigma0</span>
+        <span class="k">if</span> <span class="n">mom0clip</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">taskargs</span> <span class="o">=</span> <span class="n">taskargs</span> <span class="o">+</span> <span class="s2">&quot; mom0clip=</span><span class="si">%g</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">mom0clip</span>
+        <span class="k">if</span> <span class="n">chans</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span> 
+            <span class="n">taskargs</span> <span class="o">=</span> <span class="n">taskargs</span> <span class="o">+</span> <span class="s2">&quot; chans=all&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">taskargs</span> <span class="o">=</span> <span class="n">taskargs</span> <span class="o">+</span> <span class="s2">&quot; chans=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">chans</span><span class="p">)</span>
+        <span class="n">taskargs</span> <span class="o">+=</span> <span class="s1">&#39;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; &amp;nbsp;&amp;nbsp;&amp;nbsp; &lt;span style=&quot;background-color:white&quot;&gt;&amp;nbsp;&#39;</span> <span class="o">+</span> <span class="n">basename</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;&amp;nbsp;&lt;/span&gt;&#39;</span>
+
+        <span class="c1"># generate the mask to be applied to all but moment 0</span>
+        <span class="k">if</span> <span class="n">mom0clip</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="c1"># get the statistics from mom0 map</span>
+            <span class="c1"># this is usually a very biased map, so unclear if mom0sigma is all that reliable</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;imagename&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">infile</span><span class="p">)}</span>
+            <span class="n">stat</span> <span class="o">=</span> <span class="n">casa</span><span class="o">.</span><span class="n">imstat</span><span class="p">(</span><span class="n">imagename</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">basename</span> <span class="o">+</span> <span class="n">momentFileExtensions</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+            <span class="n">mom0sigma</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">stat</span><span class="p">[</span><span class="s2">&quot;sigma&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+            <span class="c1"># generate a temporary masked file, mask will be copied to other moments</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;imagename&quot;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">basename</span> <span class="o">+</span> <span class="n">momentFileExtensions</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                    <span class="s2">&quot;expr&quot;</span>      <span class="p">:</span> <span class="s1">&#39;IM0[IM0&gt;</span><span class="si">%f</span><span class="s1">]&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mom0clip</span> <span class="o">*</span> <span class="n">mom0sigma</span><span class="p">),</span>
+                    <span class="s2">&quot;outfile&quot;</span>   <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="s2">&quot;mom0.masked&quot;</span><span class="p">)</span>
+                    <span class="p">}</span>
+            <span class="n">casa</span><span class="o">.</span><span class="n">immath</span><span class="p">(</span><span class="o">**</span><span class="n">args</span><span class="p">)</span>
+            <span class="c1"># get the default mask name</span>
+            <span class="n">ia</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="s2">&quot;mom0.masked&quot;</span><span class="p">))</span>
+            <span class="n">defmask</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">maskhandler</span><span class="p">(</span><span class="s1">&#39;default&#39;</span><span class="p">)</span>
+            <span class="n">ia</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;mom0clip&quot;</span><span class="p">)</span>
+
+        <span class="c1"># loop over moments to rename them to _0, _1, _2 etc.</span>
+        <span class="c1"># apply a mask as well for proper histogram creation</span>
+        <span class="nb">map</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">myplot</span> <span class="o">=</span> <span class="n">APlot</span><span class="p">(</span><span class="n">pmode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_plot_mode</span><span class="p">,</span><span class="n">ptype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_plot_type</span><span class="p">,</span><span class="n">abspath</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">())</span>
+        <span class="n">implot</span> <span class="o">=</span> <span class="n">ImPlot</span><span class="p">(</span><span class="n">pmode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_plot_mode</span><span class="p">,</span><span class="n">ptype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_plot_type</span><span class="p">,</span><span class="n">abspath</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">())</span>
+
+        <span class="k">for</span> <span class="n">mom</span> <span class="ow">in</span> <span class="n">moments</span><span class="p">:</span>
+            <span class="n">figname</span> <span class="o">=</span> <span class="n">imagename</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_</span><span class="si">%i</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">basename</span><span class="p">,</span> <span class="n">mom</span><span class="p">)</span>
+            <span class="n">tempname</span> <span class="o">=</span> <span class="n">basename</span> <span class="o">+</span> <span class="n">momentFileExtensions</span><span class="p">[</span><span class="n">mom</span><span class="p">]</span>
+            <span class="c1"># rename and remove the old one if there is one</span>
+            <span class="n">utils</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">tempname</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">imagename</span><span class="p">))</span>
+            <span class="c1"># copy the moment0 mask if requested; this depends on that mom0 was done before</span>
+            <span class="k">if</span> <span class="n">mom0clip</span> <span class="o">&gt;</span> <span class="mf">0.0</span> <span class="ow">and</span> <span class="n">mom</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1">#print &quot;PJT: output=%s:%s&quot; % (self.dir(imagename), defmask[0])</span>
+                <span class="c1">#print &quot;PJT: inpmask=%s:%s&quot; % (self.dir(&quot;mom0.masked&quot;),defmask[0])</span>
+                <span class="n">makemask</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;copy&quot;</span><span class="p">,</span> <span class="n">inpimage</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="s2">&quot;mom0.masked&quot;</span><span class="p">),</span>
+                         <span class="n">output</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">:</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">imagename</span><span class="p">),</span> <span class="n">defmask</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                         <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">inpmask</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">:</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="s2">&quot;mom0.masked&quot;</span><span class="p">),</span>
+                                                            <span class="n">defmask</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+                <span class="n">ia</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">imagename</span><span class="p">))</span>
+                <span class="n">ia</span><span class="o">.</span><span class="n">maskhandler</span><span class="p">(</span><span class="s1">&#39;set&#39;</span><span class="p">,</span> <span class="n">defmask</span><span class="p">)</span>
+                <span class="n">ia</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;makemask&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">mom</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">beamarea</span> <span class="o">=</span> <span class="n">nppb</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">imagename</span><span class="p">))</span>
+            <span class="n">implot</span><span class="o">.</span><span class="n">plotter</span><span class="p">(</span><span class="n">rasterfile</span><span class="o">=</span><span class="n">imagename</span><span class="p">,</span><span class="n">figname</span><span class="o">=</span><span class="n">figname</span><span class="p">,</span>
+                           <span class="n">colorwedge</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">zoom</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;zoom&quot;</span><span class="p">))</span>
+            <span class="n">imagepng</span>  <span class="o">=</span> <span class="n">implot</span><span class="o">.</span><span class="n">getFigure</span><span class="p">(</span><span class="n">figno</span><span class="o">=</span><span class="n">implot</span><span class="o">.</span><span class="n">figno</span><span class="p">,</span><span class="n">relative</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">thumbname</span> <span class="o">=</span> <span class="n">implot</span><span class="o">.</span><span class="n">getThumbnail</span><span class="p">(</span><span class="n">figno</span><span class="o">=</span><span class="n">implot</span><span class="o">.</span><span class="n">figno</span><span class="p">,</span><span class="n">relative</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">images</span> <span class="o">=</span> <span class="p">{</span><span class="n">bt</span><span class="o">.</span><span class="n">CASA</span> <span class="p">:</span> <span class="n">imagename</span><span class="p">,</span> <span class="n">bt</span><span class="o">.</span><span class="n">PNG</span>  <span class="p">:</span> <span class="n">imagepng</span><span class="p">}</span>
+            <span class="n">thumbtype</span><span class="o">=</span><span class="n">bt</span><span class="o">.</span><span class="n">PNG</span>
+            <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;implot&quot;</span><span class="p">)</span>
+
+            <span class="c1"># get the data for a histogram (ia access is about 1000-2000 faster than imval())</span>
+            <span class="nb">map</span><span class="p">[</span><span class="n">mom</span><span class="p">]</span> <span class="o">=</span> <span class="n">casautil</span><span class="o">.</span><span class="n">getdata</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">imagename</span><span class="p">))</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="nb">map</span><span class="p">[</span><span class="n">mom</span><span class="p">]</span><span class="o">.</span><span class="n">compressed</span><span class="p">()</span>
+            <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;getdata&quot;</span><span class="p">)</span>
+
+            <span class="c1"># make the histogram plot</span>
+
+            <span class="c1"># get the label for the x axis</span>
+            <span class="n">bunit</span> <span class="o">=</span> <span class="n">casa</span><span class="o">.</span><span class="n">imhead</span><span class="p">(</span><span class="n">imagename</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">imagename</span><span class="p">),</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;get&quot;</span><span class="p">,</span> <span class="n">hdkey</span><span class="o">=</span><span class="s2">&quot;bunit&quot;</span><span class="p">)</span>
+            <span class="c1"># object for the caption</span>
+            <span class="n">objectname</span> <span class="o">=</span> <span class="n">casa</span><span class="o">.</span><span class="n">imhead</span><span class="p">(</span><span class="n">imagename</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">imagename</span><span class="p">),</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;get&quot;</span><span class="p">,</span> <span class="n">hdkey</span><span class="o">=</span><span class="s2">&quot;object&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Make the histogram plot</span>
+            <span class="c1"># Since we give abspath in the constructor, figname should be relative</span>
+            <span class="n">auxname</span> <span class="o">=</span> <span class="n">imagename</span> <span class="o">+</span> <span class="s1">&#39;_histo&#39;</span>
+            <span class="n">auxtype</span> <span class="o">=</span> <span class="n">bt</span><span class="o">.</span><span class="n">PNG</span>
+            <span class="n">myplot</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="n">columns</span> <span class="o">=</span> <span class="n">data</span><span class="p">,</span>
+                             <span class="n">figname</span> <span class="o">=</span> <span class="n">auxname</span><span class="p">,</span>
+                             <span class="n">xlab</span>    <span class="o">=</span> <span class="n">bunit</span><span class="p">,</span>
+                             <span class="n">ylab</span>    <span class="o">=</span> <span class="s2">&quot;Count&quot;</span><span class="p">,</span>
+                             <span class="n">title</span>   <span class="o">=</span> <span class="s2">&quot;Histogram of Moment </span><span class="si">%d</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mom</span><span class="p">,</span> <span class="n">imagename</span><span class="p">),</span> <span class="n">thumbnail</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="n">casaimage</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span><span class="n">images</span>    <span class="o">=</span> <span class="n">images</span><span class="p">,</span>
+                                    <span class="n">auxiliary</span> <span class="o">=</span> <span class="n">auxname</span><span class="p">,</span>
+                                    <span class="n">auxtype</span>   <span class="o">=</span> <span class="n">auxtype</span><span class="p">,</span>
+                                    <span class="n">thumbnail</span> <span class="o">=</span> <span class="n">thumbname</span><span class="p">,</span>
+                                    <span class="n">thumbnailtype</span> <span class="o">=</span> <span class="n">thumbtype</span><span class="p">)</span>
+            <span class="n">auxname</span> <span class="o">=</span> <span class="n">myplot</span><span class="o">.</span><span class="n">getFigure</span><span class="p">(</span><span class="n">figno</span><span class="o">=</span><span class="n">myplot</span><span class="o">.</span><span class="n">figno</span><span class="p">,</span><span class="n">relative</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">auxthumb</span> <span class="o">=</span> <span class="n">myplot</span><span class="o">.</span><span class="n">getThumbnail</span><span class="p">(</span><span class="n">figno</span><span class="o">=</span><span class="n">myplot</span><span class="o">.</span><span class="n">figno</span><span class="p">,</span><span class="n">relative</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;line&quot;</span><span class="p">):</span>   <span class="c1"># SpwCube doesn&#39;t have Line</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;line&quot;</span><span class="p">))</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">Line</span><span class="p">):</span>
+                    <span class="n">line</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Unidentified&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># fake a Line if there wasn&#39;t one</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Unidentified&quot;</span><span class="p">)</span>
+            <span class="c1"># add the BDP to the output array</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">addoutput</span><span class="p">(</span><span class="n">Moment_BDP</span><span class="p">(</span><span class="n">xmlFile</span><span class="o">=</span><span class="n">imagename</span><span class="p">,</span> <span class="n">moment</span><span class="o">=</span><span class="n">mom</span><span class="p">,</span>
+                           <span class="n">image</span><span class="o">=</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">casaimage</span><span class="p">),</span> <span class="n">line</span><span class="o">=</span><span class="n">line</span><span class="p">))</span>
+            <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;ren+mask_</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">mom</span><span class="p">)</span>
+
+            <span class="n">imcaption</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> Moment </span><span class="si">%d</span><span class="s2"> map of Source </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">mom</span><span class="p">,</span> <span class="n">objectname</span><span class="p">)</span>
+            <span class="n">auxcaption</span> <span class="o">=</span> <span class="s2">&quot;Histogram of </span><span class="si">%s</span><span class="s2"> Moment </span><span class="si">%d</span><span class="s2"> of Source </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">mom</span><span class="p">,</span> <span class="n">objectname</span><span class="p">)</span>
+            <span class="n">thismomentsummary</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">mom</span><span class="p">,</span> <span class="n">imagepng</span><span class="p">,</span> <span class="n">thumbname</span><span class="p">,</span> <span class="n">imcaption</span><span class="p">,</span>
+                                 <span class="n">auxname</span><span class="p">,</span> <span class="n">auxthumb</span><span class="p">,</span> <span class="n">auxcaption</span><span class="p">,</span> <span class="n">infile</span><span class="p">]</span>
+            <span class="n">momentsummary</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">thismomentsummary</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">map</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">map</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">map</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;MAPs present: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">map</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+
+            <span class="c1"># m0 needs a new mask, inherited from the more restricted m1 (and m2)</span>
+            <span class="n">m0</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">masked_where</span><span class="p">(</span><span class="nb">map</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">mask</span><span class="p">,</span><span class="nb">map</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">m1</span> <span class="o">=</span> <span class="nb">map</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">m2</span> <span class="o">=</span> <span class="nb">map</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">m01</span> <span class="o">=</span> <span class="n">m0</span><span class="o">*</span><span class="n">m1</span>
+            <span class="n">m02</span> <span class="o">=</span> <span class="n">m0</span><span class="o">*</span><span class="n">m1</span><span class="o">*</span><span class="n">m1</span>
+            <span class="n">m22</span> <span class="o">=</span> <span class="n">m0</span><span class="o">*</span><span class="n">m2</span><span class="o">*</span><span class="n">m2</span>
+            <span class="n">sum0</span> <span class="o">=</span> <span class="n">m0</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="n">vmean</span> <span class="o">=</span> <span class="n">m01</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">/</span><span class="n">sum0</span>
+            <span class="c1"># lacking the full 3D cube, get two estimates and take the max</span>
+            <span class="n">sig1</span>  <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">m02</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">/</span><span class="n">sum0</span> <span class="o">-</span> <span class="n">vmean</span><span class="o">*</span><span class="n">vmean</span><span class="p">)</span>
+            <span class="n">sig2</span>  <span class="o">=</span> <span class="n">m2</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+            <span class="c1">#vsig = max(sig1,sig2)</span>
+            <span class="n">vsig</span> <span class="o">=</span> <span class="n">sig1</span>
+            
+            <span class="c1"># consider clipping in the masked array (mom0clip)</span>
+            <span class="c1"># @todo   i can&#39;t use info from line, so just borrow basename for now for grepping</span>
+            <span class="c1">#         this also isn&#39;t really the flux, the points per beam is still in there</span>
+            <span class="n">loc</span> <span class="o">=</span> <span class="n">basename</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+            <span class="n">sum1</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">masked_less</span><span class="p">(</span><span class="nb">map</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="mf">0.0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>   <span class="c1"># mom0clip</span>
+            <span class="c1"># print out:   LINE,FLUX1,FLUX0,BEAMAREA,VMEAN,VSIGMA for regression</span>
+            <span class="c1"># the linechans parameter in bdpin is not useful to print out here, it&#39;s local to the LineCube</span>
+            <span class="n">s_vlsr</span> <span class="o">=</span> <span class="n">admit</span><span class="o">.</span><span class="n">Project</span><span class="o">.</span><span class="n">summaryData</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;vlsr&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">getValue</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">s_rest</span> <span class="o">=</span> <span class="n">admit</span><span class="o">.</span><span class="n">Project</span><span class="o">.</span><span class="n">summaryData</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;restfreq&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">getValue</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="mi">1</span><span class="n">e9</span>
+            <span class="n">s_line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">frequency</span>
+            <span class="k">if</span> <span class="n">loc</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">basename</span><span class="p">[:</span><span class="n">loc</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;U_&#39;</span><span class="p">:</span>
+                    <span class="c1"># for U_ lines we&#39;ll reference the VLSR w.r.t. RESTFREQ in that band</span>
+                    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">vmean</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">vsig</span><span class="p">:</span>
+                        <span class="n">vwarn</span> <span class="o">=</span> <span class="s1">&#39;*&#39;</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">vwarn</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+                    <span class="n">vlsr</span> <span class="o">=</span> <span class="n">vmean</span> <span class="o">+</span> <span class="p">(</span><span class="mf">1.0</span><span class="o">-</span><span class="n">s_line</span><span class="o">/</span><span class="n">s_rest</span><span class="p">)</span><span class="o">*</span><span class="n">utils</span><span class="o">.</span><span class="n">c</span>
+                    <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;MOM0FLUX: </span><span class="si">%s</span><span class="s2"> </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">basename</span><span class="p">[:</span><span class="n">loc</span><span class="p">],</span><span class="nb">map</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span><span class="n">sum0</span><span class="p">,</span><span class="n">beamarea</span><span class="p">,</span><span class="n">vmean</span><span class="p">,</span><span class="n">vlsr</span><span class="p">,</span><span class="n">vsig</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># for identified lines we&#39;ll assume the ID was correct and not bother with RESTFREQ</span>
+                    <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;MOM0FLUX: </span><span class="si">%s</span><span class="s2"> </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">basename</span><span class="p">[:</span><span class="n">loc</span><span class="p">],</span><span class="nb">map</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span><span class="n">sum0</span><span class="p">,</span><span class="n">beamarea</span><span class="p">,</span><span class="n">vmean</span><span class="p">,</span><span class="n">vmean</span><span class="p">,</span><span class="n">vsig</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;MOM0FLUX: </span><span class="si">%s</span><span class="s2"> </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="s2">&quot;SPW_FULL&quot;</span>    <span class="p">,</span><span class="nb">map</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span><span class="n">sum0</span><span class="p">,</span><span class="n">beamarea</span><span class="p">,</span><span class="n">vmean</span><span class="p">,</span><span class="n">vmean</span><span class="p">,</span><span class="n">vsig</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">regression</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;mom0flux&quot;</span><span class="p">)</span>
+
+            <span class="c1"># create a histogram of flux per channel</span>
+
+            <span class="c1"># grab the X coordinates for the histogram, we want them in km/s</span>
+            <span class="c1"># restfreq should also be in summary</span>
+            <span class="n">restfreq</span> <span class="o">=</span> <span class="n">casa</span><span class="o">.</span><span class="n">imhead</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">infile</span><span class="p">),</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;get&quot;</span><span class="p">,</span><span class="n">hdkey</span><span class="o">=</span><span class="s2">&quot;restfreq&quot;</span><span class="p">)[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span><span class="o">/</span><span class="mi">1</span><span class="n">e9</span>    <span class="c1"># in GHz</span>
+            <span class="c1"># print &quot;PJT  %.10f %.10f&quot; % (restfreq,s_rest)</span>
+            <span class="n">imval0</span> <span class="o">=</span> <span class="n">casa</span><span class="o">.</span><span class="n">imval</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">infile</span><span class="p">))</span>
+            <span class="n">freqs</span> <span class="o">=</span> <span class="n">imval0</span><span class="p">[</span><span class="s1">&#39;coords&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">transpose</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span><span class="o">/</span><span class="mi">1</span><span class="n">e9</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">freqs</span><span class="o">/</span><span class="n">restfreq</span><span class="p">)</span><span class="o">*</span><span class="n">utils</span><span class="o">.</span><span class="n">c</span>
+            <span class="c1"># </span>
+            <span class="n">h</span> <span class="o">=</span> <span class="n">casa</span><span class="o">.</span><span class="n">imstat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">infile</span><span class="p">),</span> <span class="n">axes</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">h</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="s1">&#39;flux&#39;</span><span class="p">):</span>
+                <span class="n">flux0</span> <span class="o">=</span> <span class="n">h</span><span class="p">[</span><span class="s1">&#39;flux&#39;</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">flux0</span> <span class="o">=</span> <span class="n">h</span><span class="p">[</span><span class="s1">&#39;sum&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">beamarea</span>
+            <span class="n">flux0sum</span> <span class="o">=</span> <span class="n">flux0</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">*</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="c1"># @todo   make a flux1 with fluxes derived from a good mask</span>
+            <span class="n">flux1</span> <span class="o">=</span> <span class="n">flux0</span> 
+            <span class="c1"># construct histogram</span>
+            <span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;Flux Spectrum (</span><span class="si">%g</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="n">flux0sum</span>
+            <span class="n">xlab</span> <span class="o">=</span> <span class="s1">&#39;VLSR (km/s)&#39;</span>
+            <span class="n">ylab</span> <span class="o">=</span> <span class="s1">&#39;Flux (Jy)&#39;</span>
+            <span class="n">myplot</span><span class="o">.</span><span class="n">plotter</span><span class="p">(</span><span class="n">x</span><span class="p">,[</span><span class="n">flux0</span><span class="p">,</span><span class="n">flux1</span><span class="p">],</span><span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span><span class="n">figname</span><span class="o">=</span><span class="n">fluxname</span><span class="p">,</span><span class="n">xlab</span><span class="o">=</span><span class="n">xlab</span><span class="p">,</span><span class="n">ylab</span><span class="o">=</span><span class="n">ylab</span><span class="p">,</span><span class="n">histo</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;flux-spectrum&quot;</span><span class="p">)</span>
+            
+        <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="s2">&quot;moments&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SummaryEntry</span><span class="p">(</span><span class="n">momentsummary</span><span class="p">,</span> <span class="s2">&quot;Moment_AT&quot;</span><span class="p">,</span> 
+                                                <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">(</span><span class="kc">True</span><span class="p">),</span> <span class="n">taskargs</span><span class="p">)</span>
+        <span class="c1"># get rid of the temporary mask</span>
+        <span class="k">if</span> <span class="n">mom0clip</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span> 
+            <span class="n">utils</span><span class="o">.</span><span class="n">rmdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="s2">&quot;mom0.masked&quot;</span><span class="p">))</span>
+
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;done&quot;</span><span class="p">)</span>
+        <span class="n">dt</span><span class="o">.</span><span class="n">end</span><span class="p">()</span></div></div>
+
+<div class="viewcode-block" id="nppb"><a class="viewcode-back" href="../../../module/admit.at/Moment_AT.html#admit.at.Moment_AT.nppb">[docs]</a><span class="k">def</span> <span class="nf">nppb</span><span class="p">(</span><span class="n">image</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;work out the flux correction, number of points per beam &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="c1"># more expensive, but works for non-ALMA data</span>
+        <span class="c1"># needs to be done on the MOM0 map</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">casa</span><span class="o">.</span><span class="n">imstat</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="s1">&#39;flux&#39;</span><span class="p">):</span>
+            <span class="n">beamarea</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="s1">&#39;sum&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="n">s</span><span class="p">[</span><span class="s1">&#39;flux&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">beamarea</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="k">return</span> <span class="n">beamarea</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">casa</span><span class="o">.</span><span class="n">imhead</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;list&#39;</span><span class="p">)</span>
+        <span class="c1"># @todo should we not use the casa units for this?</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">bmin</span> <span class="o">=</span> <span class="n">h</span><span class="p">[</span><span class="s1">&#39;beamminor&#39;</span><span class="p">][</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>    <span class="c1"># beam in arcsec (not always true)</span>
+            <span class="n">bmaj</span> <span class="o">=</span> <span class="n">h</span><span class="p">[</span><span class="s1">&#39;beammajor&#39;</span><span class="p">][</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> 
+            <span class="n">cdelt1</span> <span class="o">=</span> <span class="n">h</span><span class="p">[</span><span class="s1">&#39;cdelt1&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="mf">206265.0</span>   <span class="c1"># cdelt in radians</span>
+            <span class="n">cdelt2</span> <span class="o">=</span> <span class="n">h</span><span class="p">[</span><span class="s1">&#39;cdelt2&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="mf">206265.0</span>
+            <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="mf">1.13309</span> <span class="o">*</span> <span class="n">bmaj</span> <span class="o">*</span> <span class="n">bmin</span> <span class="o">/</span> <span class="p">(</span><span class="n">cdelt1</span> <span class="o">*</span> <span class="n">cdelt2</span><span class="p">))</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">1.0</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

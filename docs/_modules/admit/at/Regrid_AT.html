@@ -1,0 +1,355 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.at.Regrid_AT &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.at.Regrid_AT</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; .. _Regrid-at-api:</span>
+
+<span class="sd">   **Regrid_AT** --- Regrids multiple cubes to a common resolution.</span>
+<span class="sd">   ----------------------------------------------------------------</span>
+
+<span class="sd">   This module defines the Regrid_AT class.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">admit</span> <span class="k">as</span> <span class="nn">admit</span> 
+<span class="kn">from</span> <span class="nn">admit.AT</span> <span class="k">import</span> <span class="n">AT</span>
+<span class="kn">from</span> <span class="nn">admit.Summary</span> <span class="k">import</span> <span class="n">SummaryEntry</span>
+<span class="kn">import</span> <span class="nn">admit.util.bdp_types</span> <span class="k">as</span> <span class="nn">bt</span>
+<span class="kn">import</span> <span class="nn">admit.util.Table</span>
+<span class="kn">import</span> <span class="nn">admit.util.utils</span> <span class="k">as</span> <span class="nn">utils</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.SpwCube_BDP</span> <span class="k">import</span> <span class="n">SpwCube_BDP</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">os</span> <span class="k">as</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
+
+<span class="k">try</span><span class="p">:</span>
+  <span class="kn">import</span> <span class="nn">casa</span>
+  <span class="kn">import</span> <span class="nn">taskinit</span>
+<span class="k">except</span><span class="p">:</span>
+  <span class="nb">print</span> <span class="s2">&quot;WARNING: No CASA; Regrid task cannot function.&quot;</span>
+
+<div class="viewcode-block" id="Regrid_AT"><a class="viewcode-back" href="../../../module/admit.at/Regrid_AT.html#admit.at.Regrid_AT.Regrid_AT">[docs]</a><span class="k">class</span> <span class="nc">Regrid_AT</span><span class="p">(</span><span class="n">AT</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Creates a regridded version of multiple datacubes. Capable of </span>
+<span class="sd">    regridding in both spatial and spectral dimensions. Default </span>
+<span class="sd">    behavior is to take a set of N cubes and (a) regrid the pixel size </span>
+<span class="sd">    to the minimum pixel size of all the images and (b) to remap the images</span>
+<span class="sd">    so that they all fit on the minimum-area square patch of sky that</span>
+<span class="sd">    encloses each image. User may specify an alterative pixel size. User</span>
+<span class="sd">    may also specify spectral regridding. If spectral regridding is desired,</span>
+<span class="sd">    the default behavior is to regrid so a common set of frequencies with </span>
+<span class="sd">    mininum/maximum frequency those of the collection of cubes and channel width</span>
+<span class="sd">    the minimum channel width in the collection of cubes. Alternatively, </span>
+<span class="sd">    user may specify a desired channel width in Hz.</span>
+
+<span class="sd">    See also :ref:`Regrid-AT-Design` for the design document.</span>
+
+<span class="sd">    **Keywords**</span>
+<span class="sd">        **do_spatial_regrid**: bool</span>
+<span class="sd">           Whether or not to do spatial regridding. The default is to do </span>
+<span class="sd">           spatial regridding. If set to true (or left default), the pix_scale </span>
+<span class="sd">           keyword will be used to determine the appropriate pixel size </span>
+<span class="sd">           to regrid the images to.            </span>
+
+<span class="sd">        **pix_scale**: double</span>
+<span class="sd">           The pixel size on which to regrid all the images. If negative, then </span>
+<span class="sd">           the default is the minimum pixel scale for all images. Unit is arcsec.</span>
+<span class="sd">           **Default**: -1.0.</span>
+
+<span class="sd">        **do_freq_regrid**: bool</span>
+<span class="sd">           Whether or not to do frequency regridding. The default is to only do </span>
+<span class="sd">           spatial regridding. If set to true, the chan_width keyword will be used</span>
+<span class="sd">           to determine the appropriate channel width to regrid the images to.            </span>
+<span class="sd">        **chan_width**: double</span>
+<span class="sd">           The channel width with which to regrid the images. If negative, then </span>
+<span class="sd">           the default is the minimum such channel width. Unit is Hz.</span>
+<span class="sd">           **Default**: -1.0.</span>
+
+<span class="sd">    **Input BDPs**</span>
+
+<span class="sd">        **SpwCube_BDP**: count: `varies` (minimum 2)</span>
+<span class="sd">           Input cubes, as from</span>
+<span class="sd">           `Ingest_AT &lt;Ingest_AT.html&gt;`_,</span>
+<span class="sd">           `ContinuumSub_AT &lt;ContinuumSub_AT.html&gt;`_ or</span>
+<span class="sd">           `LineCube_AT &lt;LineCube_AT.html&gt;`_.</span>
+
+<span class="sd">    **Output BDPs**</span>
+
+<span class="sd">        **SpwCube_BDP**: count: `varies` (equal to input count)</span>
+<span class="sd">          Regridded cubes.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">        keyval : dict, optional</span>
+<span class="sd">            Dictionary of keyword:value pairs.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">        _version : string</span>
+<span class="sd">            Version ID string.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">keyval</span><span class="p">):</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">{</span>
+           <span class="s2">&quot;do_spatial_regrid&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+           <span class="s2">&quot;pix_scale&quot;</span>    <span class="p">:</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span>     
+           <span class="s2">&quot;do_freq_regrid&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+           <span class="s2">&quot;chan_width&quot;</span>    <span class="p">:</span> <span class="o">-</span><span class="mf">1.0</span>          
+        <span class="p">}</span>
+
+        <span class="n">AT</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">keys</span><span class="p">,</span><span class="n">keyval</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_version</span> <span class="o">=</span> <span class="s2">&quot;1.1.0&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_bdp_in</span><span class="p">([(</span><span class="n">SpwCube_BDP</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="n">bt</span><span class="o">.</span><span class="n">REQUIRED</span><span class="p">)])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_bdp_out</span><span class="p">([(</span><span class="n">SpwCube_BDP</span><span class="p">,</span><span class="mi">0</span><span class="p">)])</span>
+
+<div class="viewcode-block" id="Regrid_AT.summary"><a class="viewcode-back" href="../../../module/admit.at/Regrid_AT.html#admit.at.Regrid_AT.Regrid_AT.summary">[docs]</a>    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the summary dictionary from the AT, for merging</span>
+<span class="sd">           into the ADMIT Summary object.</span>
+
+<span class="sd">        Regrid_AT adds the following to ADMIT summary::</span>
+
+<span class="sd">           Key      type        Description</span>
+<span class="sd">         --------  ------       -----------</span>
+<span class="sd">         regrid    list        Info about smoothing done </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;_summary&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{}</span></div>
+
+<div class="viewcode-block" id="Regrid_AT.run"><a class="viewcode-back" href="../../../module/admit.at/Regrid_AT.html#admit.at.Regrid_AT.Regrid_AT.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; The run method creates the BDP</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">Dtime</span><span class="p">(</span><span class="s2">&quot;Regrid&quot;</span><span class="p">)</span>
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;start&quot;</span><span class="p">)</span>
+
+        <span class="n">do_spatial_regrid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;do_spatial_regrid&quot;</span><span class="p">)</span>
+        <span class="n">pix_scale</span>   <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;pix_scale&quot;</span><span class="p">)</span>
+        <span class="n">do_freq_regrid</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;do_freq_regrid&quot;</span><span class="p">)</span>
+        <span class="n">chan_width</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;chan_width&quot;</span><span class="p">)</span>
+
+        <span class="n">pix_size</span><span class="o">=</span><span class="p">[]</span>
+        <span class="n">chan_size</span><span class="o">=</span><span class="p">[]</span>
+        <span class="n">im_size</span> <span class="o">=</span><span class="p">[]</span>
+        <span class="n">pix_wc_x</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">pix_wc_y</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">pix_wc_nu</span><span class="o">=</span><span class="p">[]</span>
+        <span class="n">src_dec</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="n">RADPERARCSEC</span> <span class="o">=</span> <span class="mf">4.848137E-6</span>
+
+        <span class="n">ia</span> <span class="o">=</span> <span class="n">taskinit</span><span class="o">.</span><span class="n">iatool</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">ibdp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">:</span>
+          <span class="c1"># Convert input CASA images to numpy arrays.</span>
+          <span class="n">istem</span> <span class="o">=</span> <span class="n">ibdp</span><span class="o">.</span><span class="n">getimagefile</span><span class="p">(</span><span class="n">bt</span><span class="o">.</span><span class="n">CASA</span><span class="p">)</span>
+          <span class="n">ifile</span> <span class="o">=</span> <span class="n">ibdp</span><span class="o">.</span><span class="n">baseDir</span><span class="p">()</span> <span class="o">+</span> <span class="n">istem</span>
+          
+          <span class="n">h</span> <span class="o">=</span> <span class="n">casa</span><span class="o">.</span><span class="n">imhead</span><span class="p">(</span><span class="n">ifile</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;list&#39;</span><span class="p">)</span>
+          <span class="n">pix_size</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="s1">&#39;cdelt1&#39;</span><span class="p">]))</span> <span class="c1"># pix scale in asec @todo QA ?                                    </span>
+          <span class="n">chan_size</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="s1">&#39;cdelt3&#39;</span><span class="p">]))</span>
+          <span class="c1"># grab the pixels </span>
+          <span class="n">pix_x</span> <span class="o">=</span> <span class="n">h</span><span class="p">[</span><span class="s1">&#39;shape&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+          <span class="n">pix_y</span> <span class="o">=</span> <span class="n">h</span><span class="p">[</span><span class="s1">&#39;shape&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>          
+          <span class="n">pix_nu</span><span class="o">=</span> <span class="n">h</span><span class="p">[</span><span class="s1">&#39;shape&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+          
+          <span class="n">ia</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">ifile</span><span class="p">)</span>
+          <span class="n">mycs</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">coordsys</span><span class="p">(</span><span class="n">axes</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">])</span>
+<span class="c1">#           getting all four corners handles the case of images where</span>
+<span class="c1">#           x-y axis not aligned with RA-dec</span>
+          <span class="k">for</span> <span class="n">xpix</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="n">pix_x</span><span class="p">]:</span>
+            <span class="k">for</span> <span class="n">ypix</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="n">pix_y</span><span class="p">]:</span>
+              <span class="n">x</span> <span class="o">=</span> <span class="n">mycs</span><span class="o">.</span><span class="n">toworld</span><span class="p">([</span><span class="n">xpix</span><span class="p">,</span><span class="n">ypix</span><span class="p">])[</span><span class="s1">&#39;numeric&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> 
+              <span class="n">y</span> <span class="o">=</span> <span class="n">mycs</span><span class="o">.</span><span class="n">toworld</span><span class="p">([</span><span class="n">xpix</span><span class="p">,</span><span class="n">ypix</span><span class="p">])[</span><span class="s1">&#39;numeric&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+              <span class="n">pix_wc_x</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+              <span class="n">pix_wc_y</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+              
+          <span class="n">nu</span><span class="o">=</span> <span class="n">mycs</span><span class="o">.</span><span class="n">toworld</span><span class="p">([</span><span class="n">pix_x</span><span class="p">,</span><span class="n">pix_y</span><span class="p">,</span><span class="mi">0</span><span class="p">])[</span><span class="s1">&#39;numeric&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+          <span class="n">pix_wc_nu</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nu</span><span class="p">)</span>
+          <span class="n">nu</span><span class="o">=</span> <span class="n">mycs</span><span class="o">.</span><span class="n">toworld</span><span class="p">([</span><span class="n">pix_x</span><span class="p">,</span><span class="n">pix_y</span><span class="p">,</span><span class="n">pix_nu</span><span class="p">])[</span><span class="s1">&#39;numeric&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+          <span class="n">pix_wc_nu</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nu</span><span class="p">)</span>
+          <span class="n">ia</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+ 
+        <span class="n">min_ra</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">pix_wc_x</span><span class="p">)</span>
+        <span class="n">max_ra</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">pix_wc_x</span><span class="p">)</span>
+        <span class="n">min_dec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">pix_wc_y</span><span class="p">)</span>
+        <span class="n">max_dec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">pix_wc_y</span><span class="p">)</span>        
+        <span class="n">mean_ra</span>  <span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">min_ra</span> <span class="o">+</span> <span class="n">max_ra</span><span class="p">)</span>
+        <span class="n">mean_dec</span>  <span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">min_dec</span> <span class="o">+</span> <span class="n">max_dec</span><span class="p">)</span>
+
+        <span class="k">if</span><span class="p">(</span><span class="n">pix_scale</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">):</span>
+          <span class="n">pix_scale</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">pix_size</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+          <span class="n">pix_scale</span> <span class="o">=</span> <span class="n">pix_scale</span> <span class="o">*</span> <span class="n">RADPERARCSEC</span>
+        
+          
+        <span class="n">npix_ra</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">max_ra</span> <span class="o">-</span> <span class="n">min_ra</span><span class="p">)</span> <span class="o">/</span> <span class="n">pix_scale</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">mean_dec</span><span class="p">))</span>
+        <span class="n">npix_dec</span> <span class="o">=</span> <span class="p">(</span><span class="n">max_dec</span> <span class="o">-</span> <span class="n">min_dec</span><span class="p">)</span> <span class="o">/</span> <span class="n">pix_scale</span>
+        <span class="n">npix_dec</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">npix_dec</span><span class="p">)</span> <span class="k">if</span> <span class="n">npix_dec</span> <span class="o">==</span> <span class="nb">int</span><span class="p">(</span><span class="n">npix_dec</span><span class="p">)</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">npix_dec</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> 
+        <span class="n">min_nu</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">pix_wc_nu</span><span class="p">)</span>
+        <span class="n">max_nu</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">pix_wc_nu</span><span class="p">)</span>
+        <span class="n">mean_nu</span>   <span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">min_nu</span> <span class="o">+</span> <span class="n">max_nu</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">chan_width</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">):</span>
+          <span class="n">chan_width</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">chan_size</span><span class="p">)</span>
+        <span class="n">npix_nu</span>  <span class="o">=</span><span class="nb">int</span><span class="p">((</span><span class="n">max_nu</span> <span class="o">-</span> <span class="n">min_nu</span><span class="p">)</span><span class="o">/</span><span class="n">chan_width</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span>
+
+        <span class="c1"># now regrid everything</span>
+        <span class="n">innames</span> <span class="o">=</span><span class="p">[]</span>
+        <span class="n">outnames</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">incdelt</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">outcdelt</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1">#=========================================================</span>
+        <span class="c1">#@todo - check if bdp_ins refer to same input file.</span>
+        <span class="c1"># If so, the current code will fail because the output</span>
+        <span class="c1"># file name is fixed to $INPUT_regrid.  A valid use case</span>
+        <span class="c1"># is &quot;regrid the same input file different ways&quot; -- which</span>
+        <span class="c1"># is not supported in the current code but should be</span>
+        <span class="c1">#=========================================================</span>
+        <span class="k">for</span> <span class="n">ibdp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">:</span>      
+          <span class="n">istem</span> <span class="o">=</span> <span class="n">ibdp</span><span class="o">.</span><span class="n">getimagefile</span><span class="p">(</span><span class="n">bt</span><span class="o">.</span><span class="n">CASA</span><span class="p">)</span>
+          <span class="n">ifile</span> <span class="o">=</span> <span class="n">ibdp</span><span class="o">.</span><span class="n">baseDir</span><span class="p">()</span> <span class="o">+</span> <span class="n">istem</span>          
+          <span class="n">ostem</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_regrid/&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">istem</span><span class="p">)</span>
+          <span class="n">ofile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">baseDir</span><span class="p">()</span> <span class="o">+</span> <span class="n">ostem</span>
+          <span class="c1"># save the input/output file names</span>
+          <span class="n">innames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">istem</span><span class="p">)</span>
+          <span class="n">outnames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ostem</span><span class="p">)</span>
+          
+          <span class="n">header</span><span class="o">=</span><span class="n">casa</span><span class="o">.</span><span class="n">imregrid</span><span class="p">(</span><span class="n">imagename</span><span class="o">=</span><span class="n">ifile</span><span class="p">,</span><span class="n">template</span><span class="o">=</span><span class="s1">&#39;get&#39;</span><span class="p">)</span>
+          <span class="c1"># save the input cdelt1,2,3 for summary table</span>
+          <span class="n">incdelt</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">header</span><span class="p">[</span><span class="s1">&#39;csys&#39;</span><span class="p">][</span><span class="s1">&#39;direction0&#39;</span><span class="p">][</span><span class="s1">&#39;cdelt&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="n">RADPERARCSEC</span><span class="p">,</span><span class="n">header</span><span class="p">[</span><span class="s1">&#39;csys&#39;</span><span class="p">][</span><span class="s1">&#39;direction0&#39;</span><span class="p">][</span><span class="s1">&#39;cdelt&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="n">RADPERARCSEC</span><span class="p">,</span><span class="n">utils</span><span class="o">.</span><span class="n">freqtovel</span><span class="p">(</span><span class="n">mean_nu</span><span class="p">,</span><span class="n">header</span><span class="p">[</span><span class="s1">&#39;csys&#39;</span><span class="p">][</span><span class="s1">&#39;spectral2&#39;</span><span class="p">][</span><span class="s1">&#39;wcs&#39;</span><span class="p">][</span><span class="s1">&#39;cdelt&#39;</span><span class="p">])))</span>
+          
+          <span class="k">if</span><span class="p">(</span><span class="n">do_spatial_regrid</span><span class="p">):</span>
+            <span class="n">header</span><span class="p">[</span><span class="s1">&#39;csys&#39;</span><span class="p">][</span><span class="s1">&#39;direction0&#39;</span><span class="p">][</span><span class="s1">&#39;cdelt&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">pix_scale</span><span class="p">,</span><span class="n">pix_scale</span><span class="p">]</span> 
+            <span class="n">header</span><span class="p">[</span><span class="s1">&#39;csys&#39;</span><span class="p">][</span><span class="s1">&#39;direction0&#39;</span><span class="p">][</span><span class="s1">&#39;crval&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span> <span class="n">mean_ra</span><span class="p">,</span><span class="n">mean_dec</span><span class="p">]</span> 
+            <span class="n">header</span><span class="p">[</span><span class="s1">&#39;shap&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">npix_ra</span> 
+            <span class="n">header</span><span class="p">[</span><span class="s1">&#39;shap&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">npix_dec</span> 
+            <span class="n">header</span><span class="p">[</span><span class="s1">&#39;csys&#39;</span><span class="p">][</span><span class="s1">&#39;direction0&#39;</span><span class="p">][</span><span class="s1">&#39;crpix&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">npix_ra</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="n">npix_dec</span><span class="o">/</span><span class="mi">2</span><span class="p">]</span> 
+            
+          <span class="k">if</span><span class="p">(</span><span class="n">do_freq_regrid</span><span class="p">):</span>
+              <span class="n">header</span><span class="p">[</span><span class="s1">&#39;csys&#39;</span><span class="p">][</span><span class="s1">&#39;spectral2&#39;</span><span class="p">][</span><span class="s1">&#39;wcs&#39;</span><span class="p">][</span><span class="s1">&#39;crval&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">min_nu</span>
+              <span class="n">header</span><span class="p">[</span><span class="s1">&#39;shap&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">npix_nu</span>
+              <span class="n">chan_size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">header</span><span class="p">[</span><span class="s1">&#39;csys&#39;</span><span class="p">][</span><span class="s1">&#39;spectral2&#39;</span><span class="p">][</span><span class="s1">&#39;wcs&#39;</span><span class="p">][</span><span class="s1">&#39;cdelt&#39;</span><span class="p">])</span>
+              <span class="n">header</span><span class="p">[</span><span class="s1">&#39;csys&#39;</span><span class="p">][</span><span class="s1">&#39;spectral2&#39;</span><span class="p">][</span><span class="s1">&#39;wcs&#39;</span><span class="p">][</span><span class="s1">&#39;cdelt&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">chan_width</span>
+              <span class="n">flux_correction</span> <span class="o">=</span> <span class="n">chan_width</span><span class="o">/</span><span class="n">chan_size</span>             
+
+          <span class="n">casa</span><span class="o">.</span><span class="n">imregrid</span><span class="p">(</span><span class="n">imagename</span><span class="o">=</span><span class="n">ifile</span><span class="p">,</span><span class="n">output</span><span class="o">=</span><span class="n">ofile</span><span class="p">,</span><span class="n">template</span><span class="o">=</span><span class="n">header</span><span class="p">)</span>
+          <span class="c1"># save the output cdelt1,2,3 for summary table</span>
+          <span class="n">newhead</span> <span class="o">=</span> <span class="n">casa</span><span class="o">.</span><span class="n">imregrid</span><span class="p">(</span><span class="n">imagename</span><span class="o">=</span><span class="n">ofile</span><span class="p">,</span><span class="n">template</span><span class="o">=</span><span class="s1">&#39;get&#39;</span><span class="p">)</span>
+          <span class="n">outcdelt</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">newhead</span><span class="p">[</span><span class="s1">&#39;csys&#39;</span><span class="p">][</span><span class="s1">&#39;direction0&#39;</span><span class="p">][</span><span class="s1">&#39;cdelt&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="n">RADPERARCSEC</span><span class="p">,</span><span class="n">newhead</span><span class="p">[</span><span class="s1">&#39;csys&#39;</span><span class="p">][</span><span class="s1">&#39;direction0&#39;</span><span class="p">][</span><span class="s1">&#39;cdelt&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="n">RADPERARCSEC</span><span class="p">,</span><span class="n">utils</span><span class="o">.</span><span class="n">freqtovel</span><span class="p">(</span><span class="n">mean_nu</span><span class="p">,</span><span class="n">newhead</span><span class="p">[</span><span class="s1">&#39;csys&#39;</span><span class="p">][</span><span class="s1">&#39;spectral2&#39;</span><span class="p">][</span><span class="s1">&#39;wcs&#39;</span><span class="p">][</span><span class="s1">&#39;cdelt&#39;</span><span class="p">])))</span>
+
+          <span class="k">if</span><span class="p">(</span><span class="n">do_freq_regrid</span><span class="p">):</span>
+            <span class="n">ia</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">ofile</span><span class="p">)</span>
+            <span class="nb">print</span> <span class="n">flux_correction</span>
+            <span class="n">ia</span><span class="o">.</span><span class="n">calc</span><span class="p">(</span><span class="n">pixels</span><span class="o">=</span><span class="n">ofile</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">r&quot;/&quot;</span><span class="p">,</span><span class="s2">r&quot;\/&quot;</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;*&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">flux_correction</span><span class="p">))</span>
+            <span class="n">ia</span><span class="o">.</span><span class="n">done</span><span class="p">()</span>
+          <span class="n">obdp</span> <span class="o">=</span> <span class="n">admit</span><span class="o">.</span><span class="n">SpwCube_BDP</span><span class="p">(</span><span class="n">ostem</span><span class="p">)</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">addoutput</span><span class="p">(</span><span class="n">obdp</span><span class="p">)</span>
+
+        <span class="c1"># make a table for summary</span>
+        <span class="n">atable</span> <span class="o">=</span> <span class="n">admit</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">Table</span><span class="p">()</span>
+        <span class="n">atable</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Input Image&quot;</span><span class="p">,</span><span class="s2">&quot;cdelt1&quot;</span><span class="p">,</span> <span class="s2">&quot;cdelt2&quot;</span><span class="p">,</span> <span class="s2">&quot;cdelt3&quot;</span><span class="p">,</span> <span class="s2">&quot;Regridded Image&quot;</span><span class="p">,</span><span class="s2">&quot;cdelt1&quot;</span><span class="p">,</span><span class="s2">&quot;cdelt2&quot;</span><span class="p">,</span><span class="s2">&quot;cdelt3&quot;</span><span class="p">]</span>
+        <span class="n">atable</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="s2">&quot;arcsec&quot;</span><span class="p">,</span> <span class="s2">&quot;arcsec&quot;</span><span class="p">,</span> <span class="s2">&quot;km/s&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span><span class="s2">&quot;arcsec&quot;</span><span class="p">,</span><span class="s2">&quot;arcsec&quot;</span><span class="p">,</span><span class="s2">&quot;km/s&quot;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">innames</span><span class="p">)):</span>
+            <span class="n">atable</span><span class="o">.</span><span class="n">addRow</span><span class="p">([</span> <span class="n">innames</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">incdelt</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">incdelt</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span><span class="n">incdelt</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="n">outnames</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">outcdelt</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">outcdelt</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span><span class="n">outcdelt</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="p">])</span>
+
+
+        <span class="c1">#keys = &quot;pixsize=%.4g naxis1=%d naxis2=%d mean_ra=%0.4f mean_dec=%0.4f reffreq=%g chan_width=%g&quot; % (pix_scale/(4.848137E-6), npix_ra, npix_dec, mean_ra,mean_dec,min_nu,chan_width)</span>
+        <span class="n">taskargs</span> <span class="o">=</span> <span class="s2">&quot;pix_scale = &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;pix_scale&quot;</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot; chan_width = &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;chan_width&quot;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="s2">&quot;regrid&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SummaryEntry</span><span class="p">(</span><span class="n">atable</span><span class="o">.</span><span class="n">serialize</span><span class="p">(),</span><span class="s2">&quot;Regrid_AT&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">(</span><span class="kc">True</span><span class="p">),</span><span class="n">taskargs</span><span class="p">)</span>
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;done&quot;</span><span class="p">)</span>
+        <span class="n">dt</span><span class="o">.</span><span class="n">end</span><span class="p">()</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

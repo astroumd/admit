@@ -1,0 +1,390 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.at.PrincipalComponent_AT &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.at.PrincipalComponent_AT</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;**PrincipalComponent_AT** --- Calculates principal components of maps.</span>
+<span class="sd">   ----------------------------------------------------------------------</span>
+
+<span class="sd">   This module defines the PrincipalComponent_AT class.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.mlab</span> <span class="k">as</span> <span class="nn">mlab</span>
+
+<span class="kn">import</span> <span class="nn">admit</span>
+<span class="kn">import</span> <span class="nn">admit.util.bdp_types</span> <span class="k">as</span> <span class="nn">bt</span>
+
+<div class="viewcode-block" id="PrincipalComponent_AT"><a class="viewcode-back" href="../../../module/admit.at/PrincipalComponent_AT.html#admit.at.PrincipalComponent_AT.PrincipalComponent_AT">[docs]</a><span class="k">class</span> <span class="nc">PrincipalComponent_AT</span><span class="p">(</span><span class="n">admit</span><span class="o">.</span><span class="n">Task</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the principal components of a set of input maps.</span>
+
+<span class="sd">    Given **N** single-plane (i.e., 2-D) images, principal component analysis</span>
+<span class="sd">    solves the **N**-dimensional eigenvalue problem determining the principal</span>
+<span class="sd">    directions in **N**-space of the image data, ranked according to their</span>
+<span class="sd">    contribution to the total variance of the sample points (each sample point</span>
+<span class="sd">    being the **N**-vector of image values corresponding to a single pixel</span>
+<span class="sd">    position).  This decomposition can be used to reduce the dimensionality of</span>
+<span class="sd">    the data by identifying components contributing little independent</span>
+<span class="sd">    information to the data set. This task also calculates the covariance</span>
+<span class="sd">    matrix for input images.</span>
+
+<span class="sd">    Mathematically, a principal component analysis can be applied to an</span>
+<span class="sd">    arbitrary set of images. In practice, the input images should be related in</span>
+<span class="sd">    some way; otherwise, the eigenvalues will be of similar magnitude and (as</span>
+<span class="sd">    expected) no reduction in dataset dimensionality possible. For astronomical</span>
+<span class="sd">    images, the inputs will typically be maps of the same source (at the same</span>
+<span class="sd">    pixel scale) in different wavelength bands. In ADMIT, the inputs will often</span>
+<span class="sd">    be moment maps produced by `Moment_AT &lt;Moment_AT.html&gt;`_.</span>
+
+<span class="sd">    **Keywords**</span>
+
+<span class="sd">      **clipvals**: list of float</span>
+<span class="sd">        List of threshold values below which each input map value will be</span>
+<span class="sd">        clipped (set to zero). The length of **clipvals** must match</span>
+<span class="sd">        the number of input maps; the default empty list implies all zeroes.</span>
+
+<span class="sd">      **covarmin**: float</span>
+<span class="sd">	Minimum pairwise covariance for summary output (only); default: 0.90.</span>
+
+<span class="sd">    **Input BDPs**</span>
+
+<span class="sd">      **Image_BDP**: count: `varies`</span>
+<span class="sd">        Input images for principal component analysis; e.g., moment maps</span>
+<span class="sd">        produced by `Moment_AT &lt;Moment_AT.html&gt;`_ or</span>
+<span class="sd">        `CubeSum_AT &lt;CubeSum_AT.html&gt;`_.</span>
+
+<span class="sd">    **Output BDPs**</span>
+
+<span class="sd">      **Table_BDP**: count: 3</span>
+<span class="sd">	First table contains the input mean and standard deviation plus output</span>
+<span class="sd">        eigenimage filename and variance fractions. Second table is the</span>
+<span class="sd">        calculated projection matrix transforming (mean-subtracted and</span>
+<span class="sd">        variance-normalized) input data to principal component space. Third</span>
+<span class="sd">        table is the covariance matrix of the input images.</span>
+
+<span class="sd">      **Image_BDP**: count: `varies` (equal to input count)</span>
+<span class="sd">        Calculated principal component images (in order of eigenvalue size).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    keyval : dict, optional</span>
+<span class="sd">      Dictionary of keyword:value pairs.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    _version : str</span>
+<span class="sd">      Version ID string.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    All input maps must have the same dimensions. Currently only 2-D maps are</span>
+<span class="sd">    supported.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">keyval</span><span class="p">):</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;clipvals&quot;</span> <span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;covarmin&quot;</span> <span class="p">:</span> <span class="mf">0.90</span><span class="p">}</span>   
+        <span class="n">admit</span><span class="o">.</span><span class="n">Task</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">keyval</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_version</span>   <span class="o">=</span> <span class="s2">&quot;1.0.1&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_bdp_in</span> <span class="p">([(</span><span class="n">admit</span><span class="o">.</span><span class="n">Image_BDP</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">bt</span><span class="o">.</span><span class="n">REQUIRED</span><span class="p">)])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_bdp_out</span><span class="p">([(</span><span class="n">admit</span><span class="o">.</span><span class="n">Table_BDP</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="n">admit</span><span class="o">.</span><span class="n">Image_BDP</span><span class="p">,</span> <span class="mi">0</span><span class="p">)])</span>
+
+<div class="viewcode-block" id="PrincipalComponent_AT.summary"><a class="viewcode-back" href="../../../module/admit.at/PrincipalComponent_AT.html#admit.at.PrincipalComponent_AT.PrincipalComponent_AT.summary">[docs]</a>    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Summary data dictionary.</span>
+
+<span class="sd">        PrincipalComponent_AT adds the following to ADMIT summary:</span>
+
+<span class="sd">        .. table::</span>
+<span class="sd">           :class: borderless</span>
+
+<span class="sd">           +----------+----------+-----------------------------------+</span>
+<span class="sd">           |   Key    | type     |    Description                    |</span>
+<span class="sd">           +==========+==========+===================================+</span>
+<span class="sd">           | pca      | table    |  Statistics and covariance data.  |</span>
+<span class="sd">           +----------+----------+-----------------------------------+</span>
+
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            Dictionary of SummaryEntry</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;_summary&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{}</span></div>
+
+<div class="viewcode-block" id="PrincipalComponent_AT.userdata"><a class="viewcode-back" href="../../../module/admit.at/PrincipalComponent_AT.html#admit.at.PrincipalComponent_AT.PrincipalComponent_AT.userdata">[docs]</a>    <span class="k">def</span> <span class="nf">userdata</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        User data dictionary.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        None</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            The user data dictionary from the AT, for merging into the ADMIT</span>
+<span class="sd">            user data object.  </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;_userdata&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_userdata</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{}</span></div>
+
+<div class="viewcode-block" id="PrincipalComponent_AT.run"><a class="viewcode-back" href="../../../module/admit.at/PrincipalComponent_AT.html#admit.at.PrincipalComponent_AT.PrincipalComponent_AT.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Task run method.</span>
+
+<span class="sd">        Computes the principal component decomposition of the input images and</span>
+<span class="sd">        populates the output eigenimages and projection matrix.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        None</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+	<span class="bp">self</span><span class="o">.</span><span class="n">_summary</span> <span class="o">=</span> <span class="p">{}</span>
+
+	<span class="c1"># BDP output uses the alias name if provided, else a flow-unique one.</span>
+	<span class="n">stem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alias</span>
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">stem</span><span class="p">:</span> <span class="n">stem</span> <span class="o">=</span> <span class="s2">&quot;pca</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">())</span>
+
+	<span class="n">inum</span> <span class="o">=</span> <span class="mi">0</span>
+	<span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="n">icols</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">ibdp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">:</span>
+	  <span class="c1"># Convert input CASA images to numpy arrays.</span>
+	  <span class="n">istem</span> <span class="o">=</span> <span class="n">ibdp</span><span class="o">.</span><span class="n">getimagefile</span><span class="p">(</span><span class="n">bt</span><span class="o">.</span><span class="n">CASA</span><span class="p">)</span>
+	  <span class="n">ifile</span> <span class="o">=</span> <span class="n">ibdp</span><span class="o">.</span><span class="n">baseDir</span><span class="p">()</span> <span class="o">+</span> <span class="n">istem</span>
+	  <span class="n">icols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">istem</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+	  <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">icols</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+	    <span class="n">icols</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">icols</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>  <span class="c1"># Typical line cube case.</span>
+	  <span class="n">img</span> <span class="o">=</span> <span class="n">admit</span><span class="o">.</span><span class="n">casautil</span><span class="o">.</span><span class="n">getdata</span><span class="p">(</span><span class="n">ifile</span><span class="p">,</span> <span class="n">zeromask</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">data</span>
+	  <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+	  <span class="n">admit</span><span class="o">.</span><span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> shape=</span><span class="si">%s</span><span class="s2"> min=</span><span class="si">%g</span><span class="s2"> max=</span><span class="si">%g</span><span class="s2">&quot;</span> <span class="o">%</span> 
+              <span class="p">(</span><span class="n">icols</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="nb">str</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">img</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">img</span><span class="p">)))</span>
+	  <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;Only 2-D input images supported&quot;</span>
+	  <span class="k">assert</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">data</span><span class="p">[</span><span class="n">inum</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="s2">&quot;Input shapes must match&quot;</span>
+	  <span class="n">inum</span> <span class="o">+=</span> <span class="mi">1</span>
+
+	<span class="c1"># At least two inputs required for meaningful PCA!</span>
+	<span class="k">assert</span> <span class="n">inum</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;At least two input images required&quot;</span>
+
+	<span class="c1"># Each 2-D input image is a plane in a single multi-color image.</span>
+	<span class="c1"># Each color multiplet (one per pixel) is an observation.</span>
+	<span class="c1"># For PCA we collate the input images into a vector of observations.</span>
+	<span class="n">shape</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span>
+	<span class="n">npix</span> <span class="o">=</span> <span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+	<span class="n">clip</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s1">&#39;clipvals&#39;</span><span class="p">)</span>
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">clip</span><span class="p">:</span> <span class="n">clip</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">inum</span><span class="p">)]</span>
+	<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">clip</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">inum</span><span class="p">,</span> <span class="s2">&quot;Too few clipvals provided&quot;</span>
+
+	<span class="c1"># Clip input values and stack into a vector of observations.</span>
+	<span class="n">pca_data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">inum</span><span class="p">):</span>
+          <span class="n">nd</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+	  <span class="n">nd</span><span class="p">[</span><span class="n">nd</span> <span class="o">&lt;</span> <span class="n">clip</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">=</span> <span class="mf">0.0</span>
+	  <span class="n">pca_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">nd</span><span class="p">,</span> <span class="p">(</span><span class="n">npix</span><span class="p">,</span><span class="mi">1</span><span class="p">)))</span>
+	<span class="n">pca_in</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(</span><span class="n">pca_data</span><span class="p">)</span>
+	<span class="n">pca</span> <span class="o">=</span> <span class="n">mlab</span><span class="o">.</span><span class="n">PCA</span><span class="p">(</span><span class="n">pca_in</span><span class="p">)</span>
+
+	<span class="c1"># Input statistics and output variance fractions.</span>
+	<span class="c1">#print &quot;fracs:&quot;, pca.fracs</span>
+	<span class="c1">#print &quot;mean:&quot;, pca.mu</span>
+	<span class="c1">#print &quot;sdev:&quot;, pca.sigma</span>
+	<span class="n">obdp</span> <span class="o">=</span> <span class="n">admit</span><span class="o">.</span><span class="n">Table_BDP</span><span class="p">(</span><span class="n">stem</span><span class="o">+</span><span class="s2">&quot;_stats&quot;</span><span class="p">)</span>
+	<span class="n">obdp</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">setData</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">pca</span><span class="o">.</span><span class="n">mu</span><span class="p">,</span> <span class="n">pca</span><span class="o">.</span><span class="n">sigma</span><span class="p">,</span><span class="n">pca</span><span class="o">.</span><span class="n">fracs</span><span class="p">])</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+	<span class="n">obdp</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Input mean&quot;</span><span class="p">,</span> <span class="s2">&quot;Input deviation&quot;</span><span class="p">,</span>
+			      <span class="s2">&quot;Eigenimage variance fraction&quot;</span><span class="p">]</span>
+	<span class="n">obdp</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;PCA Image Statistics&quot;</span>
+	<span class="bp">self</span><span class="o">.</span><span class="n">addoutput</span><span class="p">(</span><span class="n">obdp</span><span class="p">)</span>
+
+	<span class="c1"># Pre-format columns for summary output.</span>
+	<span class="c1"># This is required when mixing strings and numbers in a table.</span>
+	<span class="c1"># (NumPy will output the array as all strings.)</span>
+	<span class="n">table1</span> <span class="o">=</span> <span class="n">admit</span><span class="o">.</span><span class="n">Table</span><span class="p">()</span>
+	<span class="n">table1</span><span class="o">.</span><span class="n">setData</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">inum</span><span class="p">)],</span>
+                                  <span class="n">icols</span><span class="p">,</span>
+	                          <span class="p">[</span><span class="s2">&quot;</span><span class="si">%.3e</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">pca</span><span class="o">.</span><span class="n">mu</span><span class="p">],</span>
+	                          <span class="p">[</span><span class="s2">&quot;</span><span class="si">%.3e</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">pca</span><span class="o">.</span><span class="n">sigma</span><span class="p">],</span>
+	                          <span class="p">[</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_eigen/</span><span class="si">%d</span><span class="s2">.im&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">stem</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> 
+                                      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">inum</span><span class="p">)],</span>
+				  <span class="p">[</span><span class="s2">&quot;</span><span class="si">%.4f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">pca</span><span class="o">.</span><span class="n">fracs</span><span class="p">]])</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+	<span class="n">table1</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Index&quot;</span><span class="p">,</span> <span class="s2">&quot;Input&quot;</span><span class="p">,</span> <span class="s2">&quot;Input mean&quot;</span><span class="p">,</span>
+			  <span class="s2">&quot;Input deviation&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;Eigenimage&quot;</span><span class="p">,</span>
+			  <span class="s2">&quot;Eigenimage variance fraction&quot;</span><span class="p">]</span>
+	<span class="n">table1</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;PCA Image Statistics&quot;</span>
+
+	<span class="c1"># Projection matrix (eigenvectors).</span>
+	<span class="c1">#print &quot;projection:&quot;, pca.Wt</span>
+	<span class="n">obdp</span> <span class="o">=</span> <span class="n">admit</span><span class="o">.</span><span class="n">Table_BDP</span><span class="p">(</span><span class="n">stem</span> <span class="o">+</span> <span class="s2">&quot;_proj&quot;</span><span class="p">)</span>
+	<span class="n">obdp</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">setData</span><span class="p">(</span><span class="n">pca</span><span class="o">.</span><span class="n">Wt</span><span class="p">)</span>
+	<span class="n">obdp</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">icols</span>
+	<span class="n">obdp</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> \
+	    <span class="s2">&quot;PCA Projection Matrix (normalized input to output)&quot;</span>
+	<span class="bp">self</span><span class="o">.</span><span class="n">addoutput</span><span class="p">(</span><span class="n">obdp</span><span class="p">)</span>
+
+	<span class="c1"># Covariance matrix.</span>
+	<span class="n">covar</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cov</span><span class="p">(</span><span class="n">pca</span><span class="o">.</span><span class="n">a</span><span class="p">,</span> <span class="n">rowvar</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+	<span class="c1">#print &quot;covariance:&quot;, covar</span>
+	<span class="n">obdp</span> <span class="o">=</span> <span class="n">admit</span><span class="o">.</span><span class="n">Table_BDP</span><span class="p">(</span><span class="n">stem</span> <span class="o">+</span> <span class="s2">&quot;_covar&quot;</span><span class="p">)</span>
+	<span class="n">obdp</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">setData</span><span class="p">(</span><span class="n">covar</span><span class="p">)</span>
+	<span class="n">obdp</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">icols</span>
+	<span class="n">obdp</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;PCA Covariance Matrix&quot;</span>
+	<span class="bp">self</span><span class="o">.</span><span class="n">addoutput</span><span class="p">(</span><span class="n">obdp</span><span class="p">)</span>
+
+	<span class="c1"># Collate projected observations into eigenimages and save output.</span>
+	<span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">baseDir</span><span class="p">()</span><span class="o">+</span><span class="n">stem</span><span class="o">+</span><span class="s2">&quot;_eigen&quot;</span><span class="p">)</span>
+	<span class="n">pca_out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hsplit</span><span class="p">(</span><span class="n">pca</span><span class="o">.</span><span class="n">Y</span><span class="p">,</span> <span class="n">inum</span><span class="p">)</span>
+	<span class="n">odata</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">inum</span><span class="p">):</span>
+	  <span class="n">ofile</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_eigen/</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">stem</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+	  <span class="n">img</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">pca_out</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">shape</span><span class="p">)</span>
+          <span class="n">odata</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+	  <span class="c1">#print ofile, &quot;shape, min, max:&quot;, img.shape, np.amin(img), np.amax(img)</span>
+
+	  <span class="n">aplot</span> <span class="o">=</span> <span class="n">admit</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">APlot</span><span class="p">(</span><span class="n">figno</span><span class="o">=</span><span class="n">inum</span><span class="p">,</span> <span class="n">abspath</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">baseDir</span><span class="p">(),</span>
+                                   <span class="n">ptype</span><span class="o">=</span><span class="n">admit</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">PlotControl</span><span class="o">.</span><span class="n">PNG</span><span class="p">)</span>
+	  <span class="n">aplot</span><span class="o">.</span><span class="n">map1</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">rot90</span><span class="p">(</span><span class="n">img</span><span class="p">),</span> <span class="n">title</span><span class="o">=</span><span class="n">ofile</span><span class="p">,</span> <span class="n">figname</span><span class="o">=</span><span class="n">ofile</span><span class="p">)</span>
+	  <span class="n">aplot</span><span class="o">.</span><span class="n">final</span><span class="p">()</span>
+
+	  <span class="c1"># Currently the output eigenimages are stored as PNG files only.</span>
+	  <span class="n">admit</span><span class="o">.</span><span class="n">casautil</span><span class="o">.</span><span class="n">putdata_raw</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">baseDir</span><span class="p">()</span><span class="o">+</span><span class="n">ofile</span><span class="o">+</span><span class="s2">&quot;.im&quot;</span><span class="p">,</span> <span class="n">img</span><span class="p">,</span> <span class="n">ifile</span><span class="p">)</span>
+	  <span class="n">oimg</span> <span class="o">=</span> <span class="n">admit</span><span class="o">.</span><span class="n">Image</span><span class="p">()</span>
+	  <span class="n">oimg</span><span class="o">.</span><span class="n">addimage</span><span class="p">(</span><span class="n">admit</span><span class="o">.</span><span class="n">imagedescriptor</span><span class="p">(</span><span class="n">ofile</span><span class="o">+</span><span class="s2">&quot;.im&quot;</span><span class="p">,</span>  <span class="nb">format</span><span class="o">=</span><span class="n">bt</span><span class="o">.</span><span class="n">CASA</span><span class="p">))</span>
+	  <span class="n">oimg</span><span class="o">.</span><span class="n">addimage</span><span class="p">(</span><span class="n">admit</span><span class="o">.</span><span class="n">imagedescriptor</span><span class="p">(</span><span class="n">ofile</span><span class="o">+</span><span class="s2">&quot;.png&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="n">bt</span><span class="o">.</span><span class="n">PNG</span><span class="p">))</span>
+          <span class="n">obdp</span> <span class="o">=</span> <span class="n">admit</span><span class="o">.</span><span class="n">Image_BDP</span><span class="p">(</span><span class="n">ofile</span><span class="p">)</span>
+	  <span class="n">obdp</span><span class="o">.</span><span class="n">addimage</span><span class="p">(</span><span class="n">oimg</span><span class="p">)</span>
+	  <span class="bp">self</span><span class="o">.</span><span class="n">addoutput</span><span class="p">(</span><span class="n">obdp</span><span class="p">)</span>
+
+	<span class="c1"># As a cross-check, reconstruct input images and compute differences.</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">inum</span><span class="p">):</span>
+	  <span class="n">ximg</span> <span class="o">=</span> <span class="n">pca</span><span class="o">.</span><span class="n">Wt</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">k</span><span class="p">]</span><span class="o">*</span><span class="n">odata</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+	  <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">inum</span><span class="p">):</span>
+	    <span class="n">ximg</span> <span class="o">+=</span> <span class="n">pca</span><span class="o">.</span><span class="n">Wt</span><span class="p">[</span><span class="n">l</span><span class="p">][</span><span class="n">k</span><span class="p">]</span><span class="o">*</span><span class="n">odata</span><span class="p">[</span><span class="n">l</span><span class="p">]</span>
+
+	  <span class="n">ximg</span> <span class="o">=</span> <span class="n">pca</span><span class="o">.</span><span class="n">mu</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">+</span> <span class="n">pca</span><span class="o">.</span><span class="n">sigma</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">*</span><span class="n">ximg</span>
+          <span class="n">admit</span><span class="o">.</span><span class="n">logging</span><span class="o">.</span><span class="n">regression</span><span class="p">(</span><span class="s2">&quot;PCA: </span><span class="si">%s</span><span class="s2"> residual: &quot;</span> <span class="o">%</span> <span class="n">icols</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">+</span>
+                                   <span class="nb">str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">ximg</span> <span class="o">-</span> <span class="n">data</span><span class="p">[</span><span class="n">k</span><span class="p">])))</span>
+
+	<span class="c1"># Collect large covariance values for summary.</span>
+	<span class="n">cvmin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s1">&#39;covarmin&#39;</span><span class="p">)</span>
+	<span class="n">cvsum</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">cvmax</span> <span class="o">=</span> <span class="mf">0.0</span>
+	<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">inum</span><span class="p">):</span>
+	  <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">inum</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">covar</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">])</span> <span class="o">&gt;=</span> <span class="n">cvmax</span><span class="p">:</span>
+              <span class="n">cvmax</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">covar</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">])</span>
+	    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">covar</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">])</span> <span class="o">&gt;=</span> <span class="n">cvmin</span><span class="p">:</span>
+	      <span class="n">cvsum</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">icols</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">icols</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="s2">&quot;</span><span class="si">%.4f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">covar</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">])])</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">logging</span><span class="o">.</span><span class="n">regression</span><span class="p">(</span><span class="s2">&quot;PCA: Covariances &gt; </span><span class="si">%.4f</span><span class="s2">: </span><span class="si">%s</span><span class="s2"> (max: </span><span class="si">%.4f</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cvmin</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="n">cvsum</span><span class="p">),</span><span class="n">cvmax</span><span class="p">))</span>
+
+	<span class="n">table2</span> <span class="o">=</span> <span class="n">admit</span><span class="o">.</span><span class="n">Table</span><span class="p">()</span>
+	<span class="n">table2</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Input1&quot;</span><span class="p">,</span> <span class="s2">&quot;Input2&quot;</span><span class="p">,</span> <span class="s2">&quot;Covariance&quot;</span><span class="p">]</span>
+	<span class="n">table2</span><span class="o">.</span><span class="n">setData</span><span class="p">(</span><span class="n">cvsum</span><span class="p">)</span>
+	<span class="n">table2</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;PCA High Covariance Summary&quot;</span>
+
+	<span class="n">keys</span> <span class="o">=</span> <span class="s2">&quot;covarmin=</span><span class="si">%.4f</span><span class="s2"> clipvals=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cvmin</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">clip</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="s2">&quot;pca&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">admit</span><span class="o">.</span><span class="n">SummaryEntry</span><span class="p">([</span><span class="n">table1</span><span class="o">.</span><span class="n">serialize</span><span class="p">(),</span>
+						   <span class="n">table2</span><span class="o">.</span><span class="n">serialize</span><span class="p">()</span>
+						  <span class="p">],</span>
+						  <span class="s2">&quot;PrincipalComponent_AT&quot;</span><span class="p">,</span>
+						  <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">(</span><span class="kc">True</span><span class="p">),</span> <span class="n">keys</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

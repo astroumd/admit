@@ -1,0 +1,544 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.util.peakfinder.PeakUtils &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.util.peakfinder.PeakUtils</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; .. _peakutils:</span>
+
+<span class="sd">    PeakUtils --- A peak finding algorithm.</span>
+<span class="sd">    ---------------------------------------</span>
+
+<span class="sd">    A version of the PyPi PeakUtils, converted from Python3.4 to Python2.7.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># The MIT License (MIT)</span>
+<span class="c1">#</span>
+<span class="c1"># Copyright (c) 2014 Lucas Hermann Negri</span>
+<span class="c1">#</span>
+<span class="c1"># Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+<span class="c1"># of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+<span class="c1"># in the Software without restriction, including without limitation the rights</span>
+<span class="c1"># to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+<span class="c1"># copies of the Software, and to permit persons to whom the Software is</span>
+<span class="c1"># furnished to do so, subject to the following conditions:</span>
+<span class="c1">#</span>
+<span class="c1"># The above copyright notice and this permission notice shall be included in</span>
+<span class="c1"># all copies or substantial portions of the Software.</span>
+<span class="c1">#</span>
+<span class="c1"># THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+<span class="c1"># IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+<span class="c1"># FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+<span class="c1"># AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+<span class="c1"># LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+<span class="c1"># OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN</span>
+<span class="c1"># THE SOFTWARE.</span>
+
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">types</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="k">try</span><span class="p">:</span>
+  <span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">optimize</span>
+  <span class="kn">import</span> <span class="nn">scipy.linalg</span> <span class="k">as</span> <span class="nn">LA</span>
+<span class="k">except</span><span class="p">:</span>
+  <span class="nb">print</span> <span class="s2">&quot;WARNING: No scipy; PeakUtils utility cannot function.&quot;</span>
+
+
+
+<div class="viewcode-block" id="PeakUtils"><a class="viewcode-back" href="../../../../module/admit.util.peakfinder/PeakUtils.html#admit.util.peakfinder.PeakUtils.PeakUtils">[docs]</a><span class="k">class</span> <span class="nc">PeakUtils</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; PeakUtils peak finding algorithm</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        spec : List or numpy array</span>
+<span class="sd">            The spectrum to be analyzed.</span>
+
+<span class="sd">        x : List or numpy array, optional</span>
+<span class="sd">            The x co-ordinates for the spectrum.</span>
+<span class="sd">            Default = None.</span>
+
+<span class="sd">        kwarg : Dict</span>
+<span class="sd">            Any additional arguments, see the Attributes list for a complete</span>
+<span class="sd">            listing.</span>
+
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        spec : numpy array</span>
+<span class="sd">            The spectrum to be analyzed.</span>
+
+<span class="sd">        x : numpy array</span>
+<span class="sd">            The x co-ordinates of the spectrum.</span>
+
+<span class="sd">        thres : float</span>
+<span class="sd">            Threshold for detecting a peak/valley. The absolute value of the intensity</span>
+<span class="sd">            must be above this value. Default: 0.0.</span>
+
+<span class="sd">        min_dist : int</span>
+<span class="sd">            The minimum distance between peaks in channels.</span>
+<span class="sd">            Deafult: 5.</span>
+
+<span class="sd">        profile : str</span>
+<span class="sd">            The spectral line profile to use when refining the fits. Choices are</span>
+<span class="sd">            &quot;gaussian&quot; and &quot;lorentzian&quot;.</span>
+<span class="sd">            Default: &quot;gaussian&quot;.</span>
+
+<span class="sd">        width : int</span>
+<span class="sd">            The number of channels on either side of a peak to use when refining</span>
+<span class="sd">            the fit.</span>
+<span class="sd">            Default: 10.</span>
+
+<span class="sd">        basedeg : int</span>
+<span class="sd">            Degree of the polynomial that will estimate the data baseline.</span>
+<span class="sd">            Default: 3.</span>
+
+<span class="sd">        baseiter : int</span>
+<span class="sd">            The maximum number of iterations to perform when trying to fit the</span>
+<span class="sd">            baseline.</span>
+<span class="sd">            Default: 100.</span>
+
+<span class="sd">        basetol : float</span>
+<span class="sd">            Tolerance to use when comparing the difference between the current</span>
+<span class="sd">            fit coefficient and the ones from the last iteration.</span>
+<span class="sd">            Default: 1e-3.</span>
+
+<span class="sd">        dobase : boolean</span>
+<span class="sd">            Whether or not to do baseline/continuum subtraction.</span>
+<span class="sd">            Default: False.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">thres</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">min_dist</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">profile</span> <span class="o">=</span> <span class="s2">&quot;gaussian&quot;</span>
+    <span class="n">width</span> <span class="o">=</span> <span class="mi">10</span>
+    <span class="n">basedeg</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">baseiter</span> <span class="o">=</span> <span class="mi">100</span>
+    <span class="n">basetol</span> <span class="o">=</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">3</span>
+    <span class="n">dobase</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">spec</span><span class="p">,</span><span class="n">x</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span><span class="o">**</span><span class="n">kwarg</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span> <span class="o">==</span> <span class="n">types</span><span class="o">.</span><span class="n">ListType</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">spec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">spec</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">x</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">==</span> <span class="n">types</span><span class="o">.</span><span class="n">ListType</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span><span class="p">,</span> <span class="ow">in</span> <span class="n">kwarg</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="c1"># ingore any attributes we don&#39;t have</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">k</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">k</span><span class="p">))</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span><span class="s2">&quot;Cannot change the type of a variable in PeakUtils. </span><span class="si">%s</span><span class="s2"> is of type </span><span class="si">%s</span><span class="s2">, not </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span><span class="nb">type</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">k</span><span class="p">)),</span><span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">v</span><span class="p">)</span>
+        <span class="c1">#print self.min_dist</span>
+
+<div class="viewcode-block" id="PeakUtils.find"><a class="viewcode-back" href="../../../../module/admit.util.peakfinder/PeakUtils.html#admit.util.peakfinder.PeakUtils.PeakUtils.find">[docs]</a>    <span class="k">def</span> <span class="nf">find</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to find any peaks in the spectrum. A baseline will be subtracted first if requested.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            numpy array of floats</span>
+<span class="sd">                containing the locations of the peaks</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># subtract a baseline if needed</span>
+        <span class="c1">#fig = plt.figure(20)</span>
+        <span class="c1">#x = np.arange(len(self.spec))</span>
+        <span class="c1">#ax1 = fig.add_subplot(1,1,1)</span>
+        <span class="c1">#ax1.set_title(&quot;BEFORE&quot;)</span>
+        <span class="c1">#ax1.plot(x,self.spec,&quot;-&quot;)</span>
+        <span class="c1">#plt.show()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dobase</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">baseline</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">basedeg</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">baseiter</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">basetol</span><span class="p">)</span>
+        <span class="c1">#fig2 = plt.figure(21)</span>
+        <span class="c1">#x = np.arange(len(self.spec))</span>
+        <span class="c1">#ax2 = fig2.add_subplot(1,1,1)</span>
+        <span class="c1">#ax2.set_title(&quot;AFTER&quot;)</span>
+        <span class="c1">#ax2.plot(x,self.spec,&quot;-&quot;)</span>
+        <span class="c1">#plt.show()</span>
+
+        <span class="c1"># do an initial cut</span>
+        <span class="n">ind</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">indexes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">thres</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">min_dist</span><span class="p">)</span>
+        <span class="c1"># now refine the peaks</span>
+        <span class="k">if</span> <span class="s2">&quot;gauss&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">profile</span><span class="p">:</span>
+            <span class="n">fit</span> <span class="o">=</span> <span class="s2">&quot;gaussian_fit&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fit</span> <span class="o">=</span> <span class="s2">&quot;lorentzian_fit&quot;</span>
+        <span class="n">refined</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">ind</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">,</span><span class="n">fit</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">refined</span></div>
+
+<div class="viewcode-block" id="PeakUtils.indexes"><a class="viewcode-back" href="../../../../module/admit.util.peakfinder/PeakUtils.html#admit.util.peakfinder.PeakUtils.PeakUtils.indexes">[docs]</a>    <span class="k">def</span> <span class="nf">indexes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">thres</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">min_dist</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Peak detection routine.</span>
+
+<span class="sd">            Finds the peaks in *y* by taking its first order difference. By using</span>
+<span class="sd">            *thres* and *min_dist* parameters, it is possible to reduce the number of</span>
+<span class="sd">            detected peaks.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            thres : float</span>
+<span class="sd">                Threshold for detecting a peak/valley. The absolute value of the intensity</span>
+<span class="sd">                must be above this value. Default: 0.0</span>
+
+<span class="sd">            min_dist : int</span>
+<span class="sd">                Minimum distance between each detected peak. The peak with the highest</span>
+<span class="sd">                amplitude is preferred to satisfy this constraint.</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            ndarray</span>
+<span class="sd">                Array containing the indexes of the peaks that were detected</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#thres *= np.max(self.spec) - np.min(self.spec)</span>
+
+        <span class="c1"># find the peaks by using the first order difference</span>
+        <span class="n">dy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">)</span>
+        <span class="n">peaks</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">dy</span><span class="p">,</span> <span class="mf">0.</span><span class="p">])</span> <span class="o">&lt;</span> <span class="mf">0.</span><span class="p">)</span>
+                         <span class="o">&amp;</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="mf">0.</span><span class="p">,</span> <span class="n">dy</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mf">0.</span><span class="p">)</span>
+                         <span class="o">&amp;</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">absolute</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">thres</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c1">#print &quot;\n\n&quot;,peaks,peaks.size,&quot;\n\n&quot;</span>
+        <span class="k">if</span> <span class="n">peaks</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">min_dist</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">highest</span> <span class="o">=</span> <span class="n">peaks</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">[</span><span class="n">peaks</span><span class="p">])][::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">rem</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+            <span class="n">rem</span><span class="p">[</span><span class="n">peaks</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+
+            <span class="k">for</span> <span class="n">peak</span> <span class="ow">in</span> <span class="n">highest</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">rem</span><span class="p">[</span><span class="n">peak</span><span class="p">]:</span>
+                    <span class="n">sl</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">peak</span><span class="o">-</span><span class="n">min_dist</span><span class="p">),</span> <span class="n">peak</span><span class="o">+</span><span class="n">min_dist</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+                    <span class="n">rem</span><span class="p">[</span><span class="n">sl</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="n">rem</span><span class="p">[</span><span class="n">peak</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+
+            <span class="n">peaks</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">size</span><span class="p">)[</span><span class="o">~</span><span class="n">rem</span><span class="p">]</span>
+
+        <span class="c1">#print &quot;\n\n&quot;,peaks,peaks.size,&quot;\n\n&quot;</span>
+
+        <span class="k">return</span> <span class="n">peaks</span></div>
+
+
+<div class="viewcode-block" id="PeakUtils.centroid"><a class="viewcode-back" href="../../../../module/admit.util.peakfinder/PeakUtils.html#admit.util.peakfinder.PeakUtils.PeakUtils.centroid">[docs]</a>    <span class="k">def</span> <span class="nf">centroid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">chans</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+        <span class="sd">&quot;&quot;&quot; Computes the centroid for the specified data.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            chans : list</span>
+<span class="sd">                The indexes to start and end at.</span>
+<span class="sd">                Default: [0,-1]</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            float</span>
+<span class="sd">                Centroid of the data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ydata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">[</span><span class="n">chans</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span><span class="n">chans</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">xdata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="n">chans</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span><span class="n">chans</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">xdata</span><span class="o">*</span><span class="n">ydata</span><span class="p">)</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">ydata</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PeakUtils.gaussian"><a class="viewcode-back" href="../../../../module/admit.util.peakfinder/PeakUtils.html#admit.util.peakfinder.PeakUtils.PeakUtils.gaussian">[docs]</a>    <span class="k">def</span> <span class="nf">gaussian</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x</span><span class="p">,</span> <span class="n">ampl</span><span class="p">,</span> <span class="n">center</span><span class="p">,</span> <span class="n">dev</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Computes the Gaussian function.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            x : float</span>
+<span class="sd">                Point to evaluate the Gaussian for.</span>
+
+<span class="sd">            ampl : float</span>
+<span class="sd">                Amplitude.</span>
+
+<span class="sd">            center : float</span>
+<span class="sd">                Center.</span>
+
+<span class="sd">            dev : float</span>
+<span class="sd">                Width.</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            float</span>
+<span class="sd">                Value of the specified Gaussian at *x*</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">ampl</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="n">center</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">dev</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="PeakUtils.gaussian_fit"><a class="viewcode-back" href="../../../../module/admit.util.peakfinder/PeakUtils.html#admit.util.peakfinder.PeakUtils.PeakUtils.gaussian_fit">[docs]</a>    <span class="k">def</span> <span class="nf">gaussian_fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">chans</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+        <span class="sd">&quot;&quot;&quot; Performs a Gaussian fitting of the specified data.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            chans : list</span>
+<span class="sd">                The indexes to start and end at.</span>
+<span class="sd">                Default: [0,-1]</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            ndarray</span>
+<span class="sd">                Parameters of the Gaussian that fits the specified data</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ydata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">[</span><span class="n">chans</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span><span class="n">chans</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">xdata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="n">chans</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span><span class="n">chans</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">initial</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">ydata</span><span class="p">),</span> <span class="n">xdata</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">(</span><span class="n">xdata</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">xdata</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">*</span><span class="mi">5</span><span class="p">]</span>
+        <span class="n">_3to2list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">optimize</span><span class="o">.</span><span class="n">curve_fit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gaussian</span><span class="p">,</span> <span class="n">xdata</span><span class="p">,</span> <span class="n">ydata</span><span class="p">,</span> <span class="n">initial</span><span class="p">))</span>
+        <span class="n">params</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="o">=</span> <span class="n">_3to2list</span><span class="p">[:</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">_3to2list</span><span class="p">[</span><span class="mi">1</span><span class="p">:]]</span>
+        <span class="k">return</span> <span class="n">params</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="PeakUtils.lorentzian"><a class="viewcode-back" href="../../../../module/admit.util.peakfinder/PeakUtils.html#admit.util.peakfinder.PeakUtils.PeakUtils.lorentzian">[docs]</a>    <span class="k">def</span> <span class="nf">lorentzian</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x</span><span class="p">,</span> <span class="n">ampl</span><span class="p">,</span> <span class="n">center</span><span class="p">,</span> <span class="n">width</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Computes the Lorentzian function.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            x : float</span>
+<span class="sd">                Point to evaluate the Gaussian for.</span>
+
+<span class="sd">            ampl : float</span>
+<span class="sd">                Amplitude.</span>
+
+<span class="sd">            center : float</span>
+<span class="sd">                Center.</span>
+
+<span class="sd">            width : float</span>
+<span class="sd">                Width.</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            float</span>
+<span class="sd">                Value of the specified Gaussian at *x*</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">ampl</span><span class="o">/</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">width</span><span class="o">/</span><span class="mf">2.0</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="n">center</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="n">width</span><span class="o">/</span><span class="mf">2.0</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="PeakUtils.laurentzian_fit"><a class="viewcode-back" href="../../../../module/admit.util.peakfinder/PeakUtils.html#admit.util.peakfinder.PeakUtils.PeakUtils.laurentzian_fit">[docs]</a>    <span class="k">def</span> <span class="nf">laurentzian_fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">chans</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+        <span class="sd">&quot;&quot;&quot; Performs a Lorentzian fitting of the specified data.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            chans : list</span>
+<span class="sd">                The indexes to start and end at.</span>
+<span class="sd">                Default: [0,-1]</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            ndarray</span>
+<span class="sd">                Parameters of the Lorentzian that fits the specified data</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ydata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">[</span><span class="n">chans</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span><span class="n">chans</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">xdata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="n">chans</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span><span class="n">chans</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">initial</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">ydata</span><span class="p">),</span> <span class="n">xdata</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">(</span><span class="n">xdata</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">xdata</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">*</span><span class="mi">5</span><span class="p">]</span>
+        <span class="n">_3to2list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">optimize</span><span class="o">.</span><span class="n">curve_fit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lorentzian</span><span class="p">,</span> <span class="n">xdata</span><span class="p">,</span> <span class="n">ydata</span><span class="p">,</span> <span class="n">initial</span><span class="p">))</span>
+        <span class="n">params</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="o">=</span> <span class="n">_3to2list</span><span class="p">[:</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">_3to2list</span><span class="p">[</span><span class="mi">1</span><span class="p">:]]</span>
+        <span class="k">return</span> <span class="n">params</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="PeakUtils.interpolate"><a class="viewcode-back" href="../../../../module/admit.util.peakfinder/PeakUtils.html#admit.util.peakfinder.PeakUtils.PeakUtils.interpolate">[docs]</a>    <span class="k">def</span> <span class="nf">interpolate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ind</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="s2">&quot;gaussian_fit&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Tries to enhance the resolution of the peak detection by using</span>
+<span class="sd">            Gaussian fitting, centroid computation or an arbitrary function on the</span>
+<span class="sd">            neighborhood of each previously detected peak index.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            ind : ndarray</span>
+<span class="sd">                Indexes of the previously detected peaks. If None, indexes() will be</span>
+<span class="sd">                called with the default parameters.</span>
+
+<span class="sd">            width : int</span>
+<span class="sd">                Number of points (before and after) each peak index to pass to *func*</span>
+<span class="sd">                in order to increase the resolution in *x*.</span>
+
+<span class="sd">            func : function(x,y)</span>
+<span class="sd">                Function that will be called to detect an unique peak in the x,y data.</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            ndarray :</span>
+<span class="sd">                Array with the adjusted peak positions (in *x*)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">ind</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ind</span> <span class="o">=</span> <span class="n">indexes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">)</span>
+
+        <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ind</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">fit</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">func</span><span class="p">)([</span><span class="n">i</span><span class="o">-</span><span class="n">width</span><span class="p">,</span><span class="n">i</span><span class="o">+</span><span class="n">width</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fit</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">pass</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">out</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PeakUtils.baseline"><a class="viewcode-back" href="../../../../module/admit.util.peakfinder/PeakUtils.html#admit.util.peakfinder.PeakUtils.PeakUtils.baseline">[docs]</a>    <span class="k">def</span> <span class="nf">baseline</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">deg</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">max_it</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">3</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Computes the baseline of a given data.</span>
+
+<span class="sd">            Iteratively performs a polynomial fitting in the data to detect its</span>
+<span class="sd">            baseline. At every iteration, the fitting weights on the regions with</span>
+<span class="sd">            peaks is reduced to identify the baseline only.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            deg : int</span>
+<span class="sd">                Degree of the polynomial that will estimate the data baseline. A low</span>
+<span class="sd">                degree may fail to detect all the baseline present, while a high</span>
+<span class="sd">                degree may make the data too oscillatory, especially at the edges.</span>
+
+<span class="sd">            max_it : int</span>
+<span class="sd">                Maximum number of iterations to perform.</span>
+
+<span class="sd">            tol : float</span>
+<span class="sd">                Tolerance to use when comparing the difference between the current</span>
+<span class="sd">                fit coefficient and the ones from the last iteration. The iteration</span>
+<span class="sd">                procedure will stop when the difference between them is lower than</span>
+<span class="sd">                *tol*.</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            ndarray</span>
+<span class="sd">                Array with the baseline amplitude for every original point in *y*</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">order</span> <span class="o">=</span> <span class="n">deg</span><span class="o">+</span><span class="mi">1</span>
+        <span class="n">coeffs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
+
+        <span class="c1"># try to avoid numerical issues</span>
+        <span class="n">cond</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="mf">1.</span><span class="o">/</span><span class="n">order</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="n">cond</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+        <span class="n">base</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="n">vander</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vander</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">order</span><span class="p">)</span>
+        <span class="n">vander_pinv</span> <span class="o">=</span> <span class="n">LA</span><span class="o">.</span><span class="n">pinv2</span><span class="p">(</span><span class="n">vander</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="n">max_it</span><span class="p">):</span>
+            <span class="n">coeffs_new</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">vander_pinv</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">LA</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">coeffs_new</span><span class="o">-</span><span class="n">coeffs</span><span class="p">)</span> <span class="o">/</span> <span class="n">LA</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">coeffs</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">tol</span><span class="p">:</span>
+                <span class="k">break</span>
+
+            <span class="n">coeffs</span> <span class="o">=</span> <span class="n">coeffs_new</span>
+            <span class="n">base</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">vander</span><span class="p">,</span> <span class="n">coeffs</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">spec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">,</span> <span class="n">base</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">base</span></div>
+
+<div class="viewcode-block" id="PeakUtils.scale"><a class="viewcode-back" href="../../../../module/admit.util.peakfinder/PeakUtils.html#admit.util.peakfinder.PeakUtils.PeakUtils.scale">[docs]</a>    <span class="k">def</span> <span class="nf">scale</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x</span><span class="p">,</span> <span class="n">new_range</span><span class="o">=</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">),</span> <span class="n">eps</span><span class="o">=</span><span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">9</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Changes the scale of an array</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            x : ndarray</span>
+<span class="sd">                1D array to change the scale (remains unchanged)</span>
+
+<span class="sd">            new_range : tuple (float, float)</span>
+<span class="sd">                Desired range of the array</span>
+
+<span class="sd">            eps: float</span>
+<span class="sd">                Numerical precision, to detect degenerate cases (for example, when</span>
+<span class="sd">                every value of *x* is equal)</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            ndarray</span>
+<span class="sd">                Scaled array</span>
+<span class="sd">            tuple (float, float)</span>
+<span class="sd">                Previous data range, allowing a rescale to the old range</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">new_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">new_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">range_</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">x</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">range_</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">range_</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&lt;</span> <span class="n">eps</span><span class="p">:</span>
+            <span class="n">mean</span> <span class="o">=</span> <span class="p">(</span><span class="n">new_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">new_range</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mf">2.0</span>
+            <span class="n">xp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">mean</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">xp</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">range_</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">xp</span> <span class="o">*=</span> <span class="p">(</span><span class="n">new_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_range</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="n">range_</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">range_</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">xp</span> <span class="o">+=</span> <span class="n">new_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">xp</span><span class="p">,</span> <span class="n">range_</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

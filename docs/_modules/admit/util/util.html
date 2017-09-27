@@ -1,0 +1,920 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.util.util &mdash; ADMIT 0.4.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.4.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="ADMIT 0.4.1 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 0.4.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.util.util</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot; Utility Functions</span>
+<span class="sd">    -----------------</span>
+
+<span class="sd">    This module contains utility functions used throughout the ADMIT codebase</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">fnmatch</span>
+<span class="kn">import</span> <span class="nn">matplotlib</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="c"># Sphinx crashes on scipy even when listed in autodoc_mock_imports.</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">curve_fit</span>
+    <span class="kn">import</span> <span class="nn">scipy</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">&quot;WARNING: No scipy; some utilities will not function.&quot;</span>
+
+<span class="n">ndarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="c"># speed of light in km/s</span>
+<span class="n">c</span> <span class="o">=</span> <span class="mf">299792.458</span>
+
+<span class="c"># atomic weights (just an integer) for calculations in line finding</span>
+<span class="n">wts</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;He&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> 
+       <span class="s">&quot;Li&quot;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span> 
+       <span class="s">&quot;Be&quot;</span><span class="p">:</span> <span class="mi">9</span><span class="p">,</span> 
+       <span class="s">&quot;Ne&quot;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span> 
+       <span class="s">&quot;Na&quot;</span><span class="p">:</span> <span class="mi">23</span><span class="p">,</span> 
+       <span class="s">&quot;Mg&quot;</span><span class="p">:</span> <span class="mi">24</span><span class="p">,</span> 
+       <span class="s">&quot;Al&quot;</span><span class="p">:</span> <span class="mi">27</span><span class="p">,</span> 
+       <span class="s">&quot;Si&quot;</span><span class="p">:</span> <span class="mi">28</span><span class="p">,</span> 
+       <span class="s">&quot;Cl&quot;</span><span class="p">:</span> <span class="mi">35</span><span class="p">,</span> 
+       <span class="s">&quot;Ar&quot;</span><span class="p">:</span> <span class="mi">40</span><span class="p">,</span> 
+       <span class="s">&quot;Ca&quot;</span><span class="p">:</span> <span class="mi">40</span><span class="p">,</span> 
+       <span class="s">&quot;Sc&quot;</span><span class="p">:</span> <span class="mi">45</span><span class="p">,</span> 
+       <span class="s">&quot;Ti&quot;</span><span class="p">:</span> <span class="mi">48</span><span class="p">,</span> 
+       <span class="s">&quot;Cr&quot;</span><span class="p">:</span> <span class="mi">52</span><span class="p">,</span> 
+       <span class="s">&quot;Mn&quot;</span><span class="p">:</span> <span class="mi">55</span><span class="p">,</span> 
+       <span class="s">&quot;Fe&quot;</span><span class="p">:</span> <span class="mi">56</span><span class="p">,</span> 
+       <span class="s">&quot;Co&quot;</span><span class="p">:</span> <span class="mi">59</span><span class="p">,</span> 
+       <span class="s">&quot;Ni&quot;</span><span class="p">:</span> <span class="mi">59</span><span class="p">,</span> 
+       <span class="s">&quot;Cu&quot;</span><span class="p">:</span> <span class="mi">63</span><span class="p">,</span> 
+       <span class="s">&quot;Zn&quot;</span><span class="p">:</span> <span class="mi">65</span><span class="p">,</span> 
+       <span class="s">&quot;H&quot;</span> <span class="p">:</span> <span class="mi">1</span><span class="p">,</span> 
+       <span class="s">&quot;D&quot;</span> <span class="p">:</span> <span class="mi">2</span><span class="p">,</span> 
+       <span class="s">&quot;B&quot;</span> <span class="p">:</span> <span class="mi">11</span><span class="p">,</span> 
+       <span class="s">&quot;C&quot;</span> <span class="p">:</span> <span class="mi">12</span><span class="p">,</span> 
+       <span class="s">&quot;N&quot;</span> <span class="p">:</span> <span class="mi">14</span><span class="p">,</span> 
+       <span class="s">&quot;O&quot;</span> <span class="p">:</span> <span class="mi">16</span><span class="p">,</span> 
+       <span class="s">&quot;F&quot;</span> <span class="p">:</span> <span class="mi">19</span><span class="p">,</span> 
+       <span class="s">&quot;P&quot;</span> <span class="p">:</span> <span class="mi">31</span><span class="p">,</span> 
+       <span class="s">&quot;S&quot;</span> <span class="p">:</span> <span class="mi">32</span><span class="p">,</span> 
+       <span class="s">&quot;K&quot;</span> <span class="p">:</span> <span class="mi">39</span><span class="p">,</span> 
+       <span class="s">&quot;V&quot;</span> <span class="p">:</span> <span class="mi">51</span>
+       <span class="p">}</span>
+
+
+<div class="viewcode-block" id="admit_root"><a class="viewcode-back" href="../../../module/admit.util/util.html#admit.util.util.admit_root">[docs]</a><span class="k">def</span> <span class="nf">admit_root</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Return the root directory of the ADMIT environment</span>
+<span class="sd">    </span>
+<span class="sd">    Typically in ADMIT/etc there are files needed by certain functions</span>
+<span class="sd">    and other TBD locations.</span>
+<span class="sd">    For now we are using getenv(), but in deployment this may not</span>
+<span class="sd">    be the case.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">admitloc</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s">&quot;ADMIT&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">admitloc</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;no ADMIT environment&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">admitloc</span>
+
+<span class="c">#@TODO why do we have a wrapper for a one-line python library call?</span></div>
+<div class="viewcode-block" id="rmdir"><a class="viewcode-back" href="../../../module/admit.util/util.html#admit.util.util.rmdir">[docs]</a><span class="k">def</span> <span class="nf">rmdir</span><span class="p">(</span><span class="nb">dir</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Remove a directory. Calls shutil.rmtree</span>
+
+<span class="sd">       Parameters</span>
+<span class="sd">       ----------</span>
+<span class="sd">       dir : str</span>
+<span class="sd">            Directory to be deleted</span>
+
+<span class="sd">       Returns</span>
+<span class="sd">       -------</span>
+<span class="sd">       None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="nb">dir</span><span class="p">,</span> <span class="n">ignore_errors</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="rm"><a class="viewcode-back" href="../../../module/admit.util/util.html#admit.util.util.rm">[docs]</a><span class="k">def</span> <span class="nf">rm</span><span class="p">(</span><span class="nb">file</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Remove a file</span>
+
+<span class="sd">       Parameters</span>
+<span class="sd">       ----------</span>
+<span class="sd">       file : str</span>
+<span class="sd">            File to be deleted</span>
+
+<span class="sd">       Returns</span>
+<span class="sd">       -------</span>
+<span class="sd">       None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="nb">file</span><span class="p">)</span>
+    <span class="c"># if the file doesn&#39;t exist don&#39;t worry about it</span>
+    <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+</div>
+<div class="viewcode-block" id="remove"><a class="viewcode-back" href="../../../module/admit.util/util.html#admit.util.util.remove">[docs]</a><span class="k">def</span> <span class="nf">remove</span><span class="p">(</span><span class="n">item</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Remove a file or directory.</span>
+
+<span class="sd">       The method determines if it is a file or directory and removes it</span>
+<span class="sd">       appropriately.</span>
+
+<span class="sd">       Parameters</span>
+<span class="sd">       ----------</span>
+<span class="sd">       item : str</span>
+<span class="sd">            Item to be deleted</span>
+
+<span class="sd">       Returns</span>
+<span class="sd">       -------</span>
+<span class="sd">       None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">item</span><span class="p">)):</span>
+        <span class="n">rm</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+    <span class="k">elif</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">item</span><span class="p">)):</span>
+        <span class="n">rmdir</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="rename"><a class="viewcode-back" href="../../../module/admit.util/util.html#admit.util.util.rename">[docs]</a><span class="k">def</span> <span class="nf">rename</span><span class="p">(</span><span class="n">item1</span><span class="p">,</span> <span class="n">item2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Rename a file or directory, but ensuring the destination is removed first</span>
+
+<span class="sd">       Parameters</span>
+<span class="sd">       ----------</span>
+<span class="sd">       item1 : string</span>
+<span class="sd">           Source</span>
+<span class="sd">       item2 : string</span>
+<span class="sd">           Destination</span>
+
+<span class="sd">       Returns</span>
+<span class="sd">       -------</span>
+<span class="sd">       None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">remove</span><span class="p">(</span><span class="n">item2</span><span class="p">)</span>
+    <span class="n">shutil</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">item1</span><span class="p">,</span> <span class="n">item2</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="getClass"><a class="viewcode-back" href="../../../module/admit.util/util.html#admit.util.util.getClass">[docs]</a><span class="k">def</span> <span class="nf">getClass</span><span class="p">(</span><span class="n">typ</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Get an instance of an AT or BDP class</span>
+
+<span class="sd">       Parameters</span>
+<span class="sd">       ----------</span>
+<span class="sd">       typ : str</span>
+<span class="sd">            Type of class: at or bdp</span>
+
+<span class="sd">       name : str</span>
+<span class="sd">            The name of the class to retrieve</span>
+
+<span class="sd">       Returns</span>
+<span class="sd">       -------</span>
+<span class="sd">       An instance of the requested class</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="s">&quot;admit.&quot;</span> <span class="o">+</span> <span class="n">typ</span> <span class="o">+</span> <span class="s">&quot;.&quot;</span> <span class="o">+</span> <span class="n">name</span>
+    <span class="n">module</span> <span class="o">=</span> <span class="nb">__import__</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+    <span class="n">l</span> <span class="o">=</span> <span class="n">typ</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot;.&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">sub</span> <span class="ow">in</span> <span class="n">l</span><span class="p">:</span>
+        <span class="n">module</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">sub</span><span class="p">)</span>
+    <span class="n">my_class</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">init</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">my_class</span><span class="p">,</span> <span class="n">name</span><span class="p">)()</span>
+    <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">my_class</span><span class="p">,</span> <span class="n">name</span><span class="p">)(</span><span class="o">**</span><span class="n">init</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="add_new_bdp"><a class="viewcode-back" href="../../../module/admit.util/util.html#admit.util.util.add_new_bdp">[docs]</a><span class="k">def</span> <span class="nf">add_new_bdp</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Method to add a new BDP or AT to the ADMIT infrastructure.</span>
+<span class="sd">       Alternatively, the command line tool dtdGenerator can be used.</span>
+
+<span class="sd">       Parameters</span>
+<span class="sd">       ----------</span>
+<span class="sd">       None</span>
+
+<span class="sd">       Returns</span>
+<span class="sd">       -------</span>
+<span class="sd">       None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">admit.xmlio.dtdGenerator</span> <span class="kn">as</span> <span class="nn">dtd</span>
+    <span class="n">dtd</span><span class="o">.</span><span class="n">generate</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="add_new_at"><a class="viewcode-back" href="../../../module/admit.util/util.html#admit.util.util.add_new_at">[docs]</a><span class="k">def</span> <span class="nf">add_new_at</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Method to add a new BDP to AT to the ADMIT infrastructure.</span>
+<span class="sd">       Alternatively, the command line tool dtdGenerator can be used.</span>
+
+<span class="sd">       Parameters</span>
+<span class="sd">       ----------</span>
+<span class="sd">       None</span>
+
+<span class="sd">       Returns</span>
+<span class="sd">       -------</span>
+<span class="sd">       None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">admit.xmlio.dtdGenerator</span> <span class="kn">as</span> <span class="nn">dtd</span>
+    <span class="n">dtd</span><span class="o">.</span><span class="n">generate</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="find_files"><a class="viewcode-back" href="../../../module/admit.util/util.html#admit.util.util.find_files">[docs]</a><span class="k">def</span> <span class="nf">find_files</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">pattern</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Find files with a given pattern down a directory tree.  This is a</span>
+<span class="sd">       generator function.</span>
+
+<span class="sd">       Parameters</span>
+<span class="sd">       ----------</span>
+<span class="sd">       directory : str</span>
+<span class="sd">           Root directory to start search</span>
+<span class="sd">       pattern : str</span>
+<span class="sd">           Pattern to match</span>
+
+<span class="sd">       Returns</span>
+<span class="sd">       --------</span>
+<span class="sd">       list</span>
+
+<span class="sd">       Examples</span>
+<span class="sd">       --------</span>
+<span class="sd">       find_files(\&#39;/tmp/a\&#39;, \&#39;\*.fits\&#39;)</span>
+<span class="sd"> </span>
+
+<span class="sd">       See Also </span>
+<span class="sd">       --------</span>
+<span class="sd">       Admit.find_files() which works exclusively within the current admit tree</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">directory</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">basename</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">fnmatch</span><span class="o">.</span><span class="n">fnmatch</span><span class="p">(</span><span class="n">basename</span><span class="p">,</span> <span class="n">pattern</span><span class="p">):</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">basename</span><span class="p">)</span>
+                <span class="k">yield</span> <span class="n">filename</span>
+
+</div>
+<div class="viewcode-block" id="on_error_retry"><a class="viewcode-back" href="../../../module/admit.util/util.html#admit.util.util.on_error_retry">[docs]</a><span class="k">def</span> <span class="nf">on_error_retry</span><span class="p">(</span><span class="n">exception</span><span class="p">,</span> <span class="n">callback</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">timedelta</span><span class="o">=.</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A generic method for doing retries with timeout.</span>
+
+<span class="sd">       Parameters</span>
+<span class="sd">       ----------</span>
+<span class="sd">       exception : Exception</span>
+<span class="sd">           An Exception class to handle exceptions from the callback.</span>
+<span class="sd">       callback : function</span>
+<span class="sd">           The callback method to invoke</span>
+<span class="sd">       timeout : float</span>
+<span class="sd">           timeout in seconds before giving up. default: 2</span>
+<span class="sd">       timedelta : float</span>
+<span class="sd">           number of seconds to sleep before retries.  default: 0.1</span>
+
+<span class="sd">       Examples</span>
+<span class="sd">       --------</span>
+<span class="sd">       for retry in on_error_retry(SomeSpecificException, do_stuff):</span>
+<span class="sd">           retry()</span>
+
+<span class="sd">       stolen from stackoverflow.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">end_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">+</span> <span class="n">timeout</span>
+    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">callback</span>
+            <span class="k">break</span>
+        <span class="k">except</span> <span class="n">exception</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">&gt;</span> <span class="n">end_time</span><span class="p">:</span>
+                <span class="k">raise</span>
+            <span class="k">elif</span> <span class="n">timedelta</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">timedelta</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="freqtovel"><a class="viewcode-back" href="../../../module/admit.util/util.html#admit.util.util.freqtovel">[docs]</a><span class="k">def</span> <span class="nf">freqtovel</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Method to convert between offset frequency and offset velocity</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        freq : float</span>
+<span class="sd">            The base frequency</span>
+
+<span class="sd">        delta : float</span>
+<span class="sd">            The change in frequency</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        The offset velocity (in km/s) corresponding to the frequency shift.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">c</span>
+    <span class="k">return</span> <span class="n">c</span> <span class="o">*</span> <span class="p">(</span><span class="n">delta</span> <span class="o">/</span> <span class="n">freq</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="veltofreq"><a class="viewcode-back" href="../../../module/admit.util/util.html#admit.util.util.veltofreq">[docs]</a><span class="k">def</span> <span class="nf">veltofreq</span><span class="p">(</span><span class="n">vel</span><span class="p">,</span> <span class="n">freq</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Method to convert between offset velocity and offset frequency</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        vel : float</span>
+<span class="sd">            The offset velocity</span>
+
+<span class="sd">        freq : float</span>
+<span class="sd">            The base frequency</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        The offset frequency corresponding to the velocity shift.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">c</span>
+    <span class="k">return</span> <span class="n">freq</span> <span class="o">*</span> <span class="p">(</span><span class="n">vel</span> <span class="o">/</span> <span class="n">c</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="undoppler"><a class="viewcode-back" href="../../../module/admit.util/util.html#admit.util.util.undoppler">[docs]</a><span class="k">def</span> <span class="nf">undoppler</span><span class="p">(</span><span class="n">sky</span><span class="p">,</span> <span class="n">vel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Method to convert from sky frequency to source rest frequency</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        sky : float, list, or numpy array</span>
+<span class="sd">            The sky frequency</span>
+
+<span class="sd">        vel : float</span>
+<span class="sd">            The source vlsr in km/s</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        The input value converted to rest frequency, in the same form that the input</span>
+<span class="sd">        was given.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">c</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sky</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sky</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">sky</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="p">(</span><span class="n">vel</span> <span class="o">/</span> <span class="n">c</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sky</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sky</span><span class="p">)):</span>
+            <span class="n">sky</span><span class="p">[</span><span class="n">f</span><span class="p">]</span> <span class="o">=</span> <span class="n">undoppler</span><span class="p">(</span><span class="n">sky</span><span class="p">[</span><span class="n">f</span><span class="p">],</span> <span class="n">vel</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sky</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;Invalid type given for input data to undopper, must be of type float, list, or numpy array, </span><span class="si">%s</span><span class="s"> was given.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">sky</span><span class="p">))))</span>
+
+</div>
+<div class="viewcode-block" id="interpolatespectrum"><a class="viewcode-back" href="../../../module/admit.util/util.html#admit.util.util.interpolatespectrum">[docs]</a><span class="k">def</span> <span class="nf">interpolatespectrum</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Method to interpolate over bad points in a spectrum. Bad points generally</span>
+<span class="sd">        come from masked pixels in an image. On read in these show up as exactly 0.0</span>
+<span class="sd">        or +/-inf, or nan in the spectrum. Edge channels that are bad are just </span>
+<span class="sd">        converted to 0.0.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        spec : numpy array</span>
+<span class="sd">            The input spectrum to process</span>
+
+<span class="sd">        left : float</span>
+<span class="sd">            The value to assign bad edge channels to on the left side of the </span>
+<span class="sd">            spectrum.</span>
+<span class="sd">            Defualt: 0.0</span>
+
+<span class="sd">        right : float</span>
+<span class="sd">            The value to assign bad edge channels to on the right side of the </span>
+<span class="sd">            spectrum.</span>
+<span class="sd">            Defualt: 0.0</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        A numpy array with the same length as the input with nan values converted to</span>
+<span class="sd">        iterpolated values between good points, and bad edge values.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">spec</span><span class="p">[</span><span class="n">spec</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    <span class="n">not_nan</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">spec</span><span class="p">))</span>
+    <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">spec</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">indices</span><span class="p">[</span><span class="n">not_nan</span><span class="p">],</span> <span class="n">spec</span><span class="p">[</span><span class="n">not_nan</span><span class="p">],</span> <span class="n">left</span><span class="o">=</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="n">right</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="iscloseinE"><a class="viewcode-back" href="../../../module/admit.util/util.html#admit.util.util.iscloseinE">[docs]</a><span class="k">def</span> <span class="nf">iscloseinE</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Method to determine if two spectral lines are very close in energy</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        v1 : float</span>
+<span class="sd">            Energy of first transition.</span>
+
+<span class="sd">        v2 : float</span>
+<span class="sd">            Energy of second transition</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        True/False whether or not the energies are very close</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">v2</span> <span class="o">-</span> <span class="n">v1</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(((</span><span class="n">v2</span> <span class="o">+</span> <span class="mf">0.0001</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">v1</span> <span class="o">+</span> <span class="mf">0.0001</span><span class="p">))</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">0.01</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="rreplace"><a class="viewcode-back" href="../../../module/admit.util/util.html#admit.util.util.rreplace">[docs]</a><span class="k">def</span> <span class="nf">rreplace</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">,</span> <span class="n">occurrence</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Replace portion of a string (from the right side)</span>
+<span class="sd">        Handy utility to change a filename extension, e.g.</span>
+<span class="sd">        rreplace(&#39;a/b/c.fits&#39;, &#39;fits&#39;, &#39;im&#39;) -&gt; &#39;a/b/c.im&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">li</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="n">old</span><span class="p">,</span> <span class="n">occurrence</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">new</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">li</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="getplain"><a class="viewcode-back" href="../../../module/admit.util/util.html#admit.util.util.getplain">[docs]</a><span class="k">def</span> <span class="nf">getplain</span><span class="p">(</span><span class="n">formula</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Method to make a chemical formula more readable for embedding in filenames</span>
+<span class="sd">        Examples:</span>
+<span class="sd">        CO(1-0)     -&gt;   CO</span>
+
+<span class="sd">        CH3COOHv=0  -&gt;   CH3COOH</span>
+
+<span class="sd">        g-CH3CH2OH  -&gt;   CH3CH2OH</span>
+
+<span class="sd">        (CH3)2COv=0  -&gt;   ???</span>
+
+<span class="sd">        H&amp;delta;</span>
+
+<span class="sd">        cis-CH2OHCHOv=</span>
+
+<span class="sd">        g&#39;Ga-(CH2OH)2</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        formula : str</span>
+<span class="sd">            The chemical formula to process</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        String of the more readable formula</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># what about only using [a-z, 0-9] ?</span>
+    <span class="n">pos</span> <span class="o">=</span> <span class="n">formula</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;-&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">pos</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="n">formula</span> <span class="o">=</span> <span class="n">formula</span><span class="p">[</span><span class="n">pos</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:]</span>
+    <span class="n">pos</span> <span class="o">=</span> <span class="n">formula</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;v&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">pos</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="n">formula</span> <span class="o">=</span> <span class="n">formula</span><span class="p">[:</span><span class="n">pos</span><span class="p">]</span>
+    <span class="n">pos</span> <span class="o">=</span> <span class="n">formula</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;&amp;Sigma&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">pos</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">formula</span><span class="p">[:</span><span class="n">pos</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">formula</span>
+
+</div>
+<div class="viewcode-block" id="format_chem"><a class="viewcode-back" href="../../../module/admit.util/util.html#admit.util.util.format_chem">[docs]</a><span class="k">def</span> <span class="nf">format_chem</span><span class="p">(</span><span class="n">form</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Method to calculate the rough mass of a molecule</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        formula : str</span>
+<span class="sd">            The chemical formula, usually obtained from splatalogue</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int of the rough mass</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">isotopes</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;13C&quot;</span><span class="p">:</span>  <span class="s">&quot;$^{13}$C&quot;</span><span class="p">,</span> 
+                <span class="s">&quot;12C&quot;</span><span class="p">:</span>  <span class="s">&quot;C&quot;</span><span class="p">,</span> 
+                <span class="s">&quot;16O&quot;</span><span class="p">:</span>  <span class="s">&quot;O&quot;</span><span class="p">,</span> 
+                <span class="s">&quot;17O&quot;</span><span class="p">:</span>  <span class="s">&quot;$^{17}$O&quot;</span><span class="p">,</span> 
+                <span class="s">&quot;18O&quot;</span><span class="p">:</span>  <span class="s">&quot;$^{18}$O&quot;</span><span class="p">,</span> 
+                <span class="s">&quot;14N&quot;</span><span class="p">:</span>  <span class="s">&quot;N&quot;</span><span class="p">,</span> 
+                <span class="s">&quot;15N&quot;</span><span class="p">:</span>  <span class="s">&quot;$^{15}$N&quot;</span><span class="p">,</span> 
+                <span class="s">&quot;6Li&quot;</span><span class="p">:</span>  <span class="s">&quot;$^6$Li&quot;</span><span class="p">,</span> 
+                <span class="s">&quot;7Li&quot;</span><span class="p">:</span>  <span class="s">&quot;$^7$Li&quot;</span><span class="p">,</span> 
+                <span class="s">&quot;28Si&quot;</span><span class="p">:</span> <span class="s">&quot;Si&quot;</span><span class="p">,</span> 
+                <span class="s">&quot;29Si&quot;</span><span class="p">:</span> <span class="s">&quot;$^{29}$Si&quot;</span><span class="p">,</span> 
+                <span class="s">&quot;30Si&quot;</span><span class="p">:</span> <span class="s">&quot;$^{30}$Si&quot;</span><span class="p">,</span> 
+                <span class="s">&quot;32S&quot;</span><span class="p">:</span>  <span class="s">&quot;S&quot;</span><span class="p">,</span> 
+                <span class="s">&quot;33S&quot;</span><span class="p">:</span>  <span class="s">&quot;$^{33}$S&quot;</span><span class="p">,</span> 
+                <span class="s">&quot;34S&quot;</span><span class="p">:</span>  <span class="s">&quot;$^{34}$S&quot;</span><span class="p">,</span> 
+                <span class="s">&quot;46Ti&quot;</span><span class="p">:</span> <span class="s">&quot;$^{46}$Ti&quot;</span><span class="p">,</span> 
+                <span class="s">&quot;47Ti&quot;</span><span class="p">:</span> <span class="s">&quot;$^{47}$Ti&quot;</span><span class="p">,</span> 
+                <span class="s">&quot;48Ti&quot;</span><span class="p">:</span> <span class="s">&quot;Ti&quot;</span><span class="p">,</span> 
+                <span class="s">&quot;49Ti&quot;</span><span class="p">:</span> <span class="s">&quot;$^{49}$Ti&quot;</span><span class="p">,</span> 
+                <span class="s">&quot;50Ti&quot;</span><span class="p">:</span> <span class="s">&quot;$^{50}$Ti&quot;</span><span class="p">,</span> 
+                <span class="s">&quot;54Fe&quot;</span><span class="p">:</span> <span class="s">&quot;$^{54}$Fe&quot;</span><span class="p">,</span> 
+                <span class="s">&quot;56Fe&quot;</span><span class="p">:</span> <span class="s">&quot;Fe&quot;</span><span class="p">,</span> 
+                <span class="s">&quot;57Fe&quot;</span><span class="p">:</span> <span class="s">&quot;$^{57}$Fe&quot;</span><span class="p">,</span> 
+                <span class="s">&quot;58Fe&quot;</span><span class="p">:</span> <span class="s">&quot;$^{58}$Fe&quot;</span><span class="p">,</span> 
+                <span class="s">&quot;24Mg&quot;</span><span class="p">:</span> <span class="s">&quot;Mg&quot;</span><span class="p">,</span> 
+                <span class="s">&quot;25Mg&quot;</span><span class="p">:</span> <span class="s">&quot;$^{25}$Mg&quot;</span><span class="p">,</span> 
+                <span class="s">&quot;26Mg&quot;</span><span class="p">:</span> <span class="s">&quot;$^{26}$Mg&quot;</span>
+                <span class="p">}</span>
+
+    <span class="c"># look for any &quot;(&quot; and &quot;)&quot; and add any additional atoms as needed</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">form</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">form</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;)&quot;</span><span class="p">:</span>
+            <span class="n">factor</span> <span class="o">=</span> <span class="n">form</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="n">form</span> <span class="o">=</span> <span class="n">form</span><span class="p">[:</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="s">&quot;$_</span><span class="si">%s</span><span class="s">$&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">factor</span><span class="p">)</span> <span class="o">+</span> <span class="n">form</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:]</span>
+
+    <span class="c"># look for isomers and remove them</span>
+    <span class="c"># start with the back and loop over, that way we should catch all</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">isotopes</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+        <span class="n">form</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+    <span class="c"># there should be only single digit numbers now, multipliers for atoms</span>
+    <span class="n">inf</span> <span class="o">=</span> <span class="bp">False</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">form</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">form</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;$&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">inf</span><span class="p">:</span>
+                <span class="n">inf</span> <span class="o">=</span> <span class="bp">False</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">inf</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">if</span> <span class="nb">str</span><span class="o">.</span><span class="n">isdigit</span><span class="p">(</span><span class="n">form</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">inf</span><span class="p">:</span>
+            <span class="n">pos</span> <span class="o">=</span> <span class="n">i</span>
+            <span class="n">form</span> <span class="o">=</span> <span class="n">form</span><span class="p">[:</span><span class="n">pos</span><span class="p">]</span> <span class="o">+</span> <span class="s">&quot;$_</span><span class="si">%s</span><span class="s">$&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">form</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">+</span> <span class="n">form</span><span class="p">[</span><span class="n">pos</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:]</span>
+    <span class="k">return</span> <span class="n">form</span>
+
+</div>
+<div class="viewcode-block" id="isotopecount"><a class="viewcode-back" href="../../../module/admit.util/util.html#admit.util.util.isotopecount">[docs]</a><span class="k">def</span> <span class="nf">isotopecount</span><span class="p">(</span><span class="n">formula</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Method to count the number of isotopes in a molecule</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        formula : str</span>
+<span class="sd">            The chemical formula to analyze</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        An integer of the number of less common isotopes found</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">isotopes</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;D&quot;</span><span class="p">,</span> 
+               <span class="s">&quot;13C&quot;</span><span class="p">,</span> 
+               <span class="s">&quot;17O&quot;</span><span class="p">,</span> 
+               <span class="s">&quot;18O&quot;</span><span class="p">,</span> 
+               <span class="s">&quot;15N&quot;</span><span class="p">,</span> 
+               <span class="s">&quot;6Li&quot;</span><span class="p">,</span> 
+               <span class="s">&quot;7Li&quot;</span><span class="p">,</span> 
+               <span class="s">&quot;29Si&quot;</span><span class="p">,</span> 
+               <span class="s">&quot;30Si&quot;</span><span class="p">,</span> 
+               <span class="s">&quot;33S&quot;</span><span class="p">,</span> 
+               <span class="s">&quot;34S&quot;</span><span class="p">,</span> 
+               <span class="s">&quot;46Ti&quot;</span><span class="p">,</span> 
+               <span class="s">&quot;47Ti&quot;</span><span class="p">,</span> 
+               <span class="s">&quot;49Ti&quot;</span><span class="p">,</span> 
+               <span class="s">&quot;50Ti&quot;</span><span class="p">,</span> 
+               <span class="s">&quot;54Fe&quot;</span><span class="p">,</span> 
+               <span class="s">&quot;57Fe&quot;</span><span class="p">,</span> 
+               <span class="s">&quot;58Fe&quot;</span><span class="p">,</span> 
+               <span class="s">&quot;25Mg&quot;</span><span class="p">,</span> 
+               <span class="s">&quot;26Mg&quot;</span><span class="p">]</span>
+
+    <span class="c"># get rid of extra stuff</span>
+    <span class="n">form</span> <span class="o">=</span> <span class="n">formula</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot; &quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+    <span class="n">form</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot;{&quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+    <span class="n">form</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot;}&quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+    <span class="n">form</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot;^&quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+    <span class="n">form</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot;_&quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+
+    <span class="n">pos</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;-&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">pos</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="n">form</span> <span class="o">=</span> <span class="n">form</span><span class="p">[</span><span class="n">pos</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:]</span>
+    <span class="n">pos</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;v&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">pos</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="n">form</span> <span class="o">=</span> <span class="n">form</span><span class="p">[:</span><span class="n">pos</span><span class="p">]</span>
+
+    <span class="c"># look for any &quot;(&quot; and &quot;)&quot; and add any additional atoms as needed</span>
+    <span class="n">pos</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;(&quot;</span><span class="p">)</span>
+    <span class="k">while</span> <span class="n">pos</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="n">epos</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;)&quot;</span><span class="p">)</span>
+        <span class="n">substr</span> <span class="o">=</span> <span class="n">form</span><span class="p">[</span><span class="n">pos</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span><span class="n">epos</span><span class="p">]</span>
+        <span class="n">factor</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">form</span><span class="p">[</span><span class="n">epos</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">newstr</span> <span class="o">=</span> <span class="n">substr</span> <span class="o">*</span> <span class="n">factor</span>
+        <span class="n">form</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot;(&quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">form</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot;)</span><span class="si">%i</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">factor</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="s">&quot;&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">form</span> <span class="o">+=</span> <span class="n">newstr</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;(&quot;</span><span class="p">)</span>
+    <span class="c"># now look for any less common isotopes</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">isotopes</span><span class="p">:</span>
+        <span class="n">count</span> <span class="o">+=</span> <span class="n">form</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">count</span>
+
+</div>
+<div class="viewcode-block" id="getmass"><a class="viewcode-back" href="../../../module/admit.util/util.html#admit.util.util.getmass">[docs]</a><span class="k">def</span> <span class="nf">getmass</span><span class="p">(</span><span class="n">formula</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Method to calculate the rough mass of a molecule</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        formula : str</span>
+<span class="sd">            The chemical formula, usually obtained from splatalogue</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int of the rough mass</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">mass</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">isotopes</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;13C&quot;</span><span class="p">:</span>  <span class="mi">13</span><span class="p">,</span> 
+                <span class="s">&quot;12C&quot;</span><span class="p">:</span>  <span class="mi">12</span><span class="p">,</span> 
+                <span class="s">&quot;16O&quot;</span><span class="p">:</span>  <span class="mi">16</span><span class="p">,</span> 
+                <span class="s">&quot;17O&quot;</span><span class="p">:</span>  <span class="mi">17</span><span class="p">,</span> 
+                <span class="s">&quot;18O&quot;</span><span class="p">:</span>  <span class="mi">18</span><span class="p">,</span> 
+                <span class="s">&quot;14N&quot;</span><span class="p">:</span>  <span class="mi">14</span><span class="p">,</span> 
+                <span class="s">&quot;15N&quot;</span><span class="p">:</span>  <span class="mi">15</span><span class="p">,</span> 
+                <span class="s">&quot;6Li&quot;</span><span class="p">:</span>   <span class="mi">6</span><span class="p">,</span> 
+                <span class="s">&quot;7Li&quot;</span><span class="p">:</span>   <span class="mi">7</span><span class="p">,</span> 
+                <span class="s">&quot;28Si&quot;</span><span class="p">:</span> <span class="mi">28</span><span class="p">,</span> 
+                <span class="s">&quot;29Si&quot;</span><span class="p">:</span> <span class="mi">29</span><span class="p">,</span> 
+                <span class="s">&quot;30Si&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span> 
+                <span class="s">&quot;32S&quot;</span><span class="p">:</span>  <span class="mi">32</span><span class="p">,</span> 
+                <span class="s">&quot;33S&quot;</span><span class="p">:</span>  <span class="mi">33</span><span class="p">,</span> 
+                <span class="s">&quot;34S&quot;</span><span class="p">:</span>  <span class="mi">34</span><span class="p">,</span> 
+                <span class="s">&quot;46Ti&quot;</span><span class="p">:</span> <span class="mi">46</span><span class="p">,</span> 
+                <span class="s">&quot;47Ti&quot;</span><span class="p">:</span> <span class="mi">47</span><span class="p">,</span> 
+                <span class="s">&quot;48Ti&quot;</span><span class="p">:</span> <span class="mi">48</span><span class="p">,</span> 
+                <span class="s">&quot;49Ti&quot;</span><span class="p">:</span> <span class="mi">49</span><span class="p">,</span> 
+                <span class="s">&quot;50Ti&quot;</span><span class="p">:</span> <span class="mi">50</span><span class="p">,</span> 
+                <span class="s">&quot;54Fe&quot;</span><span class="p">:</span> <span class="mi">54</span><span class="p">,</span> 
+                <span class="s">&quot;56Fe&quot;</span><span class="p">:</span> <span class="mi">56</span><span class="p">,</span> 
+                <span class="s">&quot;57Fe&quot;</span><span class="p">:</span> <span class="mi">57</span><span class="p">,</span> 
+                <span class="s">&quot;58Fe&quot;</span><span class="p">:</span> <span class="mi">58</span><span class="p">,</span> 
+                <span class="s">&quot;24Mg&quot;</span><span class="p">:</span> <span class="mi">24</span><span class="p">,</span> 
+                <span class="s">&quot;25Mg&quot;</span><span class="p">:</span> <span class="mi">25</span><span class="p">,</span> 
+                <span class="s">&quot;26Mg&quot;</span><span class="p">:</span> <span class="mi">26</span>
+                <span class="p">}</span>
+    <span class="c"># get rid of extraneous characters</span>
+    <span class="n">form</span> <span class="o">=</span> <span class="n">formula</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot; &quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+    <span class="n">form</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot;{&quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+    <span class="n">form</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot;}&quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+    <span class="n">form</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot;^&quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+    <span class="n">form</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot;_&quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+
+    <span class="k">global</span> <span class="n">wts</span>
+    <span class="n">pos</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;-&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">pos</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="n">form</span> <span class="o">=</span> <span class="n">form</span><span class="p">[</span><span class="n">pos</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:]</span>
+    <span class="n">pos</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;v&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">pos</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="n">form</span> <span class="o">=</span> <span class="n">form</span><span class="p">[:</span><span class="n">pos</span><span class="p">]</span>
+
+    <span class="c"># look for any &quot;(&quot; and &quot;)&quot; and add any additional atoms as needed</span>
+    <span class="n">pos</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;(&quot;</span><span class="p">)</span>
+    <span class="k">while</span> <span class="n">pos</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="n">epos</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;)&quot;</span><span class="p">)</span>
+        <span class="n">substr</span> <span class="o">=</span> <span class="n">form</span><span class="p">[</span><span class="n">pos</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span><span class="n">epos</span><span class="p">]</span>
+        <span class="n">factor</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">form</span><span class="p">[</span><span class="n">epos</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">newstr</span> <span class="o">=</span> <span class="n">substr</span> <span class="o">*</span> <span class="n">factor</span>
+        <span class="n">form</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot;(&quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">form</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot;)</span><span class="si">%i</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">factor</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="s">&quot;&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">form</span> <span class="o">+=</span> <span class="n">newstr</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&quot;(&quot;</span><span class="p">)</span>
+    <span class="c"># look for isomers and remove them</span>
+    <span class="c"># start with the back and loop over, that way we should catch all</span>
+    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="n">loc</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">isotopes</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="n">l</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">l</span> <span class="o">&gt;</span> <span class="n">loc</span><span class="p">:</span>
+                <span class="n">loc</span> <span class="o">=</span> <span class="n">l</span>
+                <span class="n">key</span> <span class="o">=</span> <span class="n">k</span>
+        <span class="k">if</span> <span class="n">loc</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">break</span>
+        <span class="n">form</span> <span class="o">=</span> <span class="n">rreplace</span><span class="p">(</span><span class="n">form</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">mass</span> <span class="o">+=</span> <span class="n">isotopes</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+    <span class="c"># there should be only single digit numbers now, multipliers for atoms</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">form</span><span class="p">)):</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">if</span> <span class="nb">str</span><span class="o">.</span><span class="n">isdigit</span><span class="p">(</span><span class="n">form</span><span class="p">[</span><span class="n">i</span><span class="p">]):</span>
+            <span class="n">pos</span> <span class="o">=</span> <span class="n">i</span>
+            <span class="n">factor</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">form</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">form</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">islower</span><span class="p">():</span>
+                <span class="n">substr</span> <span class="o">=</span> <span class="n">form</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">2</span><span class="p">:</span><span class="n">i</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">substr</span> <span class="o">=</span> <span class="n">form</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="n">form</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">form</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="s">&quot;&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">form</span> <span class="o">+=</span> <span class="n">substr</span> <span class="o">*</span> <span class="p">(</span><span class="n">factor</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">wts</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+        <span class="n">mass</span> <span class="o">+=</span> <span class="n">count</span> <span class="o">*</span> <span class="n">v</span>
+        <span class="n">form</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">mass</span>
+
+</div>
+<div class="viewcode-block" id="makeThumbnail"><a class="viewcode-back" href="../../../module/admit.util/util.html#admit.util.util.makeThumbnail">[docs]</a><span class="k">def</span> <span class="nf">makeThumbnail</span><span class="p">(</span><span class="nb">file</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">0.33</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Create a thumbnail from an input image. The output</span>
+<span class="sd">        file will be root of input plus &#39;_thumb&#39; plus input extension.</span>
+<span class="sd">        For instance, if the input were &quot;myimage.png&quot;, the output</span>
+<span class="sd">        would be &quot;myimage_thumb.png&quot;.   Note: only PNG format is currently</span>
+<span class="sd">        supported (matplotlib restriction).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        file : str</span>
+<span class="sd">            input image file name</span>
+
+<span class="sd">        scale : multiplier to scale input image, e.g. for 50% scaling, </span>
+<span class="sd">            scale = 0.5.  Default: 0.33</span>
+
+<span class="sd">       @todo scale could be float or pair list indicating x, y output pixels</span>
+
+<span class="sd">       Returns</span>
+<span class="sd">       ----------</span>
+<span class="sd">       The name of the thumbnail file</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">filename</span><span class="p">,</span> <span class="n">file_extension</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="nb">file</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="nb">file</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">access</span><span class="p">(</span><span class="nb">file</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">R_OK</span><span class="p">):</span>
+        <span class="n">outfile</span> <span class="o">=</span> <span class="n">filename</span> <span class="o">+</span> <span class="s">&quot;_thumb&quot;</span> <span class="o">+</span> <span class="n">file_extension</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">thumbnail</span><span class="p">(</span><span class="nb">file</span><span class="p">,</span> <span class="n">outfile</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;File not found or not readable: </span><span class="si">%s</span><span class="s"> &quot;</span> <span class="o">%</span> <span class="nb">file</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">outfile</span>
+
+</div>
+<div class="viewcode-block" id="gaussian2D"><a class="viewcode-back" href="../../../module/admit.util/util.html#admit.util.util.gaussian2D">[docs]</a><span class="k">def</span> <span class="nf">gaussian2D</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">intensity</span><span class="p">,</span> <span class="n">center</span><span class="p">,</span> <span class="n">sigma</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Method for generating a gaussian, primarily used ofr input to the</span>
+<span class="sd">        line fitting routine</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x : list</span>
+<span class="sd">            list of points</span>
+
+<span class="sd">        intensity : float</span>
+<span class="sd">            intensity of the gaussian</span>
+
+<span class="sd">        center : float</span>
+<span class="sd">            The center position (peak) of the gaussian</span>
+
+<span class="sd">        sigma : float</span>
+<span class="sd">            FWHM of the gaussian</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        a list of intensities for the gaussian, one for each item in x</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">val</span> <span class="o">=</span> <span class="n">intensity</span> <span class="o">*</span> <span class="n">scipy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">((</span><span class="n">x</span> <span class="o">-</span> <span class="n">center</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">sigma</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">val</span>
+
+</div>
+<div class="viewcode-block" id="fitgauss2D"><a class="viewcode-back" href="../../../module/admit.util/util.html#admit.util.util.fitgauss2D">[docs]</a><span class="k">def</span> <span class="nf">fitgauss2D</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">par</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Method for fitting a gaussian to a spectrum</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x: list</span>
+<span class="sd">            The x co-ordinates of the spectrum</span>
+
+<span class="sd">        y: list</span>
+<span class="sd">            The y co-ordinates of the spectrum</span>
+
+<span class="sd">        par: list</span>
+<span class="sd">            The initial guesses for the fit parameters</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        A tuple containing the best fit parameters (as a list) and the covariance</span>
+<span class="sd">        of the parameters (as a list)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">popt</span><span class="p">,</span> <span class="n">pcov</span> <span class="o">=</span> <span class="n">curve_fit</span><span class="p">(</span><span class="n">gaussian2D</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p0</span><span class="o">=</span><span class="n">par</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s">&quot;Optimal&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">):</span>
+            <span class="n">popt</span> <span class="o">=</span> <span class="n">par</span>
+            <span class="n">pcov</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">par</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span>
+    <span class="k">return</span> <span class="n">popt</span><span class="p">,</span> <span class="n">pcov</span>
+
+</div>
+<div class="viewcode-block" id="setkey"><a class="viewcode-back" href="../../../module/admit.util/util.html#admit.util.util.setkey">[docs]</a><span class="k">def</span> <span class="nf">setkey</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">keys</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">raise</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">keys</span><span class="p">[</span><span class="n">key</span><span class="p">])</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;Cannot change the type of a keyword. </span><span class="si">%s</span><span class="s"> is a </span><span class="si">%s</span><span class="s">, not a </span><span class="si">%s</span><span class="s">&quot;</span>
+                        <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">keys</span><span class="p">[</span><span class="n">key</span><span class="p">])),</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">))))</span>
+    <span class="n">obj</span><span class="o">.</span><span class="n">keys</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+
+
+<span class="c">#  For some variations on this theme, e.g.  time.time vs. time.clock, see</span>
+<span class="c">#  http://stackoverflow.com/questions/7370801/measure-time-elapsed-in-python</span>
+<span class="c">#</span></div>
+<div class="viewcode-block" id="Dtime"><a class="viewcode-back" href="../../../module/admit.util/util.html#admit.util.util.Dtime">[docs]</a><span class="k">class</span> <span class="nc">Dtime</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Class to help measuring the wall clock time between tagged events</span>
+<span class="sd">        Typical usage:</span>
+<span class="sd">        dt = Dtime()</span>
+<span class="sd">        ...</span>
+<span class="sd">        dt.tag(&#39;a&#39;)</span>
+<span class="sd">        ...</span>
+<span class="sd">        dt.tag(&#39;b&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&quot;.&quot;</span><span class="p">,</span> <span class="n">report</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="n">label</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">report</span> <span class="o">=</span> <span class="n">report</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dtimes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">init</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">init</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">report</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="s">&quot;Dtime: </span><span class="si">%s</span><span class="s"> ADMIT &quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">))</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="s">&quot;Dtime: </span><span class="si">%s</span><span class="s"> BEGIN &quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">dt</span><span class="p">))</span>
+
+<div class="viewcode-block" id="Dtime.reset"><a class="viewcode-back" href="../../../module/admit.util/util.html#admit.util.util.Dtime.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">report</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">report</span> <span class="o">=</span> <span class="n">report</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dtimes</span> <span class="o">=</span> <span class="p">[]</span>
+</div>
+<div class="viewcode-block" id="Dtime.tag"><a class="viewcode-back" href="../../../module/admit.util/util.html#admit.util.util.Dtime.tag">[docs]</a>    <span class="k">def</span> <span class="nf">tag</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mytag</span><span class="p">):</span>
+        <span class="n">t0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span>
+        <span class="n">t1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="n">t1</span> <span class="o">-</span> <span class="n">t0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dtimes</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">mytag</span><span class="p">,</span> <span class="n">dt</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">=</span> <span class="n">t1</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">report</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="s">&quot;Dtime: </span><span class="si">%s</span><span class="s"> &quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">+</span> <span class="n">mytag</span> <span class="o">+</span> <span class="s">&quot;  &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">dt</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">dt</span>
+</div>
+<div class="viewcode-block" id="Dtime.show"><a class="viewcode-back" href="../../../module/admit.util/util.html#admit.util.util.Dtime.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">report</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtimes</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="s">&quot;Dtime: </span><span class="si">%s</span><span class="s"> &quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="s">&quot;  &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtimes</span>
+</div>
+<div class="viewcode-block" id="Dtime.end"><a class="viewcode-back" href="../../../module/admit.util/util.html#admit.util.util.Dtime.end">[docs]</a>    <span class="k">def</span> <span class="nf">end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">t0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">init</span>
+        <span class="n">t1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="n">t1</span> <span class="o">-</span> <span class="n">t0</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">report</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="s">&quot;Dtime: </span><span class="si">%s</span><span class="s"> END &quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">dt</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">dt</span>
+</div>
+<div class="viewcode-block" id="Dtime.time"><a class="viewcode-back" href="../../../module/admit.util/util.html#admit.util.util.Dtime.time">[docs]</a>    <span class="k">def</span> <span class="nf">time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; pick the actual OS routine that returns some kind of timer</span>
+<span class="sd">        time.time   :    wall clock time (include I/O and multitasking overhead)</span>
+<span class="sd">        time.clock  :    cpu clock time</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">time</span><span class="o">.</span><span class="n">clock</span><span class="p">(),</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()])</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 0.4.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
+  </body>
+</html>

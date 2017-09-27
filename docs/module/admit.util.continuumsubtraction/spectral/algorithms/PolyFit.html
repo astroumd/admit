@@ -1,0 +1,182 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>PolyFit — Continuum subtraction using a polynomial fit. &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../../index.html" />
+    <link rel="up" title="Python Scripting Interface (API)" href="../../../../api.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../../api.html" accesskey="U">Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-admit.util.continuumsubtraction.spectral.algorithms.PolyFit"></span><div class="section" id="polyfit-continuum-subtraction-using-a-polynomial-fit">
+<span id="polycontinuum"></span><h1>PolyFit &#8212; Continuum subtraction using a polynomial fit.<a class="headerlink" href="#polyfit-continuum-subtraction-using-a-polynomial-fit" title="Permalink to this headline">¶</a></h1>
+<p>Module for doing polynomial fitting to the continuum of a
+1D spectrum.</p>
+<dl class="class">
+<dt id="admit.util.continuumsubtraction.spectral.algorithms.PolyFit.PolyFit">
+<em class="property">class </em><code class="descclassname">admit.util.continuumsubtraction.spectral.algorithms.PolyFit.</code><code class="descname">PolyFit</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/admit/util/continuumsubtraction/spectral/algorithms/PolyFit.html#PolyFit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.continuumsubtraction.spectral.algorithms.PolyFit.PolyFit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class which calculates the continuum of a 1D spectrum by
+fitting a polynomial to the continuum channels. The algorithm
+can be controlled by arguments to the run() method.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>x</strong> : numpy array</p>
+<blockquote>
+<div><p>An array containing the x coordinates.</p>
+</div></blockquote>
+<p><strong>y</strong> : masked array</p>
+<blockquote class="last">
+<div><p>A masked array containing the y coordinates with any
+strong emission masked.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="29%" />
+<col width="71%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>None</td>
+<td>&nbsp;</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.continuumsubtraction.spectral.algorithms.PolyFit.PolyFit.run" title="admit.util.continuumsubtraction.spectral.algorithms.PolyFit.PolyFit.run"><code class="xref py py-obj docutils literal"><span class="pre">run</span></code></a>(\*\*keyval)</td>
+<td>Method to calculate the continuum from the given masked spectrum.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="admit.util.continuumsubtraction.spectral.algorithms.PolyFit.PolyFit.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>**keyval</em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/admit/util/continuumsubtraction/spectral/algorithms/PolyFit.html#PolyFit.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.continuumsubtraction.spectral.algorithms.PolyFit.PolyFit.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to calculate the continuum from the given masked spectrum.
+If search=True is given as an argument then the algorithm will
+iterate through the different order splines to find the best fit,
+based on noise level.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>keyval</strong> : dictionary</p>
+<blockquote>
+<div><p>Dictionary containing the keyword value pair arguments</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">numpy array containing the best fit continuum</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>Arguments for the run method:</p>
+<ul class="simple">
+<li>search : bool, whether or not to search for the best fit. Default: False</li>
+<li>deg : int, the degree of polynomial to use, Defualt: 1</li>
+</ul>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../../../_sources/module/admit.util.continuumsubtraction/spectral/algorithms/PolyFit.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../../api.html" >Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

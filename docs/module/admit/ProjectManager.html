@@ -1,0 +1,387 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Manager — Multiflow project manager. &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../index.html" />
+    <link rel="up" title="Python Scripting Interface (API)" href="../../api.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" accesskey="U">Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-admit.ProjectManager"></span><div class="section" id="manager-multiflow-project-manager">
+<h1><strong>Manager</strong> &#8212; Multiflow project manager.<a class="headerlink" href="#manager-multiflow-project-manager" title="Permalink to this headline">¶</a></h1>
+<p>This module defines the ProjectManager class.</p>
+<dl class="class">
+<dt id="admit.ProjectManager.ProjectManager">
+<em class="property">class </em><code class="descclassname">admit.ProjectManager.</code><code class="descname">ProjectManager</code><span class="sig-paren">(</span><em>baseDirs=[]</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/ProjectManager.html#ProjectManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.ProjectManager.ProjectManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Manages parent projects feeding a multiflow project.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>baseDirs: list of str</strong></p>
+<blockquote class="last">
+<div><p>Starting parent project directories.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>Managed projects are numbered sequentially beginning with one.
+A project ID of zero is reserved for the parent project containing this
+instance. Individual projects can be accessed by indexing the manager
+object using the corresponding project ID number.</p>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="38%" />
+<col width="62%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>_projects: dict of ADMITs</td>
+<td>Parent project dictionary, keyed by project ID (a positive integer).</td>
+</tr>
+<tr class="row-even"><td>_baseDirs: dict of project base directories</td>
+<td>Project directory dictionary, keyed by project ID (a positive integer).</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#admit.ProjectManager.ProjectManager.addProject" title="admit.ProjectManager.ProjectManager.addProject"><code class="xref py py-obj docutils literal"><span class="pre">addProject</span></code></a>(baseDir)</td>
+<td>Adds a project.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.ProjectManager.ProjectManager.findTask" title="admit.ProjectManager.ProjectManager.findTask"><code class="xref py py-obj docutils literal"><span class="pre">findTask</span></code></a>(pid,&nbsp;isMatch)</td>
+<td>Finds AT(s) by arbitrary matching criterion.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.ProjectManager.ProjectManager.findTaskAlias" title="admit.ProjectManager.ProjectManager.findTaskAlias"><code class="xref py py-obj docutils literal"><span class="pre">findTaskAlias</span></code></a>(pid,&nbsp;alias)</td>
+<td>Finds AT(s) by alias.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.ProjectManager.ProjectManager.getProjectDir" title="admit.ProjectManager.ProjectManager.getProjectDir"><code class="xref py py-obj docutils literal"><span class="pre">getProjectDir</span></code></a>(pid)</td>
+<td>Retrieves project base directory given its ID number.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.ProjectManager.ProjectManager.getProjectId" title="admit.ProjectManager.ProjectManager.getProjectId"><code class="xref py py-obj docutils literal"><span class="pre">getProjectId</span></code></a>(baseDir)</td>
+<td>Retrieves project ID number given the base directory.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.ProjectManager.ProjectManager.removeProject" title="admit.ProjectManager.ProjectManager.removeProject"><code class="xref py py-obj docutils literal"><span class="pre">removeProject</span></code></a>(pid)</td>
+<td>Removes a project.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.ProjectManager.ProjectManager.script" title="admit.ProjectManager.ProjectManager.script"><code class="xref py py-obj docutils literal"><span class="pre">script</span></code></a>(py,&nbsp;baseDir[,&nbsp;proj])</td>
+<td>Generates a Python script recreating the current project manager.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.ProjectManager.ProjectManager.write" title="admit.ProjectManager.ProjectManager.write"><code class="xref py py-obj docutils literal"><span class="pre">write</span></code></a>()</td>
+<td>Writes project XML files.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="admit.ProjectManager.ProjectManager.addProject">
+<code class="descname">addProject</code><span class="sig-paren">(</span><em>baseDir</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/ProjectManager.html#ProjectManager.addProject"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.ProjectManager.ProjectManager.addProject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a project.</p>
+<p>The project must be completely up to date to be accepted.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>baseDir</strong> : str</p>
+<blockquote>
+<div><p>ADMIT project base directory.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">int</p>
+<blockquote class="last">
+<div><p>Project ID number, else -1 if the project was rejected
+(not up-to-date).</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>The up-to-date requirement is a safety feature. Managed projects are
+assumed to be quasi-static since tasks linked from it must provide
+valid BDP output at the root of the associated multiflow.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.ProjectManager.ProjectManager.findTask">
+<code class="descname">findTask</code><span class="sig-paren">(</span><em>pid</em>, <em>isMatch</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/ProjectManager.html#ProjectManager.findTask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.ProjectManager.ProjectManager.findTask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds AT(s) by arbitrary matching criterion.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>pid: int</strong></p>
+<blockquote>
+<div><p>ADMIT project ID number.</p>
+</div></blockquote>
+<p><strong>isMatch: bool functor(AT)</strong></p>
+<blockquote>
+<div><p>Match function (returns True/False given an AT argument).</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">list of ATs</p>
+<blockquote class="last">
+<div><p>ADMIT task reference(s) matching the criterion; may be empty.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.ProjectManager.ProjectManager.findTaskAlias">
+<code class="descname">findTaskAlias</code><span class="sig-paren">(</span><em>pid</em>, <em>alias</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/ProjectManager.html#ProjectManager.findTaskAlias"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.ProjectManager.ProjectManager.findTaskAlias" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds AT(s) by alias.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>pid: int</strong></p>
+<blockquote>
+<div><p>ADMIT project ID number.</p>
+</div></blockquote>
+<p><strong>alias: str</strong></p>
+<blockquote>
+<div><p>Matching task alias.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">list of ATs</p>
+<blockquote class="last">
+<div><p>ADMIT task reference(s) matching the alias; may be empty.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.ProjectManager.ProjectManager.getProjectDir">
+<code class="descname">getProjectDir</code><span class="sig-paren">(</span><em>pid</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/ProjectManager.html#ProjectManager.getProjectDir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.ProjectManager.ProjectManager.getProjectDir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves project base directory given its ID number.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>pid: int</strong></p>
+<blockquote>
+<div><p>Project ID number.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">str</p>
+<blockquote class="last">
+<div><p>Project base directory, else None if project not found.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.ProjectManager.ProjectManager.getProjectId">
+<code class="descname">getProjectId</code><span class="sig-paren">(</span><em>baseDir</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/ProjectManager.html#ProjectManager.getProjectId"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.ProjectManager.ProjectManager.getProjectId" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves project ID number given the base directory.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>baseDir: str</strong></p>
+<blockquote>
+<div><p>Project base directory.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">int</p>
+<blockquote class="last">
+<div><p>Project ID number, else -1 if project not found.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.ProjectManager.ProjectManager.removeProject">
+<code class="descname">removeProject</code><span class="sig-paren">(</span><em>pid</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/ProjectManager.html#ProjectManager.removeProject"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.ProjectManager.ProjectManager.removeProject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes a project.</p>
+<p>The project should not have any tasks still linked in the multiflow.
+Verifying this is the responsibility of the caller (multiflow project).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>pid</strong> : int</p>
+<blockquote>
+<div><p>Project ID number.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">bool</p>
+<blockquote class="last">
+<div><p>True if the project was removed successfully, else False.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>This is a low-level interface not normally called by users.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.ProjectManager.ProjectManager.script">
+<code class="descname">script</code><span class="sig-paren">(</span><em>py</em>, <em>baseDir</em>, <em>proj='p'</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/ProjectManager.html#ProjectManager.script"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.ProjectManager.ProjectManager.script" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates a Python script recreating the current project manager.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>py</strong> : file</p>
+<blockquote>
+<div><p>Open, writable Python file object.</p>
+</div></blockquote>
+<p><strong>baseDir</strong> : str</p>
+<blockquote>
+<div><p>Master project base directory (ending in &#8216;/&#8217;).</p>
+</div></blockquote>
+<p><strong>proj</strong> : str, optional</p>
+<blockquote>
+<div><p>Project variable name; defaults to &#8216;p&#8217;.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>This is a low-level method normally called only by Admit.script().</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.ProjectManager.ProjectManager.write">
+<code class="descname">write</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/ProjectManager.html#ProjectManager.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.ProjectManager.ProjectManager.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes project XML files.</p>
+<p>Project IDs are temporarily reset to zero to avoid polluting
+the parent project XML files.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>Parent projects should be rewritten when a multiflow is run in case
+linked tasks were updated.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/module/admit/ProjectManager.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" >Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

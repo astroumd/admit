@@ -1,0 +1,307 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.at.Flow11_AT &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.at.Flow11_AT</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;**Flow11_AT** --- Test task copying a File_BDP to the output.</span>
+<span class="sd">   -------------------------------------------------------------</span>
+<span class="sd">   </span>
+<span class="sd">   This module defines the Flow11_AT class.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1">#! /usr/bin/env python</span>
+
+<span class="c1"># python system things you need</span>
+<span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">os</span>
+
+<span class="c1"># admit things you always need</span>
+<span class="kn">import</span> <span class="nn">admit.Admit</span> <span class="k">as</span> <span class="nn">admit</span>
+<span class="kn">from</span> <span class="nn">admit.Summary</span> <span class="k">import</span> <span class="n">SummaryEntry</span>
+<span class="kn">from</span> <span class="nn">admit.AT</span> <span class="k">import</span> <span class="n">AT</span>
+<span class="kn">import</span> <span class="nn">admit.util.bdp_types</span> <span class="k">as</span> <span class="nn">bt</span>
+
+<span class="c1"># depending on what BDP&#39;s and AT&#39;s you need, import them here</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.File_BDP</span> <span class="k">import</span> <span class="n">File_BDP</span>
+<span class="kn">from</span> <span class="nn">admit.at.File_AT</span> <span class="k">import</span> <span class="n">File_AT</span>
+
+
+<span class="c1">#</span>
+<span class="c1">#  Flow11_AT is the most simple one-BDP-in one-BDP-out AT.</span>
+<span class="c1">#  See also HelloWorld_AT() for a nicely annotated one</span>
+<span class="c1">#  in our standard admit+python style</span>
+<span class="c1">#  </span>
+<span class="c1">#  This AT is also supposed to work without CASA, hence</span>
+<span class="c1">#  the first line being     &#39;#! /usr/bin/env python&#39; </span>
+<span class="c1">#</span>
+<span class="c1">#  It also contains some routines for testing, and commented out</span>
+<span class="c1">#  code to compare system call vs. native call. Leave those in </span>
+<span class="c1">#  please, but the default code is optimized for speed (native</span>
+<span class="c1">#  calls)</span>
+<span class="c1">#</span>
+
+<div class="viewcode-block" id="Flow11_AT"><a class="viewcode-back" href="../../../module/admit.at/Flow11_AT.html#admit.at.Flow11_AT.Flow11_AT">[docs]</a><span class="k">class</span> <span class="nc">Flow11_AT</span><span class="p">(</span><span class="n">AT</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Flow11_AT will change one File_BDP into another File_BDP,</span>
+<span class="sd">    purely to test or emulate a flow. It will also implement an</span>
+<span class="sd">    example how parameters are added back from the AT to ADMIT</span>
+<span class="sd">    using the summary feature.</span>
+
+<span class="sd">    See also :ref:`Flow-AT-Design` for the design document that</span>
+<span class="sd">    describes the Flow family.</span>
+
+<span class="sd">    Together with Flow1N_AT and FlowN1_AT these are AT&#39;s that take</span>
+<span class="sd">    File_BDP&#39;s as input (1 or N), and produce File_BDP&#39;s </span>
+<span class="sd">    as output (1 or N). </span>
+
+<span class="sd">    Input files pointed to in the BDP&#39;s do not have to exist, but the</span>
+<span class="sd">    AT can be forced to check for those (**exist=True**).</span>
+
+<span class="sd">    Output files listed in the BDP&#39;s can be ignored, but can also</span>
+<span class="sd">    be created as 0-length files (**touch=True**).</span>
+
+<span class="sd">    The use of &quot;**exist**&quot; and &quot;**touch**&quot; thus symmetrizes the way how</span>
+<span class="sd">    the Flow*_AT&#39;s can be used to emulate the dependancy of a flow</span>
+<span class="sd">    on file existence and/or creation.</span>
+
+<span class="sd">    Flow11_AT adds the following to ADMIT summary::</span>
+
+<span class="sd">       datamin: real</span>
+<span class="sd">          The datamin parameter of foobar.</span>
+
+<span class="sd">       datamax: real</span>
+<span class="sd">          The datamin parameter of foobar.</span>
+
+<span class="sd">       rmsmethd: dictionary</span>
+<span class="sd">          A list describing the rms method.</span>
+
+
+<span class="sd">    **Keywords**</span>
+
+<span class="sd">      **file**: string</span>
+<span class="sd">          Output filename created, from which the BDP is named as well</span>
+<span class="sd">          as &quot;&lt;file&gt;.bdp&quot;.  The BDP is always created. The file itself</span>
+<span class="sd">          will depend on the touch= keyword.</span>
+<span class="sd">          If the filename is blank, it will generate an output filename</span>
+<span class="sd">          by appending _11 to the input filename.</span>
+
+<span class="sd">      **touch**: bool</span>
+<span class="sd">          Create a 0-length file that the output BDP will point to [True].</span>
+
+<span class="sd">      **exist**: bool</span>
+<span class="sd">          Input file that belongs to a BDP must exist to pass [True].</span>
+
+<span class="sd">    **Input BDPs**</span>
+
+<span class="sd">      **File_BDP**: count: 1</span>
+<span class="sd">          Test input.</span>
+
+<span class="sd">    **Output BDPs**</span>
+
+<span class="sd">      **File_BDP**: count: 1</span>
+<span class="sd">          Test output.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">**</span><span class="n">keyval</span><span class="p">):</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;file&quot;</span> <span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>      
+                <span class="s2">&quot;touch&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>   
+                <span class="s2">&quot;exist&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>   
+        <span class="n">AT</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">keys</span><span class="p">,</span><span class="n">keyval</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_version</span>   <span class="o">=</span> <span class="s2">&quot;1.0.0&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_bdp_in</span> <span class="p">([(</span><span class="n">File_BDP</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">bt</span><span class="o">.</span><span class="n">REQUIRED</span><span class="p">)])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_bdp_out</span><span class="p">([(</span><span class="n">File_BDP</span><span class="p">,</span><span class="mi">1</span><span class="p">)])</span>
+
+<div class="viewcode-block" id="Flow11_AT.summary"><a class="viewcode-back" href="../../../module/admit.at/Flow11_AT.html#admit.at.Flow11_AT.Flow11_AT.summary">[docs]</a>    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the summary dictionary from the AT, for merging</span>
+<span class="sd">           into the ADMIT Summary object.  </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;_summary&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{}</span></div>
+
+<div class="viewcode-block" id="Flow11_AT.userdata"><a class="viewcode-back" href="../../../module/admit.at/Flow11_AT.html#admit.at.Flow11_AT.Flow11_AT.userdata">[docs]</a>    <span class="k">def</span> <span class="nf">userdata</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the user data dictionary from the AT, for merging</span>
+<span class="sd">           into the ADMIT user data object.  </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;_userdata&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_userdata</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{}</span></div>
+
+
+<div class="viewcode-block" id="Flow11_AT.run"><a class="viewcode-back" href="../../../module/admit.at/Flow11_AT.html#admit.at.Flow11_AT.Flow11_AT.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; **run Flow11_AT** &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">touch1</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot; a native python &quot;touch&quot; barely adds overhead </span>
+<span class="sd">                (maybe 0.2&quot; on 10000 operations)</span>
+<span class="sd">                This is a fast helper function of run</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="nb">print</span> <span class="s2">&quot;run:: TOUCH1&quot;</span><span class="p">,</span><span class="n">fname</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">utime</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span><span class="kc">None</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span><span class="s1">&#39;a&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="k">def</span> <span class="nf">exist1</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot; ensure that a file exists.</span>
+<span class="sd">                This is a fast helper function of run</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span><span class="s1">&#39;run::Flow11_AT: file </span><span class="si">%s</span><span class="s1"> does not exist&#39;</span> <span class="o">%</span> <span class="n">fname</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span> <span class="s2">&quot;run::Flow11_AT file </span><span class="si">%s</span><span class="s2"> exists&quot;</span> <span class="o">%</span> <span class="n">fname</span>
+
+        <span class="c1"># make room for BDP&#39;s</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clearoutput</span><span class="p">()</span>
+
+        <span class="c1"># make sure there is 1 input BDP   (using self.valid_bdp will clean up this code)</span>
+        <span class="c1"># do we need this with self._valid_bdp_in ???</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span><span class="s2">&quot;run::Flow11_AT: need one BDP_in (</span><span class="si">%d</span><span class="s2"> given)&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">)</span>
+
+        <span class="c1"># report </span>
+        <span class="nb">print</span> <span class="s2">&quot;run::Flow11_AT  Input filename: &quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">filename</span>
+
+        <span class="c1"># handle exist= to see if the file needs to exist to run this code</span>
+        <span class="n">exist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s1">&#39;exist&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">exist</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">checkfiles</span><span class="p">()</span>
+
+        <span class="c1"># get the output filename for the output BDP (no automatic naming here)</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s1">&#39;file&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">filename</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span><span class="s1">&#39;run::Flow11_AT  no file= given, there is no default yet&#39;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+          <span class="c1"># derive from input file</span>
+          <span class="n">alias</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alias</span>
+          <span class="n">filename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">filename</span> <span class="o">+</span> <span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="o">+</span><span class="n">alias</span> <span class="k">if</span> <span class="n">alias</span> <span class="k">else</span> <span class="s1">&#39;_11&#39;</span><span class="p">)</span>
+
+        <span class="c1"># create the output BDP</span>
+        <span class="n">bdp1</span> <span class="o">=</span> <span class="n">File_BDP</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="n">bdp1</span><span class="o">.</span><span class="n">filename</span> <span class="o">=</span> <span class="n">filename</span>
+        <span class="n">bdp1</span><span class="o">.</span><span class="n">alpha</span>    <span class="o">=</span> <span class="mf">1.0</span>                <span class="c1"># you can add some attribute, but it won&#39;t be saved in the BDP</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addoutput</span><span class="p">(</span><span class="n">bdp1</span><span class="p">)</span>
+
+        <span class="c1"># handle touch= to ensure the output file exists or has been modified</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s1">&#39;touch&#39;</span><span class="p">):</span> <span class="n">bdp1</span><span class="o">.</span><span class="n">touch</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_userdata</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_userdata</span><span class="p">[</span><span class="s1">&#39;mwptest&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Eye&#39;</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="s1">&#39;Pi&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">summarize</span><span class="p">()</span></div>
+        <span class="c1"># run() all done!</span>
+
+<div class="viewcode-block" id="Flow11_AT.summarize"><a class="viewcode-back" href="../../../module/admit.at/Flow11_AT.html#admit.at.Flow11_AT.Flow11_AT.summarize">[docs]</a>    <span class="k">def</span> <span class="nf">summarize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Convenience function to populate dictionary for</span>
+<span class="sd">           items to add to the ADMIT Summary.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># finally, set some parameters for the ADMIT summary</span>
+        <span class="n">abc_list</span><span class="o">=</span> <span class="p">[</span><span class="s1">&#39;robust&#39;</span><span class="p">,</span> <span class="s1">&#39;chauvenet&#39;</span><span class="p">,</span> <span class="mf">21.3</span><span class="p">,</span> <span class="mi">123</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="s1">&#39;datamin&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SummaryEntry</span><span class="p">(</span><span class="mf">3.14159</span><span class="p">,</span><span class="s2">&quot;Flow11_AT&quot;</span><span class="p">,</span><span class="n">taskid</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">(</span><span class="kc">True</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="s1">&#39;datamax&#39;</span><span class="p">]</span>  <span class="o">=</span> <span class="n">SummaryEntry</span><span class="p">(</span><span class="mf">2.71828</span><span class="p">,</span><span class="s2">&quot;Flow11_AT&quot;</span><span class="p">,</span><span class="n">taskid</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">(</span><span class="kc">True</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="s1">&#39;rmsmethd&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SummaryEntry</span><span class="p">(</span><span class="n">abc_list</span><span class="p">,</span><span class="s2">&quot;Flow11_AT&quot;</span><span class="p">,</span><span class="n">taskid</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">(</span><span class="kc">True</span><span class="p">))</span>
+        <span class="nb">print</span> <span class="s2">&quot;Flow11_AT taskid = </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span></div>
+
+        
+    <span class="c1"># class function(s) for just Flow11 now follow:</span>
+    <span class="c1"># you can also make them functions inside of run</span>
+<div class="viewcode-block" id="Flow11_AT.touch2"><a class="viewcode-back" href="../../../module/admit.at/Flow11_AT.html#admit.at.Flow11_AT.Flow11_AT.touch2">[docs]</a>    <span class="k">def</span> <span class="nf">touch2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">fname</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; a native python &quot;touch&quot; barely adds overhead </span>
+<span class="sd">        (maybe 0.2&quot; on 10000 operations)</span>
+<span class="sd">        This is a helper member function of the class,</span>
+<span class="sd">        compare this with touch1, which is a local</span>
+<span class="sd">        helper function to run().</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">print</span> <span class="s2">&quot;run:: TOUCH2&quot;</span><span class="p">,</span><span class="n">fname</span>
+
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">utime</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span><span class="kc">None</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span><span class="s1">&#39;a&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div></div>
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,208 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The ALMA Data Mining Toolkit &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="#" />
+    <link rel="next" title="Overview of ADMIT" href="userguideintro.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="userguideintro.html" title="Overview of ADMIT"
+             accesskey="N">next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">ADMIT 1.0.6 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="the-alma-data-mining-toolkit">
+<h1>The ALMA Data Mining Toolkit<a class="headerlink" href="#the-alma-data-mining-toolkit" title="Permalink to this headline">¶</a></h1>
+<p>The ALMA Data Mining Toolkit (ADMIT) is a value-added Python software package
+which integrates with the ALMA archive and CASA to provide scientists with
+quick access to traditional science data products such as moment maps,
+as well as with new innovative tools for exploring data cubes and their many
+derived products. The goals of the package are to:</p>
+<ul class="simple">
+<li>make the scientific value of ALMA data more immediate to all users</li>
+<li>create an analysis infrastructure that allows users to build new tools</li>
+<li>provide new types of tools for mining the science in ALMA data</li>
+<li>increase the scientific value of the rich data archive that ALMA is creating</li>
+<li>re-execute and explore the robustness of the initial pipeline results.</li>
+</ul>
+<p>ADMIT is funded as an <a class="reference external" href="https://science.nrao.edu/facilities/alma/alma-development-2015/alma-development/alma-development-north-america">ALMA Development Project,</a>
+and was introduced as version 1.0 in May 2016, with
+a final delivery to NRAO in October 2016 as version 1.1, but under continued development in git.</p>
+<div class="section" id="beginners-user-guide">
+<h2>Beginners&#8217; User Guide<a class="headerlink" href="#beginners-user-guide" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="userguideintro.html">Overview of ADMIT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="userguideintro.html#a-short-summary-of-the-technical-side-of-admit">A Short Summary of the Technical Side of ADMIT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="userguideintro.html#getting-started-with-admit-for-linux-users">Getting Started with ADMIT (for Linux users)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="userguideintro.html#getting-started-with-admit-for-os-x-users">Getting Started with ADMIT (for OS X users)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="userguideintro.html#prepared-admit-recipes">Prepared ADMIT Recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="userguideintro.html#making-an-admit-data-product">Making an ADMIT Data Product</a></li>
+<li class="toctree-l1"><a class="reference internal" href="userguideintro.html#using-admit-scripts">Using ADMIT Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="userguideintro.html#molecular-line-identification">Molecular Line Identification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="userguideintro.html#interacting-with-line-id">Interacting with Line ID</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="userguideintro.html#tier-1-database">Tier 1 Database</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="userguideintro.html#admit-in-your-web-browser">ADMIT in Your Web Browser</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="for-advanced-users">
+<h2>For Advanced Users<a class="headerlink" href="#for-advanced-users" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api.html">Python Scripting Interface (API)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-admit">Module <cite>admit</cite></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-admit-at">Module <cite>admit.at</cite></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-admit-bdp">Module <cite>admit.bdp</cite></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-admit-recipes">Module <cite>admit.recipes</cite></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-admit-util">Module <cite>admit.util</cite></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-admit-util-continuumsubtraction">Module <cite>admit.util.continuumsubtraction</cite></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-admit-util-filter">Module <cite>admit.util.filter</cite></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-admit-util-peakfinder">Module <cite>admit.util.peakfinder</cite></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-admit-util-segmentfinder">Module <cite>admit.util.segmentfinder</cite></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#module-admit-xmlio">Module <cite>admit.xmlio</cite></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="multiflows.html">Multiflow Projects</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="multiflows.html#n-to-1-multiflows">N-to-1 Multiflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="multiflows.html#to-n-multiflows">1-to-N Multiflows</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examplescripts.html">Scripts that show real-world flows</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="examplescripts.html#example-1-ingest-through-lineid-and-moment">Example 1: Ingest through LineID and Moment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examplescripts.html#example-2-adding-optional-continuum-map-input-smooth-and-overlapintegral">Example 2: Adding optional continuum map input, Smooth, and OverlapIntegral</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examplescripts.html#example-3-multiflow">Example 3: Multiflow</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="developer-zone">
+<h2>Developer Zone<a class="headerlink" href="#developer-zone" title="Permalink to this headline">¶</a></h2>
+<p>Information of interest to developers.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installguide.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="design.html">Design Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="style.html">Documentation Style Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">How To Write Your Own ADMIT Task</a></li>
+<li class="toctree-l1"><a class="reference internal" href="casapython.html">Usage of python in CASA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tricks.html">ADMIT tricks and advanced script usage</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="indices">
+<h2>Indices<a class="headerlink" href="#indices" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
+<li><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
+<li><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></li>
+<li><a class="reference external" href="todo.html">Todo List</a></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The ALMA Data Mining Toolkit</a><ul>
+<li><a class="reference internal" href="#beginners-user-guide">Beginners&#8217; User Guide</a></li>
+<li><a class="reference internal" href="#for-advanced-users">For Advanced Users</a></li>
+<li><a class="reference internal" href="#developer-zone">Developer Zone</a></li>
+<li><a class="reference internal" href="#indices">Indices</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Next topic</h4>
+  <p class="topless"><a href="userguideintro.html"
+                        title="next chapter">Overview of ADMIT</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="userguideintro.html" title="Overview of ADMIT"
+             >next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">ADMIT 1.0.6 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,545 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.util.specutil &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.util.specutil</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">  **specutil** --- Module for low-level manipulation of spectral line data.</span>
+<span class="sd">  -------------------------------------------------------------------------</span>
+
+<span class="sd">  This module defines methods used in processing spectral line data.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy.ma</span> <span class="k">as</span> <span class="nn">ma</span>
+<span class="kn">from</span> <span class="nn">Spectrum</span> <span class="k">import</span> <span class="n">Spectrum</span>
+<span class="kn">import</span> <span class="nn">filter.Filter1D</span> <span class="k">as</span> <span class="nn">Filter1D</span>
+<span class="kn">import</span> <span class="nn">bdp_types</span> <span class="k">as</span> <span class="nn">bt</span>
+<span class="kn">import</span> <span class="nn">utils</span>
+<span class="kn">from</span> <span class="nn">segmentfinder</span> <span class="k">import</span> <span class="n">SegmentFinder</span>
+<span class="kn">import</span> <span class="nn">continuumsubtraction.spectral.ContinuumSubtraction</span>
+<span class="kn">from</span> <span class="nn">admit.util</span> <span class="k">import</span> <span class="n">LineData</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+
+<div class="viewcode-block" id="mergestats"><a class="viewcode-back" href="../../../module/admit.util/specutil.html#admit.util.specutil.mergestats">[docs]</a><span class="k">def</span> <span class="nf">mergestats</span><span class="p">(</span><span class="n">s1</span><span class="p">,</span> <span class="n">s2</span><span class="p">,</span> <span class="n">noise</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Method to merge two stats &quot;spectra&quot; into one. Specifically it</span>
+<span class="sd">        is intended to merge the min and max columns from CubeStats by</span>
+<span class="sd">        taking the maximum of max and abs(min).</span>
+<span class="sd">        Giving sensitivity to any absorption lines.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        s1 : numpy array</span>
+<span class="sd">            The &quot;max&quot; array from CubeStats</span>
+
+<span class="sd">        s2 : nump array</span>
+<span class="sd">            The &quot;min&quot; array from CubeStats</span>
+
+<span class="sd">        noise : numpy array</span>
+<span class="sd">            The channel based rms noise</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        numpy array containing the merged spectra</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># create the empty spectrum</span>
+    <span class="n">fullspec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">s1</span><span class="p">))</span>
+    <span class="c1"># make a sigma spectrum of both inputs</span>
+    <span class="n">ts1</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">s1</span><span class="p">)</span> <span class="o">/</span> <span class="n">noise</span>
+    <span class="c1"># change the negative one to positive</span>
+    <span class="n">ts2</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">s2</span><span class="p">)</span> <span class="o">/</span> <span class="n">noise</span>
+    <span class="c1"># merge the two sigma based spectra</span>
+    <span class="c1"># prefer s1, but replace it if s2 is larger than s1</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">s1</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">ts2</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">ts1</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+            <span class="n">fullspec</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">s2</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fullspec</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">s1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">fullspec</span></div>
+
+<div class="viewcode-block" id="getspectrum"><a class="viewcode-back" href="../../../module/admit.util/specutil.html#admit.util.specutil.getspectrum">[docs]</a><span class="k">def</span> <span class="nf">getspectrum</span><span class="p">(</span><span class="n">bdp</span><span class="p">,</span> <span class="n">vlsr</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">smooth</span><span class="o">=</span><span class="p">(),</span> <span class="n">recalc</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">segment</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;ADMIT&quot;</span><span class="p">,</span>
+                                                                 <span class="s2">&quot;minchan&quot;</span><span class="p">:</span><span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;maxgap&quot;</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;numsigma&quot;</span><span class="p">:</span><span class="mf">2.0</span><span class="p">,</span>
+                                                                 <span class="s2">&quot;iterate&quot;</span><span class="p">:</span><span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;nomean&quot;</span><span class="p">:</span><span class="kc">True</span><span class="p">}):</span>
+    <span class="sd">&quot;&quot;&quot; Method to convert an input BDP into a list based spectrum.</span>
+<span class="sd">        The spectrum will be smoothed if requested by the input</span>
+<span class="sd">        parameters.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        bdp : BDP</span>
+<span class="sd">            The input BDP, currently either a CubeSpectrum or CubeStats only.</span>
+
+<span class="sd">        vlsr : float</span>
+<span class="sd">            The velocity of the source.</span>
+<span class="sd">            Default: 0.0</span>
+
+<span class="sd">        smooth : tuple</span>
+<span class="sd">            If smoothing is to be done...</span>
+
+<span class="sd">        recalc : bool</span>
+<span class="sd">            True if the noise is to be recalculted from smoothed spectra</span>
+<span class="sd">            Default: False</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        A series of numpy arrays describing the spectrum.</span>
+<span class="sd">        (freq, chans, spectrum)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># if the input bdp is a cubestats then we get both the max and the min</span>
+    <span class="c1"># value arrays, this make the AT sensitive to both emission and</span>
+    <span class="c1"># absorption lines</span>
+    <span class="n">multi</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="c1"># PJT: bit awkward, previously we needed just a boolean stat,</span>
+    <span class="c1">#      now I&#39;ve used two, but this doesn&#39;t scale well. Why not an enumerated type.</span>
+    <span class="n">pvcorr</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">stat</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="n">bdp</span><span class="o">.</span><span class="n">_type</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">CUBESTATS_BDP</span><span class="p">:</span>
+        <span class="n">stat</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="c1"># get the per channel noise</span>
+        <span class="n">tempsi</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">bdp</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">getColumnByName</span><span class="p">(</span><span class="s2">&quot;sigma&quot;</span><span class="p">,</span> <span class="n">typ</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span> <span class="n">fill_value</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+        <span class="c1"># get the peak values</span>
+        <span class="n">mspectrum</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">bdp</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">getFullColumnByName</span><span class="p">(</span><span class="s2">&quot;max&quot;</span><span class="p">,</span> <span class="n">typ</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span> <span class="o">/</span> <span class="n">tempsi</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+        <span class="c1"># get the minimum values</span>
+        <span class="n">nspectrum</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">bdp</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">getFullColumnByName</span><span class="p">(</span><span class="s2">&quot;min&quot;</span><span class="p">,</span> <span class="n">typ</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">))</span> <span class="o">/</span> <span class="n">tempsi</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+        <span class="n">avgnoise</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">tempsi</span><span class="p">)</span>
+
+        <span class="c1"># merge the peak/minimum into one spectrum</span>
+        <span class="c1">#spectrum = mergestats(mspectrum, nspectrum, tempsi)</span>
+        <span class="n">mspectrum</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">masked_equal</span><span class="p">(</span><span class="n">mspectrum</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="n">nspectrum</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">masked_equal</span><span class="p">(</span><span class="n">nspectrum</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+
+        <span class="c1"># get the frequency for each channel</span>
+        <span class="n">freq</span> <span class="o">=</span> <span class="n">bdp</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">getColumnByName</span><span class="p">(</span><span class="s2">&quot;frequency&quot;</span><span class="p">,</span> <span class="n">typ</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="c1"># get the channel number for each channel</span>
+        <span class="n">chans</span> <span class="o">=</span> <span class="n">bdp</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">getColumnByName</span><span class="p">(</span><span class="s2">&quot;channel&quot;</span><span class="p">,</span> <span class="n">typ</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="c1"># convert the spectrum to a peak/noise (i.e. sigma) valued spectrum</span>
+        <span class="c1">#spectrum /= tempsi</span>
+        <span class="c1"># doppler shift the input spectra, which are in sky frequency, to the proper</span>
+        <span class="c1"># source rest frame</span>
+        <span class="n">freq</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">undoppler</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span> <span class="n">vlsr</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mspectrum</span><span class="o">.</span><span class="n">mask</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mspectrum</span><span class="o">.</span><span class="n">mask</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">):</span>
+            <span class="n">mspectrum</span><span class="o">.</span><span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">mspectrum</span><span class="o">.</span><span class="n">mask</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">mspectrum</span><span class="o">.</span><span class="n">data</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nspectrum</span><span class="o">.</span><span class="n">mask</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nspectrum</span><span class="o">.</span><span class="n">mask</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">):</span>
+            <span class="n">nspectrum</span><span class="o">.</span><span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">nspectrum</span><span class="o">.</span><span class="n">mask</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">nspectrum</span><span class="o">.</span><span class="n">data</span><span class="p">))</span>
+        <span class="n">spec</span> <span class="o">=</span> <span class="p">[</span><span class="n">Spectrum</span><span class="p">(</span><span class="n">mspectrum</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">freq</span><span class="p">),</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">chans</span><span class="p">)),</span>
+                <span class="n">Spectrum</span><span class="p">(</span><span class="n">nspectrum</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">freq</span><span class="p">),</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">chans</span><span class="p">))]</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">spec</span><span class="p">:</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">mask_invalid</span><span class="p">()</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">fix_invalid</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">mask_equal</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+
+            <span class="n">segment</span><span class="p">[</span><span class="s2">&quot;spectrum&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">spec</span><span class="p">()</span>
+            <span class="n">segment</span><span class="p">[</span><span class="s2">&quot;freq&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">freq</span><span class="p">()</span>
+            <span class="n">sfinder</span> <span class="o">=</span> <span class="n">SegmentFinder</span><span class="o">.</span><span class="n">SegmentFinder</span><span class="p">(</span><span class="o">**</span><span class="n">segment</span><span class="p">)</span>
+            <span class="n">sep</span><span class="p">,</span> <span class="n">cut</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">mean</span> <span class="o">=</span> <span class="n">sfinder</span><span class="o">.</span><span class="n">find</span><span class="p">()</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">set_noise</span><span class="p">(</span><span class="n">noise</span><span class="p">)</span>
+
+        <span class="c1"># smooth the spectrum if requested</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">smooth</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">smooth</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">filter</span> <span class="o">=</span> <span class="n">Filter1D</span><span class="o">.</span><span class="n">Filter1D</span><span class="p">(</span><span class="n">spec</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">spec</span><span class="p">(),</span> <span class="n">smooth</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">**</span><span class="n">Filter1D</span><span class="o">.</span><span class="n">Filter1D</span><span class="o">.</span><span class="n">convertargs</span><span class="p">(</span><span class="n">smooth</span><span class="p">))</span>
+            <span class="n">spec</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_spec</span><span class="p">(</span><span class="n">ma</span><span class="o">.</span><span class="n">MaskedArray</span><span class="p">(</span><span class="nb">filter</span><span class="o">.</span><span class="n">run</span><span class="p">(),</span> <span class="n">mspectrum</span><span class="o">.</span><span class="n">mask</span><span class="p">))</span>
+            <span class="nb">filter</span> <span class="o">=</span> <span class="n">Filter1D</span><span class="o">.</span><span class="n">Filter1D</span><span class="p">(</span><span class="n">spec</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">spec</span><span class="p">(),</span> <span class="n">smooth</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">**</span><span class="n">Filter1D</span><span class="o">.</span><span class="n">Filter1D</span><span class="o">.</span><span class="n">convertargs</span><span class="p">(</span><span class="n">smooth</span><span class="p">))</span>
+            <span class="n">spec</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_spec</span><span class="p">(</span><span class="n">ma</span><span class="o">.</span><span class="n">MaskedArray</span><span class="p">(</span><span class="nb">filter</span><span class="o">.</span><span class="n">run</span><span class="p">(),</span> <span class="n">nspectrum</span><span class="o">.</span><span class="n">mask</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">recalc</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">spec</span><span class="p">:</span>
+                    <span class="n">segment</span><span class="p">[</span><span class="s2">&quot;spectrum&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">spec</span><span class="p">()</span>
+                    <span class="n">segment</span><span class="p">[</span><span class="s2">&quot;freq&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">freq</span><span class="p">()</span>
+                    <span class="n">sfinder</span> <span class="o">=</span> <span class="n">SegmentFinder</span><span class="o">.</span><span class="n">SegmentFinder</span><span class="p">(</span><span class="o">**</span><span class="n">segment</span><span class="p">)</span>
+                    <span class="n">sep</span><span class="p">,</span> <span class="n">cut</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">mean</span> <span class="o">=</span> <span class="n">sfinder</span><span class="o">.</span><span class="n">find</span><span class="p">()</span>
+                    <span class="n">s</span><span class="o">.</span><span class="n">set_noise</span><span class="p">(</span><span class="n">noise</span><span class="p">)</span>
+
+    <span class="c1"># if the input bdp is a CubseSpectrum then get all of the available</span>
+    <span class="c1"># spectra</span>
+    <span class="k">elif</span> <span class="n">bdp</span><span class="o">.</span><span class="n">_type</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">CUBESPECTRUM_BDP</span><span class="p">:</span>
+        <span class="n">spectrum</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">bdp</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">getFullColumnByName</span><span class="p">(</span><span class="s2">&quot;flux&quot;</span><span class="p">,</span> <span class="n">typ</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span> <span class="n">fill_value</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+
+        <span class="c1"># get the frequencies of the channels</span>
+        <span class="n">freq</span> <span class="o">=</span> <span class="n">bdp</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">getFullColumnByName</span><span class="p">(</span><span class="s2">&quot;frequency&quot;</span><span class="p">,</span> <span class="n">typ</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="c1"># get the channel number of each channel</span>
+        <span class="n">chans</span> <span class="o">=</span> <span class="n">bdp</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">getFullColumnByName</span><span class="p">(</span><span class="s2">&quot;channel&quot;</span><span class="p">,</span> <span class="n">typ</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="c1"># CubeSpectrum can have more than one spectra</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">spectrum</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">multi</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">spectrum</span><span class="p">)):</span>
+                <span class="n">spectrum</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">masked_equal</span><span class="p">(</span><span class="n">spectrum</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">spectrum</span> <span class="o">=</span> <span class="p">[</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_equal</span><span class="p">(</span><span class="n">spectrum</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)]</span>
+            <span class="n">freq</span> <span class="o">=</span> <span class="p">[</span><span class="n">freq</span><span class="p">]</span>
+            <span class="n">chans</span> <span class="o">=</span> <span class="p">[</span><span class="n">chans</span><span class="p">]</span>
+            <span class="c1"># smooth the spectra if requested</span>
+        <span class="n">spec</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">spectrum</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">spectrum</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">mask</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">spectrum</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">mask</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">):</span>
+                <span class="n">spectrum</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">spectrum</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">mask</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">spectrum</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">)):</span>
+            <span class="c1"># source rest frame</span>
+            <span class="n">freq</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">undoppler</span><span class="p">(</span><span class="n">freq</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">vlsr</span><span class="p">)</span>
+            <span class="n">tempspec</span> <span class="o">=</span> <span class="n">Spectrum</span><span class="p">(</span><span class="n">spectrum</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">freq</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">chans</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">tempspec</span><span class="o">.</span><span class="n">mask_invalid</span><span class="p">()</span>
+            <span class="n">tempspec</span><span class="o">.</span><span class="n">fix_invalid</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+            <span class="n">tempspec</span><span class="o">.</span><span class="n">mask_equal</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+
+
+            <span class="n">segment</span><span class="p">[</span><span class="s2">&quot;spectrum&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tempspec</span><span class="o">.</span><span class="n">spec</span><span class="p">()</span>
+            <span class="n">segment</span><span class="p">[</span><span class="s2">&quot;freq&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tempspec</span><span class="o">.</span><span class="n">freq</span><span class="p">()</span>
+            <span class="n">sfinder</span> <span class="o">=</span> <span class="n">SegmentFinder</span><span class="o">.</span><span class="n">SegmentFinder</span><span class="p">(</span><span class="o">**</span><span class="n">segment</span><span class="p">)</span>
+            <span class="n">sep</span><span class="p">,</span> <span class="n">cut</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">mean</span> <span class="o">=</span> <span class="n">sfinder</span><span class="o">.</span><span class="n">find</span><span class="p">()</span>
+            <span class="n">tempspec</span><span class="o">.</span><span class="n">set_noise</span><span class="p">(</span><span class="n">noise</span><span class="p">)</span>
+            <span class="n">spec</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tempspec</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">smooth</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">smooth</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">spec</span><span class="p">:</span>
+                <span class="nb">filter</span> <span class="o">=</span> <span class="n">Filter1D</span><span class="o">.</span><span class="n">Filter1D</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">spec</span><span class="p">(),</span> <span class="n">smooth</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">**</span><span class="n">Filter1D</span><span class="o">.</span><span class="n">Filter1D</span><span class="o">.</span><span class="n">convertargs</span><span class="p">(</span><span class="n">smooth</span><span class="p">))</span>
+                <span class="n">s</span><span class="o">.</span><span class="n">set_spec</span><span class="p">(</span><span class="n">ma</span><span class="o">.</span><span class="n">MaskedArray</span><span class="p">(</span><span class="nb">filter</span><span class="o">.</span><span class="n">run</span><span class="p">(),</span> <span class="n">mask</span><span class="o">=</span><span class="n">spectrum</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">mask</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">recalc</span><span class="p">:</span>
+                    <span class="n">segment</span><span class="p">[</span><span class="s2">&quot;spectrum&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">spec</span><span class="p">()</span>
+                    <span class="n">segment</span><span class="p">[</span><span class="s2">&quot;freq&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sfreq</span><span class="p">()</span>
+                    <span class="n">sfinder</span> <span class="o">=</span> <span class="n">SegmentFinder</span><span class="o">.</span><span class="n">SegmentFinder</span><span class="p">(</span><span class="o">**</span><span class="n">segment</span><span class="p">)</span>
+                    <span class="n">sep</span><span class="p">,</span> <span class="n">cut</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">mean</span> <span class="o">=</span> <span class="n">sfinder</span><span class="o">.</span><span class="n">find</span><span class="p">()</span>
+                    <span class="n">s</span><span class="o">.</span><span class="n">set_noise</span><span class="p">(</span><span class="n">noise</span><span class="p">)</span>
+                    
+        <span class="c1"># doppler shift the input spectra, which are in sky frequency, to the proper</span>
+    <span class="k">elif</span> <span class="n">bdp</span><span class="o">.</span><span class="n">_type</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">PVCORR_BDP</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">bdp</span><span class="o">.</span><span class="n">table</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="n">pvcorr</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">chans</span> <span class="o">=</span> <span class="n">bdp</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">getColumnByName</span><span class="p">(</span><span class="s2">&quot;channel&quot;</span><span class="p">,</span> <span class="n">typ</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="n">freq</span> <span class="o">=</span> <span class="n">bdp</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">getColumnByName</span><span class="p">(</span><span class="s2">&quot;frequency&quot;</span><span class="p">,</span> <span class="n">typ</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="n">spectrum</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">bdp</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">getFullColumnByName</span><span class="p">(</span><span class="s2">&quot;pvcorr&quot;</span><span class="p">,</span> <span class="n">typ</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span> <span class="n">fill_value</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+        <span class="c1"># doppler shift the input spectra, which are in sky frequency, to the proper</span>
+        <span class="c1"># source rest frame</span>
+        <span class="n">freq</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">undoppler</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span> <span class="n">vlsr</span><span class="p">)</span>
+        <span class="n">spectrum</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">masked_equal</span><span class="p">(</span><span class="n">spectrum</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="n">spec</span> <span class="o">=</span> <span class="n">Spectrum</span><span class="p">(</span><span class="n">spectrum</span><span class="p">,</span> <span class="n">freq</span><span class="p">,</span> <span class="n">chans</span><span class="p">)</span>
+        <span class="n">spec</span><span class="o">.</span><span class="n">mask_invalid</span><span class="p">()</span>
+        <span class="n">spec</span><span class="o">.</span><span class="n">fix_invalid</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+        <span class="n">spec</span><span class="o">.</span><span class="n">mask_equal</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Data from BDP type </span><span class="si">%s</span><span class="s2"> is not supported.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">bdp</span><span class="o">.</span><span class="n">_type</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">spec</span></div>
+
+
+<div class="viewcode-block" id="getinfo"><a class="viewcode-back" href="../../../module/admit.util/specutil.html#admit.util.specutil.getinfo">[docs]</a><span class="k">def</span> <span class="nf">getinfo</span><span class="p">(</span><span class="n">segment</span><span class="p">,</span> <span class="n">spec</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Method to get basic information about a spectral line that was only</span>
+<span class="sd">        detected by segment detection. Calculates the peak intensity, the</span>
+<span class="sd">        sigma of the peak, and the very rough FWHM of the line.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        segment : list</span>
+<span class="sd">            List of two points (the start and end of the segement)</span>
+
+<span class="sd">        spec : a single admit.util.Spectrum or list of admit.util.Spectrum.</span>
+<span class="sd">               If a list, the Spectrum with the highest peak (or lowest in case of absorption spectrum) will be used.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Tuple containing the peak intensity, sigma, and FHWM in km/s of the</span>
+<span class="sd">        line</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">spec</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">return</span> <span class="kc">None</span><span class="p">,</span><span class="kc">None</span><span class="p">,</span><span class="kc">None</span>
+    <span class="n">peak</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">ratio</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">rms</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">fwhm</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">end</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="n">pkloc</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># find the strongest peak from all input spectra</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">spec</span><span class="p">)):</span>
+            <span class="n">tmp</span> <span class="o">=</span> <span class="n">spec</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">peak</span><span class="p">(</span><span class="n">segment</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">tmp</span> <span class="o">&gt;</span> <span class="n">peak</span><span class="p">:</span>
+                <span class="n">pkloc</span> <span class="o">=</span> <span class="n">i</span>
+                <span class="n">peak</span> <span class="o">=</span> <span class="n">tmp</span>
+        <span class="n">thespectrum</span> <span class="o">=</span> <span class="n">spec</span><span class="p">[</span><span class="n">pkloc</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">thespectrum</span> <span class="o">=</span> <span class="n">spec</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">thespectrum</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">rms</span>  <span class="o">=</span> <span class="n">thespectrum</span><span class="o">.</span><span class="n">rms</span><span class="p">()</span>
+        <span class="c1">#print(&quot;Specinfo nchan=%d, rms = %f&quot; % (segment[1]-segment[0],rms))</span>
+        <span class="n">peak</span> <span class="o">=</span> <span class="n">thespectrum</span><span class="o">.</span><span class="n">peak</span><span class="p">(</span><span class="n">segment</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">rms</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="n">ratio</span> <span class="o">=</span> <span class="n">peak</span><span class="o">/</span><span class="n">rms</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ratio</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">fwhm</span> <span class="o">=</span> <span class="n">thespectrum</span><span class="o">.</span><span class="n">fwhm</span><span class="p">(</span><span class="n">segment</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+
+    <span class="k">return</span> <span class="n">peak</span><span class="p">,</span> <span class="n">ratio</span><span class="p">,</span> <span class="n">fwhm</span></div>
+
+<span class="c1"># @todo just use **keyval here?</span>
+<div class="viewcode-block" id="findsegments"><a class="viewcode-back" href="../../../module/admit.util/specutil.html#admit.util.specutil.findsegments">[docs]</a><span class="k">def</span> <span class="nf">findsegments</span><span class="p">(</span><span class="n">spectra</span><span class="p">,</span><span class="n">method</span><span class="p">,</span><span class="n">minchan</span><span class="p">,</span><span class="n">maxgap</span><span class="p">,</span><span class="n">numsigma</span><span class="p">,</span><span class="n">iterate</span><span class="p">,</span><span class="n">noise</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Call Segmentfinder with specific options. Used by LineID_AT</span>
+<span class="sd">       and LineSegment_AT</span>
+
+<span class="sd">       Parameters</span>
+<span class="sd">       ----------</span>
+<span class="sd">          spectra : list </span>
+<span class="sd">             list of input spectra </span>
+
+<span class="sd">          method  : string</span>
+<span class="sd">             segment finding method</span>
+
+<span class="sd">          maxgap  : int</span>
+<span class="sd">             maximum channel gap between segments</span>
+
+<span class="sd">          numsigma : float</span>
+<span class="sd">             level cutoff for finding segments, measured in number of 1 sigma rms noise</span>
+
+<span class="sd">          iterate  : boolean </span>
+
+<span class="sd">          noise : float </span>
+<span class="sd">             noise level to use. Default: None, noise is calculated</span>
+<span class="sd">     </span>
+<span class="sd">       Returns</span>
+<span class="sd">       -------</span>
+<span class="sd">         list of [(separation,cutoff,noise,mean)] tuples as returned by SegmentFinder.find(), indexed to input spectra</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">vals</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">spec</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">spectra</span><span class="p">):</span>
+        <span class="n">sfinder</span> <span class="o">=</span> <span class="n">SegmentFinder</span><span class="o">.</span><span class="n">SegmentFinder</span><span class="p">(</span><span class="n">spectrum</span><span class="o">=</span><span class="n">spec</span><span class="o">.</span><span class="n">spec</span><span class="p">(),</span>
+                                              <span class="n">freq</span><span class="o">=</span><span class="n">spec</span><span class="o">.</span><span class="n">freq</span><span class="p">(),</span>
+                                              <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span>
+                                              <span class="n">minchan</span><span class="o">=</span><span class="n">minchan</span><span class="p">,</span>
+                                              <span class="n">maxgap</span><span class="o">=</span><span class="n">maxgap</span><span class="p">,</span>
+                                              <span class="n">numsigma</span><span class="o">=</span><span class="n">numsigma</span><span class="p">,</span>
+                                              <span class="n">iterate</span><span class="o">=</span><span class="n">iterate</span><span class="p">,</span> 
+                                              <span class="n">nomean</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                              <span class="n">noise</span><span class="o">=</span><span class="n">noise</span><span class="p">)</span>
+
+        <span class="n">vals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sfinder</span><span class="o">.</span><span class="n">find</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">vals</span></div>
+
+<div class="viewcode-block" id="contsub"><a class="viewcode-back" href="../../../module/admit.util/specutil.html#admit.util.specutil.contsub">[docs]</a><span class="k">def</span> <span class="nf">contsub</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="n">spectra</span><span class="p">,</span> <span class="n">segmentfinder</span><span class="p">,</span> <span class="n">segargs</span><span class="p">,</span> <span class="n">algorithm</span><span class="p">,</span> <span class="o">**</span><span class="n">keyval</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Do continuum  subtraction with specific arguments.  Used by LineID_AT</span>
+<span class="sd">        and LineSegment_AT</span>
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            id : int</span>
+<span class="sd">                Task id of the AT calling this method</span>
+
+<span class="sd">            spectra : list</span>
+<span class="sd">                List of spectra to run continuum subtraction on</span>
+
+<span class="sd">            segmentfinder : str</span>
+<span class="sd">                The segment finder to use (i.e. ADMIT, ASAP, etc.)</span>
+
+<span class="sd">            segargs : dict</span>
+<span class="sd">                Dictionary containing the arguments for the segmentfinder</span>
+
+<span class="sd">            algorithm : str</span>
+<span class="sd">                The continuum finding algorithm to use (i.e. PolyFit, SplineFit, SVD_Vander, etc.)</span>
+
+<span class="sd">            keyval : dict</span>
+<span class="sd">                Dictionary containing the arguments for the continuum finding algorithm</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">spec</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">spectra</span><span class="p">):</span>
+        <span class="n">csub</span> <span class="o">=</span> <span class="n">continuumsubtraction</span><span class="o">.</span><span class="n">spectral</span><span class="o">.</span><span class="n">ContinuumSubtraction</span><span class="p">()</span>
+        <span class="n">spec</span><span class="o">.</span><span class="n">set_contin</span><span class="p">(</span><span class="n">csub</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="n">spec</span><span class="o">.</span><span class="n">spec</span><span class="p">(),</span> <span class="n">spec</span><span class="o">.</span><span class="n">freq</span><span class="p">(),</span> <span class="n">segmentfinder</span><span class="p">,</span> <span class="n">segargs</span><span class="p">,</span> <span class="n">algorithm</span><span class="p">,</span> <span class="o">**</span><span class="n">keyval</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="mergefreq"><a class="viewcode-back" href="../../../module/admit.util/specutil.html#admit.util.specutil.mergefreq">[docs]</a><span class="k">def</span> <span class="nf">mergefreq</span><span class="p">(</span><span class="n">globalfreq</span><span class="p">,</span> <span class="n">globalchan</span><span class="p">,</span> <span class="n">freq</span><span class="p">,</span> <span class="n">chan</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Method to merge the frequency and channel axes from input spectra into a single global</span>
+<span class="sd">        set.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        globalfreq : array like</span>
+<span class="sd">            The global set of frequencies, may be empty if first time</span>
+
+<span class="sd">        globalchan : array like</span>
+<span class="sd">            The global set of channels, may be empty if first time</span>
+
+<span class="sd">        freq : array like</span>
+<span class="sd">            The frequency axis to add to the global set</span>
+
+<span class="sd">        chan : array like</span>
+<span class="sd">            The channel axis to add to the global set</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        (globalfreq, globalchan) as numpy array tuple</span>
+<span class="sd">        @todo return it as same type as came in? </span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># if this is the first time, then initialize the array</span>
+    <span class="k">if</span> <span class="n">globalfreq</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">globalchan</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">globalfreq</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">globalchan</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">freq</span><span class="p">),</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">chan</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># otherwise merge in the new frequency axis, extending as needed</span>
+        <span class="k">if</span> <span class="n">globalfreq</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">globalfreq</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">freq</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">globalfreq</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">)):</span>
+                    <span class="k">if</span> <span class="n">freq</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">globalfreq</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                        <span class="n">i</span> <span class="o">-=</span> <span class="mi">1</span>
+                        <span class="k">break</span>
+                <span class="n">globalfreq</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">freq</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">i</span><span class="p">],</span> <span class="n">globalfreq</span><span class="p">))</span>
+                <span class="n">globalchan</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">chan</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">i</span><span class="p">],</span> <span class="n">globalchan</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">freq</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">globalfreq</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">freq</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">globalfreq</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                        <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+                        <span class="k">break</span>
+                <span class="n">globalfreq</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">globalfreq</span><span class="p">,</span> <span class="n">freq</span><span class="p">[</span><span class="n">i</span><span class="p">:]))</span>
+                <span class="n">globalchan</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">globalchan</span><span class="p">,</span> <span class="n">chan</span><span class="p">[</span><span class="n">i</span><span class="p">:]))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">freq</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">globalfreq</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">)):</span>
+                    <span class="k">if</span> <span class="n">freq</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">globalfreq</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                        <span class="n">i</span> <span class="o">-=</span> <span class="mi">1</span>
+                        <span class="k">break</span>
+                <span class="n">globalfreq</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">freq</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">i</span><span class="p">],</span> <span class="n">globalfreq</span><span class="p">))</span>
+                <span class="n">globalchan</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">chan</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">i</span><span class="p">],</span> <span class="n">globalchan</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">freq</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">globalfreq</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">freq</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">globalfreq</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                        <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+                        <span class="k">break</span>
+                <span class="n">globalfreq</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">globalfreq</span><span class="p">,</span> <span class="n">freq</span><span class="p">[</span><span class="n">i</span><span class="p">:]))</span>
+                <span class="n">globalchan</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">globalchan</span><span class="p">,</span> <span class="n">chan</span><span class="p">[</span><span class="n">i</span><span class="p">:]))</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">globalfreq</span><span class="p">,</span> <span class="n">globalchan</span><span class="p">)</span></div>
+    
+
+<div class="viewcode-block" id="linedatafromsegments"><a class="viewcode-back" href="../../../module/admit.util/specutil.html#admit.util.specutil.linedatafromsegments">[docs]</a><span class="k">def</span> <span class="nf">linedatafromsegments</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span><span class="n">chan</span><span class="p">,</span><span class="n">segments</span><span class="p">,</span><span class="n">specs</span><span class="p">,</span><span class="n">statspec</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Common method used by LineSegment_AT and LineID_AT to construct</span>
+<span class="sd">    LineData from an input list of segments.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        freq : array like</span>
+<span class="sd">            The global frequency axis of the input segments</span>
+
+<span class="sd">        chan : array like</span>
+<span class="sd">            The global channel axis of the input segments</span>
+
+<span class="sd">        segments: array like</span>
+<span class="sd">            The input segments, as returned from e.g. mergesegments</span>
+
+<span class="sd">        specs : Spectrum</span>
+<span class="sd">            Array of spectra or single spectrum</span>
+
+<span class="sd">        statspec : Spectrum</span>
+<span class="sd">            Optional Cubestats spectrum</span>
+<span class="sd">    </span>
+<span class="sd">        Returns</span>
+<span class="sd">        --------</span>
+<span class="sd">        List of LineData objects constructed from input segments</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">segments</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">chan</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">chan</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">ch</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="k">break</span>
+        <span class="n">mn</span> <span class="o">=</span> <span class="n">i</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">chan</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">chan</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">ch</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="k">break</span>
+        <span class="n">mx</span> <span class="o">=</span> <span class="n">i</span>
+        <span class="n">frq</span> <span class="o">=</span> <span class="p">[</span><span class="nb">min</span><span class="p">(</span><span class="n">freq</span><span class="p">[</span><span class="n">mn</span><span class="p">],</span> <span class="n">freq</span><span class="p">[</span><span class="n">mx</span><span class="p">]),</span>
+                      <span class="nb">max</span><span class="p">(</span><span class="n">freq</span><span class="p">[</span><span class="n">mn</span><span class="p">],</span> <span class="n">freq</span><span class="p">[</span><span class="n">mx</span><span class="p">])]</span>
+        <span class="n">mid</span> <span class="o">=</span> <span class="p">(</span><span class="n">frq</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">frq</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mf">2.0</span>
+        <span class="k">if</span> <span class="n">statspec</span> <span class="o">!=</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">statspec</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">peak</span><span class="p">,</span> <span class="n">ratio</span><span class="p">,</span> <span class="n">fwhm</span> <span class="o">=</span> <span class="n">getinfo</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="n">statspec</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">peak</span><span class="p">,</span> <span class="n">ratio</span><span class="p">,</span> <span class="n">fwhm</span> <span class="o">=</span> <span class="n">getinfo</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="n">specs</span><span class="p">)</span>
+        <span class="n">lname</span> <span class="o">=</span> <span class="s2">&quot;U_</span><span class="si">%.3f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">mid</span>
+        <span class="n">linedata</span> <span class="o">=</span> <span class="n">LineData</span><span class="o">.</span><span class="n">LineData</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">mid</span><span class="p">),</span> <span class="n">uid</span><span class="o">=</span><span class="n">lname</span><span class="p">,</span> <span class="n">formula</span><span class="o">=</span><span class="s2">&quot;NotIdentified&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Not Identified&quot;</span><span class="p">,</span> <span class="n">plain</span><span class="o">=</span><span class="s2">&quot;N/A&quot;</span><span class="p">,</span> <span class="n">peakintensity</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">peak</span><span class="p">),</span> <span class="n">fwhm</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">fwhm</span><span class="p">),</span> <span class="n">chans</span><span class="o">=</span><span class="p">[</span><span class="n">ch</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ch</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="n">peakrms</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">ratio</span><span class="p">))</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">linedata</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">lines</span></div>
+
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

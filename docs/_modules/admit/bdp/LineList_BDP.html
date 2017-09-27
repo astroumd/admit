@@ -1,0 +1,385 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.bdp.LineList_BDP &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.bdp.LineList_BDP</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; **LineList_BDP** --- LineID_AT data (line information and spectra).</span>
+<span class="sd">    -------------------------------------------------------------------</span>
+
+<span class="sd">    This module defines the LineList_BDP class.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># system imports</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+
+<span class="c1"># ADMIT imports</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.Table_BDP</span> <span class="k">import</span> <span class="n">Table_BDP</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.Image_BDP</span> <span class="k">import</span> <span class="n">Image_BDP</span>
+<span class="kn">from</span> <span class="nn">admit.util.Table</span> <span class="k">import</span> <span class="n">Table</span>
+<span class="kn">from</span> <span class="nn">admit.util</span> <span class="k">import</span> <span class="n">Spectrum</span>
+<span class="kn">import</span> <span class="nn">admit.util.utils</span> <span class="k">as</span> <span class="nn">utils</span>
+<span class="kn">from</span> <span class="nn">admit.util</span> <span class="k">import</span> <span class="n">LineData</span>
+
+
+<div class="viewcode-block" id="LineList_BDP"><a class="viewcode-back" href="../../../module/admit.bdp/LineList_BDP.html#admit.bdp.LineList_BDP.LineList_BDP">[docs]</a><span class="k">class</span> <span class="nc">LineList_BDP</span><span class="p">(</span><span class="n">Table_BDP</span><span class="p">,</span> <span class="n">Image_BDP</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; LineList BDP class.</span>
+
+<span class="sd">        This class contains a list of spectral lines identified by the LineID</span>
+<span class="sd">        AT. The columns in the table are: fullname (name of the molecule &quot;U&quot;</span>
+<span class="sd">        for unknown), formula (chemical formula), frequency (rest frequency in</span>
+<span class="sd">        GHz), uid (unique identifier consisting of the formula and rest</span>
+<span class="sd">        frequency), transition (molecular, vibrational or electronic</span>
+<span class="sd">        transition), velocity (relative to the rest velocity), El (lower state</span>
+<span class="sd">        energy in K), Eu (upper state energy in K), linestrength (line</span>
+<span class="sd">        strength of the transition in Debye^2), peakintensity (peak intensity</span>
+<span class="sd">        of the transition in Jy/bm), peakoffset (offset of the peak from rest</span>
+<span class="sd">        in km/s), fwhm (full width half max of the line in km/s), startchan</span>
+<span class="sd">        (starting channel in the spectral window), endchan (ending channel in</span>
+<span class="sd">        the spectral window), and sigma (intensity of the line relative to the</span>
+<span class="sd">        noise level).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        xmlFile : str</span>
+<span class="sd">            Output XML file name.</span>
+
+<span class="sd">        keyval : dict</span>
+<span class="sd">            Dictionary of keyword:value pairs.</span>
+
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        table : Table</span>
+<span class="sd">            Instance of the Table class to hold the spectral line information.</span>
+
+<span class="sd">        veltype : str</span>
+<span class="sd">            Velocity definition used for the spectrum.</span>
+<span class="sd">            Default: &quot;vlsr&quot;</span>
+
+<span class="sd">        ra : str</span>
+<span class="sd">            The RA of where the spectrum was taken.</span>
+<span class="sd">            Default: &quot;&quot;</span>
+
+<span class="sd">        dec : str</span>
+<span class="sd">            The declination of where the spectrum was taken.</span>
+<span class="sd">            Default: &quot;&quot;</span>
+
+<span class="sd">        spectra : Table</span>
+<span class="sd">            Instance of the Table class to hold spectra.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xmlFile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">keyval</span><span class="p">):</span>
+        <span class="n">Table_BDP</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xmlFile</span><span class="p">)</span>
+        <span class="n">Image_BDP</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xmlFile</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">veltype</span> <span class="o">=</span> <span class="s2">&quot;vlsr&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ra</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dec</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;columns&quot;</span><span class="p">,</span> <span class="n">utils</span><span class="o">.</span><span class="n">linelist_columns</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;units&quot;</span><span class="p">,</span> <span class="n">utils</span><span class="o">.</span><span class="n">linelist_units</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Identified Spectral Lines&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spectra</span> <span class="o">=</span> <span class="n">Table</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spectra</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;columns&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;channel&quot;</span><span class="p">,</span> <span class="s2">&quot;frequency&quot;</span><span class="p">,</span> <span class="s2">&quot;intensity&quot;</span><span class="p">,</span>
+                                        <span class="s2">&quot;mask&quot;</span><span class="p">,</span> <span class="s2">&quot;continuum&quot;</span><span class="p">,</span> <span class="s2">&quot;noise&quot;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spectra</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;units&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;GHz&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="n">keyval</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_version</span><span class="o">=</span> <span class="s2">&quot;0.2.0&quot;</span>
+
+<div class="viewcode-block" id="LineList_BDP.addSpectrum"><a class="viewcode-back" href="../../../module/admit.bdp/LineList_BDP.html#admit.bdp.LineList_BDP.LineList_BDP.addSpectrum">[docs]</a>    <span class="k">def</span> <span class="nf">addSpectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spectrum</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to add a spectrum to the BDP</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            spectrum : Spectrum object</span>
+<span class="sd">                The spectrum to add to the BDP</span>
+
+<span class="sd">            name : str</span>
+<span class="sd">                The name of the spectrum to add (e.g. cubestats)</span>
+
+<span class="sd">            replace : bool</span>
+<span class="sd">                If True replace the spectrum with the existing name.</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># turn the data into a table plane</span>
+        <span class="n">contin</span> <span class="o">=</span> <span class="n">spectrum</span><span class="o">.</span><span class="n">contin</span><span class="p">(</span><span class="n">masked</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">contin</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">contin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">spectrum</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">contin</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">contin</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+            <span class="n">contin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">contin</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">spectrum</span><span class="p">))</span>
+        <span class="n">noise</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">spectrum</span><span class="o">.</span><span class="n">noise</span><span class="p">()]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">spectrum</span><span class="p">))</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">((</span><span class="n">spectrum</span><span class="o">.</span><span class="n">chans</span><span class="p">(</span><span class="kc">False</span><span class="p">),</span> <span class="n">spectrum</span><span class="o">.</span><span class="n">freq</span><span class="p">(</span><span class="kc">False</span><span class="p">),</span>
+                                <span class="n">spectrum</span><span class="o">.</span><span class="n">spec</span><span class="p">(</span><span class="n">csub</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">masked</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+                                <span class="n">spectrum</span><span class="o">.</span><span class="n">mask</span><span class="p">(),</span> <span class="n">contin</span><span class="p">,</span> <span class="n">noise</span><span class="p">))</span>
+
+        <span class="c1"># see if a plane already exists with the given name</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">spectra</span><span class="o">.</span><span class="n">planes</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">replace</span><span class="p">:</span>
+                <span class="nb">print</span> <span class="s2">&quot;NOT IMPLEMENTED YET&quot;</span>
+                <span class="c1">#self.spectra.replace(name, spectrum)</span>
+                <span class="k">return</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Name </span><span class="si">%s</span><span class="s2"> already exists in Table.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">))</span>
+        <span class="c1"># if this is the first one</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">spectra</span><span class="o">.</span><span class="n">shape</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">spectra</span><span class="o">.</span><span class="n">addPlane</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="n">chans</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">chans</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spectra</span><span class="o">.</span><span class="n">getColumnByName</span><span class="p">(</span><span class="s2">&quot;channel&quot;</span><span class="p">,</span> <span class="n">typ</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">))</span>
+        <span class="c1"># since all planes must have the same shape (numpy restriction) then make sure that they</span>
+        <span class="c1"># all have the same shape before trying to combine them</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">chans</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">spectrum</span><span class="o">.</span><span class="n">chans</span><span class="p">())</span> <span class="ow">and</span> <span class="n">chans</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">spectrum</span><span class="o">.</span><span class="n">chans</span><span class="p">(</span><span class="kc">False</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">and</span> \
+           <span class="n">chans</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">spectrum</span><span class="o">.</span><span class="n">chans</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">spectra</span><span class="o">.</span><span class="n">addPlane</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="c1"># they are not the same shape (length really) then the shorter ones need to be padded at</span>
+        <span class="c1"># one or both ends</span>
+        <span class="c1"># check for alignment of the channel axis</span>
+        <span class="n">prependspec</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">chans</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">spectrum</span><span class="o">.</span><span class="n">chans</span><span class="p">(</span><span class="kc">False</span><span class="p">)[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="n">appendspec</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">spectrum</span><span class="o">.</span><span class="n">chans</span><span class="p">(</span><span class="kc">False</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">chans</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="n">prependdata</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">spectrum</span><span class="o">.</span><span class="n">chans</span><span class="p">(</span><span class="kc">False</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">chans</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="n">appenddata</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">chans</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">spectrum</span><span class="o">.</span><span class="n">chans</span><span class="p">(</span><span class="kc">False</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+
+        <span class="n">finaldata</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c1"># if the plane being added is smaller then pad it by taking the entries from the main table</span>
+        <span class="c1"># setting the spectra to 0.0 and set the mask to True (bad data)</span>
+        <span class="k">if</span> <span class="n">appenddata</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">prependdata</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">temp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spectra</span><span class="o">.</span><span class="n">getPlane</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">pps</span> <span class="o">=</span> <span class="n">temp</span><span class="p">[:</span><span class="n">prependdata</span><span class="p">]</span>
+            <span class="n">pps</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="n">pps</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">pps</span><span class="p">[:,</span> <span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="k">if</span> <span class="n">appenddata</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">aps</span> <span class="o">=</span> <span class="n">temp</span><span class="p">[</span><span class="o">-</span><span class="n">appenddata</span><span class="p">:]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">aps</span> <span class="o">=</span> <span class="n">temp</span><span class="p">[:</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">aps</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="n">aps</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">aps</span><span class="p">[:,</span> <span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+            <span class="n">finaldata</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">pps</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">aps</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">finaldata</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span>
+
+        <span class="c1"># if the main table is smaller then pad all planes by taking the entries from the new plane</span>
+        <span class="c1"># setting the spectra to 0.0 and set the mask to True (bad data)</span>
+        <span class="k">if</span> <span class="n">prependspec</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">appendspec</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">spec</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spectra</span><span class="o">.</span><span class="n">shape</span><span class="p">())</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">spec</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">spectra</span><span class="o">.</span><span class="n">planes</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spectra</span><span class="o">.</span><span class="n">getPlane</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spectra</span><span class="o">.</span><span class="n">shape</span><span class="p">()[</span><span class="mi">2</span><span class="p">]):</span>
+                    <span class="n">spec</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">spectra</span><span class="o">.</span><span class="n">planes</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spectra</span><span class="o">.</span><span class="n">getPlane</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">spectra</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+            <span class="n">pps</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:</span><span class="n">prependspec</span><span class="p">]</span>
+            <span class="n">pps</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="n">pps</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">pps</span><span class="p">[:,</span> <span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="k">if</span> <span class="n">appendspec</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">aps</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="n">appendspec</span><span class="p">:]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">aps</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">aps</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="n">aps</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">aps</span><span class="p">[:,</span> <span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="k">for</span> <span class="n">sname</span><span class="p">,</span> <span class="n">values</span> <span class="ow">in</span> <span class="n">spec</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+                <span class="n">finaldata</span><span class="p">[</span><span class="n">sname</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">pps</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">aps</span><span class="p">))</span>
+
+        <span class="c1"># put it all together</span>
+        <span class="k">for</span> <span class="n">pname</span><span class="p">,</span> <span class="n">plane</span> <span class="ow">in</span> <span class="n">finaldata</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">spectra</span><span class="o">.</span><span class="n">addPlane</span><span class="p">(</span><span class="n">plane</span><span class="p">,</span> <span class="n">pname</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LineList_BDP.getSpectraNames"><a class="viewcode-back" href="../../../module/admit.bdp/LineList_BDP.html#admit.bdp.LineList_BDP.LineList_BDP.getSpectraNames">[docs]</a>    <span class="k">def</span> <span class="nf">getSpectraNames</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to get the names of the spectra</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            List of strings containing the names</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">spectra</span><span class="o">.</span><span class="n">planes</span></div>
+
+<div class="viewcode-block" id="LineList_BDP.getSpectrum"><a class="viewcode-back" href="../../../module/admit.bdp/LineList_BDP.html#admit.bdp.LineList_BDP.LineList_BDP.getSpectrum">[docs]</a>    <span class="k">def</span> <span class="nf">getSpectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to get a specific spectrum by name</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            name : str</span>
+<span class="sd">                The name of the spectrum to get</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            Spectrum instance containing the spectrum</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">spectra</span><span class="o">.</span><span class="n">planes</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Spectrum </span><span class="si">%s</span><span class="s2"> does not exist.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">))</span>
+        <span class="n">plane</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spectra</span><span class="o">.</span><span class="n">planes</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">chans</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spectra</span><span class="o">.</span><span class="n">getColumnByName</span><span class="p">(</span><span class="s2">&quot;channel&quot;</span><span class="p">,</span> <span class="n">plane</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+        <span class="n">freq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spectra</span><span class="o">.</span><span class="n">getColumnByName</span><span class="p">(</span><span class="s2">&quot;frequency&quot;</span><span class="p">,</span> <span class="n">plane</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="n">spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spectra</span><span class="o">.</span><span class="n">getColumnByName</span><span class="p">(</span><span class="s2">&quot;intensity&quot;</span><span class="p">,</span> <span class="n">plane</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spectra</span><span class="o">.</span><span class="n">getColumnByName</span><span class="p">(</span><span class="s2">&quot;mask&quot;</span><span class="p">,</span> <span class="n">plane</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+        <span class="n">noise</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spectra</span><span class="o">.</span><span class="n">getColumnByName</span><span class="p">(</span><span class="s2">&quot;noise&quot;</span><span class="p">,</span> <span class="n">plane</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">contin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spectra</span><span class="o">.</span><span class="n">getColumnByName</span><span class="p">(</span><span class="s2">&quot;continuum&quot;</span><span class="p">,</span> <span class="n">plane</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="n">spectrum</span> <span class="o">=</span> <span class="n">Spectrum</span><span class="p">(</span><span class="n">spec</span><span class="o">=</span><span class="n">spec</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="n">freq</span><span class="p">,</span> <span class="n">chans</span><span class="o">=</span><span class="n">chans</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span>
+                            <span class="n">contin</span><span class="o">=</span><span class="n">contin</span><span class="p">,</span> <span class="n">noise</span><span class="o">=</span><span class="n">noise</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">spectrum</span></div>
+
+<div class="viewcode-block" id="LineList_BDP.addRow"><a class="viewcode-back" href="../../../module/admit.bdp/LineList_BDP.html#admit.bdp.LineList_BDP.LineList_BDP.addRow">[docs]</a>    <span class="k">def</span> <span class="nf">addRow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to add a row to the table</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            row : LineData object</span>
+<span class="sd">                LineData object containing the data</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># build the row from the data</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">utils</span><span class="o">.</span><span class="n">linelist_columns</span><span class="p">:</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="n">col</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">addRow</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">)</span>
+
+<div class="viewcode-block" id="LineList_BDP.getall"><a class="viewcode-back" href="../../../module/admit.bdp/LineList_BDP.html#admit.bdp.LineList_BDP.LineList_BDP.getall">[docs]</a>    <span class="k">def</span> <span class="nf">getall</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to get all rows from the table as a list of LineData objects</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            List of LineData objects, one for each row in the table.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">planes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getSpectraNames</span><span class="p">()</span>
+        <span class="n">tempspec</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">planes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">tempspec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getSpectrum</span><span class="p">(</span><span class="n">planes</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)):</span>
+            <span class="n">row</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">getRow</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="n">ld</span> <span class="o">=</span> <span class="n">LineData</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)],</span>
+                        <span class="n">uid</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;uid&quot;</span><span class="p">)],</span>
+                        <span class="n">transition</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;transition&quot;</span><span class="p">)],</span>
+                        <span class="n">energies</span><span class="o">=</span><span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;El&quot;</span><span class="p">)],</span> <span class="n">row</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;Eu&quot;</span><span class="p">)]],</span>
+                        <span class="n">linestrength</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;linestrength&quot;</span><span class="p">)]),</span>
+                        <span class="n">frequency</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;frequency&quot;</span><span class="p">)]),</span>
+                        <span class="n">blend</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;blend&quot;</span><span class="p">)]),</span>
+                        <span class="n">chans</span><span class="o">=</span><span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;startchan&quot;</span><span class="p">)],</span> <span class="n">row</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;endchan&quot;</span><span class="p">)]],</span>
+                        <span class="n">formula</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;formula&quot;</span><span class="p">)],</span>
+                        <span class="n">velocity</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;velocity&quot;</span><span class="p">)],</span>
+                        <span class="n">peakintensity</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;peakintensity&quot;</span><span class="p">)],</span>
+                        <span class="n">peakoffset</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;peakoffset&quot;</span><span class="p">)],</span>
+                        <span class="n">fwhm</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;fwhm&quot;</span><span class="p">)],</span>
+                        <span class="n">peakrms</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;peakrms&quot;</span><span class="p">)],</span>
+                        <span class="n">force</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;force&quot;</span><span class="p">)])</span>
+            <span class="k">if</span> <span class="n">tempspec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">frqs</span> <span class="o">=</span> <span class="p">[</span><span class="n">tempspec</span><span class="o">.</span><span class="n">getfreq</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;startchan&quot;</span><span class="p">)]),</span>
+                        <span class="n">tempspec</span><span class="o">.</span><span class="n">getfreq</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;endchan&quot;</span><span class="p">)])]</span>
+                <span class="n">frqs</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+                <span class="n">ld</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;freqs&quot;</span><span class="p">,</span> <span class="n">frqs</span><span class="p">)</span>
+            <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ld</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">rows</span></div></div>
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

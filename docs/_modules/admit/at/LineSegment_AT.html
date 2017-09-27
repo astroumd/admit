@@ -1,0 +1,484 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.at.LineSegment_AT &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.at.LineSegment_AT</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; .. _LineSegment-at-api:</span>
+
+<span class="sd">   **LineSegment_AT** --- Finds segments of line emission in spectra.</span>
+<span class="sd">   ------------------------------------------------------------------</span>
+
+<span class="sd">   This module defines the LineSegment_AT class.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># system imports</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="c1"># ADMIT imports</span>
+<span class="kn">import</span> <span class="nn">admit</span>
+<span class="kn">from</span> <span class="nn">admit.AT</span> <span class="k">import</span> <span class="n">AT</span>
+<span class="kn">from</span> <span class="nn">admit.Summary</span> <span class="k">import</span> <span class="n">SummaryEntry</span>
+<span class="kn">from</span> <span class="nn">admit.util</span> <span class="k">import</span> <span class="n">utils</span><span class="p">,</span> <span class="n">specutil</span>
+<span class="kn">import</span> <span class="nn">admit.util.bdp_types</span> <span class="k">as</span> <span class="nn">bt</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.LineSegment_BDP</span> <span class="k">import</span> <span class="n">LineSegment_BDP</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.CubeSpectrum_BDP</span> <span class="k">import</span> <span class="n">CubeSpectrum_BDP</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.CubeStats_BDP</span> <span class="k">import</span> <span class="n">CubeStats_BDP</span>
+<span class="kn">from</span> <span class="nn">admit.util</span> <span class="k">import</span> <span class="n">APlot</span>
+<span class="kn">from</span> <span class="nn">admit.util.Image</span> <span class="k">import</span> <span class="n">Image</span>
+<span class="kn">from</span> <span class="nn">admit.util.AdmitLogging</span> <span class="k">import</span> <span class="n">AdmitLogging</span> <span class="k">as</span> <span class="n">logging</span>
+
+
+<span class="c1">#(see :ref:`tier-one-lineid`).</span>
+<div class="viewcode-block" id="LineSegment_AT"><a class="viewcode-back" href="../../../module/admit.at/LineSegment_AT.html#admit.at.LineSegment_AT.LineSegment_AT">[docs]</a><span class="k">class</span> <span class="nc">LineSegment_AT</span><span class="p">(</span><span class="n">AT</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Task for detecting segments of emission from an input spectrum, given cutoffs based on the rms noise.</span>
+
+<span class="sd">        The produced LineSegment_BDP contains a list of all line segments found in the input spectrum. </span>
+<span class="sd">        Additionally a spectral plot with overlaid segments is produced for each input spectrum.</span>
+
+<span class="sd">        **Keywords**</span>
+<span class="sd">          **numsigma**: float</span>
+<span class="sd">            Minimum intensity, in terms of one sigma rms noise, to consider a given channel</span>
+<span class="sd">            to not be noise. Default: 5.0.</span>
+
+<span class="sd">          **minchan**: int</span>
+<span class="sd">            Minimum number of consecutive channels above numsigma to consider them</span>
+<span class="sd">            part of a line. Default: 5.</span>
+
+<span class="sd">          **maxgap**: int</span>
+<span class="sd">            The maximum gap to allow between clusters of channels to consider</span>
+<span class="sd">            them to be separate lines. Default: 3.</span>
+
+<span class="sd">          **segment**: string</span>
+<span class="sd">            The name of the segment finder algorithm to use; choices are: ASAP</span>
+<span class="sd">            and ADMIT. (see :ref:`asapsegment` and :ref:`admitsegment` for details of each)</span>
+<span class="sd">            Default: &quot;ADMIT&quot;.</span>
+
+<span class="sd">          **smooth**: list</span>
+<span class="sd">            Use this parameter to smooth the input spectrum.  Format is a list containing the name of the </span>
+<span class="sd">            smoothing algorithm followed by the parameters for</span>
+<span class="sd">            the algorithm, given in the order they are defined in the documentation.</span>
+<span class="sd">            The algorithms are: boxcar, gaussian, hanning, savgol, triangle, and welch. </span>
+<span class="sd">            All but savgol take a single integer parameter for the width. See :ref:`filter1D` for </span>
+<span class="sd">            details on the individual algorithms and their keywords. </span>
+<span class="sd">            To do no smoothing, set the value to []. Example: [&quot;boxcar&quot;, 7] will do</span>
+<span class="sd">            a boxcar smooth with a width of 7.</span>
+<span class="sd">            Default: [].</span>
+
+<span class="sd">          **recalcnoise**: bool</span>
+<span class="sd">            A boolean to indicate whether the noise should be recalculated after smoothing. True</span>
+<span class="sd">            indicates that the noise should be recalculated, False indicates that the noise of the</span>
+<span class="sd">            unsmoothed spectrum should be used.</span>
+<span class="sd">            Default: False.</span>
+
+<span class="sd">          **csub**: list</span>
+<span class="sd">            The polynomial order to use for fitting the continuum of CubeStats</span>
+<span class="sd">            and CubeSpec based spectra. All CubeStats based spectra must be</span>
+<span class="sd">            continuum subtracted in order to obtain proper fits (peak, fwhm),</span>
+<span class="sd">            but continuum subtraction for CubeSpectrum based spectra is optional.</span>
+<span class="sd">            The first argument in the list is the order of polynomial to use for</span>
+<span class="sd">            the CubeStats based spectrum and the second is the order of fit to</span>
+<span class="sd">            use for CubeSpec based spectra.</span>
+<span class="sd">            Default: [1, None]  (1st order for CubeStat and no fitting for</span>
+<span class="sd">            Cubespec based spectra).</span>
+
+<span class="sd">          **iterate**: bool</span>
+<span class="sd">            If True then iterate for both the segment finder and the peak finder</span>
+<span class="sd">            to make them both sensitive to wide and strong narrow lines.</span>
+<span class="sd">            Default: True.</span>
+
+<span class="sd">        **Input BDPs**</span>
+<span class="sd">          At least one of the following BDPs must be specified.</span>
+
+<span class="sd">          **CubeSpectrum_BDP**: count: 1 (optional)</span>
+<span class="sd">            Input spectrum, as from `CubeSpectrum_AT &lt;CubeSpectrum_AT.html&gt;`_.</span>
+
+<span class="sd">          **CubeStats_BDP**: count: 1 (optional)</span>
+<span class="sd">            Alternative input spectrum, as from</span>
+<span class="sd">            `CubeStats_AT &lt;CubeStats_AT.html&gt;`_.</span>
+
+<span class="sd">        **Output BDPs**</span>
+
+<span class="sd">          **LineSegment_BDP**: count: 1</span>
+<span class="sd">            List of line segments.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">keyval</span><span class="p">):</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;numsigma&quot;</span>     <span class="p">:</span> <span class="mf">5.0</span><span class="p">,</span>
+                <span class="s2">&quot;minchan&quot;</span>      <span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+                <span class="s2">&quot;maxgap&quot;</span>       <span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+                <span class="s2">&quot;segment&quot;</span>      <span class="p">:</span> <span class="s2">&quot;ADMIT&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;smooth&quot;</span>       <span class="p">:</span> <span class="p">[],</span>
+                <span class="s2">&quot;recalcnoise&quot;</span>  <span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">&quot;csub&quot;</span>         <span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span>
+                <span class="s2">&quot;iterate&quot;</span>      <span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+               <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">boxcar</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">AT</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">keyval</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_version</span> <span class="o">=</span> <span class="s2">&quot;1.0.3&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_bdp_in</span><span class="p">([(</span><span class="n">CubeSpectrum_BDP</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">bt</span><span class="o">.</span><span class="n">OPTIONAL</span><span class="p">),</span>
+                         <span class="p">(</span><span class="n">CubeStats_BDP</span><span class="p">,</span>    <span class="mi">1</span><span class="p">,</span> <span class="n">bt</span><span class="o">.</span><span class="n">OPTIONAL</span><span class="p">)])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_bdp_out</span><span class="p">([(</span><span class="n">LineSegment_BDP</span><span class="p">,</span> <span class="mi">1</span><span class="p">)])</span>
+
+    <span class="k">def</span> <span class="nf">_taskargs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; generate a task argument string for the summary taskbar &quot;&quot;&quot;</span>
+        <span class="n">taskargs</span> <span class="o">=</span> <span class="s2">&quot; numsigma=&quot;</span>    <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;numsigma&quot;</span><span class="p">))</span>
+        <span class="n">taskargs</span> <span class="o">=</span> <span class="n">taskargs</span> <span class="o">+</span> <span class="s2">&quot; minchan=&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;minchan&quot;</span><span class="p">))</span>
+        <span class="n">taskargs</span> <span class="o">=</span> <span class="n">taskargs</span> <span class="o">+</span> <span class="s2">&quot; maxgap=&quot;</span>  <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;maxgap&quot;</span><span class="p">))</span>
+        <span class="c1">#taskargs = taskargs + &quot; segment=&quot; + self.getkey(&quot;segment&quot;)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;smooth&quot;</span><span class="p">))</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+           <span class="n">taskargs</span> <span class="o">=</span> <span class="n">taskargs</span> <span class="o">+</span> <span class="s2">&quot; smooth=&quot;</span>  <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;smooth&quot;</span><span class="p">))</span>
+           <span class="n">taskargs</span> <span class="o">=</span> <span class="n">taskargs</span> <span class="o">+</span> <span class="s2">&quot; recalcnoise=&quot;</span>  <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;recalcnoise&quot;</span><span class="p">))</span>
+        <span class="n">taskargs</span> <span class="o">=</span> <span class="n">taskargs</span> <span class="o">+</span> <span class="s2">&quot; csub=&quot;</span>    <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;csub&quot;</span><span class="p">))</span>
+        <span class="n">taskargs</span> <span class="o">=</span> <span class="n">taskargs</span> <span class="o">+</span> <span class="s2">&quot; iterate=&quot;</span>    <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;iterate&quot;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">taskargs</span>
+
+<div class="viewcode-block" id="LineSegment_AT.summary"><a class="viewcode-back" href="../../../module/admit.at/LineSegment_AT.html#admit.at.LineSegment_AT.LineSegment_AT.summary">[docs]</a>    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the summary dictionary from the AT, for merging</span>
+<span class="sd">           into the ADMIT Summary object.</span>
+
+<span class="sd">           LineSegment_AT adds the following to ADMIT summary:</span>
+
+<span class="sd">           .. table::</span>
+<span class="sd">              :class: borderless</span>
+
+<span class="sd">              +---------+--------+---------------------------------------------+</span>
+<span class="sd">              |   Key   | type   |    Description                              |</span>
+<span class="sd">              +=========+========+=============================================+</span>
+<span class="sd">              | segments| table  | table of parameters of discovered segments  |</span>
+<span class="sd">              +---------+--------+---------------------------------------------+</span>
+<span class="sd">              | spectra | list   | the spectral plot of signal, noise, and S/N |</span>
+<span class="sd">              +---------+--------+---------------------------------------------+</span>
+
+<span class="sd">           Parameters</span>
+<span class="sd">           ----------</span>
+<span class="sd">           None</span>
+
+<span class="sd">           Returns</span>
+<span class="sd">           -------</span>
+<span class="sd">           dict</span>
+<span class="sd">               Dictionary of SummaryEntry</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_summary&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{}</span></div>
+
+<div class="viewcode-block" id="LineSegment_AT.run"><a class="viewcode-back" href="../../../module/admit.at/LineSegment_AT.html#admit.at.LineSegment_AT.LineSegment_AT.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; The run method, locates lines, attempts to identify them, and</span>
+<span class="sd">            creates the BDP</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">boxcar</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Boxcar smoothing turned off.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">freq</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chan</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">Dtime</span><span class="p">(</span><span class="s2">&quot;LineSegment&quot;</span><span class="p">)</span>  <span class="c1"># timer for debugging</span>
+        <span class="n">spec_description</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">taskargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_taskargs</span><span class="p">()</span>
+        <span class="n">statbdp</span> <span class="o">=</span> <span class="kc">None</span>                   <span class="c1"># for the CubeStats BDP</span>
+        <span class="n">specbdp</span> <span class="o">=</span> <span class="kc">None</span>                   <span class="c1"># for the CubeSpectrum BDP</span>
+        <span class="n">specs</span> <span class="o">=</span> <span class="p">[]</span>                  <span class="c1"># to hold the input CubeSpectrum based spectra</span>
+        <span class="n">statspec</span> <span class="o">=</span> <span class="p">[]</span>             <span class="c1"># to hold the input CubeStats based spectrum</span>
+        <span class="n">statseg</span> <span class="o">=</span> <span class="p">[]</span>                <span class="c1"># to hold the detected segments from statspec</span>
+        <span class="n">specseg</span> <span class="o">=</span> <span class="p">[]</span>                <span class="c1"># to hold the detected segments from specs</span>
+        <span class="c1">#statcutoff = []           # cutoff for statspec line finding</span>
+        <span class="c1">#speccutoff = []             # cutoff for specs line finding</span>
+        <span class="n">infile</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;minchan&quot;</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;minchan must eb a positive value.&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;minchan&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;iterate&quot;</span><span class="p">):</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;iterate=True is not allowed for minchan=1, setting iterate to False&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;iterate&quot;</span><span class="p">,</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="n">vlsr</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="c1"># get the input bdp</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">specbdp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">infile</span> <span class="o">=</span> <span class="n">specbdp</span><span class="o">.</span><span class="n">xmlFile</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">statbdp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">infile</span> <span class="o">=</span> <span class="n">statbdp</span><span class="o">.</span><span class="n">xmlFile</span>
+        <span class="c1"># still need to do this check since all are optional inputs</span>
+        <span class="k">if</span> <span class="n">specbdp</span> <span class="o">==</span> <span class="n">statbdp</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;No input BDP&#39;s found.&quot;</span><span class="p">)</span>
+        <span class="n">imbase</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mkext</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span> <span class="s1">&#39;lseg&#39;</span><span class="p">)</span>
+
+        <span class="c1"># grab any optional references overplotted on the &quot;ll&quot; plots</span>
+
+        <span class="c1"># instantiate a plotter for all plots made herein</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_plot_type</span> <span class="o">=</span> <span class="n">admit</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">PlotControl</span><span class="o">.</span><span class="n">SVG</span>
+        <span class="n">myplot</span> <span class="o">=</span> <span class="n">APlot</span><span class="p">(</span><span class="n">ptype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_plot_type</span><span class="p">,</span> <span class="n">pmode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_plot_mode</span><span class="p">,</span> <span class="n">abspath</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">())</span>
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;start&quot;</span><span class="p">)</span>
+
+        <span class="c1">############################################################################</span>
+        <span class="c1">#  Smoothing and continuum (baseline) subtraction of input spectra         #</span>
+        <span class="c1">############################################################################</span>
+
+        <span class="c1"># get and smooth all input spectra</span>
+        <span class="n">basicsegment</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;segment&quot;</span><span class="p">),</span>
+                        <span class="s2">&quot;minchan&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;minchan&quot;</span><span class="p">),</span>
+                        <span class="s2">&quot;maxgap&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;maxgap&quot;</span><span class="p">),</span>
+                        <span class="s2">&quot;numsigma&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;numsigma&quot;</span><span class="p">),</span>
+                        <span class="s2">&quot;iterate&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;iterate&quot;</span><span class="p">),</span>
+                        <span class="s2">&quot;nomean&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+
+       
+        <span class="n">segargsforcont</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span>    <span class="s2">&quot;Line_Segment.</span><span class="si">%i</span><span class="s2">.asap&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">(</span><span class="kc">True</span><span class="p">),</span>
+                     <span class="s2">&quot;pmin&quot;</span><span class="p">:</span>    <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;numsigma&quot;</span><span class="p">),</span>
+                     <span class="s2">&quot;minchan&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;minchan&quot;</span><span class="p">),</span>
+                     <span class="s2">&quot;maxgap&quot;</span><span class="p">:</span>  <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;maxgap&quot;</span><span class="p">)}</span>
+
+        <span class="k">if</span> <span class="n">specbdp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># get the spectrum</span>
+            <span class="n">specs</span> <span class="o">=</span> <span class="n">specutil</span><span class="o">.</span><span class="n">getspectrum</span><span class="p">(</span><span class="n">specbdp</span><span class="p">,</span> <span class="n">vlsr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;smooth&quot;</span><span class="p">),</span>
+                                         <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;recalcnoise&quot;</span><span class="p">),</span> <span class="n">basicsegment</span><span class="p">)</span>
+            <span class="c1"># remove the continuum, if requested</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;csub&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Attempting Continuum Subtraction for Input Spectra&quot;</span><span class="p">)</span>
+                <span class="n">order</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;csub&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">specutil</span><span class="o">.</span><span class="n">contsub</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">(</span><span class="kc">True</span><span class="p">),</span><span class="n">specs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;segment&quot;</span><span class="p">),</span> <span class="n">segargsforcont</span><span class="p">,</span><span class="n">algorithm</span><span class="o">=</span><span class="s2">&quot;PolyFit&quot;</span><span class="p">,</span><span class="o">**</span><span class="p">{</span><span class="s2">&quot;deg&quot;</span> <span class="p">:</span> <span class="n">order</span><span class="p">})</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">specs</span><span class="p">:</span>
+                    <span class="n">spec</span><span class="o">.</span><span class="n">set_contin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">spec</span><span class="p">)))</span>
+
+            <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">specs</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">freq</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">chan</span> <span class="o">=</span> <span class="n">specutil</span><span class="o">.</span><span class="n">mergefreq</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">freq</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">chan</span><span class="p">,</span><span class="n">spec</span><span class="o">.</span><span class="n">freq</span><span class="p">(</span><span class="kc">False</span><span class="p">),</span> <span class="n">spec</span><span class="o">.</span><span class="n">chans</span><span class="p">(</span><span class="kc">False</span><span class="p">))</span>
+
+        <span class="c1"># get any input cubestats</span>
+        <span class="k">if</span> <span class="n">statbdp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">statspec</span> <span class="o">=</span> <span class="n">specutil</span><span class="o">.</span><span class="n">getspectrum</span><span class="p">(</span><span class="n">statbdp</span><span class="p">,</span> <span class="n">vlsr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;smooth&quot;</span><span class="p">),</span>
+                                            <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;recalcnoise&quot;</span><span class="p">),</span><span class="n">basicsegment</span><span class="p">)</span>
+            <span class="c1"># remove the continuum</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;csub&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Attempting Continuum Subtraction for Input CubeStats Spectra&quot;</span><span class="p">)</span>
+                <span class="n">order</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;csub&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">specutil</span><span class="o">.</span><span class="n">contsub</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">(</span><span class="kc">True</span><span class="p">),</span><span class="n">statspec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;segment&quot;</span><span class="p">),</span> <span class="n">segargsforcont</span><span class="p">,</span><span class="n">algorithm</span><span class="o">=</span><span class="s2">&quot;PolyFit&quot;</span><span class="p">,</span><span class="o">**</span><span class="p">{</span><span class="s2">&quot;deg&quot;</span> <span class="p">:</span> <span class="n">order</span><span class="p">})</span>
+
+            <span class="c1"># The &#39;min&#39; spectrum is inverted for segment finding.</span>
+            <span class="c1"># Doesn&#39;t this mean it will also be plotted upside down?</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">statspec</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="n">statspec</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">invert</span><span class="p">()</span>
+
+            <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">statspec</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">freq</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">chan</span> <span class="o">=</span> <span class="n">specutil</span><span class="o">.</span><span class="n">mergefreq</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">freq</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">chan</span><span class="p">,</span><span class="n">spec</span><span class="o">.</span><span class="n">freq</span><span class="p">(</span><span class="kc">False</span><span class="p">),</span> <span class="n">spec</span><span class="o">.</span><span class="n">chans</span><span class="p">(</span><span class="kc">False</span><span class="p">))</span>
+
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;getspectrum&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">freq</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">freq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">freq</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">chan</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">chan</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+        <span class="c1"># search for segments of spectral line emission</span>
+
+        <span class="c1">#NB: this is repetitive with basicsegment above.</span>
+        <span class="n">method</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;segment&quot;</span><span class="p">)</span> 
+        <span class="n">minchan</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;minchan&quot;</span><span class="p">)</span>
+        <span class="n">maxgap</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;maxgap&quot;</span><span class="p">)</span> 
+        <span class="n">numsigma</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;numsigma&quot;</span><span class="p">)</span>
+        <span class="n">iterate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;iterate&quot;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">specbdp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Detecting segments in CubeSpectrum based data&quot;</span><span class="p">)</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="n">specutil</span><span class="o">.</span><span class="n">findsegments</span><span class="p">(</span><span class="n">specs</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">minchan</span><span class="p">,</span> <span class="n">maxgap</span><span class="p">,</span> <span class="n">numsigma</span><span class="p">,</span> <span class="n">iterate</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">values</span><span class="p">):</span>
+                <span class="n">specseg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">specs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">set_noise</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">statbdp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Detecting segments in CubeStats based data&quot;</span><span class="p">)</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="n">specutil</span><span class="o">.</span><span class="n">findsegments</span><span class="p">(</span><span class="n">statspec</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">minchan</span><span class="p">,</span> <span class="n">maxgap</span><span class="p">,</span> <span class="n">numsigma</span><span class="p">,</span> <span class="n">iterate</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">values</span><span class="p">):</span>
+                <span class="n">statseg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="c1"># print (&quot;MWP LINESEGMENT %d Setting noise=%f minchan=%d&quot;,(i,t[2],minchan))</span>
+                <span class="n">statspec</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">set_noise</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+                <span class="c1">#statcutoff.append(t[1])</span>
+
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;segment finder&quot;</span><span class="p">)</span>            
+        <span class="n">lsbdp</span> <span class="o">=</span> <span class="n">LineSegment_BDP</span><span class="p">(</span><span class="n">imbase</span><span class="p">)</span>
+
+        <span class="n">finalsegs</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">mergesegments</span><span class="p">([</span><span class="n">statseg</span><span class="p">,</span><span class="n">specseg</span><span class="p">],</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">freq</span><span class="p">))</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="n">specutil</span><span class="o">.</span><span class="n">linedatafromsegments</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">freq</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">chan</span><span class="p">,</span><span class="n">finalsegs</span><span class="p">,</span><span class="n">specs</span><span class="p">,</span><span class="n">statspec</span><span class="p">)</span>
+        <span class="n">llist</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+           <span class="n">lsbdp</span><span class="o">.</span><span class="n">addRow</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+           <span class="n">llist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+
+        <span class="n">rdata</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># create the output</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Peak/Noise&quot;</span><span class="p">,</span> <span class="s2">&quot;Minimum/Noise&quot;</span><span class="p">]</span>
+        <span class="n">caption</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Potential lines overlaid on peak intensity plot from CubeStats_BDP.&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;Potential lines overlaid on minimum intensity plot from CubeStats_BDP.&quot;</span><span class="p">]</span>
+
+        <span class="n">xlabel</span> <span class="o">=</span> <span class="s2">&quot;Frequency (GHz)&quot;</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">spec</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">statspec</span><span class="p">):</span>
+            <span class="n">freqs</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">statseg</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+                <span class="n">frq</span> <span class="o">=</span> <span class="p">[</span><span class="nb">min</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">freq</span><span class="p">()[</span><span class="n">ch</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">spec</span><span class="o">.</span><span class="n">freq</span><span class="p">()[</span><span class="n">ch</span><span class="p">[</span><span class="mi">1</span><span class="p">]]),</span>
+                       <span class="nb">max</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">freq</span><span class="p">()[</span><span class="n">ch</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">spec</span><span class="o">.</span><span class="n">freq</span><span class="p">()[</span><span class="n">ch</span><span class="p">[</span><span class="mi">1</span><span class="p">]])]</span>
+                <span class="n">freqs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">frq</span><span class="p">)</span>
+                <span class="n">rdata</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">frq</span><span class="p">)</span>
+                <span class="c1">#print(&quot;Stats segment, peak, ratio, fwhm &quot;,lname,peak,ratio,fwhm)</span>
+            <span class="n">mult</span> <span class="o">=</span> <span class="mf">1.</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">mult</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.</span>
+<span class="c1">#            print(&quot;MWP statspec plot cutoff[%d] = %f, contin=%f&quot; % (i, (statspec[i].contin() + mult*(statspec[i].noise() * self.getkey(&quot;numsigma&quot;)))[0], statspec[i].contin()[0] ) )</span>
+            <span class="n">myplot</span><span class="o">.</span><span class="n">segplotter</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">freq</span><span class="p">(),</span> <span class="n">spec</span><span class="o">.</span><span class="n">spec</span><span class="p">(</span><span class="n">csub</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+                              <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Detected Line Segments&quot;</span><span class="p">,</span> <span class="n">xlab</span><span class="o">=</span><span class="n">xlabel</span><span class="p">,</span>
+                              <span class="n">ylab</span><span class="o">=</span><span class="n">label</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">figname</span><span class="o">=</span><span class="n">imbase</span> <span class="o">+</span> <span class="s2">&quot;_statspec</span><span class="si">%i</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">i</span><span class="p">,</span>
+                              <span class="n">segments</span><span class="o">=</span><span class="n">freqs</span><span class="p">,</span> <span class="n">cutoff</span><span class="o">=</span> <span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">contin</span><span class="p">()</span> <span class="o">+</span> <span class="n">mult</span><span class="o">*</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">noise</span><span class="p">()</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;numsigma&quot;</span><span class="p">))),</span>
+                              <span class="n">continuum</span><span class="o">=</span><span class="n">spec</span><span class="o">.</span><span class="n">contin</span><span class="p">(),</span> <span class="n">thumbnail</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">imname</span> <span class="o">=</span> <span class="n">myplot</span><span class="o">.</span><span class="n">getFigure</span><span class="p">(</span><span class="n">figno</span><span class="o">=</span><span class="n">myplot</span><span class="o">.</span><span class="n">figno</span><span class="p">,</span> <span class="n">relative</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">thumbnailname</span> <span class="o">=</span> <span class="n">myplot</span><span class="o">.</span><span class="n">getThumbnail</span><span class="p">(</span><span class="n">figno</span><span class="o">=</span><span class="n">myplot</span><span class="o">.</span><span class="n">figno</span><span class="p">,</span> <span class="n">relative</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span><span class="n">images</span><span class="o">=</span><span class="p">{</span><span class="n">bt</span><span class="o">.</span><span class="n">SVG</span><span class="p">:</span> <span class="n">imname</span><span class="p">},</span> <span class="n">thumbnail</span><span class="o">=</span><span class="n">thumbnailname</span><span class="p">,</span>
+                          <span class="n">thumbnailtype</span><span class="o">=</span><span class="n">bt</span><span class="o">.</span><span class="n">PNG</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="n">caption</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">lsbdp</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">addimage</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="s2">&quot;statspec</span><span class="si">%i</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">i</span><span class="p">)</span>
+            <span class="n">spec_description</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">lsbdp</span><span class="o">.</span><span class="n">ra</span><span class="p">,</span> <span class="n">lsbdp</span><span class="o">.</span><span class="n">dec</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">xlabel</span><span class="p">,</span>
+                                         <span class="n">imname</span><span class="p">,</span> <span class="n">thumbnailname</span><span class="p">,</span> <span class="n">caption</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                                         <span class="n">infile</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">specs</span><span class="p">)):</span>
+            <span class="n">freqs</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">specseg</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+                <span class="n">frq</span> <span class="o">=</span> <span class="p">[</span><span class="nb">min</span><span class="p">(</span><span class="n">specs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">freq</span><span class="p">()[</span><span class="n">ch</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">specs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">freq</span><span class="p">()[</span><span class="n">ch</span><span class="p">[</span><span class="mi">1</span><span class="p">]]),</span>
+                       <span class="nb">max</span><span class="p">(</span><span class="n">specs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">freq</span><span class="p">()[</span><span class="n">ch</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">specs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">freq</span><span class="p">()[</span><span class="n">ch</span><span class="p">[</span><span class="mi">1</span><span class="p">]])]</span>
+                <span class="n">freqs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">frq</span><span class="p">)</span>
+                <span class="n">rdata</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">frq</span><span class="p">)</span>
+            <span class="n">myplot</span><span class="o">.</span><span class="n">segplotter</span><span class="p">(</span><span class="n">specs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">freq</span><span class="p">(),</span> <span class="n">specs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">spec</span><span class="p">(</span><span class="n">csub</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+                              <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Detected Line Segments&quot;</span><span class="p">,</span> <span class="n">xlab</span><span class="o">=</span><span class="n">xlabel</span><span class="p">,</span>
+                              <span class="n">ylab</span><span class="o">=</span><span class="s2">&quot;Intensity&quot;</span><span class="p">,</span> <span class="n">figname</span><span class="o">=</span><span class="n">imbase</span> <span class="o">+</span> <span class="s2">&quot;_spec</span><span class="si">%03d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">i</span><span class="p">,</span>
+                              <span class="n">segments</span><span class="o">=</span><span class="n">freqs</span><span class="p">,</span> <span class="n">cutoff</span><span class="o">=</span><span class="n">specs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">contin</span><span class="p">()</span> <span class="o">+</span> <span class="p">(</span><span class="n">specs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">noise</span><span class="p">()</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;numsigma&quot;</span><span class="p">)),</span>
+                              <span class="n">continuum</span><span class="o">=</span><span class="n">specs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">contin</span><span class="p">(),</span> <span class="n">thumbnail</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">imname</span> <span class="o">=</span> <span class="n">myplot</span><span class="o">.</span><span class="n">getFigure</span><span class="p">(</span><span class="n">figno</span><span class="o">=</span><span class="n">myplot</span><span class="o">.</span><span class="n">figno</span><span class="p">,</span> <span class="n">relative</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">thumbnailname</span> <span class="o">=</span> <span class="n">myplot</span><span class="o">.</span><span class="n">getThumbnail</span><span class="p">(</span><span class="n">figno</span><span class="o">=</span><span class="n">myplot</span><span class="o">.</span><span class="n">figno</span><span class="p">,</span>
+                                                <span class="n">relative</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">caption</span> <span class="o">=</span> <span class="s2">&quot;Detected line segments from input spectrum #</span><span class="si">%i</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span><span class="n">images</span><span class="o">=</span><span class="p">{</span><span class="n">bt</span><span class="o">.</span><span class="n">SVG</span><span class="p">:</span> <span class="n">imname</span><span class="p">},</span> <span class="n">thumbnail</span><span class="o">=</span><span class="n">thumbnailname</span><span class="p">,</span>
+                          <span class="n">thumbnailtype</span><span class="o">=</span><span class="n">bt</span><span class="o">.</span><span class="n">PNG</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="n">caption</span><span class="p">)</span>
+            <span class="n">lsbdp</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">addimage</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="s2">&quot;spec</span><span class="si">%03d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">i</span><span class="p">)</span>
+            <span class="n">spec_description</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">lsbdp</span><span class="o">.</span><span class="n">ra</span><span class="p">,</span> <span class="n">lsbdp</span><span class="o">.</span><span class="n">dec</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">xlabel</span><span class="p">,</span>
+                                         <span class="n">imname</span><span class="p">,</span> <span class="n">thumbnailname</span><span class="p">,</span> <span class="n">caption</span><span class="p">,</span>
+                                         <span class="n">infile</span><span class="p">])</span>
+
+        <span class="n">caption</span> <span class="o">=</span> <span class="s2">&quot;Merged segments overlaid on CubeStats spectrum&quot;</span>
+
+        <span class="n">myplot</span><span class="o">.</span><span class="n">summaryspec</span><span class="p">(</span><span class="n">statspec</span><span class="p">,</span> <span class="n">specs</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">imbase</span> <span class="o">+</span> <span class="s2">&quot;_summary&quot;</span><span class="p">,</span> <span class="n">llist</span><span class="p">)</span>
+        <span class="n">imname</span> <span class="o">=</span> <span class="n">myplot</span><span class="o">.</span><span class="n">getFigure</span><span class="p">(</span><span class="n">figno</span><span class="o">=</span><span class="n">myplot</span><span class="o">.</span><span class="n">figno</span><span class="p">,</span> <span class="n">relative</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">thumbnailname</span> <span class="o">=</span> <span class="n">myplot</span><span class="o">.</span><span class="n">getThumbnail</span><span class="p">(</span><span class="n">figno</span><span class="o">=</span><span class="n">myplot</span><span class="o">.</span><span class="n">figno</span><span class="p">,</span> <span class="n">relative</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">caption</span> <span class="o">=</span> <span class="s2">&quot;Identified segments overlaid on Signal/Noise plot of all spectra.&quot;</span>
+
+        <span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span><span class="n">images</span><span class="o">=</span><span class="p">{</span><span class="n">bt</span><span class="o">.</span><span class="n">SVG</span><span class="p">:</span> <span class="n">imname</span><span class="p">},</span> <span class="n">thumbnail</span><span class="o">=</span><span class="n">thumbnailname</span><span class="p">,</span>
+                      <span class="n">thumbnailtype</span><span class="o">=</span><span class="n">bt</span><span class="o">.</span><span class="n">PNG</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="n">caption</span><span class="p">)</span>
+
+        <span class="n">lsbdp</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">addimage</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="s2">&quot;summary&quot;</span><span class="p">)</span>
+        <span class="n">spec_description</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">lsbdp</span><span class="o">.</span><span class="n">ra</span><span class="p">,</span> <span class="n">lsbdp</span><span class="o">.</span><span class="n">dec</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;Signal/Noise&quot;</span><span class="p">,</span>
+                                     <span class="n">imname</span><span class="p">,</span> <span class="n">thumbnailname</span><span class="p">,</span> <span class="n">caption</span><span class="p">,</span>
+                                     <span class="n">infile</span><span class="p">])</span>
+
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="s2">&quot;segments&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SummaryEntry</span><span class="p">(</span><span class="n">lsbdp</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">serialize</span><span class="p">(),</span>
+                                                 <span class="s2">&quot;LineSegment_AT&quot;</span><span class="p">,</span>
+                                                 <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">(</span><span class="kc">True</span><span class="p">),</span> <span class="n">taskargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="s2">&quot;spectra&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">SummaryEntry</span><span class="p">(</span><span class="n">spec_description</span><span class="p">,</span>
+                                                <span class="s2">&quot;LineSegment_AT&quot;</span><span class="p">,</span>
+                                                <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">(</span><span class="kc">True</span><span class="p">),</span> <span class="n">taskargs</span><span class="p">)]</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">addoutput</span><span class="p">(</span><span class="n">lsbdp</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">regression</span><span class="p">(</span><span class="s2">&quot;LINESEG: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">rdata</span><span class="p">))</span>
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;done&quot;</span><span class="p">)</span>
+        <span class="n">dt</span><span class="o">.</span><span class="n">end</span><span class="p">()</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

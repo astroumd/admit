@@ -1,0 +1,261 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.util.VLSR &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.util.VLSR</h1><div class="highlight"><pre>
+<span></span><span class="ch">#! /usr/bin/env python</span>
+<span class="c1">#! /usr/bin/env casarun</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">  **VLSR** --- Simple VLSR catalog and calculator.</span>
+<span class="sd">  ------------------------------------------------</span>
+
+<span class="sd">  This module defines the VLSR class.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">admit.util.AdmitLogging</span> <span class="k">import</span> <span class="n">AdmitLogging</span> <span class="k">as</span> <span class="n">logging</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">utils</span>
+    <span class="n">have_ADMIT</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="n">have_ADMIT</span> <span class="o">=</span> <span class="kc">False</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">astroquery.simbad</span> <span class="k">import</span> <span class="n">Simbad</span>
+    <span class="n">have_SB</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="n">have_SB</span> <span class="o">=</span> <span class="kc">False</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">astroquery.ned</span> <span class="k">import</span> <span class="n">Ned</span>
+    <span class="n">have_NED</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="n">have_NED</span> <span class="o">=</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="VLSR"><a class="viewcode-back" href="../../../module/admit.util/VLSR.html#admit.util.VLSR.VLSR">[docs]</a><span class="k">class</span> <span class="nc">VLSR</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Simple VLSR catalog and calculator.</span>
+
+<span class="sd">    Possible extensions:</span>
+
+<span class="sd">    - merge in multiple tables, now hardcoded to a single</span>
+<span class="sd">      table in $ADMIT/etc/vlsr.tab</span>
+<span class="sd">    - allow astroquery from NED and/or SIMBAD</span>
+<span class="sd">      (this may need to run in pure-python, outside of ADMIT/CASA)</span>
+<span class="sd">    - name matching is now done in upper case by default</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;27-apr-2016&quot;</span>
+        <span class="k">if</span> <span class="n">have_ADMIT</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">table</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">admit_root</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;/etc/vlsr.tab&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cat</span> <span class="o">=</span> <span class="n">read_vlsr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">,</span><span class="n">upper</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;VLSR: </span><span class="si">%s</span><span class="s2">, found </span><span class="si">%d</span><span class="s2"> entries&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cat</span><span class="p">)))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;VLSR: Warning, no ADMIT, empty catalogue&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cat</span> <span class="o">=</span> <span class="p">{}</span>
+
+<div class="viewcode-block" id="VLSR.vlsr"><a class="viewcode-back" href="../../../module/admit.util/VLSR.html#admit.util.VLSR.VLSR.vlsr">[docs]</a>    <span class="k">def</span> <span class="nf">vlsr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; return VLSR from requested object</span>
+<span class="sd">            name matching is done in upper case by default</span>
+<span class="sd">            If no match is found, 0.0 is returned.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># print &quot;VLSR debug&quot;,name,self.cat</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>  <span class="k">return</span> <span class="mf">0.0</span>
+        <span class="n">src</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+        <span class="n">quote1</span> <span class="o">=</span> <span class="s2">&quot;&#39;&quot;</span>
+        <span class="n">quote2</span> <span class="o">=</span> <span class="s1">&#39;&quot;&#39;</span>
+        <span class="k">if</span> <span class="n">src</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">quote1</span><span class="p">:</span>
+            <span class="n">src</span> <span class="o">=</span> <span class="n">src</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="n">quote1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">src</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">quote2</span><span class="p">:</span>
+            <span class="n">src</span> <span class="o">=</span> <span class="n">src</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="n">quote2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="n">src</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cat</span><span class="p">[</span><span class="n">src</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">0.0</span></div>
+
+<div class="viewcode-block" id="VLSR.vlsr2"><a class="viewcode-back" href="../../../module/admit.util/VLSR.html#admit.util.VLSR.VLSR.vlsr2">[docs]</a>    <span class="k">def</span> <span class="nf">vlsr2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; experimental Simbad/NED</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">have_SB</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="s2">&quot;Trying SIMBAD...&quot;</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">t1</span> <span class="o">=</span> <span class="n">Simbad</span><span class="o">.</span><span class="n">query_object</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+                <span class="nb">print</span> <span class="n">t1</span><span class="o">.</span><span class="n">colnames</span>
+                <span class="nb">print</span> <span class="n">t1</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="s2">&quot;No SIMBAD&quot;</span>
+        <span class="k">if</span> <span class="n">have_NED</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="s2">&quot;Trying NED...&quot;</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">t2</span> <span class="o">=</span> <span class="n">Ned</span><span class="o">.</span><span class="n">query_object</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+                <span class="nb">print</span> <span class="n">t2</span><span class="o">.</span><span class="n">colnames</span>
+                <span class="nb">print</span> <span class="n">t2</span>
+                <span class="nb">print</span> <span class="s1">&#39;VLSR=&#39;</span><span class="p">,</span><span class="n">t2</span><span class="p">[</span><span class="s1">&#39;Velocity&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="s2">&quot;No NED&quot;</span></div>
+
+<div class="viewcode-block" id="VLSR.try_SB"><a class="viewcode-back" href="../../../module/admit.util/VLSR.html#admit.util.VLSR.VLSR.try_SB">[docs]</a>    <span class="k">def</span> <span class="nf">try_SB</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mf">0.0</span></div>
+
+<div class="viewcode-block" id="VLSR.try_NED"><a class="viewcode-back" href="../../../module/admit.util/VLSR.html#admit.util.VLSR.VLSR.try_NED">[docs]</a>    <span class="k">def</span> <span class="nf">try_NED</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mf">0.0</span></div></div>
+
+<div class="viewcode-block" id="read_vlsr"><a class="viewcode-back" href="../../../module/admit.util/VLSR.html#admit.util.VLSR.read_vlsr">[docs]</a><span class="k">def</span> <span class="nf">read_vlsr</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; read the ADMIT vlsr.cat table</span>
+
+<span class="sd">    This table is peculiar in allowing spaces in source names,</span>
+<span class="sd">    but then requires the name to be single (or double) quotes.</span>
+<span class="sd">    The source name is stored without these quotes.</span>
+<span class="sd">    The 2nd column is VLSR in km/s</span>
+<span class="sd">    Anything beyond is ignored, so comments are allowed </span>
+<span class="sd">    Also note we are taking the source names &quot;as is&quot;, so </span>
+<span class="sd">    it is suggested they are in upper case.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fp</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="n">fp</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+    <span class="c1">#print &#39;Found %d lines in %s&#39; % (len(lines),filename)</span>
+    <span class="n">cat</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">quote1</span> <span class="o">=</span> <span class="s2">&quot;&#39;&quot;</span>
+    <span class="n">quote2</span> <span class="o">=</span> <span class="s1">&#39;&quot;&#39;</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span> 
+            <span class="k">continue</span>
+        <span class="k">elif</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;#&#39;</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">elif</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">quote1</span><span class="p">:</span>
+            <span class="n">loc</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">quote1</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">loc</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span> 
+                <span class="nb">print</span> <span class="s2">&quot;VLSR: Skipping bad line&quot;</span><span class="p">,</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span><span class="s2">&quot; in &quot;</span><span class="p">,</span><span class="n">filename</span>
+                <span class="k">continue</span>
+            <span class="n">src</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">loc</span><span class="p">]</span>       <span class="c1"># sourcename without the quotes</span>
+            <span class="k">if</span> <span class="n">upper</span><span class="p">:</span>
+                <span class="n">src</span> <span class="o">=</span> <span class="n">src</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+            <span class="n">cat</span><span class="p">[</span><span class="n">src</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="n">loc</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">quote2</span><span class="p">:</span>
+            <span class="n">loc</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">quote2</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">loc</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span> 
+                <span class="nb">print</span> <span class="s2">&quot;VLSR: Skipping bad line&quot;</span><span class="p">,</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span><span class="s2">&quot; in &quot;</span><span class="p">,</span><span class="n">filename</span>
+                <span class="k">continue</span>
+            <span class="n">src</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">loc</span><span class="p">]</span>       <span class="c1"># sourcename without the quotes</span>
+            <span class="k">if</span> <span class="n">upper</span><span class="p">:</span>
+                <span class="n">src</span> <span class="o">=</span> <span class="n">src</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+            <span class="n">cat</span><span class="p">[</span><span class="n">src</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="n">loc</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">src</span> <span class="o">=</span> <span class="n">w</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">upper</span><span class="p">:</span>
+                <span class="n">src</span> <span class="o">=</span> <span class="n">src</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+            <span class="n">cat</span><span class="p">[</span><span class="n">src</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">w</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">cat</span></div>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+
+    <span class="n">vq</span> <span class="o">=</span> <span class="n">VLSR</span><span class="p">()</span>
+    <span class="nb">print</span> <span class="n">vq</span><span class="o">.</span><span class="n">vlsr</span><span class="p">(</span><span class="s2">&quot;NGC6503&quot;</span><span class="p">)</span>    <span class="c1"># should print 25.0</span>
+    <span class="nb">print</span> <span class="n">vq</span><span class="o">.</span><span class="n">vlsr</span><span class="p">(</span><span class="s2">&quot;ngc6503&quot;</span><span class="p">)</span>    <span class="c1"># should print 25.0</span>
+    <span class="nb">print</span> <span class="n">vq</span><span class="o">.</span><span class="n">vlsr</span><span class="p">(</span><span class="s2">&quot;foobar&quot;</span><span class="p">)</span>     <span class="c1"># should print 0.0</span>
+    <span class="nb">print</span> <span class="n">vq</span><span class="o">.</span><span class="n">vlsr</span><span class="p">(</span><span class="s2">&quot;L1551 NE&quot;</span><span class="p">)</span>   <span class="c1"># should print 7.0</span>
+    <span class="nb">print</span> <span class="n">vq</span><span class="o">.</span><span class="n">vlsr</span><span class="p">(</span><span class="s2">&quot;&#39;L1551 NE&#39;&quot;</span><span class="p">)</span> <span class="c1"># should print 7.0 </span>
+    <span class="n">vq</span><span class="o">.</span><span class="n">vlsr2</span><span class="p">(</span><span class="s2">&quot;NGC6503&quot;</span><span class="p">)</span>
+    
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

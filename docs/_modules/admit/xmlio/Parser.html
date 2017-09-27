@@ -1,0 +1,291 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.xmlio.Parser &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.xmlio.Parser</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; .. _Parser-api:</span>
+
+<span class="sd">    Parser --- Converts an ADMIT project on disk to in-memory objects.</span>
+<span class="sd">    ------------------------------------------------------------------</span>
+
+<span class="sd">    This module is for parsing the input xml files, both admit.xml and the</span>
+<span class="sd">    general bdp xml files.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># system imports</span>
+<span class="kn">from</span> <span class="nn">xml</span> <span class="k">import</span> <span class="n">sax</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="c1"># ADMIT imports</span>
+<span class="kn">from</span> <span class="nn">admit.xmlio.AdmitParser</span> <span class="k">import</span> <span class="n">AdmitParser</span>
+<span class="kn">from</span> <span class="nn">admit.xmlio.ErrorHandler</span> <span class="k">import</span> <span class="n">ErrorHandler</span>
+<span class="kn">from</span> <span class="nn">admit.xmlio.BDPReader</span> <span class="k">import</span> <span class="n">BDPReader</span>
+<span class="kn">from</span> <span class="nn">admit.AT</span> <span class="k">import</span> <span class="n">AT</span>
+<span class="kn">from</span> <span class="nn">admit.util.AdmitLogging</span> <span class="k">import</span> <span class="n">AdmitLogging</span> <span class="k">as</span> <span class="n">logging</span>
+<span class="kn">from</span> <span class="nn">admit.util</span> <span class="k">import</span> <span class="n">utils</span>
+
+
+<div class="viewcode-block" id="Parser"><a class="viewcode-back" href="../../../module/admit.xmlio/Parser.html#admit.xmlio.Parser.Parser">[docs]</a><span class="k">class</span> <span class="nc">Parser</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Main XML parsing class.</span>
+
+<span class="sd">        This class parses the main xml file (usually admit.xml) and reads in all</span>
+<span class="sd">        AT and ADMIT data. It then searches for all BDP&#39;s in the working</span>
+<span class="sd">        directory and subdirectories. These BDP files are then parsed and added</span>
+<span class="sd">        to their parent ATs.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        base : ADMIT</span>
+<span class="sd">          Instance of the base ADMIT class to add everything to.</span>
+<span class="sd">          No Default.</span>
+
+<span class="sd">        baseDir : str</span>
+<span class="sd">          The root directory of the admit tree.</span>
+<span class="sd">          Default: &quot;&quot; (current dirctory).</span>
+
+<span class="sd">        xmlFile : str</span>
+<span class="sd">          The root admit xml file to parse.</span>
+<span class="sd">          Default: &quot;&quot;.</span>
+
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        xmlFile : str</span>
+<span class="sd">          String for the xml file to parse.</span>
+
+<span class="sd">        parser : SAX parser</span>
+<span class="sd">          The parser to use.</span>
+
+<span class="sd">        admit : ADMIT</span>
+<span class="sd">          The instance of the ADMIT class to add everything to.</span>
+
+<span class="sd">        baseDir : str</span>
+<span class="sd">          The root directory for working.</span>
+
+<span class="sd">        tasks : List</span>
+<span class="sd">          A list of all AT&#39;s found.</span>
+
+<span class="sd">        userData : dict</span>
+<span class="sd">          Dictionary for user data.</span>
+
+<span class="sd">        summaryData : dict</span>
+<span class="sd">          Summary data.</span>
+
+<span class="sd">        flowmanager : FlowManager</span>
+<span class="sd">          Temporary FM for reading in the data.</span>
+
+<span class="sd">        projmanager: dict</span>
+<span class="sd">          Project ID to base directory map.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base</span><span class="p">,</span> <span class="n">baseDir</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">xmlFile</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xmlFile</span> <span class="o">=</span> <span class="n">xmlFile</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span> <span class="o">=</span> <span class="n">sax</span><span class="o">.</span><span class="n">make_parser</span><span class="p">()</span>  <span class="c1"># initialize the parser</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">admit</span> <span class="o">=</span> <span class="n">base</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">baseDir</span> <span class="o">=</span> <span class="n">baseDir</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">userData</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">summaryData</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flowmanager</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">projmanager</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="Parser.getTasks"><a class="viewcode-back" href="../../../module/admit.xmlio/Parser.html#admit.xmlio.Parser.Parser.getTasks">[docs]</a>    <span class="k">def</span> <span class="nf">getTasks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return the list of AT&#39;s that have been read in</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            List</span>
+<span class="sd">                List of the AT&#39;s from the xml file</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span></div>
+
+<div class="viewcode-block" id="Parser.getflowmanager"><a class="viewcode-back" href="../../../module/admit.xmlio/Parser.html#admit.xmlio.Parser.Parser.getflowmanager">[docs]</a>    <span class="k">def</span> <span class="nf">getflowmanager</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return the local copy of the FlowManager</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            FlowManager</span>
+<span class="sd">                Copy of the local FlowManager that was read in from XML.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">flowmanager</span></div>
+
+<div class="viewcode-block" id="Parser.getSummary"><a class="viewcode-back" href="../../../module/admit.xmlio/Parser.html#admit.xmlio.Parser.Parser.getSummary">[docs]</a>    <span class="k">def</span> <span class="nf">getSummary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return the local copy of the summaryData</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            summaryData</span>
+<span class="sd">                Copy of the local summaryData that was read in from XML.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">summaryData</span></div>
+
+<div class="viewcode-block" id="Parser.addBDPtoAT"><a class="viewcode-back" href="../../../module/admit.xmlio/Parser.html#admit.xmlio.Parser.Parser.addBDPtoAT">[docs]</a>    <span class="k">def</span> <span class="nf">addBDPtoAT</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bdp</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to add a BDP to an AT. The AT is not specified, but the</span>
+<span class="sd">            _taskid attribute of the BDP is used to identify the necessary AT.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            bdp : BDP</span>
+<span class="sd">                Any valid BDP, to be added to an existing AT.</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">found</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">cp</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">bdp</span><span class="p">)</span>
+        <span class="c1"># find the AT we need</span>
+        <span class="k">for</span> <span class="n">at</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span><span class="p">:</span>
+            <span class="c1"># see if the ID&#39;s match</span>
+            <span class="k">if</span> <span class="n">at</span><span class="o">.</span><span class="n">_taskid</span> <span class="o">==</span> <span class="n">bdp</span><span class="o">.</span><span class="n">_taskid</span><span class="p">:</span>
+                <span class="n">found</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="c1"># set the base directory of the BDP</span>
+                <span class="n">cp</span><span class="o">.</span><span class="n">baseDir</span><span class="p">(</span><span class="n">at</span><span class="o">.</span><span class="n">baseDir</span><span class="p">())</span>
+                <span class="c1"># add it to the correct slot</span>
+                <span class="n">at</span><span class="o">.</span><span class="n">_bdp_out</span><span class="p">[</span><span class="n">at</span><span class="o">.</span><span class="n">_bdp_out_map</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">_uid</span><span class="p">)]</span> <span class="o">=</span> <span class="n">cp</span>
+                <span class="k">break</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">found</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;##### Found orphaned BDP with type </span><span class="si">%s</span><span class="s2"> in file </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> \
+                <span class="p">(</span><span class="n">bdp</span><span class="o">.</span><span class="n">_type</span><span class="p">,</span> <span class="n">bdp</span><span class="o">.</span><span class="n">xmlFile</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Parser.parse"><a class="viewcode-back" href="../../../module/admit.xmlio/Parser.html#admit.xmlio.Parser.Parser.parse">[docs]</a>    <span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">doParse</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method that controls the parsing flow. First reads in the root xml</span>
+<span class="sd">            file and then any BDP files that were found.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            doParse : Boolean</span>
+<span class="sd">                Whether or not to actually parse the XML</span>
+<span class="sd">                Default: True</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">xmlFile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># set up the parser, error handler,a nd content handler</span>
+            <span class="n">contentHandler</span> <span class="o">=</span> <span class="n">AdmitParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">baseDir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">baseDir</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">xmlFile</span><span class="p">)</span>
+            <span class="n">contentHandler</span><span class="o">.</span><span class="n">setadmit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">admit</span><span class="p">)</span>
+            <span class="n">errorHandler</span> <span class="o">=</span> <span class="n">ErrorHandler</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">setContentHandler</span><span class="p">(</span><span class="n">contentHandler</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">setErrorHandler</span><span class="p">(</span><span class="n">errorHandler</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">doParse</span><span class="p">:</span>
+                <span class="c1"># parse admit.xml</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">baseDir</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">xmlFile</span><span class="p">))</span>
+                <span class="c1"># get all of the bits and assemble the admit class content</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span> <span class="o">=</span> <span class="n">contentHandler</span><span class="o">.</span><span class="n">getAT</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">flowmanager</span> <span class="o">=</span> <span class="n">contentHandler</span><span class="o">.</span><span class="n">getflowmanager</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">projmanager</span> <span class="o">=</span> <span class="n">contentHandler</span><span class="o">.</span><span class="n">projmanager</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">summaryData</span> <span class="o">=</span> <span class="n">contentHandler</span><span class="o">.</span><span class="n">summaryData</span>
+                <span class="n">files</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">getFiles</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">baseDir</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">fl</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+                    <span class="c1"># search for all BDP&#39;s and load them</span>
+                    <span class="n">BDPreader</span> <span class="o">=</span> <span class="n">BDPReader</span><span class="p">(</span><span class="n">fl</span><span class="p">)</span>
+                    <span class="c1"># return the generated BDP class</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">addBDPtoAT</span><span class="p">(</span><span class="n">BDPreader</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+                <span class="k">for</span> <span class="n">at</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">at</span><span class="o">.</span><span class="n">getProject</span><span class="p">():</span>
+                        <span class="n">at</span><span class="o">.</span><span class="n">baseDir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">baseDir</span><span class="p">)</span>
+                    <span class="n">at</span><span class="o">.</span><span class="n">checkfiles</span><span class="p">()</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

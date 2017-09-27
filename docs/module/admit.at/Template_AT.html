@@ -1,0 +1,465 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Template_AT — Cube manipulation template. &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../index.html" />
+    <link rel="up" title="Python Scripting Interface (API)" href="../../api.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" accesskey="U">Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-admit.at.Template_AT"></span><div class="section" id="template-at-cube-manipulation-template">
+<span id="template-at-api"></span><h1><strong>Template_AT</strong> &#8212; Cube manipulation template.<a class="headerlink" href="#template-at-cube-manipulation-template" title="Permalink to this headline">¶</a></h1>
+<p>This module defines the Template_AT class.</p>
+<dl class="class">
+<dt id="admit.at.Template_AT.Template_AT">
+<em class="property">class </em><code class="descclassname">admit.at.Template_AT.</code><code class="descname">Template_AT</code><span class="sig-paren">(</span><em>**keyval</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/Template_AT.html#Template_AT"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.Template_AT.Template_AT" title="Permalink to this definition">¶</a></dt>
+<dd><p>Image cube manipulation sample template.</p>
+<p>This task demonstrates several ways of manipulating a generic
+position-position-frequency (or velocity) data cube.  It can be used as a
+template by users developing their own cube analysis routines. This
+template demonstrates the following transformations:</p>
+<ul class="simple">
+<li>scale the intensity at all points in the cube by a specified value</li>
+<li>extract a 2-D position-position image from the (scaled) cube at a 
+specified frequency (channel number)</li>
+<li>extract a 1-D spectrum from the (scaled) cube at the specified spatial
+position (pixel coordinates)</li>
+</ul>
+<p>Each of these operations is controlled by keywords.</p>
+<p><strong>Keywords</strong></p>
+<blockquote>
+<div><dl class="docutils">
+<dt><strong>cubescale</strong>: float</dt>
+<dd>The value by which to scale the cube intensity; default: 2.0.</dd>
+<dt><strong>imgslice</strong>: int</dt>
+<dd>Frequency (pixel index) of the 2-D image plane to extract from the
+cube; default: 0 (the first spectral channel).</dd>
+<dt><strong>specpos</strong>: 2-tuple of int</dt>
+<dd>The 2-D (spatial) pixel position from which to extract the 1-D cube
+spectrum; default: (0,0).</dd>
+</dl>
+</div></blockquote>
+<p><strong>Input BDPs</strong></p>
+<blockquote>
+<div><dl class="docutils">
+<dt><strong>SpwCube_BDP</strong>: count: 1</dt>
+<dd>Input 3-D data cube; e.g., as output from an
+<a class="reference external" href="Ingest_AT.html">Ingest_AT</a>,
+<a class="reference external" href="ContinuumSub_AT.html">ContinuumSub_AT</a> or
+<a class="reference external" href="LineCube_AT.html">LineCube_AT</a>.</dd>
+</dl>
+</div></blockquote>
+<p><strong>Output BDPs</strong></p>
+<blockquote>
+<div><dl class="docutils">
+<dt><strong>SpwCube_BDP</strong>: count: 1</dt>
+<dd>Output scaled 3-D data cube.</dd>
+<dt><strong>Image_BDP</strong>: count: 1</dt>
+<dd>Output 2-D image sliced from the cube.</dd>
+<dt><strong>Table_BDP</strong>: count: 1</dt>
+<dd>Output 1-D spectrum extracted from the cube.</dd>
+</dl>
+</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>keyval</strong> : dict, optional</p>
+<blockquote class="last">
+<div><p>Dictionary of keyword:value pairs.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>Whenever the expected type or number of keywords or input/output BDPs
+changes, the __init__ method must be updated accordingly.</p>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="25%" />
+<col width="75%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>_version</td>
+<td>(str) Version ID string.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">addinput</span></code>(item[,&nbsp;slot])</td>
+<td>Add a BDP input to an AT.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">addinputbdp</span></code>(item[,&nbsp;slot,&nbsp;insert])</td>
+<td>Add a BDP to the _bdp_in list.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">addoutput</span></code>(item[,&nbsp;slot])</td>
+<td>Add a BDP output product to an AT.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">addoutputbdp</span></code>(item[,&nbsp;slot,&nbsp;insert])</td>
+<td>Add a BDP to the _bdp_out list.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">baseDir</span></code>([path])</td>
+<td>Get/set project base directory.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">bestMatch</span></code>(at1,&nbsp;at2)</td>
+<td>Determines the better match of two tasks to the current one.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">checkfiles</span></code>()</td>
+<td>Check if the files from all the BDP_out&#8217;s in an AT exist.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">checktype</span></code>(item)</td>
+<td>Check the type of an object to see if it is a BDP.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">clearinput</span></code>()</td>
+<td>Clear the input BDP list.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">clearoutput</span></code>([delete])</td>
+<td>Clear the output BDP list.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">copy</span></code>()</td>
+<td>Creates an independent duplicate of the task.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">delete</span></code>()</td>
+<td>Method to delete the AT and underlying BDPs.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">delinput</span></code>(slot)</td>
+<td>Delete a specific BDP in the _bdp_in list.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">deloutput</span></code>(slot)</td>
+<td>Delete a specific BDP in the _bdp_out list.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">dir</span></code>([filename])</td>
+<td>Absolute directory reference of the ADMIT project.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">dryrun</span></code>()</td>
+<td>Method to do a dry run of the AT, generally just checks input values for errors.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">enabled</span></code>([state])</td>
+<td>Returns current task enabled setting, with optional reset.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">execute</span></code>([args])</td>
+<td>Executes the task.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">freeAlias</span></code>(aliases[,&nbsp;alias])</td>
+<td>Deletes alias reservation, if present.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">get</span></code>(attrib)</td>
+<td>Method to get the given attributes value</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">getProject</span></code>()</td>
+<td>Retrieves project ID associated with the task.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">getVersion</span></code>()</td>
+<td>Return the version string.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">getdtd</span></code>(fl)</td>
+<td>Method to write out the dtd data.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">geteffectivelevel</span></code>()</td>
+<td>Method to get the effective logging level of the logging subsystem</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">getkey</span></code>(key)</td>
+<td>Retrieval value for a key.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">getloggername</span></code>()</td>
+<td>Method to get the name of the logger for this AT instance</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">getlogginglevel</span></code>()</td>
+<td>Method to get the current logging level of the AT</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">haskey</span></code>(key)</td>
+<td>Query if a key exists for an AT.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">html</span></code>(inheader)</td>
+<td>Method to represent the current AT in HTML format.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">id</span></code>([strip])</td>
+<td>Returns task ID number.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">isAutoAlias</span></code>([withEmpty,&nbsp;compat])</td>
+<td>Whether the task alias appears to be auto-generated.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">isequal</span></code>(at)</td>
+<td>Method to determine if two ATs are the same.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">isstale</span></code>()</td>
+<td>Returns whether the AT is out of date.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">len2</span></code>()</td>
+<td>Returns the length of _bdp_in and _bdp_out in a tuple.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">link</span></code>()</td>
+<td>Increments the task link count.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">markChanged</span></code>()</td>
+<td>Mark an AT that it&#8217;s state was changed, so it would need to be rerun.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">markUpToDate</span></code>()</td>
+<td>Resets _stale to indicate that the AT does not need to be run.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">merge</span></code>(at[,&nbsp;aliases])</td>
+<td>Merges attributes from another task.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">mkdir</span></code>(dirname)</td>
+<td>Make a directory in the ADMIT hierarchy.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">mkext</span></code>(filename,&nbsp;ext[,&nbsp;alias])</td>
+<td>Return a new filename with a new extension with optional ADMIT alias.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">newId</span></code>(tid)</td>
+<td>Assigns the task a new ID number.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">reset</span></code>(a)</td>
+<td>Performs an <em>in-place</em> shallow copy.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.at.Template_AT.Template_AT.run" title="admit.at.Template_AT.Template_AT.run"><code class="xref py py-obj docutils literal"><span class="pre">run</span></code></a>()</td>
+<td>Task run method.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">running</span></code>([state])</td>
+<td>Returns current task execution flag, with optional reset.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>()</td>
+<td>Save (write) any BDPs connected to this AT.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set</span></code>(item,&nbsp;val)</td>
+<td>Method to set protected attributes, rather than direct access</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">setAlias</span></code>(aliases[,&nbsp;alias,&nbsp;auto])</td>
+<td>Sets and registers the task alias, guaranteed unique among  registered aliases.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">setProject</span></code>(pid)</td>
+<td>Adds a project ID to task ID.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">set_bdp_in</span></code>([bdpin])</td>
+<td>Validate the _valid_bdp_in list and digest it into the appropriate attributes.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_bdp_out</span></code>([bout])</td>
+<td>Validate the _valid_bdp_out list and digest it into the appropriate attributes.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">seteffectivelevel</span></code>(level)</td>
+<td>Method to set the effective logging level of the logging subsystem</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">setkey</span></code>([name,&nbsp;value,&nbsp;isinit])</td>
+<td>Set keyword value.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">setloggername</span></code>(name)</td>
+<td>Method to set the name of the logger for this AT instance</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">setlogginglevel</span></code>(level)</td>
+<td>Method to set the logging level</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">show</span></code>()</td>
+<td>Return the AT type.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">statusicons</span></code>()</td>
+<td>return some html icons representing the enabled/stale status of this task</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.at.Template_AT.Template_AT.summary" title="admit.at.Template_AT.Template_AT.summary"><code class="xref py py-obj docutils literal"><span class="pre">summary</span></code></a>()</td>
+<td>Summary data dictionary.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">unlink</span></code>()</td>
+<td>Decrements the task link count.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.at.Template_AT.Template_AT.userdata" title="admit.at.Template_AT.Template_AT.userdata"><code class="xref py py-obj docutils literal"><span class="pre">userdata</span></code></a>()</td>
+<td>User data dictionary.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">validateinput</span></code>([describe])</td>
+<td>Method to validate the _bdp_in&#8217;s against a dictionary of expected types.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">validatekeys</span></code>()</td>
+<td>Method to error check all input keys.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">write</span></code>(node)</td>
+<td>Method to write the AT to disk.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="admit.at.Template_AT.Template_AT.run">
+<code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/Template_AT.html#Template_AT.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.Template_AT.Template_AT.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Task run method.</p>
+<p>Outputs three sample data products from a single input data cube:</p>
+<ol class="arabic simple">
+<li>A cube scaled by the value of <em>cubescale</em>.</li>
+<li>An image sliced from the cube at frequency <em>imgfreq</em>.</li>
+<li>A spectrum extracted from the cube at position <em>specpos</em>.</li>
+</ol>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.at.Template_AT.Template_AT.summary">
+<code class="descname">summary</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/Template_AT.html#Template_AT.summary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.Template_AT.Template_AT.summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Summary data dictionary.</p>
+<p>Template_AT adds the following to ADMIT summary:</p>
+<table border="1" class="borderless docutils">
+<colgroup>
+<col width="18%" />
+<col width="18%" />
+<col width="64%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Key</th>
+<th class="head">type</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>spectra</td>
+<td>list</td>
+<td>Plots of cube slice and spectrum.</td>
+</tr>
+<tr class="row-odd"><td>template</td>
+<td>table</td>
+<td>Template data product statistics.</td>
+</tr>
+</tbody>
+</table>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>None</strong></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">dict</p>
+<blockquote class="last">
+<div><p>Dictionary of SummaryEntry</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.at.Template_AT.Template_AT.userdata">
+<code class="descname">userdata</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/Template_AT.html#Template_AT.userdata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.Template_AT.Template_AT.userdata" title="Permalink to this definition">¶</a></dt>
+<dd><p>User data dictionary.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>None</strong></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">dict</p>
+<blockquote class="last">
+<div><p>The user data dictionary from the AT, for merging into the ADMIT
+user data object.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/module/admit.at/Template_AT.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" >Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

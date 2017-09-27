@@ -1,0 +1,527 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>LineData — Extended spectral line metadata. &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../index.html" />
+    <link rel="up" title="Python Scripting Interface (API)" href="../../api.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" accesskey="U">Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-admit.util.LineData"></span><div class="section" id="linedata-extended-spectral-line-metadata">
+<span id="linedata-api"></span><h1><strong>LineData</strong> &#8212; Extended spectral line metadata.<a class="headerlink" href="#linedata-extended-spectral-line-metadata" title="Permalink to this headline">¶</a></h1>
+<p>This module defines the LineData class.</p>
+<dl class="class">
+<dt id="admit.util.LineData.LineData">
+<em class="property">class </em><code class="descclassname">admit.util.LineData.</code><code class="descname">LineData</code><span class="sig-paren">(</span><em>**keyval</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/LineData.html#LineData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.LineData.LineData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class for holding information on a specific spectral line, expanding on that of the Line
+base class.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>keyval</strong> : dict</p>
+<blockquote class="last">
+<div><p>Dictionary of keyword:value pairs.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="7%" />
+<col width="93%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>name</td>
+<td>(str) Name of the molecule/atom. Default: &#8220;&#8221;.</td>
+</tr>
+<tr class="row-even"><td>uid</td>
+<td>(str) Unique identifier for the transition. Default: &#8220;&#8221;.</td>
+</tr>
+<tr class="row-odd"><td>formula</td>
+<td>(str) The chemical formula. Default: &#8220;&#8221;.</td>
+</tr>
+<tr class="row-even"><td>transition</td>
+<td>(str) The transition/quantum number information. Default: &#8220;&#8221;.</td>
+</tr>
+<tr class="row-odd"><td>energies</td>
+<td>(2 element list) List of the lower and upper state energies of the transition. Default: [0.0, 0.0].</td>
+</tr>
+<tr class="row-even"><td>energyunits</td>
+<td>(str) Units of the upper/lower state energy. Default: K.</td>
+</tr>
+<tr class="row-odd"><td>linestrength</td>
+<td>(float) The line strength of the transition. Default: 0.0.</td>
+</tr>
+<tr class="row-even"><td>lsunits</td>
+<td>(str) The units of the line strength. Default: &#8220;Debye^2&#8221;.</td>
+</tr>
+<tr class="row-odd"><td>frequency</td>
+<td>(float) The frequency of the transition. Default: 0.0.</td>
+</tr>
+<tr class="row-even"><td>funits</td>
+<td>(str) The units of the frequency. Default: &#8220;GHz&#8221;.</td>
+</tr>
+<tr class="row-odd"><td>blend</td>
+<td>(int) If this molecule is blended with others. Value of 0 means no blending any other value gives the index of the blend. Default: 0 (no blending).</td>
+</tr>
+<tr class="row-even"><td>mass</td>
+<td>(int) Rough mass of the molecule (H=1, C=12, etc.). Default: 0.</td>
+</tr>
+<tr class="row-odd"><td>plain</td>
+<td>(str) A human redable version of the chemical formula. Default: &#8220;&#8221;.</td>
+</tr>
+<tr class="row-even"><td>isocount</td>
+<td>(int) A count of the number of non-standard isotopes in the molecule. For example the standard for carbon is 12C and 13C would be the non-standard isotope. Default: 0.</td>
+</tr>
+<tr class="row-odd"><td>chans</td>
+<td>(two element list) List of the starting and ending channels of the line. Default: [0, 0].</td>
+</tr>
+<tr class="row-even"><td>freqs</td>
+<td>(two element list) List of the starting and ending frequencies of the line. Default: [0.0, 0.0].</td>
+</tr>
+<tr class="row-odd"><td>peakintensity</td>
+<td>(float) The peak intensity of the line in units from the input data. Default: 0.0.</td>
+</tr>
+<tr class="row-even"><td>peakrms</td>
+<td>(float) The S/N of the peak of the line. Default: 0.0.</td>
+</tr>
+<tr class="row-odd"><td>fwhm</td>
+<td>(float) Full width half maximum of the line. Default: 0.0.</td>
+</tr>
+<tr class="row-even"><td>noise</td>
+<td>(float) The rms noise of the spectrum. Default: 0.0.</td>
+</tr>
+<tr class="row-odd"><td>hfnum</td>
+<td>(int) Hyperfine identifier from the Tier1 database. Default: 0 (no hyperfines).</td>
+</tr>
+<tr class="row-even"><td>peakoffset</td>
+<td>(float) The offset of the peak of the line from the vlsr. Default: 0.0.</td>
+</tr>
+<tr class="row-odd"><td>velocity</td>
+<td>(float) The velocity of the line (offset + vlsr). Default: 0.0.</td>
+</tr>
+<tr class="row-even"><td>force</td>
+<td>(bool) If True then the user forced the identification via the force keyword in LineID, if False then the id was generated by LineID. Default: False.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.LineData.LineData.converttoline" title="admit.util.LineData.LineData.converttoline"><code class="xref py py-obj docutils literal"><span class="pre">converttoline</span></code></a>()</td>
+<td>Method to convert the contents of the LineData object to a Line Object</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.LineData.LineData.getend" title="admit.util.LineData.LineData.getend"><code class="xref py py-obj docutils literal"><span class="pre">getend</span></code></a>()</td>
+<td>Method to get the ending channel number.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.LineData.LineData.getfend" title="admit.util.LineData.LineData.getfend"><code class="xref py py-obj docutils literal"><span class="pre">getfend</span></code></a>()</td>
+<td>Method to get the ending frequency.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.LineData.LineData.getfstart" title="admit.util.LineData.LineData.getfstart"><code class="xref py py-obj docutils literal"><span class="pre">getfstart</span></code></a>()</td>
+<td>Method to get the starting frequency.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.LineData.LineData.getkey" title="admit.util.LineData.LineData.getkey"><code class="xref py py-obj docutils literal"><span class="pre">getkey</span></code></a>(key)</td>
+<td>Method to get a data member by name</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">getlowerenergy</span></code>()</td>
+<td>Method to get the lower state energy.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.LineData.LineData.getstart" title="admit.util.LineData.LineData.getstart"><code class="xref py py-obj docutils literal"><span class="pre">getstart</span></code></a>()</td>
+<td>Method to get the starting channel number.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">getupperenergy</span></code>()</td>
+<td>Method to get the upper state energy.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">isequal</span></code>(line)</td>
+<td>Experimental method to compare 2 line classes</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.LineData.LineData.setchans" title="admit.util.LineData.LineData.setchans"><code class="xref py py-obj docutils literal"><span class="pre">setchans</span></code></a>(chans)</td>
+<td>Method to set the channel range for the line.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.LineData.LineData.setend" title="admit.util.LineData.LineData.setend"><code class="xref py py-obj docutils literal"><span class="pre">setend</span></code></a>(chan)</td>
+<td>Method to set the ending channel number.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.LineData.LineData.setfend" title="admit.util.LineData.LineData.setfend"><code class="xref py py-obj docutils literal"><span class="pre">setfend</span></code></a>(freq)</td>
+<td>Method to set the ending frequency.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.LineData.LineData.setfreqs" title="admit.util.LineData.LineData.setfreqs"><code class="xref py py-obj docutils literal"><span class="pre">setfreqs</span></code></a>(freqs)</td>
+<td>Method to set the frequency range for the line.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.LineData.LineData.setfstart" title="admit.util.LineData.LineData.setfstart"><code class="xref py py-obj docutils literal"><span class="pre">setfstart</span></code></a>(freq)</td>
+<td>Method to set the starting frequency.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.LineData.LineData.setkey" title="admit.util.LineData.LineData.setkey"><code class="xref py py-obj docutils literal"><span class="pre">setkey</span></code></a>([name,&nbsp;value])</td>
+<td>Method to set the key-value pairs for the class.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">setlowerenergy</span></code>(value)</td>
+<td>Method to set the lower state energy.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.LineData.LineData.setstart" title="admit.util.LineData.LineData.setstart"><code class="xref py py-obj docutils literal"><span class="pre">setstart</span></code></a>(chan)</td>
+<td>Method to set the starting channel number.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">setupperenergy</span></code>(value)</td>
+<td>Method to set the upper state energy.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="admit.util.LineData.LineData.converttoline">
+<code class="descname">converttoline</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/LineData.html#LineData.converttoline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.LineData.LineData.converttoline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to convert the contents of the LineData object to a Line Object</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Line object populated with the relevant data from this LineData object</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.LineData.LineData.getend">
+<code class="descname">getend</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/LineData.html#LineData.getend"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.LineData.LineData.getend" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get the ending channel number.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Int containing the ending channel number</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.LineData.LineData.getfend">
+<code class="descname">getfend</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/LineData.html#LineData.getfend"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.LineData.LineData.getfend" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get the ending frequency.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Float containing the ending frequency</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.LineData.LineData.getfstart">
+<code class="descname">getfstart</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/LineData.html#LineData.getfstart"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.LineData.LineData.getfstart" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get the starting frequency.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Float containing the starting frequency</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.LineData.LineData.getkey">
+<code class="descname">getkey</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/LineData.html#LineData.getkey"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.LineData.LineData.getkey" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get a data member by name</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>key</strong> : str</p>
+<blockquote>
+<div><p>The name of the data member to return</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">various, the contents of the requested item</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.LineData.LineData.getstart">
+<code class="descname">getstart</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/LineData.html#LineData.getstart"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.LineData.LineData.getstart" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get the starting channel number.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Int containing the starting channel number</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.LineData.LineData.setchans">
+<code class="descname">setchans</code><span class="sig-paren">(</span><em>chans</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/LineData.html#LineData.setchans"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.LineData.LineData.setchans" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to set the channel range for the line.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>chans</strong> : list</p>
+<blockquote>
+<div><p>Two element list of the channel range for the line</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.LineData.LineData.setend">
+<code class="descname">setend</code><span class="sig-paren">(</span><em>chan</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/LineData.html#LineData.setend"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.LineData.LineData.setend" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to set the ending channel number.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>chan</strong> : int</p>
+<blockquote>
+<div><p>The ending channel number to set</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.LineData.LineData.setfend">
+<code class="descname">setfend</code><span class="sig-paren">(</span><em>freq</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/LineData.html#LineData.setfend"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.LineData.LineData.setfend" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to set the ending frequency.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>chan</strong> : int</p>
+<blockquote>
+<div><p>The ending frequency to set</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.LineData.LineData.setfreqs">
+<code class="descname">setfreqs</code><span class="sig-paren">(</span><em>freqs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/LineData.html#LineData.setfreqs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.LineData.LineData.setfreqs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to set the frequency range for the line.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>chans</strong> : list</p>
+<blockquote>
+<div><p>Two element list of the frequency range for the line</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.LineData.LineData.setfstart">
+<code class="descname">setfstart</code><span class="sig-paren">(</span><em>freq</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/LineData.html#LineData.setfstart"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.LineData.LineData.setfstart" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to set the starting frequency.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>chan</strong> : int</p>
+<blockquote>
+<div><p>The starting frequency to set</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.LineData.LineData.setkey">
+<code class="descname">setkey</code><span class="sig-paren">(</span><em>name=''</em>, <em>value=''</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/LineData.html#LineData.setkey"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.LineData.LineData.setkey" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to set the key-value pairs for the class. It treats the chans and freqs keywords
+specially, making sure that the pairs of numbers are properly ordered. All other keys
+and values are passed directly to the Line superclass setkey.</p>
+<p>set keys, two styles are possible:</p>
+<ol class="arabic simple">
+<li>name = {key:val}            e.g. <strong>setkey({&#8220;a&#8221;:1})</strong></li>
+<li>name = &#8220;key&#8221;, value = val     e.g. <strong>setkey(&#8220;a&#8221;, 1)</strong></li>
+</ol>
+<p>This method checks the type of the keyword value, as it must
+remain the same. Also new keywords cannot be added.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>name</strong> : dictionary or string</p>
+<blockquote>
+<div><p>Dictionary of keyword value pais to set or a string with the name
+of a single key</p>
+</div></blockquote>
+<p><strong>value</strong> : any</p>
+<blockquote>
+<div><p>The value to change the keyword to</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.LineData.LineData.setstart">
+<code class="descname">setstart</code><span class="sig-paren">(</span><em>chan</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/LineData.html#LineData.setstart"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.LineData.LineData.setstart" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to set the starting channel number.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>chan</strong> : int</p>
+<blockquote>
+<div><p>The starting channel number to set</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/module/admit.util/LineData.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" >Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

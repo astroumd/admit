@@ -1,0 +1,949 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.at.Ingest_AT &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.at.Ingest_AT</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; .. _Ingest-at-api:</span>
+
+<span class="sd">   **Ingest_AT** --- Ingests a (FITS) data cube.</span>
+<span class="sd">   ---------------------------------------------</span>
+
+<span class="sd">   This module defines the Ingest_AT class.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span>
+
+<span class="kn">import</span> <span class="nn">admit</span>
+<span class="kn">from</span> <span class="nn">admit.AT</span> <span class="k">import</span> <span class="n">AT</span>
+<span class="kn">from</span> <span class="nn">admit.Summary</span> <span class="k">import</span> <span class="n">SummaryEntry</span>
+<span class="kn">import</span> <span class="nn">admit.util.bdp_types</span> <span class="k">as</span> <span class="nn">bt</span>
+<span class="kn">from</span> <span class="nn">admit.util.Image</span> <span class="k">import</span> <span class="n">Image</span>
+<span class="kn">import</span> <span class="nn">admit.util.utils</span> <span class="k">as</span> <span class="nn">utils</span>
+<span class="kn">import</span> <span class="nn">admit.util.casautil</span> <span class="k">as</span> <span class="nn">casautil</span>
+<span class="kn">import</span> <span class="nn">admit.util.ImPlot</span>  <span class="k">as</span> <span class="nn">ImPlot</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.SpwCube_BDP</span> <span class="k">import</span> <span class="n">SpwCube_BDP</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.Image_BDP</span>   <span class="k">import</span> <span class="n">Image_BDP</span>
+<span class="kn">from</span> <span class="nn">admit.util.AdmitLogging</span> <span class="k">import</span> <span class="n">AdmitLogging</span> <span class="k">as</span> <span class="n">logging</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">taskinit</span>
+    <span class="kn">import</span> <span class="nn">casa</span>
+    <span class="kn">from</span> <span class="nn">specsmooth</span> <span class="k">import</span> <span class="n">specsmooth</span>
+    <span class="kn">from</span> <span class="nn">impbcor</span> <span class="k">import</span> <span class="n">impbcor</span>
+    <span class="kn">from</span> <span class="nn">imtrans</span> <span class="k">import</span> <span class="n">imtrans</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="nb">print</span> <span class="s2">&quot;WARNING: No CASA; Ingest task cannot function.&quot;</span>
+
+<span class="kn">import</span> <span class="nn">random</span>
+
+<span class="c1"># @todo </span>
+<span class="c1"># - rel path should be to ../basename.fits</span>
+<span class="c1"># = edge/box are the keywords to cut a cube</span>
+<span class="c1">#   len(box) = 0       edge allowed</span>
+<span class="c1">#              2       no edge allowed, they are z1,z2</span>
+<span class="c1">#              4       edge allowed, they are blc,trc</span>
+<span class="c1">#              6       no edge allowed</span>
+<span class="c1"># - vlsr needs to be stored, in a veldef?   For this we need access to ASDM/Source.xml</span>
+<span class="c1">#   and will need a small tool in util.py to parse the xml and return what we need</span>
+<span class="c1"># - resolve the confusion between symlink= and copy=</span>
+<span class="c1"># - allow LineCube instead of the default SpwCube</span>
+<span class="c1"># - autobox?</span>
+<span class="c1"># - if not a fits file, there is no smoothing</span>
+<span class="c1">#   (obviously if it remains a symlink, of course we cannot change the data)</span>
+<span class="c1"># - check if spectral reference is LSRK (e.g. some ALMA is TOPO, that&#39;s bad)</span>
+<span class="c1">#   although some may not have it, e.g. test6503</span>
+<span class="c1">#   SPECSYS = &#39;TOPO&#39; or &#39;TOPOCENT&#39; (casa 3.3.0)</span>
+<span class="c1">#             &#39;BARY&#39;  (helio)</span>
+<span class="c1">#   imhead-&gt;[&#39;reffreqtype&#39;]</span>
+<span class="c1">#  - smooth and decimate option?</span>
+<span class="c1">#  - vlsr=0.0 cannot be given?</span>
+
+
+<div class="viewcode-block" id="Ingest_AT"><a class="viewcode-back" href="../../../module/admit.at/Ingest_AT.html#admit.at.Ingest_AT.Ingest_AT">[docs]</a><span class="k">class</span> <span class="nc">Ingest_AT</span><span class="p">(</span><span class="n">AT</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Ingest an image (cube) into ADMIT, normally to bootstrap a flow.</span>
+
+<span class="sd">    See also :ref:`Ingest-AT-Design` for the design document.</span>
+
+<span class="sd">    Ingest an image cube (usually FITS, but a CASA image or MIRIAD</span>
+<span class="sd">    image are also natively supported by CASA) into CASA.  Expect I/O</span>
+<span class="sd">    penalties if you use FITS or MIRIAD because CASA images are tiled.</span>
+
+<span class="sd">    A number of selections and corrections to the cube can be made, as</span>
+<span class="sd">    specified by the keywords. Notably, a sub-cube can be taken out of</span>
+<span class="sd">    the cube by trimming off spatial and spectral edges, a primary beam</span>
+<span class="sd">    correction can be made as well.</span>
+
+<span class="sd">    Internally ADMIT will store images as 4D CASA images, with any missing</span>
+<span class="sd">    3rd or 4th axis created redundantly (FREQ as axis 3, and POL as axis 4)</span>
+
+<span class="sd">    **Keywords**</span>
+
+<span class="sd">      **file**: string</span>
+<span class="sd">               Input filename.</span>
+
+<span class="sd">               Usually &#39;basename.fits&#39; where &#39;basename&#39; can be long, and can</span>
+<span class="sd">               involve a directory hierarchy.  The admit directory will be</span>
+<span class="sd">               &#39;basename.admit&#39;, which will include the whole directory path</span>
+<span class="sd">               if one was given.</span>
+
+<span class="sd">               A symbolic link within ADMIT will then be used to resolve</span>
+<span class="sd">               this as a local file.</span>
+<span class="sd">    </span>
+<span class="sd">               An absolute address is advised to be used if your working directory</span>
+<span class="sd">               can change in a flow.</span>
+
+<span class="sd">               If a CASA image is given, a symlink is used when no modifications</span>
+<span class="sd">               (e.g. box=) are used, but this will cause uncertain integrity of the</span>
+<span class="sd">               input BDP, as other clients could be modifying it.  A MIRIAD image</span>
+<span class="sd">               can also be given, but I/O (like with FITS) will be slower.</span>
+
+<span class="sd">               [no default]</span>
+
+<span class="sd">      **basename**: string</span>
+<span class="sd">               New short basename (like an alias) of the output file.</span>
+<span class="sd">    </span>
+<span class="sd">               This is meant to override a possibly long basename in the input</span>
+<span class="sd">               file. The **alias** keyword in the baseclass can still be used</span>
+<span class="sd">               to create **basename-alias** type filenames.</span>
+<span class="sd">               Warning: if you use a dash in your basename, there is a good risk</span>
+<span class="sd">               this will be confused with the alias separator in the basename</span>
+<span class="sd">               in a flow, as these are &quot;basename-alias.extension&quot;.</span>
+<span class="sd">               Default: empty string, basename inherited from the input file name.</span>
+
+<span class="sd">      **pb**:  string</span>
+<span class="sd">               If given, this is the filename of the Primary Beam by which the</span>
+<span class="sd">               input file needs to be multiplied to get a noise flat image for</span>
+<span class="sd">               processing the ADMIT flow.</span>
+<span class="sd">               The ALMA pipeline product of the Primary Beam should be in</span>
+<span class="sd">               &#39;longname.pb.fits&#39; where the flux flat cube is</span>
+<span class="sd">               &#39;longname.pbcor.fits&#39;  Note: PB correction is slow.</span>
+<span class="sd">               Default:  empty string, no PB correction is done.</span>
+
+<span class="sd">      **usepb**: boolean</span>
+<span class="sd">               If True, the PB is actually used in an assumed flux flat input file to</span>
+<span class="sd">               create a noise flat input BDP.  If False, it is assumed the user has</span>
+<span class="sd">               given a noise flat file, and the PB can be used downstream to compute</span>
+<span class="sd">               proper PB corrected fluxes.  Note that the PB is always stored as an 2D image,</span>
+<span class="sd">               not as a cube.</span>
+<span class="sd">               Default: True</span>
+
+<span class="sd">      **box**:  blc,tlc (a list of 2, 4 or 6 integers)</span>
+<span class="sd">               Select a box region from the cube.</span>
+<span class="sd">               For example box=[xmin,ymin,xmax,ymax], which takes all channels, or</span>
+<span class="sd">               [xmin,ymin,zmin,xmax,ymax,zmax], which also selects a range in channels.</span>
+<span class="sd">               You can also select just some channels, with box=[zmin,zmax].</span>
+<span class="sd">               As always, pixels and channels are 0 based in CASA.</span>
+<span class="sd">               Arbitrary CASA regions are not implemented here, we only support</span>
+<span class="sd">               a box/edge selection.</span>
+
+<span class="sd">      **edge**:  Z_start,Z_end (a list of 1 or 2 integers)</span>
+<span class="sd">               You can use edge= to remove edge channels, e.g. if box= was not specified,</span>
+<span class="sd">               or when only an XY box was given. If box contains 2 or 6 numbers, any edge</span>
+<span class="sd">               specification would be ignored. If one number is given, the edge rejection</span>
+<span class="sd">               is the same at the upper and lower end. Default: not used.</span>
+
+<span class="sd">      **smooth**: [nx,ny,[nz]] (a list of 2 or 3 integers)</span>
+<span class="sd">               You can convolve your cube spatially, and optionally spectrally as well,</span>
+<span class="sd">               by supplying the number of pixels by which it is convolved. Spatially the</span>
+<span class="sd">               FWHM is used. </span>
+<span class="sd">               If nz is 1, a Hanning smooth is applied, else a boxcar of size nz is used.</span>
+<span class="sd">               See also :ref:`Smooth-AT-api`, where a common beam can be computed or supplied.</span>
+<span class="sd">               A future version should contain a decimation option.</span>
+<span class="sd">               By default no smoothing is applied.</span>
+<span class="sd">    </span>
+<span class="sd">      **mask**: boolean</span>
+<span class="sd">               If True, a mask needs to be created where the</span>
+<span class="sd">               cube has 0&#39;s. This option is automatically bypassed if the input</span>
+<span class="sd">               CASA image had a mask. </span>
+<span class="sd">               [False]</span>
+
+<span class="sd">      **vlsr**: float (km/s)</span>
+<span class="sd">               VLSR of the source (km/s).  If not set, the frequency at the center of the</span>
+<span class="sd">               band is compared with the rest frequency from the header, which we call VLSRc.</span>
+<span class="sd">               If the input file is not FITS, or header items are missing if the input</span>
+<span class="sd">               file is CASA or MIRIAD already, unexpected things may happen.</span>
+<span class="sd">               This VLSR (or VLSRc) is added to the ADMIT summary, which will be used</span>
+<span class="sd">               downstream in the flow by other AT&#39;s (e.g. LineID)</span>
+<span class="sd">               Default: -999999.99 (not set).</span>
+
+<span class="sd">      **restfreq**: float (GHz)</span>
+<span class="sd">               An alternative method providing the source VLSR would be to specify the true</span>
+<span class="sd">               restfreq (f0) where the fits header has a &#39;fake&#39; restfreq (f). This technique</span>
+<span class="sd">               is sometimes used by the PI to avoid complex high-z doppler calculations and</span>
+<span class="sd">               supply the redshifted line directly.</span>
+<span class="sd">               In this case VLSR = c * (1-f/f0), in the radio definition, with z in the optical</span>
+<span class="sd">               convention of course. We call this VLSRf.</span>
+<span class="sd">               NOTE: clarify/check if the &quot;1+z&quot; velocity scale of the high-z object is correct.</span>
+<span class="sd">               Default: -1.0 (method not used). Units must be GHz!</span>
+<span class="sd">      </span>
+
+<span class="sd">    **Input BDPs**</span>
+<span class="sd">      None. The input is specific via the file= keyword.</span>
+
+<span class="sd">    **Output BDPs**</span>
+
+<span class="sd">      **SpwCube**: count: 1</span>
+<span class="sd">        The output spectral window cube. The convention is that the name of the BDP</span>
+<span class="sd">        inherits from the basename of the input fits cube,and adding an extension</span>
+<span class="sd">        &quot;im&quot;. Each AT has a hidden keyword called alias=, use this keyword if</span>
+<span class="sd">        you want to modify the cube name to &quot;alias.im&quot;, and hence the BDP to</span>
+<span class="sd">        &quot;alias.im.bdp&quot;.   Note this is an exception from the usual rule, where</span>
+<span class="sd">        alias= is used to create a dashed-prefix to an extension, e.g. &quot;x.alias-y&quot;.</span>
+
+<span class="sd">      **Image_BDP**: 1</span>
+<span class="sd">        Output PB Map. If the input PB is a cube, the central channel (being representative</span>
+<span class="sd">        for the avarage PB across the spectrum window) is used.</span>
+<span class="sd">        New extension will be &quot;.pb&quot;</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    keyval : dictionary, optional</span>
+<span class="sd">      Keyword-value pairs, directly passed to the contructor for ease of</span>
+<span class="sd">      assignment.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    _version : string</span>
+<span class="sd">        Version ID for some future TBD use.  Also should not be documented here,</span>
+<span class="sd">        as underscore attributes are for internal usage only.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1">#### DEPRECATED KEYWORDS BUT STILL ACTIVE IN CODE BY THEIR DEFAULT</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">          **symlink** : True/False:</span>
+<span class="sd">               If True, A symlink is kept to the input file without</span>
+<span class="sd">               any conversion (if that was needed) This is used in</span>
+<span class="sd">               those cases where your whole flow can work with the</span>
+<span class="sd">               fits file, without need to convert to a CASA image</span>
+<span class="sd">               Setting to True, also disabled all other processing</span>
+<span class="sd">               (mask/region/pbcor) Use with caution!  [False]</span>
+<span class="sd">               DEPRECATION</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">**</span><span class="n">keyval</span><span class="p">):</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;file&#39;</span>    <span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>        <span class="c1"># fitsfile cube or map (or casa/miriad)</span>
+            <span class="s1">&#39;basename&#39;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>        <span class="c1"># override basename (useful for shorter names)</span>
+            <span class="s1">&#39;pb&#39;</span>      <span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>        <span class="c1"># PB cube or map</span>
+            <span class="s1">&#39;usepb&#39;</span>   <span class="p">:</span> <span class="kc">True</span><span class="p">,</span>      <span class="c1"># use PB, or was it just given for downstream</span>
+            <span class="s1">&#39;mask&#39;</span>    <span class="p">:</span> <span class="kc">True</span><span class="p">,</span>      <span class="c1"># define a mask where data==0.0 if no mask present</span>
+            <span class="s1">&#39;box&#39;</span>     <span class="p">:</span> <span class="p">[],</span>        <span class="c1"># [] or z1,z2 or x1,y1,x2,y2  or x1,y1,z1,x2,y2,z2 </span>
+            <span class="s1">&#39;edge&#39;</span>    <span class="p">:</span> <span class="p">[],</span>        <span class="c1"># [] or zl,zr - number of edge channels</span>
+            <span class="s1">&#39;smooth&#39;</span>  <span class="p">:</span> <span class="p">[],</span>        <span class="c1"># pixel smoothing size applied to data (can be slow) - see also Smooth_AT</span>
+            <span class="s1">&#39;variflow&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>     <span class="c1"># requires manual sub-flow management for now</span>
+            <span class="s1">&#39;vlsr&#39;</span>    <span class="p">:</span> <span class="o">-</span><span class="mf">999999.0</span><span class="p">,</span> <span class="c1"># force a VLSR (see also LineID)</span>
+            <span class="s1">&#39;restfreq&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span>      <span class="c1"># alternate VLSRf specification</span>
+            <span class="c1"># &#39;symlink&#39; : False,   # </span>
+            <span class="c1"># &#39;autobox&#39; : False,   # automatically cut away spatial and spectral slices that are masked</span>
+            <span class="c1"># &#39;cbeam&#39;   : 0.5,     # channel beam variation allowed in terms of pixel size to use median beam</span>
+        <span class="p">}</span>
+        <span class="n">AT</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">keys</span><span class="p">,</span><span class="n">keyval</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_version</span> <span class="o">=</span> <span class="s2">&quot;1.1.0&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_bdp_in</span><span class="p">()</span>                            <span class="c1"># no input BDP</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_bdp_out</span><span class="p">([(</span><span class="n">SpwCube_BDP</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>          <span class="c1"># one or two output BDPs</span>
+                          <span class="p">(</span><span class="n">Image_BDP</span><span class="p">,</span>   <span class="mi">0</span><span class="p">),</span>          <span class="c1"># optional PB if there was an pb= input</span>
+                        <span class="p">])</span>
+
+<div class="viewcode-block" id="Ingest_AT.summary"><a class="viewcode-back" href="../../../module/admit.at/Ingest_AT.html#admit.at.Ingest_AT.Ingest_AT.summary">[docs]</a>    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the summary dictionary from the AT, for merging</span>
+<span class="sd">           into the ADMIT Summary object.</span>
+
+<span class="sd">        Ingest_AT adds the following to ADMIT summary::</span>
+
+<span class="sd">           Key      type        Description</span>
+<span class="sd">         --------  ------       -----------</span>
+<span class="sd">         fitsname  string      Pathless filename of FITS cube</span>
+<span class="sd">         casaname  string      Pathless filename of CASA cube</span>
+<span class="sd">         object    string      Object (or field) name</span>
+<span class="sd">         naxis     integer     Number of axes</span>
+<span class="sd">         naxisn    integer     size of axis n (n=1 to naxis0)</span>
+<span class="sd">         crpix1    float       Reference pixel axis 1 (n=1 to naxis)</span>
+<span class="sd">         crvaln    float       axis value at CRPIX1 (n=1 to naxis)</span>
+<span class="sd">         ctypen    string      axis type 1 (n=1 to naxis0</span>
+<span class="sd">         cdeltn    float       axis increment 1 (n=1 to naxis)</span>
+<span class="sd">         cunitn    string      axis unit 1 (n=1 to naxis)</span>
+<span class="sd">         equinox   string      equinox</span>
+<span class="sd">         restfreq  float       rest frequency, Hz</span>
+<span class="sd">         bmaj      float       beam major axis, radians</span>
+<span class="sd">         bmin      float       beam minor axis, radians</span>
+<span class="sd">         bpa       float       beam position angle, deg</span>
+<span class="sd">         bunit     string      units of pixel values</span>
+<span class="sd">         telescop  string      telescope name</span>
+<span class="sd">         observer  string      observer name</span>
+<span class="sd">         date-obs  string      date of observation</span>
+<span class="sd">         datamax   float       maximum data value</span>
+<span class="sd">         datamin   float       minimum data value</span>
+<span class="sd">         badpixel  float       fraction of invalid pixels in the cube (a number between 0 and 1)</span>
+<span class="sd">         vlsr      float       Object line-of-sight velocity (km/s)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># @todo the master list is in $ADMIT/admit/summary_defs.tab</span>
+        <span class="c1">#       1) we duplicate that here....</span>
+        <span class="c1">#       2) should it be with code?  or in $ADMIT/etc ?</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;_summary&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{}</span></div>
+
+<div class="viewcode-block" id="Ingest_AT.run"><a class="viewcode-back" href="../../../module/admit.at/Ingest_AT.html#admit.at.Ingest_AT.Ingest_AT.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span> <span class="o">=</span> <span class="p">{}</span>                  <span class="c1"># prepare to make a summary here</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">Dtime</span><span class="p">(</span><span class="s2">&quot;Ingest&quot;</span><span class="p">)</span>          <span class="c1"># timer for debugging</span>
+
+        <span class="n">do_cbeam</span> <span class="o">=</span> <span class="kc">True</span>                     <span class="c1"># enforce a common beam</span>
+        <span class="c1">#</span>
+        <span class="n">pb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s1">&#39;pb&#39;</span><span class="p">)</span>
+        <span class="n">do_pb</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pb</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="n">use_pb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;usepb&quot;</span><span class="p">)</span>
+        <span class="c1"># </span>
+        <span class="n">create_mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s1">&#39;mask&#39;</span><span class="p">)</span>   <span class="c1"># create a new mask ?</span>
+        <span class="n">box</span>   <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;box&quot;</span><span class="p">)</span>          <span class="c1"># corners in Z, XY or XYZ</span>
+        <span class="n">edge</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;edge&quot;</span><span class="p">)</span>         <span class="c1"># number of edge channels to remove</span>
+        <span class="n">restfreq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;restfreq&quot;</span><span class="p">)</span>  <span class="c1"># &lt; 0 means not activated</span>
+
+        <span class="c1"># smooth=  could become deprecated, and/or include a decimation option to make it useful</span>
+        <span class="c1">#          again, Smooth_AT() does this also , at the cost of an extra cube to store</span>
+        <span class="n">smooth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;smooth&quot;</span><span class="p">)</span>      <span class="c1"># </span>
+        <span class="c1">#</span>
+        <span class="n">vlsr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;vlsr&quot;</span><span class="p">)</span>          <span class="c1"># see also LineID, where this could be given again</span>
+
+        <span class="c1"># first place a fits file in the admit project directory (symlink)</span>
+        <span class="c1"># this is a bit involved, depending on if an absolute or relative path was</span>
+        <span class="c1"># give to Ingest_AT(file=)</span>
+        <span class="n">fitsfile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s1">&#39;file&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">fitsfile</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">:</span>
+            <span class="n">fitsfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="n">fitsfile</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;FILE=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">fitsfile</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">fitsfile</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span><span class="s2">&quot;Bad file=</span><span class="si">%s</span><span class="s2">, expected absolute name&quot;</span><span class="p">,</span><span class="n">fitsfile</span>
+
+        <span class="c1"># now determine if it could have been a CASA (or MIRIAD) image already </span>
+        <span class="c1"># which we&#39;ll assume if it&#39;s a directory; this is natively supported by CASA</span>
+        <span class="c1"># but there are tools where if you pass it a FITS or MIRIAD</span>
+        <span class="c1"># MIRIAD is not recommended for serious work, especially big files, since there</span>
+        <span class="c1"># is a performance penalty due to tiling.</span>
+        <span class="n">file_is_casa</span> <span class="o">=</span> <span class="n">casautil</span><span class="o">.</span><span class="n">iscasa</span><span class="p">(</span><span class="n">fitsfile</span><span class="p">)</span>
+
+        <span class="n">loc</span> <span class="o">=</span> <span class="n">fitsfile</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">)</span>               <span class="c1"># find the &#39;/&#39;</span>
+        <span class="n">ffile0</span> <span class="o">=</span> <span class="n">fitsfile</span><span class="p">[</span><span class="n">loc</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span>                  <span class="c1"># basename.fits</span>
+        <span class="n">basename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s1">&#39;basename&#39;</span><span class="p">)</span>         <span class="c1"># (new) basename allowed (allow no dots?)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">basename</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">basename</span> <span class="o">=</span> <span class="n">ffile0</span><span class="p">[:</span><span class="n">ffile0</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)]</span>  <span class="c1"># basename</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;basename=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">basename</span><span class="p">)</span>
+        <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">ffile0</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">target</span><span class="p">)</span> <span class="p">:</span>
+            <span class="n">cmd</span> <span class="o">=</span> <span class="s1">&#39;ln -s &quot;</span><span class="si">%s</span><span class="s1">&quot; &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fitsfile</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;CMD: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">cmd</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+
+        <span class="n">readonly</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">file_is_casa</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Assuming input </span><span class="si">%s</span><span class="s2"> is a CASA (or MIRIAD) image&quot;</span> <span class="o">%</span> <span class="n">ffile0</span><span class="p">)</span>
+            <span class="n">bdpfile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mkext</span><span class="p">(</span><span class="n">basename</span><span class="p">,</span><span class="s2">&quot;im&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">bdpfile</span> <span class="o">==</span> <span class="n">ffile0</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No selections allowed on CASA image, since no alias was given&quot;</span><span class="p">)</span>
+                <span class="n">readonly</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">b1</span>  <span class="o">=</span> <span class="n">SpwCube_BDP</span><span class="p">(</span><span class="n">bdpfile</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">addoutput</span><span class="p">(</span><span class="n">b1</span><span class="p">)</span>
+            <span class="n">b1</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;image&quot;</span><span class="p">,</span> <span class="n">Image</span><span class="p">(</span><span class="n">images</span><span class="o">=</span><span class="p">{</span><span class="n">bt</span><span class="o">.</span><span class="n">CASA</span><span class="p">:</span><span class="n">bdpfile</span><span class="p">}))</span>
+            <span class="c1"># @todo b2 and PB?</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># construct the output name and construct the BDP based on the CASA image name</span>
+            <span class="c1"># this also takes care of the behind the scenes alias= substitution</span>
+            <span class="n">bdpfile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mkext</span><span class="p">(</span><span class="n">basename</span><span class="p">,</span><span class="s2">&quot;im&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">bdpfile</span> <span class="o">==</span> <span class="n">basename</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span><span class="s2">&quot;basename and bdpfile are the same, Ingest_AT needs a fix for this&quot;</span>
+            <span class="n">b1</span>  <span class="o">=</span> <span class="n">SpwCube_BDP</span><span class="p">(</span><span class="n">bdpfile</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">addoutput</span><span class="p">(</span><span class="n">b1</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">do_pb</span><span class="p">:</span>
+                <span class="nb">print</span> <span class="s2">&quot;doing the PB&quot;</span>
+                <span class="n">bdpfile2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mkext</span><span class="p">(</span><span class="n">basename</span><span class="p">,</span><span class="s2">&quot;pb&quot;</span><span class="p">)</span>
+                <span class="n">b2</span> <span class="o">=</span> <span class="n">Image_BDP</span><span class="p">(</span><span class="n">bdpfile2</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">addoutput</span><span class="p">(</span><span class="n">b2</span><span class="p">)</span>
+
+        <span class="c1"># @todo    we should also set readonly=True if no box, no mask etc. and still an alias</span>
+        <span class="c1">#          that way it will speed up and not make a copy of the image ?</span>
+
+        <span class="c1"># fni and fno are full (abspath) filenames, ready for CASA</span>
+        <span class="c1"># fni is the same as fitsfile</span>
+        <span class="n">fni</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">ffile0</span><span class="p">)</span>
+        <span class="n">fno</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">bdpfile</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">do_pb</span><span class="p">:</span> <span class="n">fno2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">bdpfile2</span><span class="p">)</span>
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;start&quot;</span><span class="p">)</span>
+
+        <span class="n">ia</span> <span class="o">=</span> <span class="n">taskinit</span><span class="o">.</span><span class="n">iatool</span><span class="p">()</span>
+        <span class="n">rg</span> <span class="o">=</span> <span class="n">taskinit</span><span class="o">.</span><span class="n">rgtool</span><span class="p">()</span>
+        
+        <span class="k">if</span> <span class="n">file_is_casa</span><span class="p">:</span>
+            <span class="n">ia</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">fni</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">do_pb</span> <span class="ow">and</span> <span class="n">use_pb</span><span class="p">:</span>
+                <span class="c1"># @todo   this needs a fix for the path for pb, only works if abs path is given</span>
+                <span class="c1"># impbcor(im.fits,pb.fits,out.im,overwrite=True,mode=&#39;m&#39;)</span>
+                <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
+                    <span class="c1"># this may seem like a nice shortcut, to have the fits-&gt;casa conversion be done</span>
+                    <span class="c1"># internally in impbcor, but it&#39;s a terrible performance for big cubes. (tiling?)</span>
+                    <span class="c1"># we keep this code here, perhaps at some future time (mpi?) this performs better</span>
+                    <span class="c1"># @todo fno2</span>
+                    <span class="n">impbcor</span><span class="p">(</span><span class="n">fni</span><span class="p">,</span><span class="n">pb</span><span class="p">,</span><span class="n">fno</span><span class="p">,</span><span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;m&#39;</span><span class="p">)</span>
+                    <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;impbcor-1&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># the better way is to convert FITS-&gt;CASA and then call impbcor()</span>
+                    <span class="c1"># the CPU savings are big, but I/O overhead can still be substantial</span>
+                    <span class="n">ia</span><span class="o">.</span><span class="n">fromfits</span><span class="p">(</span><span class="s1">&#39;_pbcor&#39;</span><span class="p">,</span><span class="n">fni</span><span class="p">,</span><span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="n">ia</span><span class="o">.</span><span class="n">fromfits</span><span class="p">(</span><span class="s1">&#39;_pb&#39;</span><span class="p">,</span><span class="n">pb</span><span class="p">,</span><span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;impbcor-1f&quot;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
+                        <span class="n">impbcor</span><span class="p">(</span><span class="s1">&#39;_pbcor&#39;</span><span class="p">,</span><span class="s1">&#39;_pb&#39;</span><span class="p">,</span><span class="n">fno</span><span class="p">,</span><span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;m&#39;</span><span class="p">)</span>
+                        <span class="c1"># @todo fno2</span>
+                        <span class="n">utils</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;_pbcor&#39;</span><span class="p">)</span>
+                        <span class="n">utils</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;_pb&#39;</span><span class="p">)</span>
+                        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;impbcor-2&quot;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="c1"># immath appears to be even faster (2x in CPU)</span>
+                        <span class="c1"># https://bugs.nrao.edu/browse/CAS-8299</span>
+                        <span class="c1"># @todo  this needs to be confirmed that impbcor is now good to go (r36078)</span>
+                        <span class="n">casa</span><span class="o">.</span><span class="n">immath</span><span class="p">([</span><span class="s1">&#39;_pbcor&#39;</span><span class="p">,</span><span class="s1">&#39;_pb&#39;</span><span class="p">],</span><span class="s1">&#39;evalexpr&#39;</span><span class="p">,</span><span class="n">fno</span><span class="p">,</span><span class="s1">&#39;IM0*IM1&#39;</span><span class="p">)</span>
+                        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;immath&quot;</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="kc">True</span><span class="p">:</span>
+                            <span class="c1"># use the mean of all channels... faster may be to use the middle plane</span>
+                            <span class="c1"># barf; edge channels can be with fewer subfields in a mosaic </span>
+                            <span class="n">ia</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;_pb&#39;</span><span class="p">)</span>
+                            <span class="n">s</span><span class="o">=</span><span class="n">ia</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
+                            <span class="c1">#ia1=taskinit.ia.moments(moments=[-1],drop=True,outfile=fno2)    # fails for cont maps</span>
+                            <span class="n">ia1</span><span class="o">=</span><span class="n">ia</span><span class="o">.</span><span class="n">collapse</span><span class="p">(</span><span class="n">outfile</span><span class="o">=</span><span class="n">fno2</span><span class="p">,</span> <span class="n">function</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="n">axes</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># @todo ensure 2=freq axis</span>
+                            <span class="n">ia1</span><span class="o">.</span><span class="n">done</span><span class="p">()</span>
+                            <span class="n">ia</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                            <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;moments&quot;</span><span class="p">)</span>
+                        <span class="n">utils</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;_pbcor&#39;</span><span class="p">)</span>
+                        <span class="n">utils</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;_pb&#39;</span><span class="p">)</span>
+                        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;impbcor-3&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">do_pb</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">use_pb</span><span class="p">:</span>
+                <span class="c1"># cheat case: PB was given, but not meant to be used</span>
+                <span class="c1"># not implemented yet</span>
+                <span class="nb">print</span> <span class="s2">&quot;cheat case dummy PB not implemented yet&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># no PB given</span>
+                <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
+                    <span class="c1"># re-running this was more consistently faster in wall clock time</span>
+                    <span class="c1"># note that zeroblanks=True will still keep the mask</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;casa::ia.fromfits(</span><span class="si">%s</span><span class="s2">) -&gt; </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fni</span><span class="p">,</span><span class="n">bdpfile</span><span class="p">))</span>
+                    <span class="n">ia</span><span class="o">.</span><span class="n">fromfits</span><span class="p">(</span><span class="n">fno</span><span class="p">,</span><span class="n">fni</span><span class="p">,</span><span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+                    <span class="c1">#taskinit.ia.fromfits(fno,fni,overwrite=True,zeroblanks=True)</span>
+                    <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;fromfits&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># not working to extend 3D yet, but this would solve the impv() 3D problem</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;casa::importfits(</span><span class="si">%s</span><span class="s2">) -&gt; </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fni</span><span class="p">,</span><span class="n">bdpfile</span><span class="p">))</span>
+                    <span class="c1">#casa.importfits(fni,fno,defaultaxes=True,defaultaxesvalues=[None,None,None,&#39;I&#39;])</span>
+                    <span class="c1"># possible bug: zeroblanks=True has no effect?</span>
+                    <span class="n">casa</span><span class="o">.</span><span class="n">importfits</span><span class="p">(</span><span class="n">fni</span><span class="p">,</span><span class="n">fno</span><span class="p">,</span><span class="n">zeroblanks</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;importfits&quot;</span><span class="p">)</span>
+            <span class="n">ia</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="n">ia</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">fno</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">smooth</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># smooth here, but Smooth_AT is another option</span>
+                <span class="c1"># here we only allow pixel smoothing</span>
+                <span class="c1"># spatial: gauss</span>
+                <span class="c1"># spectral: boxcar/hanning (check for flux conservation)</span>
+                <span class="c1">#     is the boxcar wrong, not centered, but edged?</span>
+                <span class="c1"># @todo CASA BUG:  this will loose the object name (and maybe more?) from header, so VLSR lookup fails</span>
+                <span class="n">fnos</span> <span class="o">=</span> <span class="n">fno</span> <span class="o">+</span> <span class="s1">&#39;.smooth&#39;</span>
+                <span class="n">ia</span><span class="o">.</span><span class="n">convolve2d</span><span class="p">(</span><span class="n">outfile</span><span class="o">=</span><span class="n">fnos</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">pa</span><span class="o">=</span><span class="s1">&#39;0deg&#39;</span><span class="p">,</span>
+                                       <span class="n">major</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%g</span><span class="s1">pix&#39;</span> <span class="o">%</span> <span class="n">smooth</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">minor</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%g</span><span class="s1">pix&#39;</span> <span class="o">%</span> <span class="n">smooth</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;gaussian&#39;</span><span class="p">)</span>
+                <span class="n">ia</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="n">srcname</span> <span class="o">=</span> <span class="n">casa</span><span class="o">.</span><span class="n">imhead</span><span class="p">(</span><span class="n">fno</span><span class="p">,</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;get&quot;</span><span class="p">,</span><span class="n">hdkey</span><span class="o">=</span><span class="s2">&quot;object&quot;</span><span class="p">)</span>          <span class="c1"># work around CASA bug</span>
+                <span class="c1">#@todo use safer ia.rename() here.</span>
+                <span class="c1"># https://casa.nrao.edu/docs/CasaRef/image.rename.html</span>
+                <span class="n">utils</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">fnos</span><span class="p">,</span><span class="n">fno</span><span class="p">)</span>
+                <span class="n">casa</span><span class="o">.</span><span class="n">imhead</span><span class="p">(</span><span class="n">fno</span><span class="p">,</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;put&quot;</span><span class="p">,</span><span class="n">hdkey</span><span class="o">=</span><span class="s2">&quot;object&quot;</span><span class="p">,</span><span class="n">hdvalue</span><span class="o">=</span><span class="n">srcname</span><span class="p">)</span>    <span class="c1"># work around CASA bug</span>
+                <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;convolve2d&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">smooth</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">smooth</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">smooth</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="c1"># @todo only 1 channel option</span>
+                        <span class="n">specsmooth</span><span class="p">(</span><span class="n">fno</span><span class="p">,</span><span class="n">fnos</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">function</span><span class="o">=</span><span class="s1">&#39;hanning&#39;</span><span class="p">,</span><span class="n">dmethod</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="c1"># @todo may have the wrong center</span>
+                        <span class="n">specsmooth</span><span class="p">(</span><span class="n">fno</span><span class="p">,</span><span class="n">fnos</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">function</span><span class="o">=</span><span class="s1">&#39;boxcar&#39;</span><span class="p">,</span><span class="n">dmethod</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="n">width</span><span class="o">=</span><span class="n">smooth</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+                    <span class="c1">#@todo use safer ia.rename() here.</span>
+                    <span class="c1"># https://casa.nrao.edu/docs/CasaRef/image.rename.html</span>
+                    <span class="n">utils</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">fnos</span><span class="p">,</span><span class="n">fno</span><span class="p">)</span>
+                    <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;specsmooth&quot;</span><span class="p">)</span>
+                <span class="n">ia</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">fno</span><span class="p">)</span>
+
+            <span class="n">s</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="s1">&#39;shape&#39;</span><span class="p">])</span> <span class="o">!=</span> <span class="mi">4</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Adding dummy STOKES-I axis&quot;</span><span class="p">)</span>
+                <span class="n">fnot</span> <span class="o">=</span> <span class="n">fno</span> <span class="o">+</span> <span class="s1">&#39;_4&#39;</span>
+                <span class="n">ia</span><span class="o">.</span><span class="n">adddegaxes</span><span class="p">(</span><span class="n">stokes</span><span class="o">=</span><span class="s1">&#39;I&#39;</span><span class="p">,</span><span class="n">outfile</span><span class="o">=</span><span class="n">fnot</span><span class="p">)</span>
+                <span class="n">ia</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="c1">#@todo use safer ia.rename() here.</span>
+                <span class="c1"># https://casa.nrao.edu/docs/CasaRef/image.rename.html</span>
+                <span class="n">utils</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">fnot</span><span class="p">,</span><span class="n">fno</span><span class="p">)</span>
+                <span class="n">ia</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">fno</span><span class="p">)</span>
+                <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;adddegaxes&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;SHAPE: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="s1">&#39;shape&#39;</span><span class="p">]))</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;summary-0&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">s</span><span class="p">[</span><span class="s1">&#39;hasmask&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">create_mask</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;no extra mask created because input image already had one&quot;</span><span class="p">)</span>
+            <span class="n">create_mask</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># if a box= or edge= was given, only a subset of the cube needs to be ingested</span>
+        <span class="c1"># this however complicates PB correction later on</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">box</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">readonly</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span><span class="s2">&quot;Cannot use box= or edge=, data is read-only, or use an basename/alias&quot;</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>  <span class="n">edge</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">edge</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+            <span class="n">nx</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="s1">&#39;shape&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">ny</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="s1">&#39;shape&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">nz</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="s1">&#39;shape&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;box=</span><span class="si">%s</span><span class="s2"> edge=</span><span class="si">%s</span><span class="s2"> processing with SHAPE: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">box</span><span class="p">),</span><span class="nb">str</span><span class="p">(</span><span class="n">edge</span><span class="p">),</span><span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="s1">&#39;shape&#39;</span><span class="p">])))</span>
+                                                                                                 
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">box</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="c1"># select zrange</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span><span class="s2">&quot;Cannot use edge= when box=[z1,z2] is used&quot;</span>
+                <span class="n">r1</span> <span class="o">=</span> <span class="n">rg</span><span class="o">.</span><span class="n">box</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="p">,</span> <span class="p">[</span><span class="n">nx</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">ny</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">box</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="c1"># select just an XY box</span>
+                    <span class="n">r1</span> <span class="o">=</span> <span class="n">rg</span><span class="o">.</span><span class="n">box</span><span class="p">([</span><span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="p">,</span> <span class="p">[</span><span class="n">box</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="n">box</span><span class="p">[</span><span class="mi">3</span><span class="p">]])</span>
+                <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="c1"># select an XY box, but remove some edge channels</span>
+                    <span class="n">r1</span> <span class="o">=</span> <span class="n">rg</span><span class="o">.</span><span class="n">box</span><span class="p">([</span><span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">edge</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="p">,</span> <span class="p">[</span><span class="n">box</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="n">box</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span><span class="n">nz</span><span class="o">-</span><span class="n">edge</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span><span class="s2">&quot;Bad edge= for len(box)=4&quot;</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">box</span><span class="p">)</span> <span class="o">==</span> <span class="mi">6</span><span class="p">:</span>
+                <span class="c1"># select an XYZ box</span>
+                <span class="n">r1</span> <span class="o">=</span> <span class="n">rg</span><span class="o">.</span><span class="n">box</span><span class="p">([</span><span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">box</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span> <span class="p">,</span> <span class="p">[</span><span class="n">box</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span><span class="n">box</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span><span class="n">box</span><span class="p">[</span><span class="mi">5</span><span class="p">]])</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="c1"># remove some edge channels, but keep the whole XY box</span>
+                <span class="n">r1</span> <span class="o">=</span> <span class="n">rg</span><span class="o">.</span><span class="n">box</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="n">edge</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="p">,</span> <span class="p">[</span><span class="n">nx</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">ny</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">nz</span><span class="o">-</span><span class="n">edge</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span><span class="s2">&quot;box=</span><span class="si">%s</span><span class="s2"> illegal&quot;</span> <span class="o">%</span> <span class="n">box</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;BOX/EDGE selection: </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">r1</span><span class="p">[</span><span class="s1">&#39;blc&#39;</span><span class="p">]),</span><span class="nb">str</span><span class="p">(</span><span class="n">r1</span><span class="p">[</span><span class="s1">&#39;trc&#39;</span><span class="p">])))</span> 
+            <span class="c1">#if taskinit.ia.isopen(): taskinit.ia.close()</span>
+
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;SUBIMAGE&quot;</span><span class="p">)</span>
+            <span class="n">subimage</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">subimage</span><span class="p">(</span><span class="n">region</span><span class="o">=</span><span class="n">r1</span><span class="p">,</span><span class="n">outfile</span><span class="o">=</span><span class="n">fno</span><span class="o">+</span><span class="s1">&#39;.box&#39;</span><span class="p">,</span><span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">ia</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="n">ia</span><span class="o">.</span><span class="n">done</span><span class="p">()</span>
+            <span class="n">subimage</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">fno</span><span class="p">,</span><span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">subimage</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="n">subimage</span><span class="o">.</span><span class="n">done</span><span class="p">()</span>
+            <span class="n">ia</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">fno</span><span class="p">)</span>
+            <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;subimage-1&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># the whole cube is passed onto ADMIT</span>
+            <span class="k">if</span> <span class="n">readonly</span> <span class="ow">and</span> <span class="n">create_mask</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span><span class="s2">&quot;Cannot use mask=True, data read-only, or use an alias&quot;</span>
+            <span class="k">if</span> <span class="n">file_is_casa</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">readonly</span><span class="p">:</span>
+                <span class="c1"># @todo a miriad file - which should be read only - will also create a useless copy here if no alias used</span>
+                <span class="n">ia</span><span class="o">.</span><span class="n">subimage</span><span class="p">(</span><span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">outfile</span><span class="o">=</span><span class="n">fno</span><span class="p">)</span>
+                <span class="n">ia</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="n">ia</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">fno</span><span class="p">)</span>
+                <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;subimage-0&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">create_mask</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">readonly</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span><span class="s2">&quot;Cannot create mask, data read-only, or use an alias&quot;</span>
+            <span class="c1"># also check out the &#39;fromfits::zeroblanks = False&#39;</span>
+            <span class="c1"># calcmask() will overwrite any previous pixelmask</span>
+            <span class="c1">#taskinit.ia.calcmask(&#39;mask(&quot;%s&quot;) &amp;&amp; &quot;%s&quot; != 0.0&#39; % (fno,fno))</span>
+            <span class="n">ia</span><span class="o">.</span><span class="n">calcmask</span><span class="p">(</span><span class="s1">&#39;&quot;</span><span class="si">%s</span><span class="s1">&quot; != 0.0&#39;</span> <span class="o">%</span> <span class="n">fno</span><span class="p">)</span>
+            <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;mask&quot;</span><span class="p">)</span>
+
+        <span class="n">s</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;summary-1&quot;</span><span class="p">)</span>
+
+        <span class="c1"># do a fast statistics (no median or robust)</span>
+        <span class="n">s0</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">statistics</span><span class="p">()</span>
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;statistics&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">s0</span><span class="p">[</span><span class="s1">&#39;npts&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span><span class="s2">&quot;No statistics possible, are there valid data in this cube?&quot;</span>
+        <span class="c1"># There may be multiple beams per plane so we can&#39;t</span>
+        <span class="c1"># rely on the BEAM&#39;s &#39;major&#39;, &#39;minor&#39;, &#39;positionangle&#39; being present.</span>
+        <span class="c1"># ia.commonbeam() is guaranteed to return beam parameters</span>
+        <span class="c1"># if present</span>
+        <span class="k">if</span> <span class="n">do_cbeam</span> <span class="ow">and</span> <span class="n">s</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="s1">&#39;perplanebeams&#39;</span><span class="p">):</span>
+            <span class="c1"># report on the beam extremities, need to loop over all, </span>
+            <span class="c1"># first and last don&#39;t need to be extremes....</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="s1">&#39;perplanebeams&#39;</span><span class="p">][</span><span class="s1">&#39;nChannels&#39;</span><span class="p">]</span>
+            <span class="n">ab0</span> <span class="o">=</span> <span class="s1">&#39;*0&#39;</span>
+            <span class="n">bb0</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="s1">&#39;perplanebeams&#39;</span><span class="p">][</span><span class="s1">&#39;beams&#39;</span><span class="p">][</span><span class="n">ab0</span><span class="p">][</span><span class="s1">&#39;*0&#39;</span><span class="p">]</span>
+            <span class="n">bmaj0</span> <span class="o">=</span> <span class="n">bb0</span><span class="p">[</span><span class="s1">&#39;major&#39;</span><span class="p">][</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+            <span class="n">bmin0</span> <span class="o">=</span> <span class="n">bb0</span><span class="p">[</span><span class="s1">&#39;minor&#39;</span><span class="p">][</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+            <span class="n">beamd</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+                <span class="n">ab1</span> <span class="o">=</span> <span class="s1">&#39;*</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">i</span>
+                <span class="n">bb1</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="s1">&#39;perplanebeams&#39;</span><span class="p">][</span><span class="s1">&#39;beams&#39;</span><span class="p">][</span><span class="n">ab1</span><span class="p">][</span><span class="s1">&#39;*0&#39;</span><span class="p">]</span>
+                <span class="n">bmaj1</span> <span class="o">=</span> <span class="n">bb1</span><span class="p">[</span><span class="s1">&#39;major&#39;</span><span class="p">][</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+                <span class="n">bmin1</span> <span class="o">=</span> <span class="n">bb1</span><span class="p">[</span><span class="s1">&#39;minor&#39;</span><span class="p">][</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+                <span class="n">beamd</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">beamd</span><span class="p">,</span><span class="nb">abs</span><span class="p">(</span><span class="n">bmaj0</span><span class="o">-</span><span class="n">bmaj1</span><span class="p">),</span><span class="nb">abs</span><span class="p">(</span><span class="n">bmin0</span><span class="o">-</span><span class="n">bmin1</span><span class="p">))</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;MAX-BEAMSPREAD </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">beamd</span><span class="p">))</span>
+            <span class="c1">#</span>
+            <span class="k">if</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Applying a commonbeam from the median beam accross the band&quot;</span><span class="p">)</span>
+                <span class="c1"># imhead is a bit slow; alternatively use ia.summary() at the half point for setrestoringbeam()</span>
+                <span class="n">h</span> <span class="o">=</span> <span class="n">casa</span><span class="o">.</span><span class="n">imhead</span><span class="p">(</span><span class="n">fno</span><span class="p">,</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;list&#39;</span><span class="p">)</span>
+                <span class="n">b</span> <span class="o">=</span> <span class="n">h</span><span class="p">[</span><span class="s1">&#39;perplanebeams&#39;</span><span class="p">][</span><span class="s1">&#39;median area beam&#39;</span><span class="p">]</span>
+                <span class="n">ia</span><span class="o">.</span><span class="n">setrestoringbeam</span><span class="p">(</span><span class="n">remove</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">ia</span><span class="o">.</span><span class="n">setrestoringbeam</span><span class="p">(</span><span class="n">beam</span><span class="o">=</span><span class="n">b</span><span class="p">)</span>
+                <span class="n">commonbeam</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">commonbeam</span><span class="p">()</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># @todo : this will be VERY slow - code not finished, needs renaming etc.</span>
+                <span class="c1">#         this is however formally the better solution</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;commmonbeam code not finished&quot;</span><span class="p">)</span>
+                <span class="n">cb</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">commonbeam</span><span class="p">()</span>
+                <span class="n">ia</span><span class="o">.</span><span class="n">convolve2d</span><span class="p">(</span><span class="n">outfile</span><span class="o">=</span><span class="s1">&#39;junk-common.im&#39;</span><span class="p">,</span> <span class="n">major</span><span class="o">=</span><span class="n">cb</span><span class="p">[</span><span class="s1">&#39;major&#39;</span><span class="p">],</span> <span class="n">minor</span><span class="o">=</span><span class="n">cb</span><span class="p">[</span><span class="s1">&#39;minor&#39;</span><span class="p">],</span> <span class="n">pa</span><span class="o">=</span><span class="n">cb</span><span class="p">[</span><span class="s1">&#39;pa&#39;</span><span class="p">],</span> 
+                                       <span class="n">targetres</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s1">&#39;convolve2d&#39;</span><span class="p">)</span>
+                <span class="n">commonbeam</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">commonbeam</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">commonbeam</span><span class="p">()</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">nppb</span> <span class="o">=</span> <span class="mf">4.0</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No synthesized beam found, faking one to prevent downstream problems: nppb=</span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">nppb</span><span class="p">)</span>
+                <span class="n">s</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
+                <span class="n">cdelt2</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="s1">&#39;incr&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="mf">180.0</span><span class="o">/</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="mf">3600.0</span>
+                <span class="n">bmaj</span> <span class="o">=</span> <span class="n">nppb</span> <span class="o">*</span> <span class="n">cdelt2</span>      <span class="c1"># use a nominal 4 points per (round) beam </span>
+                <span class="n">bmin</span> <span class="o">=</span> <span class="n">nppb</span> <span class="o">*</span> <span class="n">cdelt2</span>
+                <span class="n">bpa</span>  <span class="o">=</span> <span class="mf">0.0</span>
+                <span class="n">ia</span><span class="o">.</span><span class="n">setrestoringbeam</span><span class="p">(</span><span class="n">major</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%f</span><span class="s1">arcsec&#39;</span> <span class="o">%</span> <span class="n">bmaj</span><span class="p">,</span> <span class="n">minor</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%f</span><span class="s1">arcsec&#39;</span> <span class="o">%</span> <span class="n">bmin</span><span class="p">,</span> <span class="n">pa</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%f</span><span class="s1">deg&#39;</span> <span class="o">%</span> <span class="n">bpa</span><span class="p">)</span>
+                <span class="n">commonbeam</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;COMMONBEAM[</span><span class="si">%d</span><span class="s2">] </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">commonbeam</span><span class="p">),</span><span class="nb">str</span><span class="p">(</span><span class="n">commonbeam</span><span class="p">)))</span>
+
+        <span class="n">first_point</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">getchunk</span><span class="p">(</span><span class="n">blc</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span><span class="n">trc</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span><span class="n">dropdeg</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;DATA0*: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">first_point</span><span class="p">))</span>
+
+        <span class="n">ia</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;BASICS: [shape] npts min max: </span><span class="si">%s</span><span class="s1"> </span><span class="si">%d</span><span class="s1"> </span><span class="si">%f</span><span class="s1"> </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="s1">&#39;shape&#39;</span><span class="p">],</span><span class="n">s0</span><span class="p">[</span><span class="s1">&#39;npts&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">s0</span><span class="p">[</span><span class="s1">&#39;min&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">s0</span><span class="p">[</span><span class="s1">&#39;max&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;S/N (all data): </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">s0</span><span class="p">[</span><span class="s1">&#39;max&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="n">s0</span><span class="p">[</span><span class="s1">&#39;rms&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="n">npix</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">nx</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="s1">&#39;shape&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">ny</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="s1">&#39;shape&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">nz</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="s1">&#39;shape&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">s</span><span class="p">[</span><span class="s1">&#39;shape&#39;</span><span class="p">]:</span>
+            <span class="n">npix</span> <span class="o">=</span> <span class="n">npix</span> <span class="o">*</span> <span class="n">n</span>
+        <span class="n">ngood</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">s0</span><span class="p">[</span><span class="s1">&#39;npts&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">fgood</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span><span class="o">*</span><span class="n">ngood</span><span class="p">)</span><span class="o">/</span><span class="n">npix</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;GOOD PIXELS: </span><span class="si">%d</span><span class="s1">/</span><span class="si">%d</span><span class="s1"> (</span><span class="si">%f%%</span><span class="s1"> good or </span><span class="si">%f%%</span><span class="s1"> bad)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ngood</span><span class="p">,</span><span class="n">npix</span><span class="p">,</span><span class="mf">100.0</span><span class="o">*</span><span class="n">fgood</span><span class="p">,</span><span class="mf">100.0</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">fgood</span><span class="p">)))</span>
+        <span class="k">if</span> <span class="n">s</span><span class="p">[</span><span class="s1">&#39;hasmask&#39;</span><span class="p">]:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;MASKS: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="s1">&#39;masks&#39;</span><span class="p">])))</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">file_is_casa</span><span class="p">:</span>
+            <span class="n">b1</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;image&quot;</span><span class="p">,</span> <span class="n">Image</span><span class="p">(</span><span class="n">images</span><span class="o">=</span><span class="p">{</span><span class="n">bt</span><span class="o">.</span><span class="n">CASA</span><span class="p">:</span><span class="n">bdpfile</span><span class="p">}))</span>
+            <span class="k">if</span> <span class="n">do_pb</span><span class="p">:</span>
+                <span class="n">b2</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;image&quot;</span><span class="p">,</span> <span class="n">Image</span><span class="p">(</span><span class="n">images</span><span class="o">=</span><span class="p">{</span><span class="n">bt</span><span class="o">.</span><span class="n">CASA</span><span class="p">:</span><span class="n">bdpfile2</span><span class="p">}))</span>            
+
+        <span class="c1"># cube sanity: needs to be either 4D or 2D. But p-p-v cube</span>
+        <span class="c1"># alternative: ia.subimage(dropdeg = True)</span>
+        <span class="c1"># see also: https://bugs.nrao.edu/browse/CAS-5406</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="s1">&#39;shape&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">3</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">shape</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>
+                <span class="c1"># @todo this happens when you ingest a fits or casa image which is ra-dec-pol-freq</span>
+                <span class="k">if</span> <span class="n">nz</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Ingest_AT: cannot deal with real 4D cubes yet&#39;</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span><span class="n">msg</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># @todo this is not working yet when the input was a casa image, but ok when fits. go figure.</span>
+                    <span class="n">fnot</span> <span class="o">=</span> <span class="n">fno</span> <span class="o">+</span> <span class="s2">&quot;.trans&quot;</span>
+                    <span class="k">if</span> <span class="kc">True</span><span class="p">:</span>
+                        <span class="c1"># this works</span>
+            <span class="c1">#@todo use safer ia.rename() here.</span>
+            <span class="c1"># https://casa.nrao.edu/docs/CasaRef/image.rename.html</span>
+                        <span class="n">utils</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">fno</span><span class="p">,</span><span class="n">fnot</span><span class="p">)</span>
+                        <span class="n">imtrans</span><span class="p">(</span><span class="n">fnot</span><span class="p">,</span><span class="n">fno</span><span class="p">,</span><span class="s2">&quot;0132&quot;</span><span class="p">)</span>
+                        <span class="n">utils</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">fnot</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="c1"># this does not work, what the heck</span>
+                        <span class="n">imtrans</span><span class="p">(</span><span class="n">fno</span><span class="p">,</span><span class="n">fnot</span><span class="p">,</span><span class="s2">&quot;0132&quot;</span><span class="p">)</span>
+            <span class="c1">#@todo use safer ia.rename() here.</span>
+            <span class="c1"># https://casa.nrao.edu/docs/CasaRef/image.rename.html</span>
+                        <span class="n">utils</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">fnot</span><span class="p">,</span><span class="n">fno</span><span class="p">)</span>
+                    <span class="n">nz</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="s1">&#39;shape&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span>
+                    <span class="c1"># get a new summary &#39;s&#39;</span>
+                    <span class="n">ia</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">fno</span><span class="p">)</span>
+                    <span class="n">s</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
+                    <span class="n">ia</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Using imtrans, with nz=</span><span class="si">%d</span><span class="s2">, to fix axis ordering&quot;</span> <span class="o">%</span> <span class="n">nz</span><span class="p">)</span>
+                    <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;imtrans4&quot;</span><span class="p">)</span>
+            <span class="c1"># @todo  ensure first two axes are position, followed by frequency</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span><span class="o">==</span><span class="mi">3</span><span class="p">:</span>
+            <span class="c1"># the current importfits() can do defaultaxes=True,defaultaxesvalues=[&#39;&#39;, &#39;&#39;, &#39;&#39;, &#39;I&#39;]</span>
+            <span class="c1"># but then appears to return a ra-dec-pol-freq cube</span>
+            <span class="c1"># this branch probably never happens, since ia.fromfits() will </span>
+            <span class="c1"># properly convert a 3D cube to 4D now !!</span>
+            <span class="c1"># NO: when NAXIS=3 but various AXIS4&#39;s are present, that works. But not if it&#39;s pure 3D</span>
+            <span class="c1"># @todo  box=</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;patching up a 3D to 4D cube&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span><span class="s2">&quot;SHOULD NEVER GET HERE&quot;</span>
+            <span class="n">fnot</span> <span class="o">=</span> <span class="n">fno</span> <span class="o">+</span> <span class="s2">&quot;.trans&quot;</span>
+            <span class="n">casa</span><span class="o">.</span><span class="n">importfits</span><span class="p">(</span><span class="n">fni</span><span class="p">,</span><span class="n">fnot</span><span class="p">,</span><span class="n">defaultaxes</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">defaultaxesvalues</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;I&#39;</span><span class="p">])</span>
+            <span class="n">utils</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">fno</span><span class="p">)</span>        <span class="c1"># ieck</span>
+            <span class="n">imtrans</span><span class="p">(</span><span class="n">fnot</span><span class="p">,</span><span class="n">fno</span><span class="p">,</span><span class="s2">&quot;0132&quot;</span><span class="p">)</span>
+            <span class="n">utils</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">fnot</span><span class="p">)</span>
+            <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;imtrans3&quot;</span><span class="p">)</span>
+
+        <span class="n">logging</span><span class="o">.</span><span class="n">regression</span><span class="p">(</span><span class="s1">&#39;CUBE: </span><span class="si">%g</span><span class="s1"> </span><span class="si">%g</span><span class="s1"> </span><span class="si">%g</span><span class="s1">  </span><span class="si">%d</span><span class="s1"> </span><span class="si">%d</span><span class="s1"> </span><span class="si">%d</span><span class="s1">  </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">s0</span><span class="p">[</span><span class="s1">&#39;min&#39;</span><span class="p">],</span><span class="n">s0</span><span class="p">[</span><span class="s1">&#39;max&#39;</span><span class="p">],</span><span class="n">s0</span><span class="p">[</span><span class="s1">&#39;rms&#39;</span><span class="p">],</span><span class="n">nx</span><span class="p">,</span><span class="n">ny</span><span class="p">,</span><span class="n">nz</span><span class="p">,</span><span class="mf">100.0</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">fgood</span><span class="p">)))</span>
+
+        <span class="c1"># if the cube has only 1 plane (e.g. continuum) , create a visual (png or so)</span>
+        <span class="c1"># for 3D cubes, rely on something like CubeSum</span>
+        <span class="k">if</span> <span class="n">nz</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">implot</span> <span class="o">=</span> <span class="n">ImPlot</span><span class="p">(</span><span class="n">pmode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_plot_mode</span><span class="p">,</span><span class="n">ptype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_plot_type</span><span class="p">,</span><span class="n">abspath</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">())</span>
+            <span class="n">implot</span><span class="o">.</span><span class="n">plotter</span><span class="p">(</span><span class="n">rasterfile</span><span class="o">=</span><span class="n">bdpfile</span><span class="p">,</span><span class="n">figname</span><span class="o">=</span><span class="n">bdpfile</span><span class="p">)</span>
+            <span class="c1"># @todo needs to be registered for the BDP, right now we only have the plot</span>
+
+        <span class="c1"># ia.summary() doesn&#39;t have this easily available, so run the more expensive imhead()</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">casa</span><span class="o">.</span><span class="n">imhead</span><span class="p">(</span><span class="n">fno</span><span class="p">,</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;list&#39;</span><span class="p">)</span>
+        <span class="n">telescope</span> <span class="o">=</span> <span class="n">h</span><span class="p">[</span><span class="s1">&#39;telescope&#39;</span><span class="p">]</span>
+        <span class="c1"># work around CASA&#39;s PIPELINE bug/feature?   if &#39;OBJECT&#39; is blank, try &#39;FIELD&#39;</span>
+        <span class="n">srcname</span> <span class="o">=</span> <span class="n">h</span><span class="p">[</span><span class="s1">&#39;object&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">srcname</span> <span class="o">==</span> <span class="s1">&#39; &#39;</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;FIELD used for OBJECT&#39;</span><span class="p">)</span>
+            <span class="n">srcname</span> <span class="o">=</span> <span class="n">casa</span><span class="o">.</span><span class="n">imhead</span><span class="p">(</span><span class="n">fno</span><span class="p">,</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;get&#39;</span><span class="p">,</span><span class="n">hdkey</span><span class="o">=</span><span class="s1">&#39;field&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">srcname</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+                <span class="c1"># if no FIELD either, we&#39;re doomed.  yes, this did happen.</span>
+                <span class="n">srcname</span> <span class="o">=</span> <span class="s1">&#39;Unknown&#39;</span>
+            <span class="n">casa</span><span class="o">.</span><span class="n">imhead</span><span class="p">(</span><span class="n">fno</span><span class="p">,</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;put&quot;</span><span class="p">,</span><span class="n">hdkey</span><span class="o">=</span><span class="s2">&quot;object&quot;</span><span class="p">,</span><span class="n">hdvalue</span><span class="o">=</span><span class="n">srcname</span><span class="p">)</span>
+            <span class="n">h</span><span class="p">[</span><span class="s1">&#39;object&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">srcname</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;TELESCOPE: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">telescope</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;OBJECT: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">srcname</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;REFFREQTYPE: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">h</span><span class="p">[</span><span class="s1">&#39;reffreqtype&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">h</span><span class="p">[</span><span class="s1">&#39;reffreqtype&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;TOPO&#39;</span><span class="p">)</span><span class="o">&gt;=</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Ingest_AT: cannot deal with cubes with TOPOCENTRIC frequencies yet - winging it&#39;</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="c1">#raise Exception,msg</span>
+        <span class="c1"># Ensure beam parameters are available if there are multiple beams</span>
+        <span class="c1"># If there is just one beam, then we are just overwriting the header</span>
+        <span class="c1"># variables with their identical values.</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">commonbeam</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">h</span><span class="p">[</span><span class="s1">&#39;beammajor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">commonbeam</span><span class="p">[</span><span class="s1">&#39;major&#39;</span><span class="p">]</span>
+            <span class="n">h</span><span class="p">[</span><span class="s1">&#39;beamminor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">commonbeam</span><span class="p">[</span><span class="s1">&#39;minor&#39;</span><span class="p">]</span>
+            <span class="n">h</span><span class="p">[</span><span class="s1">&#39;beampa&#39;</span><span class="p">]</span>    <span class="o">=</span> <span class="n">commonbeam</span><span class="p">[</span><span class="s1">&#39;pa&#39;</span><span class="p">]</span>
+        <span class="c1"># cheat add some things that need to be passed to summary....</span>
+        <span class="n">h</span><span class="p">[</span><span class="s1">&#39;badpixel&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span><span class="o">-</span><span class="n">fgood</span>
+        <span class="k">if</span> <span class="n">vlsr</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mf">999998.0</span><span class="p">:</span>
+            <span class="n">vlsr</span>          <span class="o">=</span> <span class="n">admit</span><span class="o">.</span><span class="n">VLSR</span><span class="p">()</span><span class="o">.</span><span class="n">vlsr</span><span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="s1">&#39;object&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span> 
+        <span class="n">h</span><span class="p">[</span><span class="s1">&#39;vlsr&#39;</span><span class="p">]</span>     <span class="o">=</span> <span class="n">vlsr</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;VLSR = </span><span class="si">%f</span><span class="s2"> (from source catalog)&quot;</span> <span class="o">%</span> <span class="n">vlsr</span><span class="p">)</span>
+        
+        <span class="n">taskargs</span> <span class="o">=</span> <span class="s2">&quot;file=&quot;</span> <span class="o">+</span> <span class="n">fitsfile</span>
+        <span class="k">if</span> <span class="n">create_mask</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">taskargs</span> <span class="o">=</span> <span class="n">taskargs</span> <span class="o">+</span> <span class="s2">&quot; mask=True&quot;</span> 
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">box</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">taskargs</span> <span class="o">=</span> <span class="n">taskargs</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">box</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">taskargs</span> <span class="o">=</span> <span class="n">taskargs</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span>
+        <span class="n">r2d</span> <span class="o">=</span> <span class="mf">57.29577951308232</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;RA   Axis 1: </span><span class="si">%f</span><span class="s2"> </span><span class="si">%f</span><span class="s2"> </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="s1">&#39;crval1&#39;</span><span class="p">]</span><span class="o">*</span><span class="n">r2d</span><span class="p">,</span><span class="n">h</span><span class="p">[</span><span class="s1">&#39;cdelt1&#39;</span><span class="p">]</span><span class="o">*</span><span class="n">r2d</span><span class="o">*</span><span class="mf">3600.0</span><span class="p">,</span><span class="n">h</span><span class="p">[</span><span class="s1">&#39;crpix1&#39;</span><span class="p">]))</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;DEC  Axis 2: </span><span class="si">%f</span><span class="s2"> </span><span class="si">%f</span><span class="s2"> </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="s1">&#39;crval2&#39;</span><span class="p">]</span><span class="o">*</span><span class="n">r2d</span><span class="p">,</span><span class="n">h</span><span class="p">[</span><span class="s1">&#39;cdelt2&#39;</span><span class="p">]</span><span class="o">*</span><span class="n">r2d</span><span class="o">*</span><span class="mf">3600.0</span><span class="p">,</span><span class="n">h</span><span class="p">[</span><span class="s1">&#39;crpix2&#39;</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="n">nz</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># @todo check if this is really a freq axis (for ALMA it is, but...)</span>
+            <span class="n">t3</span> <span class="o">=</span> <span class="n">h</span><span class="p">[</span><span class="s1">&#39;ctype3&#39;</span><span class="p">]</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">h</span><span class="p">[</span><span class="s1">&#39;cdelt3&#39;</span><span class="p">]</span>
+            <span class="n">fc</span> <span class="o">=</span> <span class="n">h</span><span class="p">[</span><span class="s1">&#39;crval3&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">-</span><span class="n">h</span><span class="p">[</span><span class="s1">&#39;crpix3&#39;</span><span class="p">])</span><span class="o">*</span><span class="n">df</span>        <span class="c1"># center freq; 0 based pixels</span>
+            <span class="k">if</span> <span class="n">h</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="s1">&#39;restfreq&#39;</span><span class="p">):</span>
+                <span class="n">fr</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="s1">&#39;restfreq&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">fr</span> <span class="o">=</span> <span class="n">fc</span>
+            <span class="n">fw</span> <span class="o">=</span> <span class="n">df</span><span class="o">*</span><span class="nb">float</span><span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">dv</span> <span class="o">=</span> <span class="o">-</span><span class="n">df</span><span class="o">/</span><span class="n">fr</span><span class="o">*</span><span class="n">utils</span><span class="o">.</span><span class="n">c</span> 
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Freq Axis 3: </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="s1">&#39;crval3&#39;</span><span class="p">]</span><span class="o">/</span><span class="mi">1</span><span class="n">e9</span><span class="p">,</span><span class="n">h</span><span class="p">[</span><span class="s1">&#39;cdelt3&#39;</span><span class="p">]</span><span class="o">/</span><span class="mi">1</span><span class="n">e9</span><span class="p">,</span><span class="n">h</span><span class="p">[</span><span class="s1">&#39;crpix3&#39;</span><span class="p">]))</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Cube Axis 3: type=</span><span class="si">%s</span><span class="s2">  velocity increment=</span><span class="si">%f</span><span class="s2"> km/s @ fc=</span><span class="si">%f</span><span class="s2"> fw=</span><span class="si">%f</span><span class="s2"> GHz&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">t3</span><span class="p">,</span><span class="n">dv</span><span class="p">,</span><span class="n">fc</span><span class="o">/</span><span class="mi">1</span><span class="n">e9</span><span class="p">,</span><span class="n">fw</span><span class="o">/</span><span class="mi">1</span><span class="n">e9</span><span class="p">))</span>
+        <span class="c1"># @todo sort out this restfreq/vlsr</span>
+        <span class="c1"># report &#39;reffreqtype&#39;, &#39;restfreq&#39; &#39;telescope&#39;</span>
+        <span class="c1"># if the fits file has ALTRVAL/ALTRPIX, this is lost in CASA?</span>
+        <span class="c1"># but if you do fits-&gt;casa-&gt;fits , it&#39;s back in fits (with some obvious single precision loss of digits)</span>
+        <span class="c1"># @todo ZSOURCE is the proposed VLSR slot in the fits header, but this has frame issues (it&#39;s also optical)</span>
+        <span class="c1">#</span>
+        <span class="c1"># Another method to get the vlsr is to override the restfreq (f0) with an AT keyword</span>
+        <span class="c1"># and the &#39;restfreq&#39; from the header (f) is then used to compute the vlsr:   v = c (1 - f/f0)</span>
+        <span class="c1">#</span>
+        <span class="k">if</span> <span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">h</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="s1">&#39;restfreq&#39;</span><span class="p">):</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;RESTFREQ: </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fr</span><span class="o">/</span><span class="mi">1</span><span class="n">e9</span><span class="p">,</span><span class="n">h</span><span class="p">[</span><span class="s1">&#39;restfreq&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="mi">1</span><span class="n">e9</span><span class="p">,</span><span class="n">restfreq</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="c1"># v_radio of the center of the window w.r.t. restfreq</span>
+                <span class="n">c</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">c</span>             <span class="c1"># 299792.458 km/s</span>
+                <span class="n">vlsrc</span> <span class="o">=</span> <span class="n">c</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">fc</span><span class="o">/</span><span class="n">fr</span><span class="p">)</span>     <span class="c1"># @todo rel frame?</span>
+                <span class="n">vlsrw</span> <span class="o">=</span> <span class="n">dv</span><span class="o">*</span><span class="nb">float</span><span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">restfreq</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">vlsrf</span> <span class="o">=</span> <span class="n">c</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">fr</span><span class="o">/</span><span class="n">restfreq</span><span class="o">/</span><span class="mi">1</span><span class="n">e9</span><span class="p">)</span>
+                    <span class="n">h</span><span class="p">[</span><span class="s1">&#39;vlsr&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">vlsrf</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">vlsrf</span> <span class="o">=</span> <span class="mf">0.0</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;VLSRc = </span><span class="si">%f</span><span class="s2">  VLSRw = </span><span class="si">%f</span><span class="s2">  VLSRf = </span><span class="si">%f</span><span class="s2"> VLSR = </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">vlsrc</span><span class="p">,</span> <span class="n">vlsrw</span><span class="p">,</span> <span class="n">vlsrf</span><span class="p">,</span> <span class="n">vlsr</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">h</span><span class="p">[</span><span class="s1">&#39;vlsr&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span> <span class="c1"># @todo! This fails if vlsr actually is zero. Need another magic number</span>
+                    <span class="n">h</span><span class="p">[</span><span class="s1">&#39;vlsr&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">vlsrc</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Warning: No VLSR found, substituting VLSRc = </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">vlsrc</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Ingest_AT: missing RESTFREQ&#39;</span>
+            <span class="nb">print</span> <span class="n">msg</span>
+        <span class="c1"># @todo   LINTRN  is the ALMA keyword that designates the expected line transition in a spw</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_summarize</span><span class="p">(</span><span class="n">fitsfile</span><span class="p">,</span> <span class="n">bdpfile</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">taskargs</span><span class="p">)</span>
+
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;done&quot;</span><span class="p">)</span>
+        <span class="n">dt</span><span class="o">.</span><span class="n">end</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">_summarize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fitsname</span><span class="p">,</span> <span class="n">casaname</span><span class="p">,</span> <span class="n">header</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">taskargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Convenience function to populate dictionary for</span>
+<span class="sd">           items to add to the ADMIT Summary. The contract</span>
+<span class="sd">           function is self.summary(), called by AT()</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="s1">&#39;fitsname&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SummaryEntry</span><span class="p">(</span><span class="n">fitsname</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="s1">&#39;casaname&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SummaryEntry</span><span class="p">(</span><span class="n">casaname</span><span class="p">)</span>
+
+        <span class="c1"># these are one-to-one match keywords </span>
+        <span class="n">easy</span> <span class="o">=</span> <span class="p">[</span> <span class="s1">&#39;object&#39;</span>  <span class="p">,</span> <span class="s1">&#39;equinox&#39;</span><span class="p">,</span> 
+                 <span class="s1">&#39;observer&#39;</span><span class="p">,</span> <span class="s1">&#39;date-obs&#39;</span><span class="p">,</span>   <span class="s1">&#39;datamax&#39;</span><span class="p">,</span> 
+                 <span class="s1">&#39;datamin&#39;</span> <span class="p">,</span> <span class="s1">&#39;badpixel&#39;</span><span class="p">,</span>   <span class="s1">&#39;vlsr&#39;</span><span class="p">,</span>
+               <span class="p">]</span>
+
+        <span class="n">naxis</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="s1">&#39;naxis&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SummaryEntry</span><span class="p">(</span><span class="n">naxis</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">naxis</span><span class="p">):</span>
+            <span class="n">j</span> <span class="o">=</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span>
+            <span class="n">jay</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+            <span class="n">easy</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;crpix&#39;</span><span class="o">+</span><span class="n">jay</span><span class="p">)</span>
+            <span class="n">easy</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;ctype&#39;</span><span class="o">+</span><span class="n">jay</span><span class="p">)</span>
+            <span class="n">easy</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;crval&#39;</span><span class="o">+</span><span class="n">jay</span><span class="p">)</span>
+            <span class="n">easy</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;cdelt&#39;</span><span class="o">+</span><span class="n">jay</span><span class="p">)</span>
+            <span class="n">easy</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;cunit&#39;</span><span class="o">+</span><span class="n">jay</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="s1">&#39;naxis&#39;</span><span class="o">+</span><span class="n">jay</span><span class="p">]</span> <span class="o">=</span> <span class="n">SummaryEntry</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+
+        <span class="c1"># FITS is only 8 chars.</span>
+        <span class="k">if</span> <span class="s1">&#39;telescope&#39;</span> <span class="ow">in</span> <span class="n">header</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="s1">&#39;telescop&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SummaryEntry</span><span class="p">(</span><span class="n">header</span><span class="p">[</span><span class="s1">&#39;telescope&#39;</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="s1">&#39;imtype&#39;</span> <span class="ow">in</span> <span class="n">header</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="s1">&#39;bunit&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SummaryEntry</span><span class="p">(</span><span class="n">header</span><span class="p">[</span><span class="s1">&#39;bunit&#39;</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">easy</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">header</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">SummaryEntry</span><span class="p">(</span><span class="n">header</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="s1">&#39;restfreq&#39;</span> <span class="ow">in</span> <span class="n">header</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="s1">&#39;restfreq&#39;</span><span class="p">]</span>  <span class="o">=</span> <span class="n">SummaryEntry</span><span class="p">(</span><span class="n">header</span><span class="p">[</span><span class="s1">&#39;restfreq&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+            
+        <span class="c1"># These are in imhead returned as dictionaries {&#39;unit&#39;,&#39;value&#39;} </span>
+        <span class="c1"># so we have to munge them</span>
+
+        <span class="c1"># convert beam parameters</span>
+        <span class="n">qa</span> <span class="o">=</span> <span class="n">taskinit</span><span class="o">.</span><span class="n">qatool</span><span class="p">()</span>
+        <span class="k">if</span> <span class="s1">&#39;beampa&#39;</span> <span class="ow">in</span> <span class="n">header</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="s1">&#39;bpa&#39;</span><span class="p">]</span>  <span class="o">=</span> <span class="n">SummaryEntry</span><span class="p">(</span><span class="n">qa</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">header</span><span class="p">[</span><span class="s1">&#39;beampa&#39;</span><span class="p">],</span><span class="s1">&#39;deg&#39;</span><span class="p">)[</span><span class="s1">&#39;value&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="s1">&#39;beammajor&#39;</span> <span class="ow">in</span> <span class="n">header</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="s1">&#39;bmaj&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SummaryEntry</span><span class="p">(</span><span class="n">qa</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">header</span><span class="p">[</span><span class="s1">&#39;beammajor&#39;</span><span class="p">],</span><span class="s1">&#39;rad&#39;</span><span class="p">)[</span><span class="s1">&#39;value&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="s1">&#39;beamminor&#39;</span> <span class="ow">in</span> <span class="n">header</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="s1">&#39;bmin&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SummaryEntry</span><span class="p">(</span><span class="n">qa</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">header</span><span class="p">[</span><span class="s1">&#39;beamminor&#39;</span><span class="p">],</span><span class="s1">&#39;rad&#39;</span><span class="p">)[</span><span class="s1">&#39;value&#39;</span><span class="p">])</span>
+        
+        <span class="c1"># Now tag all summary items with task name and task ID.</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">setTaskname</span><span class="p">(</span><span class="s2">&quot;Ingest_AT&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">setTaskID</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">(</span><span class="kc">True</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">setTaskArgs</span><span class="p">(</span><span class="n">taskargs</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

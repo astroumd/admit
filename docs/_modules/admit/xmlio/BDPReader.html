@@ -1,0 +1,174 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.xmlio.BDPReader &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.xmlio.BDPReader</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; .. _BDPReader-api:</span>
+
+<span class="sd">    BDPReader --- Converts BDP in XML format to in-memory BDP object.</span>
+<span class="sd">    -----------------------------------------------------------------</span>
+
+<span class="sd">    This module defines the BDPReader class.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1">#system imports</span>
+<span class="kn">from</span> <span class="nn">xml</span> <span class="k">import</span> <span class="n">sax</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="c1"># ADMIT imports</span>
+<span class="kn">import</span> <span class="nn">admit.util.bdp_types</span> <span class="k">as</span> <span class="nn">bt</span>
+<span class="kn">import</span> <span class="nn">admit.util.utils</span> <span class="k">as</span> <span class="nn">utils</span>
+<span class="kn">from</span> <span class="nn">admit.xmlio.AdmitParser</span> <span class="k">import</span> <span class="n">AdmitParser</span>
+<span class="kn">from</span> <span class="nn">admit.xmlio.ErrorHandler</span> <span class="k">import</span> <span class="n">ErrorHandler</span>
+
+<div class="viewcode-block" id="BDPReader"><a class="viewcode-back" href="../../../module/admit.xmlio/BDPReader.html#admit.xmlio.BDPReader.BDPReader">[docs]</a><span class="k">class</span> <span class="nc">BDPReader</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Class to read in a bdp file (xml style) and convert it to a BDP object in memory. Only the</span>
+<span class="sd">        name of the bdp file (including any relative or absolute path) needs to be specified. The</span>
+<span class="sd">        given file will be passed to the AdmitParser where it will be parsed. The resulting data</span>
+<span class="sd">        will be inserted into a BDP object of the appropriate type (type is determined by the</span>
+<span class="sd">        contents of the bdp file). The BDP object is the returned.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        file : str</span>
+<span class="sd">            File name (including any relative or absolute path) of the bdp file to be parsed and </span>
+<span class="sd">            converted to a BDP object.</span>
+<span class="sd">            Default : None.</span>
+
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">            File name (including any relative or absolute path) of the bdp file to be parsed and </span>
+<span class="sd">            converted to a BDP object.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">file</span> <span class="o">=</span> <span class="n">file</span>
+
+<div class="viewcode-block" id="BDPReader.read"><a class="viewcode-back" href="../../../module/admit.xmlio/BDPReader.html#admit.xmlio.BDPReader.BDPReader.read">[docs]</a>    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to convert a bdp file to a BDP object. Only the file name (including relative</span>
+<span class="sd">            or absolute path) needs to be given. The file is then parsed and the data inserted into</span>
+<span class="sd">            the appropriate BDP object. The type of BDP is determined from the data in the bdp file</span>
+<span class="sd">            itself. The resulting BDP object is returned.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            file : str</span>
+<span class="sd">                File name (including any relative or absolute path) of the bdp file to be parsed and </span>
+<span class="sd">                converted to a BDP object.</span>
+<span class="sd">                Default : None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            BDP object of appropriate type based on the given input file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># error check the input</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">file</span> <span class="o">=</span> <span class="n">file</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;File name must be specified.&quot;</span><span class="p">)</span>
+        <span class="c1"># see if a path was also given with the file name, if not the used the current working</span>
+        <span class="c1"># directory</span>
+        <span class="n">sloc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">sloc</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">basedir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+        <span class="k">else</span> <span class="p">:</span>
+            <span class="n">basedir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">[:</span><span class="n">sloc</span><span class="p">]</span>
+        <span class="c1"># instanstiate a parser</span>
+        <span class="n">BDPparser</span> <span class="o">=</span> <span class="n">sax</span><span class="o">.</span><span class="n">make_parser</span><span class="p">()</span>
+        <span class="n">BDPContentHandler</span> <span class="o">=</span> <span class="n">AdmitParser</span><span class="p">(</span><span class="n">basedir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">)</span>
+        <span class="c1"># set the handlers</span>
+        <span class="n">BDPparser</span><span class="o">.</span><span class="n">setContentHandler</span><span class="p">(</span><span class="n">BDPContentHandler</span><span class="p">)</span>
+        <span class="n">BDPparser</span><span class="o">.</span><span class="n">setErrorHandler</span><span class="p">(</span><span class="n">ErrorHandler</span><span class="p">())</span>
+        <span class="c1"># parse the file, craeting the appropriate BDP object</span>
+        <span class="n">BDPparser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">))</span>
+        <span class="c1"># return the BDP object</span>
+        <span class="k">return</span> <span class="n">BDPContentHandler</span><span class="o">.</span><span class="n">getBDP</span><span class="p">()</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

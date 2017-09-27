@@ -1,0 +1,336 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>MultiImage — Multiple image container base. &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../index.html" />
+    <link rel="up" title="Python Scripting Interface (API)" href="../../api.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" accesskey="U">Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-admit.util.MultiImage"></span><div class="section" id="multiimage-multiple-image-container-base">
+<span id="multiimage-api"></span><h1><strong>MultiImage</strong> &#8212; Multiple image container base.<a class="headerlink" href="#multiimage-multiple-image-container-base" title="Permalink to this headline">¶</a></h1>
+<p>This module defines the MultiImage class for multiple Image instances.</p>
+<dl class="class">
+<dt id="admit.util.MultiImage.MultiImage">
+<em class="property">class </em><code class="descclassname">admit.util.MultiImage.</code><code class="descname">MultiImage</code><a class="reference internal" href="../../_modules/admit/util/MultiImage.html#MultiImage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.MultiImage.MultiImage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class tha allows multiple image instances to be stored as one Image
+instance. There can be 0 to N different images (no limit) and the
+number does not need to be specified as they are allocated and removed
+dynamically.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="6%" />
+<col width="94%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>mimages</td>
+<td>(dict) A dictionary for holding the Image instances. Each Image instance must have a unique name (the key).</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.MultiImage.MultiImage.addimage" title="admit.util.MultiImage.MultiImage.addimage"><code class="xref py py-obj docutils literal"><span class="pre">addimage</span></code></a>(image[,&nbsp;name])</td>
+<td>Method to add a new image to the dictionary.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.MultiImage.MultiImage.delete" title="admit.util.MultiImage.MultiImage.delete"><code class="xref py py-obj docutils literal"><span class="pre">delete</span></code></a>(basedir[,&nbsp;delfiles])</td>
+<td>Method to delete all of the Images</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.MultiImage.MultiImage.deserialize" title="admit.util.MultiImage.MultiImage.deserialize"><code class="xref py py-obj docutils literal"><span class="pre">deserialize</span></code></a>(serial)</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.MultiImage.MultiImage.getimage" title="admit.util.MultiImage.MultiImage.getimage"><code class="xref py py-obj docutils literal"><span class="pre">getimage</span></code></a>(typ[,&nbsp;name])</td>
+<td>Method to get the requested image from the named instance as an imagedescriptor.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.MultiImage.MultiImage.getimageclass" title="admit.util.MultiImage.MultiImage.getimageclass"><code class="xref py py-obj docutils literal"><span class="pre">getimageclass</span></code></a>(name)</td>
+<td>Method to return the requested Image instance</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">getkey</span></code>(key)</td>
+<td>Method to get a data member by name</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.MultiImage.MultiImage.removeimage" title="admit.util.MultiImage.MultiImage.removeimage"><code class="xref py py-obj docutils literal"><span class="pre">removeimage</span></code></a>(name)</td>
+<td>Method to remove an image from the dictionary</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.MultiImage.MultiImage.replaceimage" title="admit.util.MultiImage.MultiImage.replaceimage"><code class="xref py py-obj docutils literal"><span class="pre">replaceimage</span></code></a>(image[,&nbsp;name])</td>
+<td>Method to replace an image in the dictionary.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.MultiImage.MultiImage.serialize" title="admit.util.MultiImage.MultiImage.serialize"><code class="xref py py-obj docutils literal"><span class="pre">serialize</span></code></a>()</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">setkey</span></code>([name,&nbsp;value])</td>
+<td>set keys, two styles are possible:</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="admit.util.MultiImage.MultiImage.addimage">
+<code class="descname">addimage</code><span class="sig-paren">(</span><em>image</em>, <em>name=''</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/MultiImage.html#MultiImage.addimage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.MultiImage.MultiImage.addimage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to add a new image to the dictionary. The image key must not
+already exist.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>image</strong> : Image</p>
+<blockquote>
+<div><p>The image instance to add</p>
+</div></blockquote>
+<p><strong>name</strong> : str</p>
+<blockquote>
+<div><p>The unique name to use for the image
+Default : &#8220;&#8221;</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.MultiImage.MultiImage.delete">
+<code class="descname">delete</code><span class="sig-paren">(</span><em>basedir</em>, <em>delfiles=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/MultiImage.html#MultiImage.delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.MultiImage.MultiImage.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to delete all of the Images</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>basedir</strong> : str</p>
+<blockquote>
+<div><p>The base directory where the image(s) are</p>
+</div></blockquote>
+<p><strong>delfiles</strong> : bool</p>
+<blockquote>
+<div><p>Whether or not to delete the actual image files
+Default : True</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.MultiImage.MultiImage.deserialize">
+<code class="descname">deserialize</code><span class="sig-paren">(</span><em>serial</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/MultiImage.html#MultiImage.deserialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.MultiImage.MultiImage.deserialize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="admit.util.MultiImage.MultiImage.getimage">
+<code class="descname">getimage</code><span class="sig-paren">(</span><em>typ</em>, <em>name=''</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/MultiImage.html#MultiImage.getimage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.MultiImage.MultiImage.getimage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get the requested image from the named instance as an
+imagedescriptor.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>typ</strong> : string</p>
+<blockquote>
+<div><p>Can be any of the following: bdp_types.AUX to retrieve the
+auxiliary file, bdp_types.THUMB to retrieve the thumbnail,
+or a file format (e.g. bdp_types.FITS) to retrieve the
+requested format of the main image. If the requested image
+does not exist then None is returned.</p>
+</div></blockquote>
+<p><strong>name</strong> : str</p>
+<blockquote>
+<div><p>The name if the image instance to get.
+Default : &#8220;&#8221;</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">ImageDescriptor</p>
+<blockquote class="last">
+<div><p>An imagedescriptor of the requested image or None if the image
+does not exist in the class.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.MultiImage.MultiImage.getimageclass">
+<code class="descname">getimageclass</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/MultiImage.html#MultiImage.getimageclass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.MultiImage.MultiImage.getimageclass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to return the requested Image instance</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>name</strong> : str</p>
+<blockquote>
+<div><p>The name of the Image instance to get</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Image class instance of the requested image</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.MultiImage.MultiImage.removeimage">
+<code class="descname">removeimage</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/MultiImage.html#MultiImage.removeimage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.MultiImage.MultiImage.removeimage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to remove an image from the dictionary</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>name</strong> : str</p>
+<blockquote>
+<div><p>The name of the image to remove</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.MultiImage.MultiImage.replaceimage">
+<code class="descname">replaceimage</code><span class="sig-paren">(</span><em>image</em>, <em>name=''</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/MultiImage.html#MultiImage.replaceimage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.MultiImage.MultiImage.replaceimage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to replace an image in the dictionary. This will no throw an
+error if the image does not already exist.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>image</strong> : Image</p>
+<blockquote>
+<div><p>The image instance to insert</p>
+</div></blockquote>
+<p><strong>name</strong> : str</p>
+<blockquote>
+<div><p>The name of the image to replace</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.MultiImage.MultiImage.serialize">
+<code class="descname">serialize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/MultiImage.html#MultiImage.serialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.MultiImage.MultiImage.serialize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/module/admit.util/MultiImage.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" >Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

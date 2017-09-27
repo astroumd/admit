@@ -1,0 +1,722 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.at.CubeStats_AT &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.at.CubeStats_AT</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; .. _CubeStats-at-api:</span>
+
+<span class="sd">   **CubeStats_AT** --- Calculates cube statistics.</span>
+<span class="sd">   ------------------------------------------------</span>
+
+<span class="sd">   This module defines the CubeStats_AT class.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">admit.AT</span> <span class="k">import</span> <span class="n">AT</span>
+<span class="kn">import</span> <span class="nn">admit.util.bdp_types</span> <span class="k">as</span> <span class="nn">bt</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.CubeStats_BDP</span> <span class="k">import</span> <span class="n">CubeStats_BDP</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.Image_BDP</span> <span class="k">import</span> <span class="n">Image_BDP</span>
+
+<span class="kn">from</span> <span class="nn">admit.util.Table</span> <span class="k">import</span> <span class="n">Table</span>
+<span class="kn">from</span> <span class="nn">admit.util.Image</span> <span class="k">import</span> <span class="n">Image</span>
+<span class="kn">from</span> <span class="nn">admit.util</span> <span class="k">import</span> <span class="n">APlot</span>
+<span class="kn">from</span> <span class="nn">admit.util</span> <span class="k">import</span> <span class="n">utils</span>
+<span class="kn">from</span> <span class="nn">admit.util</span> <span class="k">import</span> <span class="n">stats</span>
+<span class="kn">from</span> <span class="nn">admit.util.segmentfinder</span> <span class="k">import</span> <span class="n">ADMITSegmentFinder</span>
+<span class="kn">from</span> <span class="nn">admit.Summary</span> <span class="k">import</span> <span class="n">SummaryEntry</span>
+<span class="kn">import</span> <span class="nn">admit.util.casautil</span> <span class="k">as</span> <span class="nn">casautil</span>
+<span class="kn">from</span> <span class="nn">admit.util.AdmitLogging</span> <span class="k">import</span> <span class="n">AdmitLogging</span> <span class="k">as</span> <span class="n">logging</span>
+
+<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy.ma</span> <span class="k">as</span> <span class="nn">ma</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">scipy.stats</span>
+    <span class="kn">import</span> <span class="nn">casa</span>
+    <span class="kn">import</span> <span class="nn">taskinit</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="nb">print</span> <span class="s2">&quot;WARNING: No CASA; CubeStats task cannot function.&quot;</span>
+
+<div class="viewcode-block" id="CubeStats_AT"><a class="viewcode-back" href="../../../module/admit.at/CubeStats_AT.html#admit.at.CubeStats_AT.CubeStats_AT">[docs]</a><span class="k">class</span> <span class="nc">CubeStats_AT</span><span class="p">(</span><span class="n">AT</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Compute image-plane based statistics for a cube.</span>
+
+<span class="sd">    CubeStats_AT will compute per-channel statistics, as well as a global</span>
+<span class="sd">    statistics per cube. It computes minimum and maximum values, as well</span>
+<span class="sd">    as an attempt to get a signal-free (&quot;robust&quot;) estimate of the noise,</span>
+<span class="sd">    with some control how robust statistics this is done.</span>
+
+<span class="sd">    Plane based statistics records the channel number, frequency (in GHz),</span>
+<span class="sd">    mean, sigma, min and max.   If PeakPointPlot (ppp, see below) </span>
+<span class="sd">    is selected, it also stores the minpos and maxpos (in pixels). See</span>
+<span class="sd">    also **CASA::imstat** for more details on the meaning of these</span>
+<span class="sd">    columns.</span>
+
+<span class="sd">    See also :ref:`CubeStats-AT-Design` for the design document.</span>
+
+<span class="sd">    **Keywords**</span>
+<span class="sd">      **robust**: list</span>
+<span class="sd">        A compound list keyword describing how robust statistics is used. By default</span>
+<span class="sd">        all data are used, with CASA&#39;s &quot;medabsdevmed&quot; (MAD) statistic as the robust noise</span>
+<span class="sd">        estimator. For normal (gaussian) noise, RMS = 1.4826 * MAD.</span>
+<span class="sd">    </span>
+<span class="sd">        For more flexible noise statistics see **CASA::imstat** for a detailed background,</span>
+<span class="sd">        but the current valid algorithms and their optional additional arguments are:</span>
+
+<span class="sd">           &#39;classic&#39;,clmethod{&#39;auto&#39;,&#39;tiled&#39;,&#39;framework&#39;}</span>
+
+<span class="sd">           &#39;chauvenet&#39;,zscore[-1],maxiter[-1]</span>
+
+<span class="sd">           &#39;fit-half&#39;,center{&#39;mean&#39;,&#39;median&#39;,&#39;zero&#39;},lside{True,False}</span>
+
+<span class="sd">           &#39;hinges-fences&#39;,fence[-1]</span>
+
+<span class="sd">        Examples:    </span>
+
+<span class="sd">            robust=[&#39;classic&#39;,&#39;auto&#39;]</span>
+<span class="sd">  </span>
+<span class="sd">            robust=[&#39;fit-half&#39;,&#39;zero&#39;]</span>
+<span class="sd">   </span>
+<span class="sd">            robust=[&#39;hin&#39;,1.5]</span>
+
+<span class="sd">      **ppp**: boolean</span>
+<span class="sd">        Add columns to create a PeakPointPlot. Currently this is somewhat expensive.</span>
+<span class="sd">        Default: False.</span>
+
+<span class="sd">      **maxvrms**: float</span>
+<span class="sd">        Clip the RMS if it varies by more than this number. This is to avoid creating</span>
+<span class="sd">        artificial lines when large variations occur due to for example missing short</span>
+<span class="sd">        spacings.   Use -1 to skip this clipping.</span>
+<span class="sd">        Default: 2.0</span>
+
+<span class="sd">      **psample** : integer</span>
+<span class="sd">        The spatial sample rate used to examine every peak. This is an expensive option</span>
+<span class="sd">        and is only used for peakstats.</span>
+
+<span class="sd">    **Input BDPs**</span>
+
+<span class="sd">      **Image_BDP**: count: 1</span>
+<span class="sd">        Spectral cube (or map) for which statistics are computed; for example,</span>
+<span class="sd">        the output of an `Ingest_AT &lt;Ingest_AT.html&gt;`_,</span>
+<span class="sd">        `SFind2D_AT &lt;SFind2D_AT.html&gt;`_ or `Moment_AT &lt;Moment_AT.html&gt;`_.</span>
+
+
+<span class="sd">    **Output BDPs** </span>
+
+<span class="sd">      **CubeStats_BDP**: count: 1</span>
+<span class="sd">        The CubeStats_BDP table containing various columns with statistics. Each row</span>
+<span class="sd">        represents a slice (channel) from the image.</span>
+<span class="sd">        Extension:   cst.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    keyval : dictionary, optional</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    _version : string</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">**</span><span class="n">keyval</span><span class="p">):</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;robust&quot;</span>  <span class="p">:</span> <span class="p">[],</span>         <span class="c1"># signal rejection parameters</span>
+                <span class="s2">&quot;ppp&quot;</span>     <span class="p">:</span> <span class="kc">False</span><span class="p">,</span>      <span class="c1"># PeakPointPlot</span>
+                <span class="s2">&quot;maxvrms&quot;</span> <span class="p">:</span> <span class="mf">2.0</span><span class="p">,</span>        <span class="c1"># clip varying RMS (-1 to skip)</span>
+                <span class="s2">&quot;psample&quot;</span> <span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>         <span class="c1"># if &gt; 0, spatial sampling rate for PeakStats</span>
+        <span class="p">}</span>
+        <span class="n">AT</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">keys</span><span class="p">,</span><span class="n">keyval</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_version</span>       <span class="o">=</span> <span class="s2">&quot;1.1.0&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_bdp_in</span><span class="p">([(</span><span class="n">Image_BDP</span><span class="p">,</span>      <span class="mi">1</span><span class="p">,</span> <span class="n">bt</span><span class="o">.</span><span class="n">REQUIRED</span><span class="p">)])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_bdp_out</span><span class="p">([(</span><span class="n">CubeStats_BDP</span><span class="p">,</span> <span class="mi">1</span><span class="p">)])</span>
+
+<div class="viewcode-block" id="CubeStats_AT.summary"><a class="viewcode-back" href="../../../module/admit.at/CubeStats_AT.html#admit.at.CubeStats_AT.CubeStats_AT.summary">[docs]</a>    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the summary dictionary from the AT, for merging</span>
+<span class="sd">           into the ADMIT Summary object.</span>
+
+<span class="sd">           CubeStats_AT adds the following to ADMIT summary:</span>
+
+<span class="sd">           .. table::</span>
+<span class="sd">              :class: borderless</span>
+
+<span class="sd">              +---------+--------+---------------------------------------------+</span>
+<span class="sd">              |   Key   | type   |    Description                              |</span>
+<span class="sd">              +=========+========+=============================================+</span>
+<span class="sd">              | datamean| float  | mean data value float                       |</span>
+<span class="sd">              +---------+--------+---------------------------------------------+</span>
+<span class="sd">              | dynrange| float  | dynamic range, equal to datamax/chanrms     |</span>
+<span class="sd">              +---------+--------+---------------------------------------------+</span>
+<span class="sd">              | chanrms | float  | one-sigma noise in cube                     |</span>
+<span class="sd">              +---------+--------+---------------------------------------------+</span>
+<span class="sd">              | rmsmethd| list   | method and parameters used to compute RMS   |</span>
+<span class="sd">              +---------+--------+---------------------------------------------+</span>
+<span class="sd">              | spectra | list   | the spectral plot of signal, noise, and S/N |</span>
+<span class="sd">              +---------+--------+---------------------------------------------+</span>
+
+<span class="sd">           Parameters</span>
+<span class="sd">           ----------</span>
+<span class="sd">           None</span>
+
+<span class="sd">           Returns</span>
+<span class="sd">           -------</span>
+<span class="sd">           dict</span>
+<span class="sd">               Dictionary of SummaryEntry</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;_summary&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{}</span></div>
+
+<div class="viewcode-block" id="CubeStats_AT.run"><a class="viewcode-back" href="../../../module/admit.at/CubeStats_AT.html#admit.at.CubeStats_AT.CubeStats_AT.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Runs the task.</span>
+
+<span class="sd">           Parameters</span>
+<span class="sd">           ----------</span>
+<span class="sd">           None</span>
+
+<span class="sd">           Returns</span>
+<span class="sd">           -------</span>
+<span class="sd">           None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">Dtime</span><span class="p">(</span><span class="s2">&quot;CubeStats&quot;</span><span class="p">)</span>
+
+        <span class="c1">#maxvrms = 2.0      # maximum variation in rms allowed (hardcoded for now)</span>
+        <span class="c1">#maxvrms = -1.0     # turn maximum variation in rms allowed off</span>
+        <span class="n">maxvrms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;maxvrms&quot;</span><span class="p">)</span>
+
+        <span class="n">psample</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">psample</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;psample&quot;</span><span class="p">)</span>        
+
+        <span class="c1"># BDP&#39;s used :</span>
+        <span class="c1">#   b1 = input BDP</span>
+        <span class="c1">#   b2 = output BDP</span>
+
+        <span class="n">b1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">fin</span> <span class="o">=</span> <span class="n">b1</span><span class="o">.</span><span class="n">getimagefile</span><span class="p">(</span><span class="n">bt</span><span class="o">.</span><span class="n">CASA</span><span class="p">)</span>
+
+        <span class="n">bdp_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mkext</span><span class="p">(</span><span class="n">fin</span><span class="p">,</span><span class="s1">&#39;cst&#39;</span><span class="p">)</span>
+        <span class="n">b2</span> <span class="o">=</span> <span class="n">CubeStats_BDP</span><span class="p">(</span><span class="n">bdp_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addoutput</span><span class="p">(</span><span class="n">b2</span><span class="p">)</span>
+
+        <span class="c1"># PeakPointPlot </span>
+        <span class="n">use_ppp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;ppp&quot;</span><span class="p">)</span>
+
+        <span class="c1"># peakstats: not enabled for mortal users yet</span>
+        <span class="c1"># peakstats = (psample=1, numsigma=4, minchan=3, maxgap=2, peakfit=False)</span>
+        <span class="n">pnumsigma</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="n">minchan</span>   <span class="o">=</span> <span class="mi">3</span>
+        <span class="n">maxgap</span>    <span class="o">=</span> <span class="mi">2</span>
+        <span class="n">peakfit</span>   <span class="o">=</span> <span class="kc">False</span>             <span class="c1"># True will enable a true gaussian fit</span>
+        
+        <span class="c1"># numsigma:  adding all signal &gt; numsigma ; not user enabled;   for peaksum.</span>
+        <span class="n">numsigma</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>
+        <span class="n">numsigma</span> <span class="o">=</span> <span class="mf">3.0</span>
+
+        <span class="c1"># tools we need</span>
+        <span class="n">ia</span> <span class="o">=</span> <span class="n">taskinit</span><span class="o">.</span><span class="n">iatool</span><span class="p">()</span>
+
+        <span class="c1"># grab the new robust statistics. If this is used, &#39;rms&#39; will be the RMS,</span>
+        <span class="c1"># else we will use RMS = 1.4826*MAD (MAD does a decent job on outliers as well)</span>
+        <span class="c1"># and was the only method available before CASA 4.4 when robust was implemented</span>
+        <span class="n">robust</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;robust&quot;</span><span class="p">)</span>
+        <span class="n">rargs</span> <span class="o">=</span> <span class="n">casautil</span><span class="o">.</span><span class="n">parse_robust</span><span class="p">(</span><span class="n">robust</span><span class="p">)</span>
+        <span class="n">nrargs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">rargs</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">nrargs</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+           <span class="n">sumrargs</span> <span class="o">=</span> <span class="s2">&quot;medabsdevmed&quot;</span>      <span class="c1"># for the summary, indicate the default robust</span>
+        <span class="k">else</span><span class="p">:</span>
+           <span class="n">sumrargs</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">rargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="s2">&quot;rmsmethd&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SummaryEntry</span><span class="p">([</span><span class="n">sumrargs</span><span class="p">,</span><span class="n">fin</span><span class="p">],</span><span class="s2">&quot;CubeStats_AT&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">(</span><span class="kc">True</span><span class="p">))</span>
+        <span class="c1">#@todo think about using this instead of putting &#39;fin&#39; in all the SummaryEntry</span>
+        <span class="c1">#self._summary[&quot;casaimage&quot;] = SummaryEntry(fin,&quot;CubeStats_AT&quot;,self.id(True))</span>
+
+        <span class="c1"># extra CASA call to get the freq&#39;s in GHz, as these are not in imstat1{}</span>
+        <span class="c1"># @todo what if the coordinates are not in FREQ ?</span>
+        <span class="c1"># Note: CAS-7648 bug on 3D cubes</span>
+        <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="c1"># csys method</span>
+            <span class="n">ia</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">fin</span><span class="p">))</span>
+            <span class="n">csys</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">coordsys</span><span class="p">()</span> 
+            <span class="n">spec_axis</span> <span class="o">=</span> <span class="n">csys</span><span class="o">.</span><span class="n">findaxisbyname</span><span class="p">(</span><span class="s2">&quot;spectral&quot;</span><span class="p">)</span> 
+            <span class="c1"># ieck, we need a valid position, or else it will come back and &quot;Exception: All selected pixels are masked&quot;</span>
+            <span class="c1">#freqs = ia.getprofile(spec_axis, region=rg.box([0,0],[0,0]))[&#39;coords&#39;]/1e9</span>
+            <span class="c1">#freqs = ia.getprofile(spec_axis)[&#39;coords&#39;]/1e9</span>
+            <span class="n">freqs</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">getprofile</span><span class="p">(</span><span class="n">spec_axis</span><span class="p">,</span><span class="n">unit</span><span class="o">=</span><span class="s2">&quot;GHz&quot;</span><span class="p">)[</span><span class="s1">&#39;coords&#39;</span><span class="p">]</span>
+            <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;getprofile&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># old imval method </span>
+            <span class="c1">#imval0 = casa.imval(self.dir(fin),box=&#39;0,0,0,0&#39;)     # this fails on 3D</span>
+            <span class="n">imval0</span> <span class="o">=</span> <span class="n">casa</span><span class="o">.</span><span class="n">imval</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">fin</span><span class="p">))</span>
+            <span class="n">freqs</span> <span class="o">=</span> <span class="n">imval0</span><span class="p">[</span><span class="s1">&#39;coords&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">transpose</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span><span class="o">/</span><span class="mi">1</span><span class="n">e9</span>
+            <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;imval&quot;</span><span class="p">)</span>
+        <span class="n">nchan</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">freqs</span><span class="p">)</span>
+        <span class="n">chans</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nchan</span><span class="p">)</span>
+
+        <span class="c1"># call CASA to get what we want</span>
+        <span class="c1"># imstat0 is the whole cube, imstat1 the plane based statistics</span>
+        <span class="c1"># warning: certain robust stats (**rargs) on the whole cube are going to be very slow</span>
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;start&quot;</span><span class="p">)</span>
+        <span class="n">imstat0</span> <span class="o">=</span> <span class="n">casa</span><span class="o">.</span><span class="n">imstat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">fin</span><span class="p">),</span>           <span class="n">logfile</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="s1">&#39;imstat0.logfile&#39;</span><span class="p">),</span><span class="n">append</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="o">**</span><span class="n">rargs</span><span class="p">)</span>
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;imstat0&quot;</span><span class="p">)</span>
+        <span class="n">imstat1</span> <span class="o">=</span> <span class="n">casa</span><span class="o">.</span><span class="n">imstat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">fin</span><span class="p">),</span><span class="n">axes</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span><span class="n">logfile</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="s1">&#39;imstat1.logfile&#39;</span><span class="p">),</span><span class="n">append</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="o">**</span><span class="n">rargs</span><span class="p">)</span>
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;imstat1&quot;</span><span class="p">)</span>
+        <span class="c1"># imm = casa.immoments(self.dir(fin),axis=&#39;spec&#39;, moments=8, outfile=self.dir(&#39;ppp.im&#39;))</span>
+        <span class="k">if</span> <span class="n">nrargs</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># need to get the peaks without rubust</span>
+            <span class="n">imstat10</span> <span class="o">=</span> <span class="n">casa</span><span class="o">.</span><span class="n">imstat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">fin</span><span class="p">),</span>           <span class="n">logfile</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="s1">&#39;imstat0.logfile&#39;</span><span class="p">),</span><span class="n">append</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;imstat10&quot;</span><span class="p">)</span>
+            <span class="n">imstat11</span> <span class="o">=</span> <span class="n">casa</span><span class="o">.</span><span class="n">imstat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">fin</span><span class="p">),</span><span class="n">axes</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span><span class="n">logfile</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="s1">&#39;imstat1.logfile&#39;</span><span class="p">),</span><span class="n">append</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;imstat11&quot;</span><span class="p">)</span>
+
+        <span class="c1"># grab the relevant plane-based things from imstat1</span>
+        <span class="k">if</span> <span class="n">nrargs</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">mean</span>    <span class="o">=</span> <span class="n">imstat1</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">]</span>
+            <span class="n">sigma</span>   <span class="o">=</span> <span class="n">imstat1</span><span class="p">[</span><span class="s2">&quot;medabsdevmed&quot;</span><span class="p">]</span><span class="o">*</span><span class="mf">1.4826</span>     <span class="c1"># see also: astropy.stats.median_absolute_deviation()</span>
+            <span class="n">peakval</span> <span class="o">=</span> <span class="n">imstat1</span><span class="p">[</span><span class="s2">&quot;max&quot;</span><span class="p">]</span>
+            <span class="n">minval</span>  <span class="o">=</span> <span class="n">imstat1</span><span class="p">[</span><span class="s2">&quot;min&quot;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">mean</span>    <span class="o">=</span> <span class="n">imstat1</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">]</span>
+            <span class="n">sigma</span>   <span class="o">=</span> <span class="n">imstat1</span><span class="p">[</span><span class="s2">&quot;rms&quot;</span><span class="p">]</span>
+            <span class="n">peakval</span> <span class="o">=</span> <span class="n">imstat11</span><span class="p">[</span><span class="s2">&quot;max&quot;</span><span class="p">]</span>
+            <span class="n">minval</span>  <span class="o">=</span> <span class="n">imstat11</span><span class="p">[</span><span class="s2">&quot;min&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="c1"># work around a bug in imstat(axes=[0,1]) for last channel [CAS-7697]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sigma</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="n">sigma</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+                    <span class="n">minval</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">peakval</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+        <span class="c1"># too many variations in the RMS ?</span>
+        <span class="n">sigma_pos</span> <span class="o">=</span> <span class="n">sigma</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">sigma</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">)]</span>
+        <span class="n">smin</span> <span class="o">=</span> <span class="n">sigma_pos</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+        <span class="n">smax</span> <span class="o">=</span> <span class="n">sigma_pos</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;sigma varies from </span><span class="si">%f</span><span class="s2"> to </span><span class="si">%f</span><span class="s2">; </span><span class="si">%d</span><span class="s2">/</span><span class="si">%d</span><span class="s2"> channels ok&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">smin</span><span class="p">,</span><span class="n">smax</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">sigma_pos</span><span class="p">),</span><span class="nb">len</span><span class="p">(</span><span class="n">sigma</span><span class="p">)))</span>
+        <span class="k">if</span> <span class="n">maxvrms</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">smax</span><span class="o">/</span><span class="n">smin</span> <span class="o">&gt;</span> <span class="n">maxvrms</span><span class="p">:</span>
+                <span class="n">cliprms</span> <span class="o">=</span> <span class="n">smin</span> <span class="o">*</span> <span class="n">maxvrms</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;sigma varies too much, going to clip to </span><span class="si">%g</span><span class="s2"> (</span><span class="si">%g</span><span class="s2"> &gt; </span><span class="si">%g</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cliprms</span><span class="p">,</span> <span class="n">smax</span><span class="o">/</span><span class="n">smin</span><span class="p">,</span> <span class="n">maxvrms</span><span class="p">))</span>
+                <span class="n">sigma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">sigma</span> <span class="o">&lt;</span> <span class="n">cliprms</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">cliprms</span><span class="p">)</span>
+
+        <span class="n">nzeros</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">sigma</span><span class="o">&lt;=</span><span class="mf">0.0</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">nzeros</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">zeroch</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">sigma</span><span class="o">&lt;=</span><span class="mf">0.0</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;There are </span><span class="si">%d</span><span class="s2"> fully masked channels (</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nzeros</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="n">zeroch</span><span class="p">)))</span>
+            
+        <span class="c1"># @todo   (and check again) for foobar.fits all sigma&#39;s became 0 when robust was selected</span>
+        <span class="c1">#         was this with mask=True/False?</span>
+
+        <span class="c1"># PeakPointPlot (can be expensive, hence the option)</span>
+        <span class="k">if</span> <span class="n">use_ppp</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Computing MaxPos for PeakPointPlot&quot;</span><span class="p">)</span>
+            <span class="n">xpos</span>    <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nchan</span><span class="p">)</span>
+            <span class="n">ypos</span>    <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nchan</span><span class="p">)</span>
+            <span class="n">peaksum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nchan</span><span class="p">)</span>
+
+            <span class="n">ia</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">fin</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nchan</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">sigma</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>
+                    <span class="n">plane</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">getchunk</span><span class="p">(</span><span class="n">blc</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="n">trc</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="n">dropdeg</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="n">v</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">masked_invalid</span><span class="p">(</span><span class="n">plane</span><span class="p">)</span>
+                    <span class="n">v_abs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">absolute</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+                    <span class="nb">max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unravel_index</span><span class="p">(</span><span class="n">v_abs</span><span class="o">.</span><span class="n">argmax</span><span class="p">(),</span> <span class="n">v_abs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+                    <span class="n">xpos</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">ypos</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">numsigma</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>
+                        <span class="n">peaksum</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">masked_less</span><span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">numsigma</span> <span class="o">*</span> <span class="n">sigma</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="n">peaksum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">peaksum</span><span class="p">)</span>    <span class="c1"># put 0&#39;s where nan&#39;s are found</span>
+            <span class="n">ia</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;ppp&quot;</span><span class="p">)</span>
+
+        <span class="c1"># construct the admit Table for CubeStats_BDP</span>
+        <span class="c1"># note data needs to be a tuple, later to be column_stack&#39;d</span>
+        <span class="k">if</span> <span class="n">use_ppp</span><span class="p">:</span>
+            <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;channel&quot;</span> <span class="p">,</span><span class="s2">&quot;frequency&quot;</span> <span class="p">,</span><span class="s2">&quot;mean&quot;</span>    <span class="p">,</span><span class="s2">&quot;sigma&quot;</span>   <span class="p">,</span><span class="s2">&quot;max&quot;</span>     <span class="p">,</span><span class="s2">&quot;maxposx&quot;</span> <span class="p">,</span><span class="s2">&quot;maxposy&quot;</span> <span class="p">,</span><span class="s2">&quot;min&quot;</span><span class="p">,</span>     <span class="s2">&quot;peaksum&quot;</span><span class="p">]</span>
+            <span class="n">units</span>  <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;number&quot;</span>  <span class="p">,</span><span class="s2">&quot;GHz&quot;</span>       <span class="p">,</span><span class="s2">&quot;Jy/beam&quot;</span> <span class="p">,</span><span class="s2">&quot;Jy/beam&quot;</span> <span class="p">,</span><span class="s2">&quot;Jy/beam&quot;</span> <span class="p">,</span><span class="s2">&quot;number&quot;</span>  <span class="p">,</span><span class="s2">&quot;number&quot;</span>  <span class="p">,</span><span class="s2">&quot;Jy/beam&quot;</span><span class="p">,</span> <span class="s2">&quot;Jy&quot;</span><span class="p">]</span>
+            <span class="n">data</span>   <span class="o">=</span> <span class="p">(</span><span class="n">chans</span>     <span class="p">,</span><span class="n">freqs</span>       <span class="p">,</span><span class="n">mean</span>      <span class="p">,</span><span class="n">sigma</span>     <span class="p">,</span><span class="n">peakval</span>   <span class="p">,</span><span class="n">xpos</span>      <span class="p">,</span><span class="n">ypos</span>      <span class="p">,</span><span class="n">minval</span><span class="p">,</span>    <span class="n">peaksum</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;channel&quot;</span> <span class="p">,</span><span class="s2">&quot;frequency&quot;</span> <span class="p">,</span><span class="s2">&quot;mean&quot;</span>    <span class="p">,</span><span class="s2">&quot;sigma&quot;</span>   <span class="p">,</span><span class="s2">&quot;max&quot;</span>     <span class="p">,</span><span class="s2">&quot;min&quot;</span><span class="p">]</span>
+            <span class="n">units</span>  <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;number&quot;</span>  <span class="p">,</span><span class="s2">&quot;GHz&quot;</span>       <span class="p">,</span><span class="s2">&quot;Jy/beam&quot;</span> <span class="p">,</span><span class="s2">&quot;Jy/beam&quot;</span> <span class="p">,</span><span class="s2">&quot;Jy/beam&quot;</span> <span class="p">,</span><span class="s2">&quot;Jy/beam&quot;</span><span class="p">]</span>
+            <span class="n">data</span>   <span class="o">=</span> <span class="p">(</span><span class="n">chans</span>     <span class="p">,</span><span class="n">freqs</span>       <span class="p">,</span><span class="n">mean</span>      <span class="p">,</span><span class="n">sigma</span>     <span class="p">,</span><span class="n">peakval</span>   <span class="p">,</span><span class="n">minval</span><span class="p">)</span>
+
+        <span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">labels</span><span class="p">,</span><span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span><span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+        <span class="n">b2</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;table&quot;</span><span class="p">,</span><span class="n">table</span><span class="p">)</span>
+
+        <span class="c1"># get the full cube statistics, it depends if robust was pre-selected</span>
+        <span class="k">if</span> <span class="n">nrargs</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">mean0</span>  <span class="o">=</span> <span class="n">imstat0</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">sigma0</span> <span class="o">=</span> <span class="n">imstat0</span><span class="p">[</span><span class="s2">&quot;medabsdevmed&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="mf">1.4826</span>
+            <span class="n">peak0</span>  <span class="o">=</span> <span class="n">imstat0</span><span class="p">[</span><span class="s2">&quot;max&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">b2</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;mean&quot;</span> <span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">mean0</span><span class="p">))</span>
+            <span class="n">b2</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;sigma&quot;</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">sigma0</span><span class="p">))</span>
+            <span class="n">b2</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;minval&quot;</span><span class="p">,</span><span class="nb">float</span><span class="p">(</span><span class="n">imstat0</span><span class="p">[</span><span class="s2">&quot;min&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span>
+            <span class="n">b2</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;maxval&quot;</span><span class="p">,</span><span class="nb">float</span><span class="p">(</span><span class="n">imstat0</span><span class="p">[</span><span class="s2">&quot;max&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span>
+            <span class="n">b2</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;minpos&quot;</span><span class="p">,</span><span class="n">imstat0</span><span class="p">[</span><span class="s2">&quot;minpos&quot;</span><span class="p">][:</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>     <span class="c1">#? [] or array(..dtype=int32) ??</span>
+            <span class="n">b2</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;maxpos&quot;</span><span class="p">,</span><span class="n">imstat0</span><span class="p">[</span><span class="s2">&quot;maxpos&quot;</span><span class="p">][:</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>     <span class="c1">#? [] or array(..dtype=int32) ??</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;CubeMax: </span><span class="si">%f</span><span class="s2"> @ </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">imstat0</span><span class="p">[</span><span class="s2">&quot;max&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="nb">str</span><span class="p">(</span><span class="n">imstat0</span><span class="p">[</span><span class="s2">&quot;maxpos&quot;</span><span class="p">])))</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;CubeMin: </span><span class="si">%f</span><span class="s2"> @ </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">imstat0</span><span class="p">[</span><span class="s2">&quot;min&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="nb">str</span><span class="p">(</span><span class="n">imstat0</span><span class="p">[</span><span class="s2">&quot;minpos&quot;</span><span class="p">])))</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;CubeRMS: </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">sigma0</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">mean0</span>  <span class="o">=</span> <span class="n">imstat0</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">sigma0</span> <span class="o">=</span> <span class="n">imstat0</span><span class="p">[</span><span class="s2">&quot;rms&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">peak0</span>  <span class="o">=</span> <span class="n">imstat10</span><span class="p">[</span><span class="s2">&quot;max&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">b2</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;mean&quot;</span> <span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">mean0</span><span class="p">))</span>
+            <span class="n">b2</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;sigma&quot;</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">sigma0</span><span class="p">))</span>
+            <span class="n">b2</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;minval&quot;</span><span class="p">,</span><span class="nb">float</span><span class="p">(</span><span class="n">imstat10</span><span class="p">[</span><span class="s2">&quot;min&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span>
+            <span class="n">b2</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;maxval&quot;</span><span class="p">,</span><span class="nb">float</span><span class="p">(</span><span class="n">imstat10</span><span class="p">[</span><span class="s2">&quot;max&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span>
+            <span class="n">b2</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;minpos&quot;</span><span class="p">,</span><span class="n">imstat10</span><span class="p">[</span><span class="s2">&quot;minpos&quot;</span><span class="p">][:</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>     <span class="c1">#? [] or array(..dtype=int32) ??</span>
+            <span class="n">b2</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;maxpos&quot;</span><span class="p">,</span><span class="n">imstat10</span><span class="p">[</span><span class="s2">&quot;maxpos&quot;</span><span class="p">][:</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>     <span class="c1">#? [] or array(..dtype=int32) ??</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;CubeMax: </span><span class="si">%f</span><span class="s2"> @ </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">imstat10</span><span class="p">[</span><span class="s2">&quot;max&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="nb">str</span><span class="p">(</span><span class="n">imstat10</span><span class="p">[</span><span class="s2">&quot;maxpos&quot;</span><span class="p">])))</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;CubeMin: </span><span class="si">%f</span><span class="s2"> @ </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">imstat10</span><span class="p">[</span><span class="s2">&quot;min&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="nb">str</span><span class="p">(</span><span class="n">imstat10</span><span class="p">[</span><span class="s2">&quot;minpos&quot;</span><span class="p">])))</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;CubeRMS: </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">sigma0</span><span class="p">)</span>
+        <span class="n">b2</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;robust&quot;</span><span class="p">,</span><span class="n">robust</span><span class="p">)</span>
+        <span class="n">rms_ratio</span> <span class="o">=</span> <span class="n">imstat0</span><span class="p">[</span><span class="s2">&quot;rms&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="n">sigma0</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;RMS Sanity check </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">rms_ratio</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">rms_ratio</span> <span class="o">&gt;</span> <span class="mf">1.5</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;RMS sanity check = </span><span class="si">%f</span><span class="s2">.  Either bad sidelobes, lotsa signal, or both&quot;</span> <span class="o">%</span> <span class="n">rms_ratio</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">regression</span><span class="p">(</span><span class="s2">&quot;CST: </span><span class="si">%f</span><span class="s2"> </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sigma0</span><span class="p">,</span> <span class="n">rms_ratio</span><span class="p">))</span>
+
+        <span class="c1"># plots: no plots need to be made when nchan=1 for continuum</span>
+        <span class="c1"># however we could make a histogram, overlaying the &quot;best&quot; gauss so </span>
+        <span class="c1"># signal deviations are clear?</span>
+
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;mean,rms,S/N=</span><span class="si">%f</span><span class="s1"> </span><span class="si">%f</span><span class="s1"> </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">mean0</span><span class="p">,</span><span class="n">sigma0</span><span class="p">,</span><span class="n">peak0</span><span class="o">/</span><span class="n">sigma0</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">nchan</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># for a continuum/1-channel we only need to stuff some numbers into the _summary</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="s2">&quot;chanrms&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SummaryEntry</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">sigma0</span><span class="p">),</span> <span class="n">fin</span><span class="p">],</span> <span class="s2">&quot;CubeStats_AT&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">(</span><span class="kc">True</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="s2">&quot;dynrange&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SummaryEntry</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">peak0</span><span class="p">)</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">sigma0</span><span class="p">),</span> <span class="n">fin</span><span class="p">],</span> <span class="s2">&quot;CubeStats_AT&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">(</span><span class="kc">True</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="s2">&quot;datamean&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SummaryEntry</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">mean0</span><span class="p">),</span> <span class="n">fin</span><span class="p">],</span> <span class="s2">&quot;CubeStats_AT&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">(</span><span class="kc">True</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">y1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_invalid</span><span class="p">(</span><span class="n">peakval</span><span class="p">))</span>
+            <span class="n">y2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_invalid</span><span class="p">(</span><span class="n">sigma</span><span class="p">))</span>
+            <span class="n">y3</span> <span class="o">=</span> <span class="n">y1</span><span class="o">-</span><span class="n">y2</span>
+
+            <span class="c1"># Note: log10(-minval) will fail with a runtime domain error if all values</span>
+            <span class="c1"># in minval are positive , so do a check here and only call log10 if there</span>
+            <span class="c1"># is at least one negative value in minval.</span>
+            <span class="c1"># RuntimeWarning: invalid value encountered in log10</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">minval</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">():</span> 
+                <span class="n">y4</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_invalid</span><span class="p">(</span><span class="o">-</span><span class="n">minval</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">y4</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">minval</span><span class="p">))</span>
+            <span class="n">y5</span> <span class="o">=</span> <span class="n">y1</span><span class="o">-</span><span class="n">y4</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="p">[</span><span class="n">y1</span><span class="p">,</span><span class="n">y2</span><span class="p">,</span><span class="n">y3</span><span class="p">,</span><span class="n">y4</span><span class="p">]</span>
+            <span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;CubeStats: &#39;</span> <span class="o">+</span> <span class="n">bdp_name</span><span class="o">+</span><span class="s1">&#39;_0&#39;</span>
+            <span class="n">xlab</span>  <span class="o">=</span> <span class="s1">&#39;Channel&#39;</span>
+            <span class="n">ylab</span>  <span class="o">=</span> <span class="s1">&#39;log(Peak,Noise,Peak/Noise)&#39;</span>
+            <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;log(peak)&#39;</span><span class="p">,</span><span class="s1">&#39;log(rms noise)&#39;</span><span class="p">,</span><span class="s1">&#39;log(peak/noise)&#39;</span><span class="p">,</span><span class="s1">&#39;log(|minval|)&#39;</span><span class="p">]</span>
+            <span class="n">myplot</span> <span class="o">=</span> <span class="n">APlot</span><span class="p">(</span><span class="n">ptype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_plot_type</span><span class="p">,</span><span class="n">pmode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_plot_mode</span><span class="p">,</span><span class="n">abspath</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">())</span>
+            <span class="n">segp</span> <span class="o">=</span> <span class="p">[[</span><span class="n">chans</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">chans</span><span class="p">[</span><span class="n">nchan</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="n">math</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">sigma0</span><span class="p">),</span><span class="n">math</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">sigma0</span><span class="p">)]]</span>
+            <span class="n">myplot</span><span class="o">.</span><span class="n">plotter</span><span class="p">(</span><span class="n">chans</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">title</span><span class="p">,</span><span class="n">bdp_name</span><span class="o">+</span><span class="s2">&quot;_0&quot;</span><span class="p">,</span><span class="n">xlab</span><span class="o">=</span><span class="n">xlab</span><span class="p">,</span><span class="n">ylab</span><span class="o">=</span><span class="n">ylab</span><span class="p">,</span><span class="n">segments</span><span class="o">=</span><span class="n">segp</span><span class="p">,</span><span class="n">labels</span><span class="o">=</span><span class="n">labels</span><span class="p">,</span><span class="n">thumbnail</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">imfile</span> <span class="o">=</span> <span class="n">myplot</span><span class="o">.</span><span class="n">getFigure</span><span class="p">(</span><span class="n">figno</span><span class="o">=</span><span class="n">myplot</span><span class="o">.</span><span class="n">figno</span><span class="p">,</span><span class="n">relative</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">thumbfile</span> <span class="o">=</span> <span class="n">myplot</span><span class="o">.</span><span class="n">getThumbnail</span><span class="p">(</span><span class="n">figno</span><span class="o">=</span><span class="n">myplot</span><span class="o">.</span><span class="n">figno</span><span class="p">,</span><span class="n">relative</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="n">image0</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span><span class="n">images</span><span class="o">=</span><span class="p">{</span><span class="n">bt</span><span class="o">.</span><span class="n">PNG</span><span class="p">:</span><span class="n">imfile</span><span class="p">},</span><span class="n">thumbnail</span><span class="o">=</span><span class="n">thumbfile</span><span class="p">,</span><span class="n">thumbnailtype</span><span class="o">=</span><span class="n">bt</span><span class="o">.</span><span class="n">PNG</span><span class="p">,</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;CubeStats_0&quot;</span><span class="p">)</span>
+            <span class="n">b2</span><span class="o">.</span><span class="n">addimage</span><span class="p">(</span><span class="n">image0</span><span class="p">,</span><span class="s2">&quot;im0&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">use_ppp</span><span class="p">:</span>
+                <span class="c1"># new trial for Lee</span>
+                <span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;PeakSum: (numsigma=</span><span class="si">%.1f</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">numsigma</span><span class="p">)</span>
+                <span class="n">ylab</span> <span class="o">=</span> <span class="s1">&#39;Jy*N_ppb&#39;</span>
+                <span class="n">myplot</span><span class="o">.</span><span class="n">plotter</span><span class="p">(</span><span class="n">chans</span><span class="p">,[</span><span class="n">peaksum</span><span class="p">],</span><span class="n">title</span><span class="p">,</span><span class="n">bdp_name</span><span class="o">+</span><span class="s2">&quot;_00&quot;</span><span class="p">,</span><span class="n">xlab</span><span class="o">=</span><span class="n">xlab</span><span class="p">,</span><span class="n">ylab</span><span class="o">=</span><span class="n">ylab</span><span class="p">,</span><span class="n">thumbnail</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="c1"># hack ascii table</span>
+                <span class="n">y30</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">sigma</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">peakval</span><span class="o">/</span><span class="n">sigma</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">)</span>
+                <span class="n">table2</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;freq&quot;</span><span class="p">,</span><span class="s2">&quot;log(P/N)&quot;</span><span class="p">],</span><span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">((</span><span class="n">freqs</span><span class="p">,</span><span class="n">y30</span><span class="p">)))</span>
+                <span class="n">table2</span><span class="o">.</span><span class="n">exportTable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="s2">&quot;testCubeStats.tab&quot;</span><span class="p">))</span>
+                <span class="k">del</span> <span class="n">table2</span>
+
+            <span class="c1"># the &quot;box&quot; for the &quot;spectrum&quot; is all pixels.  Don&#39;t know how to </span>
+            <span class="c1"># get this except via shape.</span>
+            <span class="n">ia</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">fin</span><span class="p">))</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
+            <span class="n">ia</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">if</span> <span class="s1">&#39;shape&#39;</span> <span class="ow">in</span> <span class="n">s</span><span class="p">:</span>
+                <span class="n">specbox</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="n">s</span><span class="p">[</span><span class="s1">&#39;shape&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">s</span><span class="p">[</span><span class="s1">&#39;shape&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">specbox</span> <span class="o">=</span> <span class="p">()</span>
+
+            <span class="n">caption</span> <span class="o">=</span> <span class="s2">&quot;Emission characteristics as a function of channel, as derived by CubeStats_AT &quot;</span>
+            <span class="n">caption</span> <span class="o">+=</span> <span class="s2">&quot;(cyan: global rms,&quot;</span>
+            <span class="n">caption</span> <span class="o">+=</span> <span class="s2">&quot; green: noise per channel,&quot;</span>
+            <span class="n">caption</span> <span class="o">+=</span> <span class="s2">&quot; blue: peak value per channel,&quot;</span>
+            <span class="n">caption</span> <span class="o">+=</span> <span class="s2">&quot; red: peak/noise per channel).&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="s2">&quot;spectra&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SummaryEntry</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">specbox</span><span class="p">),</span> <span class="s1">&#39;Channel&#39;</span><span class="p">,</span> <span class="n">imfile</span><span class="p">,</span> <span class="n">thumbfile</span> <span class="p">,</span> <span class="n">caption</span><span class="p">,</span> <span class="n">fin</span><span class="p">],</span> <span class="s2">&quot;CubeStats_AT&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">(</span><span class="kc">True</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="s2">&quot;chanrms&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SummaryEntry</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">sigma0</span><span class="p">),</span> <span class="n">fin</span><span class="p">],</span> <span class="s2">&quot;CubeStats_AT&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">(</span><span class="kc">True</span><span class="p">))</span>
+
+            <span class="c1"># @todo Will imstat[&quot;max&quot;][0] always be equal to s[&#39;datamax&#39;]?  If not, why not?</span>
+            <span class="k">if</span> <span class="s1">&#39;datamax&#39;</span> <span class="ow">in</span> <span class="n">s</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="s2">&quot;dynrange&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SummaryEntry</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="s1">&#39;datamax&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">sigma0</span><span class="p">),</span> <span class="n">fin</span><span class="p">],</span> <span class="s2">&quot;CubeStats_AT&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">(</span><span class="kc">True</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="s2">&quot;dynrange&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SummaryEntry</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">imstat0</span><span class="p">[</span><span class="s2">&quot;max&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="n">sigma0</span><span class="p">),</span> <span class="n">fin</span><span class="p">],</span> <span class="s2">&quot;CubeStats_AT&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">(</span><span class="kc">True</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="s2">&quot;datamean&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SummaryEntry</span><span class="p">([</span><span class="n">imstat0</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">fin</span><span class="p">],</span> <span class="s2">&quot;CubeStats_AT&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">(</span><span class="kc">True</span><span class="p">))</span>
+
+            <span class="n">title</span> <span class="o">=</span> <span class="n">bdp_name</span> <span class="o">+</span> <span class="s2">&quot;_1&quot;</span>
+            <span class="n">xlab</span> <span class="o">=</span>  <span class="s1">&#39;log(Peak,Noise,P/N)&#39;</span>
+            <span class="n">myplot</span><span class="o">.</span><span class="n">histogram</span><span class="p">([</span><span class="n">y1</span><span class="p">,</span><span class="n">y2</span><span class="p">,</span><span class="n">y3</span><span class="p">],</span><span class="n">title</span><span class="p">,</span><span class="n">bdp_name</span><span class="o">+</span><span class="s2">&quot;_1&quot;</span><span class="p">,</span><span class="n">xlab</span><span class="o">=</span><span class="n">xlab</span><span class="p">,</span><span class="n">thumbnail</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="n">imfile</span> <span class="o">=</span> <span class="n">myplot</span><span class="o">.</span><span class="n">getFigure</span><span class="p">(</span><span class="n">figno</span><span class="o">=</span><span class="n">myplot</span><span class="o">.</span><span class="n">figno</span><span class="p">,</span><span class="n">relative</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">thumbfile</span> <span class="o">=</span> <span class="n">myplot</span><span class="o">.</span><span class="n">getThumbnail</span><span class="p">(</span><span class="n">figno</span><span class="o">=</span><span class="n">myplot</span><span class="o">.</span><span class="n">figno</span><span class="p">,</span><span class="n">relative</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">image1</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span><span class="n">images</span><span class="o">=</span><span class="p">{</span><span class="n">bt</span><span class="o">.</span><span class="n">PNG</span><span class="p">:</span><span class="n">imfile</span><span class="p">},</span><span class="n">thumbnail</span><span class="o">=</span><span class="n">thumbfile</span><span class="p">,</span><span class="n">thumbnailtype</span><span class="o">=</span><span class="n">bt</span><span class="o">.</span><span class="n">PNG</span><span class="p">,</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;CubeStats_1&quot;</span><span class="p">)</span>
+            <span class="n">b2</span><span class="o">.</span><span class="n">addimage</span><span class="p">(</span><span class="n">image1</span><span class="p">,</span><span class="s2">&quot;im1&quot;</span><span class="p">)</span>
+
+            <span class="c1"># note that the &#39;y2&#39; can have been clipped, which can throw off stats.robust()</span>
+            <span class="c1"># @todo  should set a mask for those.</span>
+
+            <span class="n">title</span> <span class="o">=</span> <span class="n">bdp_name</span> <span class="o">+</span> <span class="s2">&quot;_2&quot;</span>
+            <span class="n">xlab</span> <span class="o">=</span> <span class="s1">&#39;log(Noise))&#39;</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">y2</span><span class="p">)</span>
+            <span class="n">ry2</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">robust</span><span class="p">(</span><span class="n">y2</span><span class="p">)</span>
+            <span class="n">y2_mean</span> <span class="o">=</span> <span class="n">ry2</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+            <span class="n">y2_std</span>  <span class="o">=</span> <span class="n">ry2</span><span class="o">.</span><span class="n">std</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">n</span><span class="o">&gt;</span><span class="mi">9</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;NORMALTEST2: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">normaltest</span><span class="p">(</span><span class="n">ry2</span><span class="p">)))</span>
+            <span class="n">myplot</span><span class="o">.</span><span class="n">hisplot</span><span class="p">(</span><span class="n">y2</span><span class="p">,</span><span class="n">title</span><span class="p">,</span><span class="n">bdp_name</span><span class="o">+</span><span class="s2">&quot;_2&quot;</span><span class="p">,</span><span class="n">xlab</span><span class="o">=</span><span class="n">xlab</span><span class="p">,</span><span class="n">gauss</span><span class="o">=</span><span class="p">[</span><span class="n">y2_mean</span><span class="p">,</span><span class="n">y2_std</span><span class="p">],</span><span class="n">thumbnail</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="n">title</span> <span class="o">=</span> <span class="n">bdp_name</span> <span class="o">+</span> <span class="s2">&quot;_3&quot;</span>
+            <span class="n">xlab</span> <span class="o">=</span> <span class="s1">&#39;log(diff[Noise])&#39;</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">y2</span><span class="p">)</span>
+            <span class="c1"># dy2 = y2[0:-2] - y2[1:-1]</span>
+            <span class="n">dy2</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">masked_equal</span><span class="p">(</span><span class="n">y2</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">y2</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="mf">0.0</span><span class="p">)</span><span class="o">.</span><span class="n">compressed</span><span class="p">()</span>
+            <span class="n">rdy2</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">robust</span><span class="p">(</span><span class="n">dy2</span><span class="p">)</span>
+            <span class="n">dy2_mean</span> <span class="o">=</span> <span class="n">rdy2</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+            <span class="n">dy2_std</span>  <span class="o">=</span> <span class="n">rdy2</span><span class="o">.</span><span class="n">std</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">n</span><span class="o">&gt;</span><span class="mi">9</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;NORMALTEST3: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">normaltest</span><span class="p">(</span><span class="n">rdy2</span><span class="p">)))</span>
+            <span class="n">myplot</span><span class="o">.</span><span class="n">hisplot</span><span class="p">(</span><span class="n">dy2</span><span class="p">,</span><span class="n">title</span><span class="p">,</span><span class="n">bdp_name</span><span class="o">+</span><span class="s2">&quot;_3&quot;</span><span class="p">,</span><span class="n">xlab</span><span class="o">=</span><span class="n">xlab</span><span class="p">,</span><span class="n">gauss</span><span class="o">=</span><span class="p">[</span><span class="n">dy2_mean</span><span class="p">,</span><span class="n">dy2_std</span><span class="p">],</span><span class="n">thumbnail</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+
+            <span class="n">title</span> <span class="o">=</span> <span class="n">bdp_name</span> <span class="o">+</span> <span class="s2">&quot;_4&quot;</span>
+            <span class="n">xlab</span> <span class="o">=</span> <span class="s1">&#39;log(Signal/Noise))&#39;</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">y3</span><span class="p">)</span>
+            <span class="n">ry3</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">robust</span><span class="p">(</span><span class="n">y3</span><span class="p">)</span>
+            <span class="n">y3_mean</span> <span class="o">=</span> <span class="n">ry3</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+            <span class="n">y3_std</span>  <span class="o">=</span> <span class="n">ry3</span><span class="o">.</span><span class="n">std</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">n</span><span class="o">&gt;</span><span class="mi">9</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;NORMALTEST4: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">normaltest</span><span class="p">(</span><span class="n">ry3</span><span class="p">)))</span>
+            <span class="n">myplot</span><span class="o">.</span><span class="n">hisplot</span><span class="p">(</span><span class="n">y3</span><span class="p">,</span><span class="n">title</span><span class="p">,</span><span class="n">bdp_name</span><span class="o">+</span><span class="s2">&quot;_4&quot;</span><span class="p">,</span><span class="n">xlab</span><span class="o">=</span><span class="n">xlab</span><span class="p">,</span><span class="n">gauss</span><span class="o">=</span><span class="p">[</span><span class="n">y3_mean</span><span class="p">,</span><span class="n">y3_std</span><span class="p">],</span><span class="n">thumbnail</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="n">title</span> <span class="o">=</span> <span class="n">bdp_name</span> <span class="o">+</span> <span class="s2">&quot;_5&quot;</span>
+            <span class="n">xlab</span> <span class="o">=</span> <span class="s1">&#39;log(diff[Signal/Noise)])&#39;</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">y3</span><span class="p">)</span>
+            <span class="n">dy3</span> <span class="o">=</span> <span class="n">y3</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">y3</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">rdy3</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">robust</span><span class="p">(</span><span class="n">dy3</span><span class="p">)</span>
+            <span class="n">dy3_mean</span> <span class="o">=</span> <span class="n">rdy3</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+            <span class="n">dy3_std</span>  <span class="o">=</span> <span class="n">rdy3</span><span class="o">.</span><span class="n">std</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">n</span><span class="o">&gt;</span><span class="mi">9</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;NORMALTEST5: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">normaltest</span><span class="p">(</span><span class="n">rdy3</span><span class="p">)))</span>
+            <span class="n">myplot</span><span class="o">.</span><span class="n">hisplot</span><span class="p">(</span><span class="n">dy3</span><span class="p">,</span><span class="n">title</span><span class="p">,</span><span class="n">bdp_name</span><span class="o">+</span><span class="s2">&quot;_5&quot;</span><span class="p">,</span><span class="n">xlab</span><span class="o">=</span><span class="n">xlab</span><span class="p">,</span><span class="n">gauss</span><span class="o">=</span><span class="p">[</span><span class="n">dy3_mean</span><span class="p">,</span><span class="n">dy3_std</span><span class="p">],</span><span class="n">thumbnail</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+
+            <span class="n">title</span> <span class="o">=</span> <span class="n">bdp_name</span> <span class="o">+</span> <span class="s2">&quot;_6&quot;</span>
+            <span class="n">xlab</span> <span class="o">=</span> <span class="s1">&#39;log(Peak+Min)&#39;</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">y1</span><span class="p">)</span>
+            <span class="n">ry5</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">robust</span><span class="p">(</span><span class="n">y5</span><span class="p">)</span>
+            <span class="n">y5_mean</span> <span class="o">=</span> <span class="n">ry5</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+            <span class="n">y5_std</span>  <span class="o">=</span> <span class="n">ry5</span><span class="o">.</span><span class="n">std</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">n</span><span class="o">&gt;</span><span class="mi">9</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;NORMALTEST6: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">normaltest</span><span class="p">(</span><span class="n">ry5</span><span class="p">)))</span>
+            <span class="n">myplot</span><span class="o">.</span><span class="n">hisplot</span><span class="p">(</span><span class="n">y5</span><span class="p">,</span><span class="n">title</span><span class="p">,</span><span class="n">bdp_name</span><span class="o">+</span><span class="s2">&quot;_6&quot;</span><span class="p">,</span><span class="n">xlab</span><span class="o">=</span><span class="n">xlab</span><span class="p">,</span><span class="n">gauss</span><span class="o">=</span><span class="p">[</span><span class="n">y5_mean</span><span class="p">,</span><span class="n">y5_std</span><span class="p">],</span><span class="n">thumbnail</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;LogPeak: m,s= </span><span class="si">%f</span><span class="s2"> </span><span class="si">%f</span><span class="s2"> min/max </span><span class="si">%f</span><span class="s2"> </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">y1</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span><span class="n">y1</span><span class="o">.</span><span class="n">std</span><span class="p">(),</span><span class="n">y1</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span><span class="n">y1</span><span class="o">.</span><span class="n">max</span><span class="p">()))</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;LogNoise: m,s= </span><span class="si">%f</span><span class="s2"> </span><span class="si">%f</span><span class="s2"> </span><span class="si">%f</span><span class="s2"> </span><span class="si">%f</span><span class="s2"> min/max </span><span class="si">%f</span><span class="s2"> </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">y2</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span><span class="n">y2</span><span class="o">.</span><span class="n">std</span><span class="p">(),</span><span class="n">y2_mean</span><span class="p">,</span><span class="n">y2_std</span><span class="p">,</span><span class="n">y2</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span><span class="n">y2</span><span class="o">.</span><span class="n">max</span><span class="p">()))</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;LogDeltaNoise: RMS/sqrt(2)= </span><span class="si">%f</span><span class="s2"> </span><span class="si">%f</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dy2</span><span class="o">.</span><span class="n">std</span><span class="p">()</span><span class="o">/</span><span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="n">dy2_std</span><span class="o">/</span><span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">)))</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;LogDeltaP/N:   RMS/sqrt(2)= </span><span class="si">%f</span><span class="s2"> </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dy3</span><span class="o">.</span><span class="n">std</span><span class="p">()</span><span class="o">/</span><span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="n">dy3_std</span><span class="o">/</span><span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">)))</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;LogPeak+Min: robust m,s= </span><span class="si">%f</span><span class="s2"> </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">y5_mean</span><span class="p">,</span><span class="n">y5_std</span><span class="p">))</span>
+
+            <span class="c1"># compute two ratios that should both be near 1.0 if noise is &#39;normal&#39;</span>
+            <span class="n">ratio</span>  <span class="o">=</span> <span class="n">y2</span><span class="o">.</span><span class="n">std</span><span class="p">()</span><span class="o">/</span><span class="p">(</span><span class="n">dy2</span><span class="o">.</span><span class="n">std</span><span class="p">()</span><span class="o">/</span><span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+            <span class="n">ratio2</span> <span class="o">=</span> <span class="n">y2_std</span><span class="o">/</span><span class="p">(</span><span class="n">dy2_std</span><span class="o">/</span><span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;RMS BAD VARIATION RATIO: </span><span class="si">%f</span><span class="s2"> </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ratio</span><span class="p">,</span><span class="n">ratio2</span><span class="p">))</span>
+
+        <span class="c1"># making PPP plot</span>
+        <span class="k">if</span> <span class="n">nchan</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">use_ppp</span><span class="p">:</span>
+            <span class="n">smax</span> <span class="o">=</span> <span class="mi">10</span>
+            <span class="n">gamma</span> <span class="o">=</span> <span class="mf">0.75</span>
+
+            <span class="n">z0</span> <span class="o">=</span> <span class="n">peakval</span><span class="o">/</span><span class="n">peakval</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+            <span class="c1"># point sizes</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="p">(</span> <span class="n">smax</span> <span class="o">*</span> <span class="p">(</span><span class="n">z0</span><span class="o">**</span><span class="n">gamma</span><span class="p">)</span> <span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+            <span class="n">cmds</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;grid&quot;</span><span class="p">,</span> <span class="s2">&quot;axis equal&quot;</span><span class="p">]</span>
+            <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;Peak Points per channel&quot;</span>
+            <span class="n">pppimage</span> <span class="o">=</span> <span class="n">bdp_name</span> <span class="o">+</span> <span class="s1">&#39;_ppp&#39;</span>
+            <span class="n">myplot</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">xpos</span><span class="p">,</span><span class="n">ypos</span><span class="p">,</span><span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span><span class="n">figname</span><span class="o">=</span><span class="n">pppimage</span><span class="p">,</span><span class="n">size</span><span class="o">=</span><span class="n">s</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="n">chans</span><span class="p">,</span><span class="n">cmds</span><span class="o">=</span><span class="n">cmds</span><span class="p">,</span><span class="n">thumbnail</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">pppimage</span>     <span class="o">=</span> <span class="n">myplot</span><span class="o">.</span><span class="n">getFigure</span><span class="p">(</span><span class="n">figno</span><span class="o">=</span><span class="n">myplot</span><span class="o">.</span><span class="n">figno</span><span class="p">,</span><span class="n">relative</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">pppthumbnail</span> <span class="o">=</span> <span class="n">myplot</span><span class="o">.</span><span class="n">getThumbnail</span><span class="p">(</span><span class="n">figno</span><span class="o">=</span><span class="n">myplot</span><span class="o">.</span><span class="n">figno</span><span class="p">,</span><span class="n">relative</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">caption</span> <span class="o">=</span> <span class="s2">&quot;Peak point plot: Locations of per-channel peaks in the image cube &quot;</span> <span class="o">+</span> <span class="n">fin</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="s2">&quot;peakpnt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SummaryEntry</span><span class="p">([</span><span class="n">pppimage</span><span class="p">,</span> <span class="n">pppthumbnail</span><span class="p">,</span> <span class="n">caption</span><span class="p">,</span> <span class="n">fin</span><span class="p">],</span> <span class="s2">&quot;CubeStats_AT&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">(</span><span class="kc">True</span><span class="p">))</span>
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;plotting&quot;</span><span class="p">)</span>
+
+        <span class="c1"># making PeakStats plot</span>
+        <span class="k">if</span> <span class="n">nchan</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">psample</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Computing peakstats&quot;</span><span class="p">)</span>
+            <span class="c1"># grab peak,mean and width values for all peaks</span>
+            <span class="p">(</span><span class="n">pval</span><span class="p">,</span><span class="n">mval</span><span class="p">,</span><span class="n">wval</span><span class="p">)</span> <span class="o">=</span> <span class="n">peakstats</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">fin</span><span class="p">),</span><span class="n">freqs</span><span class="p">,</span><span class="n">sigma0</span><span class="p">,</span><span class="n">pnumsigma</span><span class="p">,</span><span class="n">minchan</span><span class="p">,</span><span class="n">maxgap</span><span class="p">,</span><span class="n">psample</span><span class="p">,</span><span class="n">peakfit</span><span class="p">)</span>
+            <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;PeakStats: cutoff = </span><span class="si">%g</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sigma0</span><span class="o">*</span><span class="n">pnumsigma</span><span class="p">)</span>
+            <span class="n">xlab</span> <span class="o">=</span> <span class="s1">&#39;Peak value&#39;</span>
+            <span class="n">ylab</span> <span class="o">=</span> <span class="s1">&#39;FWHM (channels)&#39;</span>
+            <span class="n">pppimage</span> <span class="o">=</span> <span class="n">bdp_name</span> <span class="o">+</span> <span class="s1">&#39;_peakstats&#39;</span>
+            <span class="n">cval</span> <span class="o">=</span> <span class="n">mval</span>
+            <span class="n">myplot</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">pval</span><span class="p">,</span><span class="n">wval</span><span class="p">,</span><span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span><span class="n">xlab</span><span class="o">=</span><span class="n">xlab</span><span class="p">,</span><span class="n">ylab</span><span class="o">=</span><span class="n">ylab</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="n">cval</span><span class="p">,</span><span class="n">figname</span><span class="o">=</span><span class="n">pppimage</span><span class="p">,</span><span class="n">thumbnail</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;peakstats&quot;</span><span class="p">)</span>
+            
+
+        <span class="c1"># myplot.final()    # pjt debug </span>
+        <span class="c1"># all done!</span>
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;done&quot;</span><span class="p">)</span>
+
+        <span class="n">taskargs</span> <span class="o">=</span> <span class="s2">&quot;robust=&quot;</span> <span class="o">+</span> <span class="n">sumrargs</span> 
+        <span class="k">if</span> <span class="n">use_ppp</span><span class="p">:</span> 
+            <span class="n">taskargs</span> <span class="o">=</span> <span class="n">taskargs</span> <span class="o">+</span> <span class="s2">&quot; ppp=True&quot;</span>
+        <span class="k">else</span><span class="p">:</span> 
+            <span class="n">taskargs</span> <span class="o">=</span> <span class="n">taskargs</span> <span class="o">+</span> <span class="s2">&quot; ppp=False&quot;</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="n">v</span><span class="p">]</span><span class="o">.</span><span class="n">setTaskArgs</span><span class="p">(</span><span class="n">taskargs</span><span class="p">)</span>
+
+        <span class="n">ia</span><span class="o">.</span><span class="n">done</span><span class="p">()</span>     <span class="c1"># is that a good habit?</span>
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;summary&quot;</span><span class="p">)</span>
+        <span class="n">dt</span><span class="o">.</span><span class="n">end</span><span class="p">()</span></div></div>
+
+<span class="c1">#</span>
+<span class="c1"># @todo NEMO::ccdpeakstats does test0 in &lt;&lt; 1&quot;, admit takes 85-90&quot; with sample=4 -&gt; 6000&quot;</span>
+<span class="c1"># Calling line_segments() speeding up to 5&quot; for psample=1 even</span>
+        
+<div class="viewcode-block" id="peakstats"><a class="viewcode-back" href="../../../module/admit.at/CubeStats_AT.html#admit.at.CubeStats_AT.peakstats">[docs]</a><span class="k">def</span> <span class="nf">peakstats</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">freq</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">nsigma</span><span class="p">,</span> <span class="n">minchan</span><span class="p">,</span> <span class="n">maxgap</span><span class="p">,</span> <span class="n">psample</span><span class="p">,</span> <span class="n">peakfit</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Go through a cube and find peaks in the spectral dimension</span>
+
+<span class="sd">    It will gather a table of &lt;peak&gt;,&lt;freq&gt;,&lt;sigma&gt; which can be</span>
+<span class="sd">    optionally used for plotting</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">psample</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span>
+    <span class="n">cutoff</span> <span class="o">=</span> <span class="n">nsigma</span> <span class="o">*</span> <span class="n">sigma</span>
+    <span class="n">madata</span> <span class="o">=</span> <span class="n">casautil</span><span class="o">.</span><span class="n">getdata</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+    <span class="n">data</span>   <span class="o">=</span> <span class="n">madata</span><span class="o">.</span><span class="n">data</span>
+    <span class="n">shape</span>  <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;peakstats: shape=</span><span class="si">%s</span><span class="s2"> cutoff=</span><span class="si">%g</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">shape</span><span class="p">),</span><span class="n">cutoff</span><span class="p">))</span>
+    <span class="c1">#print &quot;DATA SHAPE:&quot;,shape</span>
+    <span class="c1">#print &quot;cutoff=&quot;,cutoff</span>
+    <span class="n">nx</span> <span class="o">=</span> <span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">ny</span> <span class="o">=</span> <span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">nz</span> <span class="o">=</span> <span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">chan</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nz</span><span class="p">)</span>
+    <span class="c1"># prepare the segment finder</span>
+    <span class="c1"># we now have an array data[nx,ny,nz]</span>
+    <span class="nb">sum</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">pval</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">mval</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">wval</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">nx</span><span class="p">,</span><span class="n">psample</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">ny</span><span class="p">,</span><span class="n">psample</span><span class="p">):</span>
+            <span class="n">s0</span>    <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,:]</span>
+            <span class="n">spec</span>  <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">masked_invalid</span><span class="p">(</span><span class="n">s0</span><span class="p">)</span>
+            <span class="nb">sum</span> <span class="o">+=</span> <span class="n">spec</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="c1"># using abs=True is a bit counter intuitive, but a patch to deal with the confusion in</span>
+            <span class="c1"># ADMITSegmentFinder w.r.t abs usage</span>
+            <span class="n">asf</span> <span class="o">=</span> <span class="n">ADMITSegmentFinder</span><span class="p">(</span><span class="n">pmin</span><span class="o">=</span><span class="n">nsigma</span><span class="p">,</span> <span class="n">minchan</span><span class="o">=</span><span class="n">minchan</span><span class="p">,</span> <span class="n">maxgap</span><span class="o">=</span><span class="n">maxgap</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="n">freq</span><span class="p">,</span> <span class="n">spec</span><span class="o">=</span><span class="n">spec</span><span class="p">,</span> <span class="nb">abs</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="c1">#asf = ADMITSegmentFinder(pmin=nsigma, minchan=minchan, maxgap=maxgap, freq=freq, spec=spec, abs=False)</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="n">asf</span><span class="o">.</span><span class="n">line_segments</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">nsigma</span><span class="o">*</span><span class="n">sigma</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+                <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+                        <span class="nb">print</span> <span class="s2">&quot;# &quot;</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">spec</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="c1">## area preserving and peak are correlated, 18% difference</span>
+                <span class="c1">## fitgauss1Dm was about 5&quot;</span>
+                <span class="c1">## with fitgauss1D was about 30&quot;, and still bad fits</span>
+                <span class="n">par</span>      <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">fitgauss1Dm</span><span class="p">(</span><span class="n">chan</span><span class="p">[</span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span><span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span> <span class="n">spec</span><span class="p">[</span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span><span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span> <span class="kc">True</span><span class="p">)</span>           <span class="c1"># peak from max</span>
+                <span class="c1">#par      = utils.fitgauss1Dm(chan[s[0]:s[1]+1], spec[s[0]:s[1]+1], False)       # peak from area preserving</span>
+                <span class="k">if</span> <span class="n">peakfit</span><span class="p">:</span>
+                    <span class="p">(</span><span class="n">par</span><span class="p">,</span><span class="n">cov</span><span class="p">)</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">fitgauss1D</span> <span class="p">(</span><span class="n">chan</span><span class="p">[</span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span><span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span> <span class="n">spec</span><span class="p">[</span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span><span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span><span class="n">par</span><span class="p">)</span>
+                <span class="c1">#print &quot;FIND:  &quot;,x,y,s,cutoff,0.0,0.0,par[0],par[1],par[2],s[1]-s[0]+1</span>
+                <span class="n">pval</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">par</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">mval</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">par</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">wval</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">par</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+    <span class="c1">#print &quot;SUM:&quot;,sum</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pval</span><span class="p">),</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">mval</span><span class="p">),</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">wval</span><span class="p">))</span></div>
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

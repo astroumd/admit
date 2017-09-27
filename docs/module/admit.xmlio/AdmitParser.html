@@ -1,0 +1,540 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>AdmitParser — Specialized parser for ADMIT XML files. &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../index.html" />
+    <link rel="up" title="Python Scripting Interface (API)" href="../../api.html" />
+    <link rel="prev" title="XML I/O Package" href="0-index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="0-index.html" title="XML I/O Package"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" accesskey="U">Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-admit.xmlio.AdmitParser"></span><div class="section" id="admitparser-specialized-parser-for-admit-xml-files">
+<h1>AdmitParser &#8212; Specialized parser for ADMIT XML files.<a class="headerlink" href="#admitparser-specialized-parser-for-admit-xml-files" title="Permalink to this headline">¶</a></h1>
+<p>This module defines the AdmitParser class.</p>
+<dl class="class">
+<dt id="admit.xmlio.AdmitParser.AdmitParser">
+<em class="property">class </em><code class="descclassname">admit.xmlio.AdmitParser.</code><code class="descname">AdmitParser</code><span class="sig-paren">(</span><em>basedir=''</em>, <em>xmlFile='admit.xml'</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/xmlio/AdmitParser.html#AdmitParser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.xmlio.AdmitParser.AdmitParser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Specialized XML parser for admit and bdp parsing.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>basedir</strong> : str</p>
+<blockquote>
+<div><p>The base directory being used to read in the ADMIT files.</p>
+</div></blockquote>
+<p><strong>xmlFile</strong> : str</p>
+<blockquote class="last">
+<div><p>The file to parse.
+Deafult: &#8220;admit.xml&#8221;.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="17%" />
+<col width="83%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>xmlFile</td>
+<td>(str) The file to parse.</td>
+</tr>
+<tr class="row-even"><td>basedir</td>
+<td>(str) The base directory being used to read in the ADMIT files.</td>
+</tr>
+<tr class="row-odd"><td>dtd</td>
+<td>(DtdReader) Instance of the DtdReader to use.</td>
+</tr>
+<tr class="row-even"><td>AT</td>
+<td>(List) List for keeping track of the AT&#8217;s found.</td>
+</tr>
+<tr class="row-odd"><td>curAT</td>
+<td>(AT) Instance of the current AT being reconstructed.</td>
+</tr>
+<tr class="row-even"><td>type</td>
+<td>(str) Type of the curAT.</td>
+</tr>
+<tr class="row-odd"><td>name</td>
+<td>(str) Name of the current node being parsed.</td>
+</tr>
+<tr class="row-even"><td>ndarr</td>
+<td>(List) List of elements that are numpy arrays.</td>
+</tr>
+<tr class="row-odd"><td>sets</td>
+<td>(List) List of elements that are sets.</td>
+</tr>
+<tr class="row-even"><td>userData</td>
+<td>(Dict) Dictionary for the user data.</td>
+</tr>
+<tr class="row-odd"><td>summaryData</td>
+<td>(Dict) Dictionary for the summaryData.</td>
+</tr>
+<tr class="row-even"><td>summaryEntry</td>
+<td>(SummaryEntry) Current instance of the SummaryEntry being reconstructed.</td>
+</tr>
+<tr class="row-odd"><td>flowmanager</td>
+<td>(FlowManager) Local copy of the FlowManager for reconstruction.</td>
+</tr>
+<tr class="row-even"><td>projmanager</td>
+<td>(Dict) Project ID to base directory map.</td>
+</tr>
+<tr class="row-odd"><td>Util</td>
+<td>(various classes) The current utility class being reconstructed.</td>
+</tr>
+<tr class="row-even"><td>MultiImage</td>
+<td>(MultiImage class instance) The current MultiImage being reconstructed.</td>
+</tr>
+<tr class="row-odd"><td>inflow</td>
+<td>(Boolean) Whether the parser is currently reconstructing the flow manager.</td>
+</tr>
+<tr class="row-even"><td>inAdmit</td>
+<td>(Boolean) Whether the parser is currently reconstructing the ADMIT base class.</td>
+</tr>
+<tr class="row-odd"><td>inUtil</td>
+<td>(Boolean) Whether the parser is currently reconstructing a utility class.</td>
+</tr>
+<tr class="row-even"><td>inMulti</td>
+<td>(Boolean) Whether the parser is currently reconstructung a MultiImage.</td>
+</tr>
+<tr class="row-odd"><td>inKeys</td>
+<td>(Boolean) Whether the parser is currently reconstructing the keys of an AT.</td>
+</tr>
+<tr class="row-even"><td>inSummary</td>
+<td>(Boolean) Whether the parser is currently reconstructing the summary data.</td>
+</tr>
+<tr class="row-odd"><td>inSummaryEntry</td>
+<td>(Boolean) Whether the parser is currently reconstructing a SummaryEntry.</td>
+</tr>
+<tr class="row-even"><td>utilType</td>
+<td>(str) The type of the current utility class being reconstructed.</td>
+</tr>
+<tr class="row-odd"><td>utilName</td>
+<td>(str) The name of the current utility class being reconstructed.</td>
+</tr>
+<tr class="row-even"><td>multiName</td>
+<td>(str) The name of the MultiImage currently being reconstructed.</td>
+</tr>
+<tr class="row-odd"><td>summaryName</td>
+<td>(str) The name of the summary being reconstructed.</td>
+</tr>
+<tr class="row-even"><td>summaryEntryName</td>
+<td>(str) The name of the SummaryEntry being reconstructed.</td>
+</tr>
+<tr class="row-odd"><td>admit</td>
+<td>(ADMIT) The base class being reconstructed.</td>
+</tr>
+<tr class="row-even"><td>metadataName</td>
+<td>(str) The name of the current metadata node.</td>
+</tr>
+<tr class="row-odd"><td>inBDP</td>
+<td>(Boolean) Whether the parser is currently reconstructing a BDP.</td>
+</tr>
+<tr class="row-even"><td>inAT</td>
+<td>(Boolean) Whether the parser is currently reconstructing an AT.</td>
+</tr>
+<tr class="row-odd"><td>tempdata</td>
+<td>(str) String for holding large data that need to be reconstructed.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#admit.xmlio.AdmitParser.AdmitParser.characters" title="admit.xmlio.AdmitParser.AdmitParser.characters"><code class="xref py py-obj docutils literal"><span class="pre">characters</span></code></a>(ch)</td>
+<td>Method called whenever characters are detected in an xml node This method does some dtd validation.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.xmlio.AdmitParser.AdmitParser.close" title="admit.xmlio.AdmitParser.AdmitParser.close"><code class="xref py py-obj docutils literal"><span class="pre">close</span></code></a>()</td>
+<td>Method to close out the reader, called only by the sax parser</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">endDocument</span></code>()</td>
+<td>Receive notification of the end of a document.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.xmlio.AdmitParser.AdmitParser.endElement" title="admit.xmlio.AdmitParser.AdmitParser.endElement"><code class="xref py py-obj docutils literal"><span class="pre">endElement</span></code></a>(name)</td>
+<td>Method called whenever the end of an xml element is reached.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">endElementNS</span></code>(name,&nbsp;qname)</td>
+<td>Signals the end of an element in namespace mode.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">endPrefixMapping</span></code>(prefix)</td>
+<td>End the scope of a prefix-URI mapping.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.xmlio.AdmitParser.AdmitParser.getAT" title="admit.xmlio.AdmitParser.AdmitParser.getAT"><code class="xref py py-obj docutils literal"><span class="pre">getAT</span></code></a>()</td>
+<td>Return the list of reconstructed AT&#8217;s</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.xmlio.AdmitParser.AdmitParser.getBDP" title="admit.xmlio.AdmitParser.AdmitParser.getBDP"><code class="xref py py-obj docutils literal"><span class="pre">getBDP</span></code></a>()</td>
+<td>Return the current BDP</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.xmlio.AdmitParser.AdmitParser.getData" title="admit.xmlio.AdmitParser.AdmitParser.getData"><code class="xref py py-obj docutils literal"><span class="pre">getData</span></code></a>(item)</td>
+<td>Method used to convert string to designated type.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.xmlio.AdmitParser.AdmitParser.getattr" title="admit.xmlio.AdmitParser.AdmitParser.getattr"><code class="xref py py-obj docutils literal"><span class="pre">getattr</span></code></a>(target,&nbsp;name)</td>
+<td>Method to get the value of a specific data member from the given class</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.xmlio.AdmitParser.AdmitParser.getflowmanager" title="admit.xmlio.AdmitParser.AdmitParser.getflowmanager"><code class="xref py py-obj docutils literal"><span class="pre">getflowmanager</span></code></a>()</td>
+<td>Returns the FlowManager instance</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">ignorableWhitespace</span></code>(whitespace)</td>
+<td>Receive notification of ignorable whitespace in element content.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">processingInstruction</span></code>(target,&nbsp;data)</td>
+<td>Receive notification of a processing instruction.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">setDocumentLocator</span></code>(locator)</td>
+<td>Called by the parser to give the application a locator for locating the origin of document events.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.xmlio.AdmitParser.AdmitParser.setadmit" title="admit.xmlio.AdmitParser.AdmitParser.setadmit"><code class="xref py py-obj docutils literal"><span class="pre">setadmit</span></code></a>(admit)</td>
+<td>Set the base class to the given class</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.xmlio.AdmitParser.AdmitParser.setattr" title="admit.xmlio.AdmitParser.AdmitParser.setattr"><code class="xref py py-obj docutils literal"><span class="pre">setattr</span></code></a>(target,&nbsp;name,&nbsp;value)</td>
+<td>Method to set attributes in a class</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">skippedEntity</span></code>(name)</td>
+<td>Receive notification of a skipped entity.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">startDocument</span></code>()</td>
+<td>Receive notification of the beginning of a document.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.xmlio.AdmitParser.AdmitParser.startElement" title="admit.xmlio.AdmitParser.AdmitParser.startElement"><code class="xref py py-obj docutils literal"><span class="pre">startElement</span></code></a>(name,&nbsp;attrib)</td>
+<td>Method called whenever a new element is found.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">startElementNS</span></code>(name,&nbsp;qname,&nbsp;attrs)</td>
+<td>Signals the start of an element in namespace mode.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">startPrefixMapping</span></code>(prefix,&nbsp;uri)</td>
+<td>Begin the scope of a prefix-URI Namespace mapping.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="admit.xmlio.AdmitParser.AdmitParser.characters">
+<code class="descname">characters</code><span class="sig-paren">(</span><em>ch</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/xmlio/AdmitParser.html#AdmitParser.characters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.xmlio.AdmitParser.AdmitParser.characters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method called whenever characters are detected in an xml node
+This method does some dtd validation. This
+method is only called by the SAX parser iteself.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ch</strong> : unicode characters</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.xmlio.AdmitParser.AdmitParser.close">
+<code class="descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/xmlio/AdmitParser.html#AdmitParser.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.xmlio.AdmitParser.AdmitParser.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to close out the reader, called only by the sax parser</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.xmlio.AdmitParser.AdmitParser.endElement">
+<code class="descname">endElement</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/xmlio/AdmitParser.html#AdmitParser.endElement"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.xmlio.AdmitParser.AdmitParser.endElement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method called whenever the end of an xml element is reached. This
+method is only called by the SAX parser iteself.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>name</strong> : str</p>
+<blockquote>
+<div><p>The name of the node that just ended</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.xmlio.AdmitParser.AdmitParser.getAT">
+<code class="descname">getAT</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/xmlio/AdmitParser.html#AdmitParser.getAT"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.xmlio.AdmitParser.AdmitParser.getAT" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the list of reconstructed AT&#8217;s</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">List of AT&#8217;s</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.xmlio.AdmitParser.AdmitParser.getBDP">
+<code class="descname">getBDP</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/xmlio/AdmitParser.html#AdmitParser.getBDP"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.xmlio.AdmitParser.AdmitParser.getBDP" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the current BDP</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The current BDP</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.xmlio.AdmitParser.AdmitParser.getData">
+<code class="descname">getData</code><span class="sig-paren">(</span><em>item</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/xmlio/AdmitParser.html#AdmitParser.getData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.xmlio.AdmitParser.AdmitParser.getData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method used to convert string to designated type.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>input: str</strong></p>
+<blockquote>
+<div><p>The string to convert</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Various types, based on the expected type of the xml node</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.xmlio.AdmitParser.AdmitParser.getattr">
+<code class="descname">getattr</code><span class="sig-paren">(</span><em>target</em>, <em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/xmlio/AdmitParser.html#AdmitParser.getattr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.xmlio.AdmitParser.AdmitParser.getattr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get the value of a specific data member from the given class</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>target</strong> : object</p>
+<blockquote>
+<div><p>The class from which the data value will be obtained</p>
+</div></blockquote>
+<p><strong>name</strong> : str</p>
+<blockquote>
+<div><p>The name of the data member whose value will be obtained</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Various, the value of the requested data member, None if it does not exist</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.xmlio.AdmitParser.AdmitParser.getflowmanager">
+<code class="descname">getflowmanager</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/xmlio/AdmitParser.html#AdmitParser.getflowmanager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.xmlio.AdmitParser.AdmitParser.getflowmanager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the FlowManager instance</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The current FlowManager instance</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.xmlio.AdmitParser.AdmitParser.setadmit">
+<code class="descname">setadmit</code><span class="sig-paren">(</span><em>admit</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/xmlio/AdmitParser.html#AdmitParser.setadmit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.xmlio.AdmitParser.AdmitParser.setadmit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the base class to the given class</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>admit</strong> : ADMIT</p>
+<blockquote>
+<div><p>The class to set the base to</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.xmlio.AdmitParser.AdmitParser.setattr">
+<code class="descname">setattr</code><span class="sig-paren">(</span><em>target</em>, <em>name</em>, <em>value</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/xmlio/AdmitParser.html#AdmitParser.setattr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.xmlio.AdmitParser.AdmitParser.setattr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to set attributes in a class</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>target</strong> : object</p>
+<blockquote>
+<div><p>The class to which the paremeters is being set</p>
+</div></blockquote>
+<p><strong>name</strong> : str</p>
+<blockquote>
+<div><p>The name of the attribute to set</p>
+</div></blockquote>
+<p><strong>value</strong> : various</p>
+<blockquote class="last">
+<div><p>The value to set the attribute to</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.xmlio.AdmitParser.AdmitParser.startElement">
+<code class="descname">startElement</code><span class="sig-paren">(</span><em>name</em>, <em>attrib</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/xmlio/AdmitParser.html#AdmitParser.startElement"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.xmlio.AdmitParser.AdmitParser.startElement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method called whenever a new element is found. Dtd validation is
+done for each node and attribute. This method is only called by the
+SAX parser iteself.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>name</strong> : str</p>
+<blockquote>
+<div><p>The name of the current node</p>
+</div></blockquote>
+<p><strong>attrib</strong> : Dict</p>
+<blockquote>
+<div><p>Dictionary of any attributes and their values that was found by
+the parser</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="0-index.html"
+                        title="previous chapter">XML I/O Package</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/module/admit.xmlio/AdmitParser.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="0-index.html" title="XML I/O Package"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" >Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

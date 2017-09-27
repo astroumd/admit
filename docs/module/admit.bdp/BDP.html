@@ -1,0 +1,490 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>BDP — Basic data product base. &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../index.html" />
+    <link rel="up" title="Python Scripting Interface (API)" href="../../api.html" />
+    <link rel="prev" title="BDP Package" href="0-index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="0-index.html" title="BDP Package"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" accesskey="U">Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-admit.bdp.BDP"></span><div class="section" id="bdp-basic-data-product-base">
+<span id="bdp-base-api"></span><h1><strong>BDP</strong> &#8212; Basic data product base.<a class="headerlink" href="#bdp-basic-data-product-base" title="Permalink to this headline">¶</a></h1>
+<p>This module defines the Basic Data Product (BDP) base class.</p>
+<dl class="class">
+<dt id="admit.bdp.BDP.BDP">
+<em class="property">class </em><code class="descclassname">admit.bdp.BDP.</code><code class="descname">BDP</code><span class="sig-paren">(</span><em>xmlFile=None</em>, <em>**keyval</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/bdp/BDP.html#BDP"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.bdp.BDP.BDP" title="Permalink to this definition">¶</a></dt>
+<dd><p>Basic Data Product base.</p>
+<p>Basic Data Products (BDPs) are data containers used to transport
+information within ADMIT, as well as deliver it to users in a
+persistent, well-defined format.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>xmlFile</strong> : str, optional</p>
+<blockquote>
+<div><p>XML file associated with BDP (for persistence);
+defaults to <code class="docutils literal"><span class="pre">None</span></code>.</p>
+</div></blockquote>
+<p><strong>keyval</strong> : dict</p>
+<blockquote class="last">
+<div><p>Dictionary of keyword value pairs.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="12%" />
+<col width="88%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>gous</td>
+<td>(TBD) TBD</td>
+</tr>
+<tr class="row-even"><td>mous</td>
+<td>(TBD) TBD</td>
+</tr>
+<tr class="row-odd"><td>sous</td>
+<td>(TBD) TBD  (the official name is sous)</td>
+</tr>
+<tr class="row-even"><td>project</td>
+<td>(TBD) TBD</td>
+</tr>
+<tr class="row-odd"><td>xmlFile</td>
+<td>(str) XML file associated with BDP (for persistence).</td>
+</tr>
+<tr class="row-even"><td>_baseDir</td>
+<td>(str) ADMIT project directory (None if unknown).</td>
+</tr>
+<tr class="row-odd"><td>_date</td>
+<td>(TBD) Date of last edit.</td>
+</tr>
+<tr class="row-even"><td>_taskid</td>
+<td>(int) Originating ADMIT task ID number.</td>
+</tr>
+<tr class="row-odd"><td>_type</td>
+<td>(admit.util.bdp_types) Concrete BDP type.</td>
+</tr>
+<tr class="row-even"><td>_updated</td>
+<td>(bool) Whether BDP has been modified since latest XML output.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#admit.bdp.BDP.BDP.baseDir" title="admit.bdp.BDP.BDP.baseDir"><code class="xref py py-obj docutils literal"><span class="pre">baseDir</span></code></a>([path])</td>
+<td>Get/set project base directory.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.bdp.BDP.BDP.delete" title="admit.bdp.BDP.BDP.delete"><code class="xref py py-obj docutils literal"><span class="pre">delete</span></code></a>([delfiles])</td>
+<td>Method to delete the BDP.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.bdp.BDP.BDP.get" title="admit.bdp.BDP.BDP.get"><code class="xref py py-obj docutils literal"><span class="pre">get</span></code></a>(key)</td>
+<td>Access an attribute.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.bdp.BDP.BDP.getdir" title="admit.bdp.BDP.BDP.getdir"><code class="xref py py-obj docutils literal"><span class="pre">getdir</span></code></a>()</td>
+<td>Method to get the subdirectory(s) of the current BDP relative to the ADMIT working directory.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.bdp.BDP.BDP.getfiles" title="admit.bdp.BDP.BDP.getfiles"><code class="xref py py-obj docutils literal"><span class="pre">getfiles</span></code></a>()</td>
+<td>Return the filename(s) associated with the basic data in a BDP.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.bdp.BDP.BDP.haskey" title="admit.bdp.BDP.BDP.haskey"><code class="xref py py-obj docutils literal"><span class="pre">haskey</span></code></a>(key)</td>
+<td>Query if a key exists for an BDP.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.bdp.BDP.BDP.isequal" title="admit.bdp.BDP.BDP.isequal"><code class="xref py py-obj docutils literal"><span class="pre">isequal</span></code></a>(bdp)</td>
+<td>Tests for equality with another BDP.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.bdp.BDP.BDP.report" title="admit.bdp.BDP.BDP.report"><code class="xref py py-obj docutils literal"><span class="pre">report</span></code></a>()</td>
+<td>Report BDP properties in human readable format.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.bdp.BDP.BDP.setkey" title="admit.bdp.BDP.BDP.setkey"><code class="xref py py-obj docutils literal"><span class="pre">setkey</span></code></a>([name,&nbsp;key])</td>
+<td>Sets keyword value(s).</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.bdp.BDP.BDP.show" title="admit.bdp.BDP.BDP.show"><code class="xref py py-obj docutils literal"><span class="pre">show</span></code></a>()</td>
+<td>Show the xmlFile name.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.bdp.BDP.BDP.update" title="admit.bdp.BDP.BDP.update"><code class="xref py py-obj docutils literal"><span class="pre">update</span></code></a>(new_state)</td>
+<td>Updates BDP state.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.bdp.BDP.BDP.write" title="admit.bdp.BDP.BDP.write"><code class="xref py py-obj docutils literal"><span class="pre">write</span></code></a>([xmlFile])</td>
+<td>Writes the BDP to an XML file.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="admit.bdp.BDP.BDP.baseDir">
+<code class="descname">baseDir</code><span class="sig-paren">(</span><em>path=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/bdp/BDP.html#BDP.baseDir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.bdp.BDP.BDP.baseDir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get/set project base directory.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>path</strong> : str, optional</p>
+<blockquote>
+<div><p>New project base directory (ignored if None).</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Updated project base directory.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>Unless empty, the base directory is guaranteed to end in os.sep.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.bdp.BDP.BDP.delete">
+<code class="descname">delete</code><span class="sig-paren">(</span><em>delfiles=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/bdp/BDP.html#BDP.delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.bdp.BDP.BDP.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to delete the BDP. This method will search through all class
+variables and delete any images since they contain external files, and
+then deletes the BDP&#8217;s XML file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>basedir</strong> : str, optional</p>
+<blockquote>
+<div><p>XML file directory; defaults to current directory.</p>
+</div></blockquote>
+<p><strong>delfiles</strong> : bool, optional</p>
+<blockquote class="last">
+<div><p>Whether or not to delete the actual files on disk; defaults to True.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>It is recommended that any BDP that stores images inside of lists, 
+dictionaries, tuples, etc. override this method with a customized
+version.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.bdp.BDP.BDP.get">
+<code class="descname">get</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/bdp/BDP.html#BDP.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.bdp.BDP.BDP.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Access an attribute.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>key</strong> : str</p>
+<blockquote>
+<div><p>Keyword name.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">varies</p>
+<blockquote class="last">
+<div><p>Attribute value if keyword is present, else <code class="docutils literal"><span class="pre">None</span></code>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.bdp.BDP.BDP.getdir">
+<code class="descname">getdir</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/bdp/BDP.html#BDP.getdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.bdp.BDP.BDP.getdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get the subdirectory(s) of the current BDP relative to the
+ADMIT working directory.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">String containing the current BDPs subdirectory</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.bdp.BDP.BDP.getfiles">
+<code class="descname">getfiles</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/bdp/BDP.html#BDP.getfiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.bdp.BDP.BDP.getfiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the filename(s) associated with the basic data in a BDP.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">List of files</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<div class="admonition-todo admonition" id="index-0">
+<p class="first admonition-title">Todo</p>
+<p class="last">Really should look for attribute .filename, but normally
+derived classes should implement these; see e.g. File_AT.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.bdp.BDP.BDP.haskey">
+<code class="descname">haskey</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/bdp/BDP.html#BDP.haskey"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.bdp.BDP.BDP.haskey" title="Permalink to this definition">¶</a></dt>
+<dd><p>Query if a key exists for an BDP.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>key</strong> : str</p>
+<blockquote>
+<div><p>Keyword name.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">True if keyword is present, else False.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.bdp.BDP.BDP.isequal">
+<code class="descname">isequal</code><span class="sig-paren">(</span><em>bdp</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/bdp/BDP.html#BDP.isequal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.bdp.BDP.BDP.isequal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tests for equality with another BDP.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>bdp</strong> : BDP</p>
+<blockquote>
+<div><p>The other BDP.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">True if the BDP types and contents match, else False.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.bdp.BDP.BDP.report">
+<code class="descname">report</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/bdp/BDP.html#BDP.report"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.bdp.BDP.BDP.report" title="Permalink to this definition">¶</a></dt>
+<dd><p>Report BDP properties in human readable format.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.bdp.BDP.BDP.setkey">
+<code class="descname">setkey</code><span class="sig-paren">(</span><em>name=''</em>, <em>key={}</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/bdp/BDP.html#BDP.setkey"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.bdp.BDP.BDP.setkey" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets keyword value(s).</p>
+<p>Two styles are possible:</p>
+<ol class="arabic simple">
+<li>name = {key:val}            e.g. <strong>setkey({&#8220;a&#8221;:1})</strong></li>
+<li>name = &#8220;key&#8221;, key = val     e.g. <strong>setkey(&#8220;a&#8221;, 1)</strong></li>
+</ol>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>name</strong> : dict or str, optional</p>
+<blockquote>
+<div><p>Keyword/values pairs, or single keyword name; defaults to empty
+string.</p>
+</div></blockquote>
+<p><strong>key</strong> : str, optional</p>
+<blockquote>
+<div><p>Keyword value; defaults to empty dictionary.</p>
+</div></blockquote>
+<p><strong>init</strong> : bool, optional</p>
+<blockquote class="last">
+<div><p>Whether keyword is being set for the first time.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.bdp.BDP.BDP.show">
+<code class="descname">show</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/bdp/BDP.html#BDP.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.bdp.BDP.BDP.show" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show the xmlFile name.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the xml file name</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<div class="admonition-todo admonition" id="index-1">
+<p class="first admonition-title">Todo</p>
+<p class="last">Extend functionality to show more.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.bdp.BDP.BDP.update">
+<code class="descname">update</code><span class="sig-paren">(</span><em>new_state</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/bdp/BDP.html#BDP.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.bdp.BDP.BDP.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates BDP state.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>new_state</strong> : varies</p>
+<blockquote>
+<div><p>New BDP state.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.bdp.BDP.BDP.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>xmlFile=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/bdp/BDP.html#BDP.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.bdp.BDP.BDP.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the BDP to an XML file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>xmlFile</strong> : str, optional</p>
+<blockquote class="last">
+<div><p>Output XML file name; defaults to eponymous internal attribute.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>Do not edit unless you know what you are doing as all BDP&#8217;s rely on
+this method to work properly.
+Normally the xmlFile here should be the full path.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="0-index.html"
+                        title="previous chapter">BDP Package</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/module/admit.bdp/BDP.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="0-index.html" title="BDP Package"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" >Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

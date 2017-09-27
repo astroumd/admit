@@ -1,0 +1,271 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ADMITSegmentFinder — Finds segments of emission within a spectrum. &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../index.html" />
+    <link rel="up" title="Python Scripting Interface (API)" href="../../api.html" />
+    <link rel="prev" title="Segment Finder Package" href="0-index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="0-index.html" title="Segment Finder Package"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" accesskey="U">Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-admit.util.segmentfinder.ADMITSegmentFinder"></span><div class="section" id="admitsegmentfinder-finds-segments-of-emission-within-a-spectrum">
+<span id="admitsegment"></span><h1>ADMITSegmentFinder &#8212; Finds segments of emission within a spectrum.<a class="headerlink" href="#admitsegmentfinder-finds-segments-of-emission-within-a-spectrum" title="Permalink to this headline">¶</a></h1>
+<p>This module defines the class for spectral line segment detection.</p>
+<dl class="class">
+<dt id="admit.util.segmentfinder.ADMITSegmentFinder.ADMITSegmentFinder">
+<em class="property">class </em><code class="descclassname">admit.util.segmentfinder.ADMITSegmentFinder.</code><code class="descname">ADMITSegmentFinder</code><span class="sig-paren">(</span><em>**keyval</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/segmentfinder/ADMITSegmentFinder.html#ADMITSegmentFinder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.segmentfinder.ADMITSegmentFinder.ADMITSegmentFinder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Define segments of &#8216;line&#8217; emission where segments from data appear to be
+above a threshold. This routine comes out of ASTUTE, some parameters below
+are hardcoded.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>freq</strong> : float array</p>
+<blockquote>
+<div><p>Frequencies, GHz.</p>
+</div></blockquote>
+<p><strong>spec</strong> : float array</p>
+<blockquote>
+<div><p>The y component of the spectrum (arbitrary units, could be linear,
+could be log).</p>
+</div></blockquote>
+<p><strong>f</strong> : float</p>
+<blockquote>
+<div><p>Robustness parameter [1.5].</p>
+</div></blockquote>
+<p><strong>pmin</strong> : float</p>
+<blockquote>
+<div><p>Signal above cuttoff,   rmean+pmin*rstd.</p>
+</div></blockquote>
+<p><strong>minchan</strong> :  int</p>
+<blockquote>
+<div><p>Minimum number of channels needed for a line.</p>
+</div></blockquote>
+<p><strong>maxgap</strong> : int</p>
+<blockquote>
+<div><p>Allowed channels with signal below cutoff [0].</p>
+</div></blockquote>
+<p><strong>nomean</strong> : bool</p>
+<blockquote>
+<div><p>Remove the mean from any noise and cutoff calculations. This is useful
+if PVCorr based spectra are being processed to get a correct noise level.
+Default: False.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">4-tuple</p>
+<blockquote class="last">
+<div><p>channel_segments[], cutoff, noise, mean</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.segmentfinder.ADMITSegmentFinder.ADMITSegmentFinder.find" title="admit.util.segmentfinder.ADMITSegmentFinder.ADMITSegmentFinder.find"><code class="xref py py-obj docutils literal"><span class="pre">find</span></code></a>()</td>
+<td>Method that does the segment finding</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.segmentfinder.ADMITSegmentFinder.ADMITSegmentFinder.line_segments" title="admit.util.segmentfinder.ADMITSegmentFinder.ADMITSegmentFinder.line_segments"><code class="xref py py-obj docutils literal"><span class="pre">line_segments</span></code></a>(spec,&nbsp;cutoff)</td>
+<td>Method to find segments that where lines are located</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.segmentfinder.ADMITSegmentFinder.ADMITSegmentFinder.set_options" title="admit.util.segmentfinder.ADMITSegmentFinder.ADMITSegmentFinder.set_options"><code class="xref py py-obj docutils literal"><span class="pre">set_options</span></code></a>(\*\*keyval)</td>
+<td>Set the options for the line finding algorithm.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="admit.util.segmentfinder.ADMITSegmentFinder.ADMITSegmentFinder.find">
+<code class="descname">find</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/segmentfinder/ADMITSegmentFinder.html#ADMITSegmentFinder.find"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.segmentfinder.ADMITSegmentFinder.ADMITSegmentFinder.find" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method that does the segment finding</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>None</strong></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Tuple containing a list of the segments, the cutoff used, the</p>
+<p class="last">noise level, and a mean baseline.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.segmentfinder.ADMITSegmentFinder.ADMITSegmentFinder.line_segments">
+<code class="descname">line_segments</code><span class="sig-paren">(</span><em>spec</em>, <em>cutoff</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/segmentfinder/ADMITSegmentFinder.html#ADMITSegmentFinder.line_segments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.segmentfinder.ADMITSegmentFinder.ADMITSegmentFinder.line_segments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to find segments that where lines are located
+[ [start1,end1], [start2,end2], ....]</p>
+<p>This function assumes you&#8217;ve subtracted a possible continuum (see the nomean
+parameter), and applied the absolute value, because this routine only
+segments above the cutoff.</p>
+<p>Need some explanation on the use of abs here.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>spec</strong> : numpy array (with a mask)</p>
+<blockquote>
+<div><p>The spectrum to analyze</p>
+</div></blockquote>
+<p><strong>cutoff</strong> : float</p>
+<blockquote>
+<div><p>The cutoff to use (line segments must be higher than this value)</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">List of segment start and end channels, e.g.  [[10,20],[30,40]]</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.segmentfinder.ADMITSegmentFinder.ADMITSegmentFinder.set_options">
+<code class="descname">set_options</code><span class="sig-paren">(</span><em>**keyval</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/segmentfinder/ADMITSegmentFinder.html#ADMITSegmentFinder.set_options"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.segmentfinder.ADMITSegmentFinder.ADMITSegmentFinder.set_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the options for the line finding algorithm.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>freq</strong> : float array</p>
+<blockquote>
+<div><p>Frequencies, GHz.</p>
+</div></blockquote>
+<p><strong>spec</strong> : float array</p>
+<blockquote>
+<div><p>The y component of the spectrum (arbitrary units, could
+be linear, could be log)</p>
+</div></blockquote>
+<p><strong>f</strong> : float</p>
+<blockquote>
+<div><p>Robustness parameter [1.5]</p>
+</div></blockquote>
+<p><strong>pmin</strong> : float</p>
+<blockquote>
+<div><p>Signal above cuttoff,   rmean+pmin*rstd</p>
+</div></blockquote>
+<p><strong>minchan</strong> :  int</p>
+<blockquote>
+<div><p>Minimum number of channels needed for a line</p>
+</div></blockquote>
+<p><strong>maxgap</strong> : int</p>
+<blockquote class="last">
+<div><p>Allowed channels with signal below cutoff [0]</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="0-index.html"
+                        title="previous chapter">Segment Finder Package</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/module/admit.util.segmentfinder/ADMITSegmentFinder.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="0-index.html" title="Segment Finder Package"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" >Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

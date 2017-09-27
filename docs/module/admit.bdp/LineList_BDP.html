@@ -1,0 +1,333 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>LineList_BDP — LineID_AT data (line information and spectra). &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../index.html" />
+    <link rel="up" title="Python Scripting Interface (API)" href="../../api.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" accesskey="U">Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-admit.bdp.LineList_BDP"></span><div class="section" id="linelist-bdp-lineid-at-data-line-information-and-spectra">
+<h1><strong>LineList_BDP</strong> &#8212; LineID_AT data (line information and spectra).<a class="headerlink" href="#linelist-bdp-lineid-at-data-line-information-and-spectra" title="Permalink to this headline">¶</a></h1>
+<p>This module defines the LineList_BDP class.</p>
+<dl class="class">
+<dt id="admit.bdp.LineList_BDP.LineList_BDP">
+<em class="property">class </em><code class="descclassname">admit.bdp.LineList_BDP.</code><code class="descname">LineList_BDP</code><span class="sig-paren">(</span><em>xmlFile=None</em>, <em>**keyval</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/bdp/LineList_BDP.html#LineList_BDP"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.bdp.LineList_BDP.LineList_BDP" title="Permalink to this definition">¶</a></dt>
+<dd><p>LineList BDP class.</p>
+<p>This class contains a list of spectral lines identified by the LineID
+AT. The columns in the table are: fullname (name of the molecule &#8220;U&#8221;
+for unknown), formula (chemical formula), frequency (rest frequency in
+GHz), uid (unique identifier consisting of the formula and rest
+frequency), transition (molecular, vibrational or electronic
+transition), velocity (relative to the rest velocity), El (lower state
+energy in K), Eu (upper state energy in K), linestrength (line
+strength of the transition in Debye^2), peakintensity (peak intensity
+of the transition in Jy/bm), peakoffset (offset of the peak from rest
+in km/s), fwhm (full width half max of the line in km/s), startchan
+(starting channel in the spectral window), endchan (ending channel in
+the spectral window), and sigma (intensity of the line relative to the
+noise level).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>xmlFile</strong> : str</p>
+<blockquote>
+<div><p>Output XML file name.</p>
+</div></blockquote>
+<p><strong>keyval</strong> : dict</p>
+<blockquote class="last">
+<div><p>Dictionary of keyword:value pairs.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="9%" />
+<col width="91%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>table</td>
+<td>(Table) Instance of the Table class to hold the spectral line information.</td>
+</tr>
+<tr class="row-even"><td>veltype</td>
+<td>(str) Velocity definition used for the spectrum. Default: &#8220;vlsr&#8221;</td>
+</tr>
+<tr class="row-odd"><td>ra</td>
+<td>(str) The RA of where the spectrum was taken. Default: &#8220;&#8221;</td>
+</tr>
+<tr class="row-even"><td>dec</td>
+<td>(str) The declination of where the spectrum was taken. Default: &#8220;&#8221;</td>
+</tr>
+<tr class="row-odd"><td>spectra</td>
+<td>(Table) Instance of the Table class to hold spectra.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#admit.bdp.LineList_BDP.LineList_BDP.addRow" title="admit.bdp.LineList_BDP.LineList_BDP.addRow"><code class="xref py py-obj docutils literal"><span class="pre">addRow</span></code></a>(row)</td>
+<td>Method to add a row to the table</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.bdp.LineList_BDP.LineList_BDP.addSpectrum" title="admit.bdp.LineList_BDP.LineList_BDP.addSpectrum"><code class="xref py py-obj docutils literal"><span class="pre">addSpectrum</span></code></a>(spectrum,&nbsp;name[,&nbsp;replace])</td>
+<td>Method to add a spectrum to the BDP</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">addimage</span></code>(image[,&nbsp;name])</td>
+<td>Method to add an image to the class</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">baseDir</span></code>([path])</td>
+<td>Get/set project base directory.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">delete</span></code>([delfiles])</td>
+<td>Method to delete the BDP.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">get</span></code>(key)</td>
+<td>Access an attribute.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.bdp.LineList_BDP.LineList_BDP.getSpectraNames" title="admit.bdp.LineList_BDP.LineList_BDP.getSpectraNames"><code class="xref py py-obj docutils literal"><span class="pre">getSpectraNames</span></code></a>()</td>
+<td>Method to get the names of the spectra</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.bdp.LineList_BDP.LineList_BDP.getSpectrum" title="admit.bdp.LineList_BDP.LineList_BDP.getSpectrum"><code class="xref py py-obj docutils literal"><span class="pre">getSpectrum</span></code></a>(name)</td>
+<td>Method to get a specific spectrum by name</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.bdp.LineList_BDP.LineList_BDP.getall" title="admit.bdp.LineList_BDP.LineList_BDP.getall"><code class="xref py py-obj docutils literal"><span class="pre">getall</span></code></a>()</td>
+<td>Method to get all rows from the table as a list of LineData objects</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">getdir</span></code>()</td>
+<td>Method to get the subdirectory(s) of the current BDP relative to the ADMIT working directory.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">getfiles</span></code>()</td>
+<td>Return the filename(s) associated with the basic data in a BDP.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">getimage</span></code>([imtype,&nbsp;name])</td>
+<td>Method to get a specific image type from the class</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">getimagefile</span></code>([imtype,&nbsp;name])</td>
+<td>Method to get the requested image file name from the named instance</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">haskey</span></code>(key)</td>
+<td>Query if a key exists for an BDP.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">isequal</span></code>(bdp)</td>
+<td>Tests for equality with another BDP.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">report</span></code>()</td>
+<td>Report BDP properties in human readable format.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">setkey</span></code>([name,&nbsp;key])</td>
+<td>Sets keyword value(s).</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">show</span></code>()</td>
+<td>Show the xmlFile name.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">update</span></code>(new_state)</td>
+<td>Updates BDP state.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">write</span></code>([xmlFile])</td>
+<td>Writes the BDP to an XML file.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="admit.bdp.LineList_BDP.LineList_BDP.addRow">
+<code class="descname">addRow</code><span class="sig-paren">(</span><em>row</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/bdp/LineList_BDP.html#LineList_BDP.addRow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.bdp.LineList_BDP.LineList_BDP.addRow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to add a row to the table</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>row</strong> : LineData object</p>
+<blockquote>
+<div><p>LineData object containing the data</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.bdp.LineList_BDP.LineList_BDP.addSpectrum">
+<code class="descname">addSpectrum</code><span class="sig-paren">(</span><em>spectrum</em>, <em>name</em>, <em>replace=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/bdp/LineList_BDP.html#LineList_BDP.addSpectrum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.bdp.LineList_BDP.LineList_BDP.addSpectrum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to add a spectrum to the BDP</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>spectrum</strong> : Spectrum object</p>
+<blockquote>
+<div><p>The spectrum to add to the BDP</p>
+</div></blockquote>
+<p><strong>name</strong> : str</p>
+<blockquote>
+<div><p>The name of the spectrum to add (e.g. cubestats)</p>
+</div></blockquote>
+<p><strong>replace</strong> : bool</p>
+<blockquote>
+<div><p>If True replace the spectrum with the existing name.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.bdp.LineList_BDP.LineList_BDP.getSpectraNames">
+<code class="descname">getSpectraNames</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/bdp/LineList_BDP.html#LineList_BDP.getSpectraNames"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.bdp.LineList_BDP.LineList_BDP.getSpectraNames" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get the names of the spectra</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">List of strings containing the names</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.bdp.LineList_BDP.LineList_BDP.getSpectrum">
+<code class="descname">getSpectrum</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/bdp/LineList_BDP.html#LineList_BDP.getSpectrum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.bdp.LineList_BDP.LineList_BDP.getSpectrum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get a specific spectrum by name</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>name</strong> : str</p>
+<blockquote>
+<div><p>The name of the spectrum to get</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Spectrum instance containing the spectrum</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.bdp.LineList_BDP.LineList_BDP.getall">
+<code class="descname">getall</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/bdp/LineList_BDP.html#LineList_BDP.getall"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.bdp.LineList_BDP.LineList_BDP.getall" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get all rows from the table as a list of LineData objects</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">List of LineData objects, one for each row in the table.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/module/admit.bdp/LineList_BDP.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" >Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

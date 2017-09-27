@@ -1,0 +1,469 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.util.casautil &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.util.casautil</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; **casautil** --- CASA-dependent utilities module.</span>
+<span class="sd">    -------------------------------------------------</span>
+
+<span class="sd">    This module contains utility functions that rely on CASA.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># Non-CASA utility functions must be put in util.py!!</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">numpy.ma</span> <span class="k">as</span> <span class="nn">ma</span>
+
+
+<span class="k">try</span><span class="p">:</span>
+  <span class="kn">import</span> <span class="nn">casa</span>
+  <span class="kn">import</span> <span class="nn">taskinit</span>
+<span class="k">except</span><span class="p">:</span>
+  <span class="nb">print</span> <span class="s2">&quot;WARNING: No CASA; casautil can&#39;t function&quot;</span>
+
+<span class="kn">import</span> <span class="nn">PlotControl</span>
+
+<div class="viewcode-block" id="iscasa"><a class="viewcode-back" href="../../../module/admit.util/casautil.html#admit.util.casautil.iscasa">[docs]</a><span class="k">def</span> <span class="nf">iscasa</span><span class="p">(</span><span class="n">file</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;is a file a casa image</span>
+
+<span class="sd">       Returns</span>
+<span class="sd">       -------</span>
+<span class="sd">       boolean</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># @todo   caution: this also catches a MIRIAD file.... or check for &#39;file/header&#39; and/or &#39;file/table.info&#39;</span>
+    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">file</span><span class="p">)</span></div>
+    
+
+<div class="viewcode-block" id="implot"><a class="viewcode-back" href="../../../module/admit.util/casautil.html#admit.util.casautil.implot">[docs]</a><span class="k">def</span> <span class="nf">implot</span><span class="p">(</span><span class="n">rasterfile</span><span class="p">,</span> <span class="n">figname</span><span class="p">,</span> <span class="n">contourfile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">plottype</span><span class="o">=</span><span class="n">PlotControl</span><span class="o">.</span><span class="n">PNG</span><span class="p">,</span>
+           <span class="n">plotmode</span><span class="o">=</span><span class="n">PlotControl</span><span class="o">.</span><span class="n">BATCH</span><span class="p">,</span> <span class="n">colorwedge</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">zoom</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Wrapper for CASA&#39;s imview, that will also create thumbnails.</span>
+
+<span class="sd">       Parameters</span>
+<span class="sd">       ----------</span>
+<span class="sd">       rasterfile : str</span>
+<span class="sd">         Fully-qualified image file to use as raster map.  Optional if</span>
+<span class="sd">         contourfile is given.</span>
+
+<span class="sd">       figname : str</span>
+<span class="sd">           Fully-qualified output file name.</span>
+
+<span class="sd">       contourflie : str</span>
+<span class="sd">         Fully-qualified image file to use as contour map. Contours</span>
+<span class="sd">         will be overlaid on rasterfile if both are given.  Optional if</span>
+<span class="sd">         rasterfile is given.</span>
+
+<span class="sd">       plottype : int</span>
+<span class="sd">         Plotting format, one of util.PlotControl plot type (e.g., PlotControl.PNG). Default: PlotControl.PNG</span>
+
+<span class="sd">       plotmode : int</span>
+<span class="sd">         Plot mode, one of util.PlotControl plot mode (e.g., PlotControl.INTERACTIVE). Default: PlotControl.BATCH</span>
+
+<span class="sd">       colorwedge  : boolean</span>
+<span class="sd">         True - show color wedge, False - don&#39;t show color wedge</span>
+
+<span class="sd">       zoom : int</span>
+<span class="sd">         Image zoom ratio.</span>
+
+<span class="sd">       Returns</span>
+<span class="sd">       -------</span>
+<span class="sd">       None</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># axes dictionary is ignored by imview!</span>
+    <span class="c1">#xlab=NONE,ylab=NONE </span>
+
+    <span class="c1">#can&#39;t support this until imview out= is fixed! (see below)</span>
+    <span class="c1">#orientation=PlotControl.LANDSCAPE </span>
+
+
+    <span class="k">if</span> <span class="n">plotmode</span> <span class="o">==</span> <span class="n">PlotControl</span><span class="o">.</span><span class="n">NOPLOT</span><span class="p">:</span>  <span class="k">return</span>
+
+    <span class="k">if</span> <span class="n">contourfile</span><span class="o">==</span><span class="kc">None</span> <span class="ow">and</span> <span class="n">rasterfile</span><span class="o">==</span><span class="kc">None</span><span class="p">:</span>
+       <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span> <span class="s2">&quot;You must provide rasterfile and/or contourfile&quot;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">PlotControl</span><span class="o">.</span><span class="n">isSupportedType</span><span class="p">(</span><span class="n">plottype</span><span class="p">):</span>
+       <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span> <span class="s2">&quot;Unrecognized plot type </span><span class="si">%d</span><span class="s2">. See util.PlotControl&quot;</span> <span class="o">%</span> <span class="n">plottype</span>
+    <span class="k">if</span> <span class="n">plottype</span> <span class="o">==</span> <span class="n">PlotControl</span><span class="o">.</span><span class="n">SVG</span> <span class="ow">or</span> <span class="n">plottype</span> <span class="o">==</span> <span class="n">PlotControl</span><span class="o">.</span><span class="n">GIF</span><span class="p">:</span>
+       <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span> <span class="s2">&quot;CASA viewer does not support SVG and GIF format :-(&quot;</span>
+
+    <span class="k">if</span> <span class="n">plottype</span> <span class="o">==</span> <span class="n">PlotControl</span><span class="o">.</span><span class="n">JPG</span><span class="p">:</span>
+       <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span> <span class="s2">&quot;CASA viewer claims to support JPG but doens&#39;t :-(&quot;</span>
+
+    <span class="k">if</span> <span class="n">plottype</span> <span class="o">!=</span> <span class="n">PlotControl</span><span class="o">.</span><span class="n">PNG</span><span class="p">:</span>
+       <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span> <span class="s2">&quot;Thumbnails not supported (by matplotlib) for types other than PNG&quot;</span>
+
+
+    <span class="n">DEFAULT_SCALING</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>  <span class="c1"># scaling power cycles.</span>
+
+    <span class="c1"># Grmph. axes dictionary ignored in imview.</span>
+    <span class="c1">#    axes={&#39;y&#39;:ylab, &#39;x&#39;:xlab}</span>
+
+    <span class="n">contour</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="n">contourfile</span><span class="p">:</span> <span class="n">contour</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;file&#39;</span><span class="p">:</span><span class="n">contourfile</span><span class="p">}</span>
+
+    <span class="n">raster</span>  <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="n">rasterfile</span><span class="p">:</span>
+        <span class="n">raster</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;file&#39;</span>       <span class="p">:</span> <span class="n">rasterfile</span><span class="p">,</span>  
+                <span class="s1">&#39;colorwedge&#39;</span> <span class="p">:</span> <span class="n">colorwedge</span><span class="p">,</span> 
+                <span class="s1">&#39;scaling&#39;</span>    <span class="p">:</span> <span class="n">DEFAULT_SCALING</span><span class="p">}</span>
+
+    <span class="c1"># Grmph. Giving an &#39;out&#39; dictionary to imview causes SEVERE error.</span>
+    <span class="c1">#out={&#39;file&#39;   : figname,</span>
+    <span class="c1">#     &#39;format&#39; : PlotControl.mkext(plottype,False),</span>
+    <span class="c1">#     &#39;scale&#39;  : 2.0,</span>
+    <span class="c1">#     &#39;dpi&#39;    : 1.0,</span>
+    <span class="c1">#     &#39;orient&#39; : orientation}</span>
+         <span class="c1">#dpi/scale - DPI used for PS/EPS, scale for others. Perhaps </span>
+         <span class="c1">#            we will enable these options later</span>
+
+    <span class="c1"># These are completely ignored, but imview throws an exception</span>
+    <span class="c1"># axes is not provided!</span>
+    <span class="n">axes</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span><span class="s1">&#39;x&#39;</span><span class="p">,</span><span class="s1">&#39;y&#39;</span><span class="p">:</span><span class="s1">&#39;y&#39;</span><span class="p">,</span><span class="s1">&#39;z&#39;</span><span class="p">:</span><span class="s1">&#39;z&#39;</span><span class="p">}</span>
+
+    <span class="c1"># work around this axis labeling problem?</span>
+    <span class="n">ia</span> <span class="o">=</span> <span class="n">taskinit</span><span class="o">.</span><span class="n">iatool</span><span class="p">()</span>
+    <span class="n">ia</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">rasterfile</span><span class="p">)</span>
+    <span class="n">h</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
+    <span class="n">ia</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="c1">#print &quot;PJT: implot axisnames:&quot;,h[&#39;axisnames&#39;][0],h[&#39;axisnames&#39;][1]</span>
+    <span class="k">if</span> <span class="n">h</span><span class="p">[</span><span class="s1">&#39;axisnames&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;Frequency&#39;</span><span class="p">:</span>
+        <span class="n">axes</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Frequency&#39;</span>
+
+    <span class="c1"># this complained about &#39;dimensions of axes must be strings (x is not)&#39;</span>
+    <span class="c1"># axes = { &#39;x&#39; : h[&#39;axisnames&#39;][0],  &#39;y&#39; : h[&#39;axisnames&#39;][1] , &#39;z&#39; : &#39;z&#39; }</span>
+
+    
+
+    <span class="n">casa</span><span class="o">.</span><span class="n">imview</span><span class="p">(</span><span class="n">raster</span><span class="o">=</span><span class="n">raster</span><span class="p">,</span> <span class="n">contour</span><span class="o">=</span><span class="n">contour</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">figname</span><span class="p">,</span> <span class="n">axes</span><span class="o">=</span><span class="n">axes</span><span class="p">,</span>
+                <span class="n">zoom</span><span class="o">=</span><span class="n">zoom</span><span class="p">)</span>
+
+    <span class="c1">#of = PlotControl.mkext(plottype,dot=False)</span>
+    <span class="c1">#casa.viewer(outfile=outfile, infile=imagename, gui=False, plottype=of)</span>
+    <span class="k">if</span> <span class="n">plotmode</span> <span class="o">==</span> <span class="n">PlotControl</span><span class="o">.</span><span class="n">INTERACTIVE</span> <span class="ow">or</span> <span class="n">plotmode</span><span class="o">==</span><span class="n">PlotControl</span><span class="o">.</span><span class="n">SHOW_AT_END</span><span class="p">:</span>
+        <span class="n">casa</span><span class="o">.</span><span class="n">imview</span><span class="p">(</span><span class="n">raster</span><span class="o">=</span><span class="n">raster</span><span class="p">,</span> <span class="n">contour</span><span class="o">=</span><span class="n">contour</span><span class="p">,</span><span class="n">axes</span><span class="o">=</span><span class="n">axes</span><span class="p">)</span></div>
+
+<span class="c1"># Moment_AT, and now CubeSum_AT too</span>
+<div class="viewcode-block" id="getdata"><a class="viewcode-back" href="../../../module/admit.util/casautil.html#admit.util.casautil.getdata">[docs]</a><span class="k">def</span> <span class="nf">getdata</span><span class="p">(</span><span class="n">imgname</span><span class="p">,</span> <span class="n">chans</span><span class="o">=</span><span class="p">[],</span> <span class="n">zeromask</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return all good data from a CASA image as a masked numpy array.</span>
+
+<span class="sd">       The tb.open() access method, although faster, didn&#39;t seem to carry</span>
+<span class="sd">       the mask (or at least in an easy way).  ma.masked_invalid(data)</span>
+<span class="sd">       still returned all pixels ok.</span>
+
+<span class="sd">       NOTE:  since this routine grabs all data in a single numpy</span>
+<span class="sd">       array, this routine should only be used for 2D images</span>
+<span class="sd">       or small 3D cubes, things with little impact on memory</span>
+
+<span class="sd">       Parameters</span>
+<span class="sd">       ----------</span>
+<span class="sd">       imagename : str </span>
+<span class="sd">           The (absolute) CASA image filename </span>
+
+<span class="sd">       Returns</span>
+<span class="sd">       -------</span>
+<span class="sd">       array </span>
+<span class="sd">           data in a masked numpy array</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ia</span> <span class="o">=</span> <span class="n">taskinit</span><span class="o">.</span><span class="n">iatool</span><span class="p">()</span>    
+    <span class="n">ia</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">imgname</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">chans</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">getchunk</span><span class="p">(</span><span class="n">blc</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span><span class="n">trc</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span><span class="n">getmask</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">getchunk</span><span class="p">(</span><span class="n">blc</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span><span class="n">trc</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span><span class="n">getmask</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">getchunk</span><span class="p">(</span><span class="n">blc</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="n">chans</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="mi">0</span><span class="p">],</span><span class="n">trc</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">chans</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="mi">0</span><span class="p">],</span><span class="n">getmask</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">getchunk</span><span class="p">(</span><span class="n">blc</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="n">chans</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="mi">0</span><span class="p">],</span><span class="n">trc</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">chans</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="mi">0</span><span class="p">],</span><span class="n">getmask</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+    <span class="n">ia</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="c1"># note CASA and MA have their mask logic reversed</span>
+    <span class="c1"># casa: true means a good point</span>
+    <span class="c1">#   ma: true means a masked/bad point</span>
+    <span class="k">if</span> <span class="n">zeromask</span><span class="p">:</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">ndim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="o">~</span><span class="n">m</span><span class="p">)</span>
+            <span class="n">d</span><span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">elif</span> <span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">)</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="o">~</span><span class="n">m</span><span class="p">)</span>
+            <span class="n">d</span><span class="p">[</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span><span class="s2">&quot;getdata: cannot handle data of dimension </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">ndim</span>
+    <span class="n">dm</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="p">(</span><span class="n">d</span><span class="p">,</span><span class="n">mask</span><span class="o">=~</span><span class="n">m</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">dm</span></div>
+
+<span class="c1"># CubeSum - see getdata2()</span>
+<div class="viewcode-block" id="getdata1"><a class="viewcode-back" href="../../../module/admit.util/casautil.html#admit.util.casautil.getdata1">[docs]</a><span class="k">def</span> <span class="nf">getdata1</span><span class="p">(</span><span class="n">imgname</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return all good data from a CASA image as a compressed 1D numpy array.</span>
+<span class="sd"> </span>
+<span class="sd">       The tb.open() access method, although faster, didn&#39;t seem to carry</span>
+<span class="sd">       the mask (or at least in an easy way).  ma.masked_invalid(data)</span>
+<span class="sd">       still returned all pixels ok.</span>
+<span class="sd">  </span>
+<span class="sd">       NOTE:  since this routine grabs all data in a single numpy</span>
+<span class="sd">       array, this routine should only be used for 2D images</span>
+<span class="sd">       or small 3D cubes.</span>
+<span class="sd">  </span>
+<span class="sd">       Parameters</span>
+<span class="sd">       ----------</span>
+<span class="sd">       imagename : str </span>
+<span class="sd">           The (absolute) CASA image filename </span>
+<span class="sd">  </span>
+<span class="sd">       Returns</span>
+<span class="sd">       -------</span>
+<span class="sd">       array </span>
+<span class="sd">          data in a 1D numpy array</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ia</span> <span class="o">=</span> <span class="n">taskinit</span><span class="o">.</span><span class="n">iatool</span><span class="p">()</span>
+    <span class="n">ia</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">imgname</span><span class="p">)</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">getchunk</span><span class="p">(</span><span class="n">blc</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span><span class="n">trc</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span><span class="n">getmask</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">getchunk</span><span class="p">(</span><span class="n">blc</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span><span class="n">trc</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span><span class="n">getmask</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">ia</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="c1"># note CASA and MA have their mask logic reversed</span>
+    <span class="c1"># casa: true means a good point</span>
+    <span class="c1">#   ma: true means a masked/bad point</span>
+    <span class="n">dm</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="p">(</span><span class="n">d</span><span class="p">,</span><span class="n">mask</span><span class="o">=~</span><span class="n">m</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">dm</span><span class="o">.</span><span class="n">compressed</span><span class="p">()</span></div>
+
+<span class="c1"># PVCorr</span>
+<div class="viewcode-block" id="getdata_raw"><a class="viewcode-back" href="../../../module/admit.util/casautil.html#admit.util.casautil.getdata_raw">[docs]</a><span class="k">def</span> <span class="nf">getdata_raw</span><span class="p">(</span><span class="n">imgname</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return data as a 2D numpy array</span>
+<span class="sd">       For more detailed access to cubes, don&#39;t use this method, </span>
+<span class="sd">       as it will use all the memory. instead use ia.open()</span>
+<span class="sd">       and getslice/putslice() to cycle through the cube.</span>
+<span class="sd">       Note we&#39;re not getting the mask this way.... see Moment_AT for</span>
+<span class="sd">       a version that return a numpy.ma array with masking</span>
+
+<span class="sd">       See putdata(imgname,data) for the reverse operation, but you</span>
+<span class="sd">       will need to create a clone of the image to ensure the header.</span>
+
+<span class="sd">       Parameters</span>
+<span class="sd">       ----------</span>
+<span class="sd">       imagename : str </span>
+<span class="sd">           The (absolute) CASA image filename </span>
+<span class="sd">  </span>
+<span class="sd">       Returns</span>
+<span class="sd">       -------</span>
+<span class="sd">       array </span>
+<span class="sd">           data in a 2D numpy array</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tb</span> <span class="o">=</span> <span class="n">taskinit</span><span class="o">.</span><span class="n">tbtool</span><span class="p">()</span>
+    <span class="n">tb</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">imgname</span><span class="p">)</span>
+    <span class="n">data</span><span class="o">=</span><span class="n">tb</span><span class="o">.</span><span class="n">getcol</span><span class="p">(</span><span class="s1">&#39;map&#39;</span><span class="p">)</span>
+    <span class="n">tb</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">shp</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">nx</span> <span class="o">=</span> <span class="n">shp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">ny</span> <span class="o">=</span> <span class="n">shp</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span><span class="n">ny</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">d</span></div>
+
+<div class="viewcode-block" id="putdata_raw"><a class="viewcode-back" href="../../../module/admit.util/casautil.html#admit.util.casautil.putdata_raw">[docs]</a><span class="k">def</span> <span class="nf">putdata_raw</span><span class="p">(</span><span class="n">imgname</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">clone</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Store (overwrite) data in an existing CASA image.</span>
+<span class="sd">       See getdata_raw(imgname) for the reverse operation.</span>
+
+<span class="sd">       Parameters</span>
+<span class="sd">       ----------</span>
+<span class="sd">       imagename : str</span>
+<span class="sd">           The (absolute) CASA image filename.  It should exist</span>
+<span class="sd">           already, unless **clone** was given.</span>
+
+<span class="sd">       data : 2D numpy array or a list of 2D numpy arrays</span>
+<span class="sd">           The data...</span>
+
+<span class="sd">       clone : str, optional</span>
+<span class="sd">           An optional filename from which to clone the image</span>
+<span class="sd">           for output. It needs to be an absolute filename.</span>
+<span class="sd">  </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ia</span> <span class="o">=</span> <span class="n">taskinit</span><span class="o">.</span><span class="n">iatool</span><span class="p">()</span>    
+    <span class="k">if</span> <span class="n">clone</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ia</span><span class="o">.</span><span class="n">fromimage</span><span class="p">(</span><span class="n">infile</span><span class="o">=</span><span class="n">clone</span><span class="p">,</span><span class="n">outfile</span><span class="o">=</span><span class="n">imgname</span><span class="p">,</span><span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> 
+        <span class="n">ia</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="c1"># @todo this seems circumvent to have to borrow the odd dimensions (nx,ny,1,1,1) shape was seen</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">([]):</span>
+        <span class="c1"># @todo since this needs to extend the axes, the single plane clone and replace data doesn&#39;t work here</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span><span class="s2">&quot;Not Implemented Yet&quot;</span>
+        <span class="n">bigim</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">imageconcat</span><span class="p">(</span><span class="n">outfile</span><span class="o">=</span><span class="n">imgname</span><span class="p">,</span> <span class="n">infiles</span><span class="o">=</span><span class="n">infiles</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">relax</span><span class="o">=</span><span class="n">T</span><span class="p">,</span> <span class="n">tempclose</span><span class="o">=</span><span class="n">F</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="n">T</span><span class="p">)</span>
+        <span class="n">bigim</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">tb</span> <span class="o">=</span> <span class="n">taskinit</span><span class="o">.</span><span class="n">tbtool</span><span class="p">()</span>
+        <span class="n">tb</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">imgname</span><span class="p">,</span><span class="n">nomodify</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">tb</span><span class="o">.</span><span class="n">getcol</span><span class="p">(</span><span class="s1">&#39;map&#39;</span><span class="p">)</span>
+        <span class="n">pdata</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">getdata</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">tb</span><span class="o">.</span><span class="n">putcol</span><span class="p">(</span><span class="s1">&#39;map&#39;</span><span class="p">,</span><span class="n">pdata</span><span class="p">)</span>
+        <span class="n">tb</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="n">tb</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span></div>
+  
+<div class="viewcode-block" id="mapdim"><a class="viewcode-back" href="../../../module/admit.util/casautil.html#admit.util.casautil.mapdim">[docs]</a><span class="k">def</span> <span class="nf">mapdim</span><span class="p">(</span><span class="n">imgname</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+     <span class="sd">&quot;&quot;&quot;Return the dimensionality of the map, or if dim is given.</span>
+<span class="sd">     </span>
+<span class="sd">     Returns True if the dimensionality matches this value, or</span>
+<span class="sd">     False if not.</span>
+
+<span class="sd">     Warning: opens and closes the map via ia.open()</span>
+
+<span class="sd">     Parameters</span>
+<span class="sd">     ----------</span>
+<span class="sd">     imagename : str (a filename)</span>
+
+<span class="sd">     dim : integer (or None)</span>
+
+<span class="sd">     &quot;&quot;&quot;</span>
+     <span class="n">ia</span> <span class="o">=</span> <span class="n">taskinit</span><span class="o">.</span><span class="n">iatool</span><span class="p">()</span>     
+     <span class="n">ia</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">imgname</span><span class="p">)</span>
+     <span class="n">s</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
+     <span class="n">shape</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="s1">&#39;shape&#39;</span><span class="p">]</span>
+     <span class="n">ia</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+     <span class="c1">#</span>
+     <span class="n">rdim</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+     <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">shape</span><span class="p">)):</span>
+         <span class="k">if</span> <span class="n">shape</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">shape</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+             <span class="n">rdim</span> <span class="o">=</span> <span class="n">d</span> 
+             <span class="k">break</span>
+     <span class="k">if</span> <span class="n">rdim</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+       <span class="n">rdim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+     <span class="c1">#print &quot;MAPDIM&quot;,imgname,shape,rdim</span>
+     <span class="c1">#</span>
+     <span class="k">if</span> <span class="n">dim</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+         <span class="k">return</span> <span class="n">rdim</span>
+     <span class="k">if</span> <span class="n">dim</span> <span class="o">==</span> <span class="n">rdim</span><span class="p">:</span>
+         <span class="k">return</span> <span class="kc">True</span>
+     <span class="k">else</span><span class="p">:</span>
+         <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="parse_robust"><a class="viewcode-back" href="../../../module/admit.util/casautil.html#admit.util.casautil.parse_robust">[docs]</a><span class="k">def</span> <span class="nf">parse_robust</span><span class="p">(</span><span class="n">robust</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;parse a compound robust=[&#39;algorithm&#39;,optional_parameters...]</span>
+
+<span class="sd">      Within ADMIT we use robust=[]</span>
+<span class="sd">      Within CASA  we use a varargs type algorithm=,fence=,...  </span>
+
+<span class="sd">      Parameters  </span>
+<span class="sd">      ----------</span>
+<span class="sd">      robust :  list of robust parameters, method specific. See e.g. casa::imstat</span>
+
+<span class="sd">      Returns</span>
+<span class="sd">      -------</span>
+<span class="sd">      dict</span>
+<span class="sd">          A dictionary ready for \*\*args inclusion in a CASA command.</span>
+<span class="sd">          If none found, returns an empty dictionary.</span>
+<span class="sd">      &quot;&quot;&quot;</span>
+      <span class="n">rkey</span> <span class="o">=</span> <span class="p">{}</span>
+      <span class="n">nr</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">robust</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">nr</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>  
+          <span class="k">return</span> <span class="n">rkey</span>
+
+      <span class="n">a</span> <span class="o">=</span> <span class="n">robust</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>                                   <span class="c1"># algorithm:</span>
+
+      <span class="k">if</span> <span class="n">a</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;cl&#39;</span><span class="p">:</span>                                 <span class="c1"># classic</span>
+          <span class="n">rkey</span><span class="p">[</span><span class="s1">&#39;algorithm&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;classic&#39;</span>
+          <span class="k">if</span> <span class="n">nr</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>
+              <span class="n">rkey</span><span class="p">[</span><span class="s1">&#39;clmethod&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">robust</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+      <span class="k">elif</span> <span class="n">a</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;ch&#39;</span><span class="p">:</span>                               <span class="c1"># chauvenet</span>
+          <span class="n">rkey</span><span class="p">[</span><span class="s1">&#39;algorithm&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;chauvenet&#39;</span>
+          <span class="k">if</span> <span class="n">nr</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>
+              <span class="n">rkey</span><span class="p">[</span><span class="s1">&#39;zscore&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">robust</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+              <span class="k">if</span> <span class="n">nr</span><span class="o">&gt;</span><span class="mi">2</span><span class="p">:</span>
+                  <span class="n">rkey</span><span class="p">[</span><span class="s1">&#39;maxiter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">robust</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+      <span class="k">elif</span> <span class="n">a</span><span class="p">[:</span><span class="mi">1</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;f&#39;</span><span class="p">:</span>                                <span class="c1"># fit-half</span>
+          <span class="n">rkey</span><span class="p">[</span><span class="s1">&#39;algorithm&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;fit-half&#39;</span>
+          <span class="k">if</span> <span class="n">nr</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>
+              <span class="n">rkey</span><span class="p">[</span><span class="s1">&#39;center&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">robust</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+              <span class="k">if</span> <span class="n">nr</span><span class="o">&gt;</span><span class="mi">2</span><span class="p">:</span>
+                  <span class="n">rkey</span><span class="p">[</span><span class="s1">&#39;lside&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">robust</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+      <span class="k">elif</span> <span class="n">a</span><span class="p">[:</span><span class="mi">1</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;h&#39;</span><span class="p">:</span>                                <span class="c1"># hinges-fences</span>
+          <span class="n">rkey</span><span class="p">[</span><span class="s1">&#39;algorithm&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;hinges-fences&#39;</span>
+          <span class="k">if</span> <span class="n">nr</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>
+              <span class="n">rkey</span><span class="p">[</span><span class="s1">&#39;fence&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">robust</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+      <span class="k">else</span><span class="p">:</span>
+          <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Unknown algorithm in robust=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">robust</span><span class="p">)</span>
+      <span class="nb">print</span> <span class="s2">&quot;ROBUST:&quot;</span><span class="p">,</span><span class="n">rkey</span>
+      <span class="k">return</span> <span class="n">rkey</span></div>
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,383 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.at.Template_AT &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.at.Template_AT</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;.. _Template-AT-api:</span>
+
+<span class="sd">   **Template_AT** --- Cube manipulation template.</span>
+<span class="sd">   -----------------------------------------------</span>
+
+<span class="sd">   This module defines the Template_AT class.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">import</span> <span class="nn">admit</span>
+<span class="kn">import</span> <span class="nn">admit.util.bdp_types</span> <span class="k">as</span> <span class="nn">bt</span>
+
+<div class="viewcode-block" id="Template_AT"><a class="viewcode-back" href="../../../module/admit.at/Template_AT.html#admit.at.Template_AT.Template_AT">[docs]</a><span class="k">class</span> <span class="nc">Template_AT</span><span class="p">(</span><span class="n">admit</span><span class="o">.</span><span class="n">Task</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Image cube manipulation sample template.</span>
+
+<span class="sd">    This task demonstrates several ways of manipulating a generic</span>
+<span class="sd">    position-position-frequency (or velocity) data cube.  It can be used as a</span>
+<span class="sd">    template by users developing their own cube analysis routines. This</span>
+<span class="sd">    template demonstrates the following transformations:</span>
+
+<span class="sd">    - scale the intensity at all points in the cube by a specified value</span>
+<span class="sd">    - extract a 2-D position-position image from the (scaled) cube at a </span>
+<span class="sd">      specified frequency (channel number)</span>
+<span class="sd">    - extract a 1-D spectrum from the (scaled) cube at the specified spatial</span>
+<span class="sd">      position (pixel coordinates)</span>
+
+<span class="sd">    Each of these operations is controlled by keywords.</span>
+
+<span class="sd">    **Keywords**</span>
+
+<span class="sd">      **cubescale**: float</span>
+<span class="sd">        The value by which to scale the cube intensity; default: 2.0.</span>
+
+<span class="sd">      **imgslice**: int</span>
+<span class="sd">        Frequency (pixel index) of the 2-D image plane to extract from the</span>
+<span class="sd">        cube; default: 0 (the first spectral channel).</span>
+
+<span class="sd">      **specpos**: 2-tuple of int</span>
+<span class="sd">        The 2-D (spatial) pixel position from which to extract the 1-D cube</span>
+<span class="sd">        spectrum; default: (0,0).</span>
+
+<span class="sd">    **Input BDPs**</span>
+
+<span class="sd">      **SpwCube_BDP**: count: 1</span>
+<span class="sd">        Input 3-D data cube; e.g., as output from an</span>
+<span class="sd">        `Ingest_AT &lt;Ingest_AT.html&gt;`_,</span>
+<span class="sd">        `ContinuumSub_AT &lt;ContinuumSub_AT.html&gt;`_ or</span>
+<span class="sd">        `LineCube_AT &lt;LineCube_AT.html&gt;`_.</span>
+
+<span class="sd">    **Output BDPs**</span>
+
+<span class="sd">      **SpwCube_BDP**: count: 1</span>
+<span class="sd">        Output scaled 3-D data cube.</span>
+
+<span class="sd">      **Image_BDP**: count: 1</span>
+<span class="sd">        Output 2-D image sliced from the cube.</span>
+
+<span class="sd">      **Table_BDP**: count: 1</span>
+<span class="sd">        Output 1-D spectrum extracted from the cube.</span>
+
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    keyval : dict, optional</span>
+<span class="sd">      Dictionary of keyword:value pairs.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    _version : str</span>
+<span class="sd">      Version ID string.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Whenever the expected type or number of keywords or input/output BDPs</span>
+<span class="sd">    changes, the __init__ method must be updated accordingly.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">keyval</span><span class="p">):</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;cubescale&quot;</span> <span class="p">:</span> <span class="mf">2.0</span><span class="p">,</span> <span class="s2">&quot;imgslice&quot;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;specpos&quot;</span> <span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)}</span>   
+        <span class="n">admit</span><span class="o">.</span><span class="n">Task</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">keyval</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_version</span>   <span class="o">=</span> <span class="s2">&quot;1.0.0&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_bdp_in</span> <span class="p">([(</span><span class="n">admit</span><span class="o">.</span><span class="n">SpwCube_BDP</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">bt</span><span class="o">.</span><span class="n">REQUIRED</span><span class="p">)])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_bdp_out</span><span class="p">([(</span><span class="n">admit</span><span class="o">.</span><span class="n">SpwCube_BDP</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="n">admit</span><span class="o">.</span><span class="n">Image_BDP</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+                          <span class="p">(</span><span class="n">admit</span><span class="o">.</span><span class="n">Table_BDP</span><span class="p">,</span> <span class="mi">1</span><span class="p">)])</span>
+
+<div class="viewcode-block" id="Template_AT.summary"><a class="viewcode-back" href="../../../module/admit.at/Template_AT.html#admit.at.Template_AT.Template_AT.summary">[docs]</a>    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Summary data dictionary.</span>
+
+<span class="sd">        Template_AT adds the following to ADMIT summary:</span>
+
+<span class="sd">        .. table::</span>
+<span class="sd">           :class: borderless</span>
+
+<span class="sd">           +----------+----------+-----------------------------------+</span>
+<span class="sd">           |   Key    | type     |    Description                    |</span>
+<span class="sd">           +==========+==========+===================================+</span>
+<span class="sd">           | spectra  | list     | Plots of cube slice and spectrum. |</span>
+<span class="sd">           +----------+----------+-----------------------------------+</span>
+<span class="sd">           | template | table    | Template data product statistics. |</span>
+<span class="sd">           +----------+----------+-----------------------------------+</span>
+
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            Dictionary of SummaryEntry</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;_summary&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{}</span></div>
+
+<div class="viewcode-block" id="Template_AT.userdata"><a class="viewcode-back" href="../../../module/admit.at/Template_AT.html#admit.at.Template_AT.Template_AT.userdata">[docs]</a>    <span class="k">def</span> <span class="nf">userdata</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        User data dictionary.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        None</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            The user data dictionary from the AT, for merging into the ADMIT</span>
+<span class="sd">            user data object.  </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;_userdata&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_userdata</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{}</span></div>
+
+<div class="viewcode-block" id="Template_AT.run"><a class="viewcode-back" href="../../../module/admit.at/Template_AT.html#admit.at.Template_AT.Template_AT.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Task run method.</span>
+
+<span class="sd">        Outputs three sample data products from a single input data cube:</span>
+
+<span class="sd">        1. A cube scaled by the value of *cubescale*.</span>
+<span class="sd">        2. An image sliced from the cube at frequency *imgfreq*.</span>
+<span class="sd">        3. A spectrum extracted from the cube at position *specpos*.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        None</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># BDP output uses the alias name if provided, else a flow-unique name.</span>
+        <span class="n">stem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alias</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">stem</span><span class="p">:</span> <span class="n">stem</span> <span class="o">=</span> <span class="s2">&quot;template</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">())</span>
+
+        <span class="c1"># The input data cube BDP.</span>
+        <span class="n">ibdp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># The data cube is a CASA image on disk.</span>
+        <span class="c1"># Get its file name, read it in and convert to a NumPy array.</span>
+        <span class="c1"># The entire cube is read into memory (large cubes may exceed RAM!)</span>
+        <span class="c1"># Any masked pixels are converted to zero.</span>
+        <span class="n">istem</span> <span class="o">=</span> <span class="n">ibdp</span><span class="o">.</span><span class="n">getimagefile</span><span class="p">(</span><span class="n">bt</span><span class="o">.</span><span class="n">CASA</span><span class="p">)</span>
+        <span class="n">ifile</span> <span class="o">=</span> <span class="n">ibdp</span><span class="o">.</span><span class="n">baseDir</span><span class="p">()</span> <span class="o">+</span> <span class="n">istem</span>
+        <span class="n">icube</span> <span class="o">=</span> <span class="n">admit</span><span class="o">.</span><span class="n">casautil</span><span class="o">.</span><span class="n">getdata</span><span class="p">(</span><span class="n">ifile</span><span class="p">,</span> <span class="n">zeromask</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">data</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">icube</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;Only 3-D data cubes supported&quot;</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">((</span><span class="n">istem</span> <span class="o">+</span> <span class="s2">&quot; dimensions: (</span><span class="si">%d</span><span class="s2">, </span><span class="si">%d</span><span class="s2">, </span><span class="si">%d</span><span class="s2">)&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="n">icube</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+
+        <span class="c1"># ===================================================================</span>
+        <span class="c1"># 1. Scale the entire cube by &#39;cubescale&#39;.</span>
+        <span class="c1"># ===================================================================</span>
+        <span class="n">cubescale</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s1">&#39;cubescale&#39;</span><span class="p">)</span>
+        <span class="n">ocube</span> <span class="o">=</span> <span class="n">icube</span> <span class="o">*</span> <span class="n">cubescale</span>
+        <span class="n">ocubestem</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_cube&quot;</span> <span class="o">%</span> <span class="n">stem</span>
+        <span class="n">ocubefile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">baseDir</span><span class="p">()</span> <span class="o">+</span> <span class="n">ocubestem</span>
+        <span class="c1">#</span>
+        <span class="c1"># Create a CASA ouput image (no mask information).</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">casautil</span><span class="o">.</span><span class="n">putdata_raw</span><span class="p">(</span><span class="n">ocubefile</span><span class="o">+</span><span class="s2">&quot;.im&quot;</span><span class="p">,</span> <span class="n">ocube</span><span class="p">,</span> <span class="n">ifile</span><span class="p">)</span>
+        <span class="c1"># </span>
+        <span class="c1"># Output the result as a new SpwCube.</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">admit</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Template 3-D Cube&quot;</span><span class="p">)</span>
+        <span class="n">image</span><span class="o">.</span><span class="n">addimage</span><span class="p">(</span><span class="n">admit</span><span class="o">.</span><span class="n">imagedescriptor</span><span class="p">(</span><span class="n">ocubefile</span><span class="o">+</span><span class="s2">&quot;.im&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="n">bt</span><span class="o">.</span><span class="n">CASA</span><span class="p">))</span>
+        <span class="n">obdp1</span> <span class="o">=</span> <span class="n">admit</span><span class="o">.</span><span class="n">SpwCube_BDP</span><span class="p">(</span><span class="n">ocubestem</span><span class="p">)</span>
+        <span class="n">obdp1</span><span class="o">.</span><span class="n">addimage</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addoutput</span><span class="p">(</span><span class="n">obdp1</span><span class="p">)</span>
+
+
+        <span class="c1"># ===================================================================</span>
+        <span class="c1"># 2. Slice a 2-D image from the cube at frequency &#39;imgslice&#39;.</span>
+        <span class="c1"># ===================================================================</span>
+        <span class="c1">#</span>
+        <span class="c1"># The frequency axis is the third array index.</span>
+        <span class="c1"># Clip slice to be in range.</span>
+        <span class="n">imgslice</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">ocube</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s1">&#39;imgslice&#39;</span><span class="p">)))</span>
+        <span class="n">oimg</span> <span class="o">=</span> <span class="n">ocube</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">imgslice</span><span class="p">]</span>
+        <span class="n">oimgstem</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_img&quot;</span> <span class="o">%</span> <span class="n">stem</span>
+        <span class="n">oimgfile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">baseDir</span><span class="p">()</span> <span class="o">+</span> <span class="n">oimgstem</span>
+        <span class="c1">#</span>
+        <span class="c1"># Create a CASA format ouput image.</span>
+        <span class="c1"># @TODO Does not work for 3-D -&gt; 2-D output.</span>
+        <span class="c1">#admit.casautil.putdata_raw(oimgfile+&quot;.im&quot;, oimg, ifile)</span>
+        <span class="c1">#</span>
+        <span class="c1"># Create a PNG format output image.</span>
+        <span class="c1"># Image data must be rotated to match matplotlib axis order.</span>
+        <span class="n">oimgtitle</span><span class="o">=</span><span class="s2">&quot;Template Image Slice @ channel </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">imgslice</span>
+        <span class="n">aplot</span> <span class="o">=</span> <span class="n">admit</span><span class="o">.</span><span class="n">APlot</span><span class="p">(</span><span class="n">figno</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">abspath</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">baseDir</span><span class="p">(),</span>
+                            <span class="n">pmode</span><span class="o">=</span><span class="n">admit</span><span class="o">.</span><span class="n">PlotControl</span><span class="o">.</span><span class="n">BATCH</span><span class="p">,</span>
+                            <span class="n">ptype</span><span class="o">=</span><span class="n">admit</span><span class="o">.</span><span class="n">PlotControl</span><span class="o">.</span><span class="n">PNG</span><span class="p">)</span>
+        <span class="n">aplot</span><span class="o">.</span><span class="n">map1</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">rot90</span><span class="p">(</span><span class="n">oimg</span><span class="p">),</span>
+                   <span class="n">xlab</span><span class="o">=</span><span class="s2">&quot;R.A. (pixels)&quot;</span><span class="p">,</span> <span class="n">ylab</span><span class="o">=</span><span class="s2">&quot;Dec (pixels)&quot;</span><span class="p">,</span>
+                   <span class="n">title</span><span class="o">=</span><span class="n">oimgtitle</span><span class="p">,</span> <span class="n">figname</span><span class="o">=</span><span class="n">oimgstem</span><span class="p">)</span>
+        <span class="n">aplot</span><span class="o">.</span><span class="n">final</span><span class="p">()</span>
+        <span class="c1">#</span>
+        <span class="c1"># Output data product referencing both image formats.</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">admit</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Template 2-D Image&quot;</span><span class="p">)</span>
+        <span class="n">image</span><span class="o">.</span><span class="n">addimage</span><span class="p">(</span><span class="n">admit</span><span class="o">.</span><span class="n">imagedescriptor</span><span class="p">(</span><span class="n">oimgfile</span><span class="o">+</span><span class="s2">&quot;.im&quot;</span><span class="p">,</span>  <span class="nb">format</span><span class="o">=</span><span class="n">bt</span><span class="o">.</span><span class="n">CASA</span><span class="p">))</span>
+        <span class="n">image</span><span class="o">.</span><span class="n">addimage</span><span class="p">(</span><span class="n">admit</span><span class="o">.</span><span class="n">imagedescriptor</span><span class="p">(</span><span class="n">oimgstem</span><span class="o">+</span><span class="s2">&quot;.png&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="n">bt</span><span class="o">.</span><span class="n">PNG</span><span class="p">))</span>
+        <span class="n">obdp2</span> <span class="o">=</span> <span class="n">admit</span><span class="o">.</span><span class="n">Image_BDP</span><span class="p">(</span><span class="n">oimgstem</span><span class="p">)</span>
+        <span class="n">obdp2</span><span class="o">.</span><span class="n">addimage</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addoutput</span><span class="p">(</span><span class="n">obdp2</span><span class="p">)</span>
+
+
+        <span class="c1"># ===================================================================</span>
+        <span class="c1"># 3. Extract a 1-D spectrum from the cube at position &#39;specpos&#39;.</span>
+        <span class="c1"># ===================================================================</span>
+        <span class="c1">#</span>
+        <span class="c1"># Clip position to be in range.</span>
+        <span class="n">specpos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s1">&#39;specpos&#39;</span><span class="p">)</span>
+        <span class="n">specpos</span> <span class="o">=</span> <span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">ocube</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">specpos</span><span class="p">[</span><span class="mi">0</span><span class="p">])),</span>
+                   <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">ocube</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">specpos</span><span class="p">[</span><span class="mi">1</span><span class="p">])))</span>
+        <span class="n">ospec</span> <span class="o">=</span> <span class="n">ocube</span><span class="p">[</span><span class="n">specpos</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">specpos</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="p">:]</span>
+        <span class="n">ochan</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">ospec</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">ospecstem</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_spec&quot;</span> <span class="o">%</span> <span class="n">stem</span>
+        <span class="c1">#</span>
+        <span class="c1"># Create a PNG plot (standalone).</span>
+        <span class="n">ospectitle</span> <span class="o">=</span> <span class="s2">&quot;Template Spectrum @ position </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">specpos</span><span class="p">)</span>
+        <span class="n">aplot</span> <span class="o">=</span> <span class="n">admit</span><span class="o">.</span><span class="n">APlot</span><span class="p">(</span><span class="n">figno</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">abspath</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">baseDir</span><span class="p">(),</span>
+                            <span class="n">pmode</span><span class="o">=</span><span class="n">admit</span><span class="o">.</span><span class="n">PlotControl</span><span class="o">.</span><span class="n">BATCH</span><span class="p">,</span>
+                            <span class="n">ptype</span><span class="o">=</span><span class="n">admit</span><span class="o">.</span><span class="n">PlotControl</span><span class="o">.</span><span class="n">PNG</span><span class="p">)</span>
+        <span class="n">aplot</span><span class="o">.</span><span class="n">plotter</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">ochan</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="p">[</span><span class="n">ospec</span><span class="p">],</span>
+                      <span class="n">xlab</span><span class="o">=</span><span class="s2">&quot;Channel&quot;</span><span class="p">,</span> <span class="n">ylab</span><span class="o">=</span><span class="s2">&quot;Intensity&quot;</span><span class="p">,</span>
+                      <span class="n">title</span><span class="o">=</span><span class="n">ospectitle</span><span class="p">,</span> <span class="n">figname</span><span class="o">=</span><span class="n">ospecstem</span><span class="p">)</span>
+        <span class="n">aplot</span><span class="o">.</span><span class="n">final</span><span class="p">()</span>
+        <span class="c1">#</span>
+        <span class="c1"># Output data product (spectrum table).</span>
+        <span class="n">obdp3</span> <span class="o">=</span> <span class="n">admit</span><span class="o">.</span><span class="n">Table_BDP</span><span class="p">(</span><span class="n">ospecstem</span><span class="p">)</span>
+	<span class="n">obdp3</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;Template 1-D Spectrum&quot;</span>
+	<span class="n">obdp3</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Channel&quot;</span><span class="p">,</span> <span class="s2">&quot;Spectrum @ (</span><span class="si">%d</span><span class="s2">, </span><span class="si">%d</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="n">specpos</span><span class="p">]</span>
+	<span class="n">obdp3</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">setData</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">ochan</span><span class="p">,</span> <span class="n">ospec</span><span class="p">])))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addoutput</span><span class="p">(</span><span class="n">obdp3</span><span class="p">)</span>
+
+
+        <span class="c1"># ===================================================================</span>
+        <span class="c1"># Populate example summary object.</span>
+        <span class="c1"># ===================================================================</span>
+        <span class="c1">#</span>
+        <span class="c1"># NOTE: Summary.py, etc., must be updated to recognize this and</span>
+        <span class="c1">#       for Template_AT to appear in the HTML summary.</span>
+        <span class="n">stats</span> <span class="o">=</span> <span class="n">admit</span><span class="o">.</span><span class="n">Table</span><span class="p">()</span>
+        <span class="n">stats</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;Template Data Product Statistics&quot;</span>
+        <span class="n">stats</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Statistic&quot;</span><span class="p">,</span> <span class="s2">&quot;InCube&quot;</span><span class="p">,</span> <span class="s2">&quot;OutCube&quot;</span><span class="p">,</span> <span class="s2">&quot;Image&quot;</span><span class="p">,</span> <span class="s2">&quot;Spectrum&quot;</span><span class="p">]</span>
+        <span class="n">stats</span><span class="o">.</span><span class="n">setData</span><span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+         <span class="p">[</span><span class="s2">&quot;Min&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">icube</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">ocube</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">oimg</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">ospec</span><span class="p">)],</span>
+         <span class="p">[</span><span class="s2">&quot;Max&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">icube</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">ocube</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">oimg</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">ospec</span><span class="p">)]</span>
+        <span class="p">]))</span>
+        <span class="c1">#</span>
+        <span class="c1"># Data product statistics table.</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="s2">&quot;cubescale=</span><span class="si">%s</span><span class="s2"> imgslice=</span><span class="si">%d</span><span class="s2"> specpos=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> \
+            <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">cubescale</span><span class="p">),</span> <span class="n">imgslice</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">specpos</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="s2">&quot;template&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">admit</span><span class="o">.</span><span class="n">SummaryEntry</span><span class="p">([</span><span class="n">stats</span><span class="o">.</span><span class="n">serialize</span><span class="p">()],</span>
+                                                       <span class="s2">&quot;Template_AT&quot;</span><span class="p">,</span>
+                                                       <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">(</span><span class="kc">True</span><span class="p">),</span> <span class="n">keys</span><span class="p">)</span>
+        <span class="c1">#</span>
+        <span class="c1"># Plots for the image and spectrum.</span>
+        <span class="n">ocubeim</span> <span class="o">=</span> <span class="n">ocubestem</span><span class="o">+</span><span class="s2">&quot;.im&quot;</span>
+        <span class="n">spec_description</span> <span class="o">=</span> <span class="p">[</span>
+          <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+           <span class="n">oimgstem</span><span class="o">+</span><span class="s2">&quot;.png&quot;</span><span class="p">,</span> <span class="n">oimgstem</span><span class="o">+</span><span class="s2">&quot;_thumb.png&quot;</span><span class="p">,</span> <span class="n">oimgtitle</span><span class="p">,</span> <span class="n">ocubeim</span><span class="p">],</span>
+          <span class="p">[</span><span class="n">specpos</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">specpos</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;Channel&quot;</span><span class="p">,</span>
+           <span class="n">ospecstem</span><span class="o">+</span><span class="s2">&quot;.png&quot;</span><span class="p">,</span> <span class="n">ospecstem</span><span class="o">+</span><span class="s2">&quot;_thumb.png&quot;</span><span class="p">,</span> <span class="n">ospectitle</span><span class="p">,</span> <span class="n">ocubeim</span><span class="p">]]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="s2">&quot;spectra&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">admit</span><span class="o">.</span><span class="n">SummaryEntry</span><span class="p">(</span><span class="n">spec_description</span><span class="p">,</span>
+                                                      <span class="s2">&quot;Template_AT&quot;</span><span class="p">,</span>
+                                                      <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">(</span><span class="kc">True</span><span class="p">),</span> <span class="n">keys</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

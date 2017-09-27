@@ -1,0 +1,357 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>specutil — Module for low-level manipulation of spectral line data. &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../index.html" />
+    <link rel="up" title="Python Scripting Interface (API)" href="../../api.html" />
+    <link rel="next" title="stats — Statistics functions module." href="stats.html" />
+    <link rel="prev" title="casautil — CASA-dependent utilities module." href="casautil.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="stats.html" title="stats — Statistics functions module."
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="casautil.html" title="casautil — CASA-dependent utilities module."
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" accesskey="U">Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-admit.util.specutil"></span><div class="section" id="specutil-module-for-low-level-manipulation-of-spectral-line-data">
+<h1><strong>specutil</strong> &#8212; Module for low-level manipulation of spectral line data.<a class="headerlink" href="#specutil-module-for-low-level-manipulation-of-spectral-line-data" title="Permalink to this headline">¶</a></h1>
+<p>This module defines methods used in processing spectral line data.</p>
+<dl class="function">
+<dt id="admit.util.specutil.contsub">
+<code class="descclassname">admit.util.specutil.</code><code class="descname">contsub</code><span class="sig-paren">(</span><em>id</em>, <em>spectra</em>, <em>segmentfinder</em>, <em>segargs</em>, <em>algorithm</em>, <em>**keyval</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/specutil.html#contsub"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.specutil.contsub" title="Permalink to this definition">¶</a></dt>
+<dd><p>Do continuum  subtraction with specific arguments.  Used by LineID_AT
+and LineSegment_AT</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>id</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int</span><dd>Task id of the AT calling this method</dd>
+<dt>spectra</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">list</span><dd>List of spectra to run continuum subtraction on</dd>
+<dt>segmentfinder</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str</span><dd>The segment finder to use (i.e. ADMIT, ASAP, etc.)</dd>
+<dt>segargs</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">dict</span><dd>Dictionary containing the arguments for the segmentfinder</dd>
+<dt>algorithm</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str</span><dd>The continuum finding algorithm to use (i.e. PolyFit, SplineFit, SVD_Vander, etc.)</dd>
+<dt>keyval</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">dict</span><dd>Dictionary containing the arguments for the continuum finding algorithm</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="admit.util.specutil.findsegments">
+<code class="descclassname">admit.util.specutil.</code><code class="descname">findsegments</code><span class="sig-paren">(</span><em>spectra</em>, <em>method</em>, <em>minchan</em>, <em>maxgap</em>, <em>numsigma</em>, <em>iterate</em>, <em>noise=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/specutil.html#findsegments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.specutil.findsegments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call Segmentfinder with specific options. Used by LineID_AT
+and LineSegment_AT</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>spectra</strong> : list</p>
+<blockquote>
+<div><blockquote>
+<div><p>list of input spectra</p>
+</div></blockquote>
+<dl class="docutils">
+<dt>method</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">string</span><dd><p class="first last">segment finding method</p>
+</dd>
+<dt>maxgap</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int</span><dd><p class="first last">maximum channel gap between segments</p>
+</dd>
+<dt>numsigma</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">float</span><dd><p class="first last">level cutoff for finding segments, measured in number of 1 sigma rms noise</p>
+</dd>
+</dl>
+<p>iterate  : boolean</p>
+<dl class="docutils">
+<dt>noise</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">float </span><dd><p class="first last">noise level to use. Default: None, noise is calculated</p>
+</dd>
+</dl>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">list of [(separation,cutoff,noise,mean)] tuples as returned by SegmentFinder.find(), indexed to input spectra</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="admit.util.specutil.getinfo">
+<code class="descclassname">admit.util.specutil.</code><code class="descname">getinfo</code><span class="sig-paren">(</span><em>segment</em>, <em>spec</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/specutil.html#getinfo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.specutil.getinfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get basic information about a spectral line that was only
+detected by segment detection. Calculates the peak intensity, the
+sigma of the peak, and the very rough FWHM of the line.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>segment</strong> : list</p>
+<blockquote>
+<div><p>List of two points (the start and end of the segement)</p>
+</div></blockquote>
+<p><strong>spec</strong> : a single admit.util.Spectrum or list of admit.util.Spectrum.</p>
+<blockquote>
+<div><p>If a list, the Spectrum with the highest peak (or lowest in case of absorption spectrum) will be used.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Tuple containing the peak intensity, sigma, and FHWM in km/s of the</p>
+<p class="last">line</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="admit.util.specutil.getspectrum">
+<code class="descclassname">admit.util.specutil.</code><code class="descname">getspectrum</code><span class="sig-paren">(</span><em>bdp</em>, <em>vlsr=0.0</em>, <em>smooth=()</em>, <em>recalc=False</em>, <em>segment={'numsigma': 2.0</em>, <em>'minchan': 5</em>, <em>'maxgap': 3</em>, <em>'nomean': True</em>, <em>'iterate': True</em>, <em>'method': 'ADMIT'}</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/specutil.html#getspectrum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.specutil.getspectrum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to convert an input BDP into a list based spectrum.
+The spectrum will be smoothed if requested by the input
+parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>bdp</strong> : BDP</p>
+<blockquote>
+<div><p>The input BDP, currently either a CubeSpectrum or CubeStats only.</p>
+</div></blockquote>
+<p><strong>vlsr</strong> : float</p>
+<blockquote>
+<div><p>The velocity of the source.
+Default: 0.0</p>
+</div></blockquote>
+<p><strong>smooth</strong> : tuple</p>
+<blockquote>
+<div><p>If smoothing is to be done...</p>
+</div></blockquote>
+<p><strong>recalc</strong> : bool</p>
+<blockquote>
+<div><p>True if the noise is to be recalculted from smoothed spectra
+Default: False</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A series of numpy arrays describing the spectrum.</p>
+<p class="last">(freq, chans, spectrum)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="admit.util.specutil.linedatafromsegments">
+<code class="descclassname">admit.util.specutil.</code><code class="descname">linedatafromsegments</code><span class="sig-paren">(</span><em>freq</em>, <em>chan</em>, <em>segments</em>, <em>specs</em>, <em>statspec=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/specutil.html#linedatafromsegments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.specutil.linedatafromsegments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Common method used by LineSegment_AT and LineID_AT to construct
+LineData from an input list of segments.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>freq</strong> : array like</p>
+<blockquote>
+<div><blockquote>
+<div><p>The global frequency axis of the input segments</p>
+</div></blockquote>
+<dl class="docutils">
+<dt>chan</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">array like</span><dd><p class="first last">The global channel axis of the input segments</p>
+</dd>
+<dt>segments: array like</dt>
+<dd><p class="first last">The input segments, as returned from e.g. mergesegments</p>
+</dd>
+<dt>specs</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">Spectrum</span><dd><p class="first last">Array of spectra or single spectrum</p>
+</dd>
+<dt>statspec</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">Spectrum</span><dd><p class="first last">Optional Cubestats spectrum</p>
+</dd>
+</dl>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">List of LineData objects constructed from input segments</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="admit.util.specutil.mergefreq">
+<code class="descclassname">admit.util.specutil.</code><code class="descname">mergefreq</code><span class="sig-paren">(</span><em>globalfreq</em>, <em>globalchan</em>, <em>freq</em>, <em>chan</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/specutil.html#mergefreq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.specutil.mergefreq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to merge the frequency and channel axes from input spectra into a single global
+set.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>globalfreq</strong> : array like</p>
+<blockquote>
+<div><p>The global set of frequencies, may be empty if first time</p>
+</div></blockquote>
+<p><strong>globalchan</strong> : array like</p>
+<blockquote>
+<div><p>The global set of channels, may be empty if first time</p>
+</div></blockquote>
+<p><strong>freq</strong> : array like</p>
+<blockquote>
+<div><p>The frequency axis to add to the global set</p>
+</div></blockquote>
+<p><strong>chan</strong> : array like</p>
+<blockquote>
+<div><p>The channel axis to add to the global set</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">(globalfreq, globalchan) as numpy array tuple</p>
+<p class="last">&#64;todo return it as same type as came in?</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="admit.util.specutil.mergestats">
+<code class="descclassname">admit.util.specutil.</code><code class="descname">mergestats</code><span class="sig-paren">(</span><em>s1</em>, <em>s2</em>, <em>noise</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/specutil.html#mergestats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.specutil.mergestats" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to merge two stats &#8220;spectra&#8221; into one. Specifically it
+is intended to merge the min and max columns from CubeStats by
+taking the maximum of max and abs(min).
+Giving sensitivity to any absorption lines.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>s1</strong> : numpy array</p>
+<blockquote>
+<div><p>The &#8220;max&#8221; array from CubeStats</p>
+</div></blockquote>
+<p><strong>s2</strong> : nump array</p>
+<blockquote>
+<div><p>The &#8220;min&#8221; array from CubeStats</p>
+</div></blockquote>
+<p><strong>noise</strong> : numpy array</p>
+<blockquote>
+<div><p>The channel based rms noise</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">numpy array containing the merged spectra</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="casautil.html"
+                        title="previous chapter"><strong>casautil</strong> &#8212; CASA-dependent utilities module.</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="stats.html"
+                        title="next chapter"><strong>stats</strong> &#8212; Statistics functions module.</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/module/admit.util/specutil.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="stats.html" title="stats — Statistics functions module."
+             >next</a> |</li>
+        <li class="right" >
+          <a href="casautil.html" title="casautil — CASA-dependent utilities module."
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" >Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

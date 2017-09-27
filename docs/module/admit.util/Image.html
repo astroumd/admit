@@ -1,0 +1,530 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Image — Image data base. &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../index.html" />
+    <link rel="up" title="Python Scripting Interface (API)" href="../../api.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" accesskey="U">Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-admit.util.Image"></span><div class="section" id="image-image-data-base">
+<span id="image-api"></span><h1><strong>Image</strong> &#8212; Image data base.<a class="headerlink" href="#image-image-data-base" title="Permalink to this headline">¶</a></h1>
+<p>This module defines the Image class for IMAGE entries in BDPs as well as
+the imagedescriptor container class.</p>
+<dl class="class">
+<dt id="admit.util.Image.Image">
+<em class="property">class </em><code class="descclassname">admit.util.Image.</code><code class="descname">Image</code><span class="sig-paren">(</span><em>**keyval</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Image.html#Image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Image.Image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the basic Image structure used in ADMIT.</p>
+<p>The class can store multiple types of the same image (e.g. png, jpg,
+CASA),  however no check is made that they are the same image, this
+must be ensured by the AT using the class. A thumbnail, caption, and
+auxiliary file (for e.g. a histogram) are also included.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>keyvals</strong> : dictionary of new values for  the keywords, optional.</p>
+<blockquote class="last">
+<div><p>These keyword value pairs can be fed in form the command line
+instantiation of the class.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="14%" />
+<col width="86%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>images</td>
+<td>(dictionary) Dictionary containing the image data, one entry per format type.</td>
+</tr>
+<tr class="row-even"><td>thumbnail</td>
+<td>(string) File name of the thumbnail image.</td>
+</tr>
+<tr class="row-odd"><td>thumbnailtype</td>
+<td>(string) The format of the thumbnail, see bt for a list of available formats.</td>
+</tr>
+<tr class="row-even"><td>auxiliary</td>
+<td>(string) The name of the auxiliary file.</td>
+</tr>
+<tr class="row-odd"><td>auxtype</td>
+<td>(string) The format of the auxiliary file, see bt for a list of available formats.</td>
+</tr>
+<tr class="row-even"><td>description</td>
+<td>(string) A description or caption for the image.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Image.Image.addfile" title="admit.util.Image.Image.addfile"><code class="xref py py-obj docutils literal"><span class="pre">addfile</span></code></a>(image)</td>
+<td>Method to add a file to the class, it should not be called directly,</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Image.Image.addimage" title="admit.util.Image.Image.addimage"><code class="xref py py-obj docutils literal"><span class="pre">addimage</span></code></a>(image)</td>
+<td>Method to add an image to the class</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Image.Image.delete" title="admit.util.Image.Image.delete"><code class="xref py py-obj docutils literal"><span class="pre">delete</span></code></a>([basedir,&nbsp;delfile])</td>
+<td>Method to delete everything</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Image.Image.deserialize" title="admit.util.Image.Image.deserialize"><code class="xref py py-obj docutils literal"><span class="pre">deserialize</span></code></a>(serial)</td>
+<td>Create an Image from serialized data created by serialize().</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Image.Image.getaux" title="admit.util.Image.Image.getaux"><code class="xref py py-obj docutils literal"><span class="pre">getaux</span></code></a>()</td>
+<td>Method to get the auxiliary file name</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Image.Image.getimage" title="admit.util.Image.Image.getimage"><code class="xref py py-obj docutils literal"><span class="pre">getimage</span></code></a>(type)</td>
+<td>Method which returns the requested image from the class as an imagedescriptor.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Image.Image.getimagefile" title="admit.util.Image.Image.getimagefile"><code class="xref py py-obj docutils literal"><span class="pre">getimagefile</span></code></a>(imtype)</td>
+<td>Method to get the name of a file for the given image type</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">getkey</span></code>(key)</td>
+<td>Method to get a data member by name</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Image.Image.getthumbnail" title="admit.util.Image.Image.getthumbnail"><code class="xref py py-obj docutils literal"><span class="pre">getthumbnail</span></code></a>()</td>
+<td>Method to get the thumbnail image file name</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Image.Image.removeimage" title="admit.util.Image.Image.removeimage"><code class="xref py py-obj docutils literal"><span class="pre">removeimage</span></code></a>(typ[,&nbsp;basedir,&nbsp;delete])</td>
+<td>Method to remove a specific image from the class, including from disk if requested.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Image.Image.serialize" title="admit.util.Image.Image.serialize"><code class="xref py py-obj docutils literal"><span class="pre">serialize</span></code></a>()</td>
+<td>Create a string representation of the Image that can be converted to native Python structures with ast.literal_eval or back to a Table with deserialize().</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Image.Image.setkey" title="admit.util.Image.Image.setkey"><code class="xref py py-obj docutils literal"><span class="pre">setkey</span></code></a>([name,&nbsp;value])</td>
+<td>set keys, two styles are possible:</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="admit.util.Image.Image.addfile">
+<code class="descname">addfile</code><span class="sig-paren">(</span><em>image</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Image.html#Image.addfile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Image.Image.addfile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to add a file to the class, it should not be called directly,
+instead addimage should be called</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>image</strong> : ImageDescriptor</p>
+<blockquote>
+<div><p>An imagedescriptor of the image to be added. Removes any file
+that is being replaced</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Image.Image.addimage">
+<code class="descname">addimage</code><span class="sig-paren">(</span><em>image</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Image.html#Image.addimage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Image.Image.addimage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to add an image to the class</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>image</strong> : List/ImageDescriptor</p>
+<blockquote>
+<div><p>Can be either a list of imagedescriptors or just an individual
+imagedescriptor. If the image type already exists in the class
+then it is replaced and the original removed. Any images
+labeled DATA will be added to the dictionary (overwriting any
+previous instances of the format)</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Image.Image.delete">
+<code class="descname">delete</code><span class="sig-paren">(</span><em>basedir=''</em>, <em>delfile=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Image.html#Image.delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Image.Image.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to delete everything</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>delfile</strong> : Boolean</p>
+<blockquote>
+<div><p>Whether or not do delete the underlying files
+(default is True)</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Image.Image.deserialize">
+<code class="descname">deserialize</code><span class="sig-paren">(</span><em>serial</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Image.html#Image.deserialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Image.Image.deserialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an Image from serialized data created by serialize().</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>serial</strong> : The string representation of an Image in the format from</p>
+<p><strong>deserialize().</strong></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Image.Image.getaux">
+<code class="descname">getaux</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Image.html#Image.getaux"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Image.Image.getaux" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get the auxiliary file name</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">string</p>
+<blockquote class="last">
+<div><p>The name of the auxiliry file, relative to the encasing BDP</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Image.Image.getimage">
+<code class="descname">getimage</code><span class="sig-paren">(</span><em>type</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Image.html#Image.getimage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Image.Image.getimage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method which returns the requested image from the class as an
+imagedescriptor.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>type</strong> : string</p>
+<blockquote>
+<div><p>Can be any of the following: bt.AUX to retrieve the
+auxiliary file, bt.THUMB to retrieve the thumbnail,
+or a file format (e.g. bt.FITS) to retrieve the
+requested format of the main image. If the requested image
+does not exist then None is returned.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">ImageDescriptor</p>
+<blockquote class="last">
+<div><p>An imagedescriptor of the requested image or None if the image
+does not exist in the class.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Image.Image.getimagefile">
+<code class="descname">getimagefile</code><span class="sig-paren">(</span><em>imtype</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Image.html#Image.getimagefile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Image.Image.getimagefile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get the name of a file for the given image type</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>imtype</strong> : str</p>
+<blockquote>
+<div><p>Can be any of the following: bt.AUX to retrieve the
+auxiliary file, bt.THUMB to retrieve the thumbnail,
+or a file format (e.g. bt.FITS) to retrieve the
+requested format of the main image. If the requested image
+does not exist then None is returned.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">String containing the image name, or None if the image does not</p>
+<p class="last">exist</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Image.Image.getthumbnail">
+<code class="descname">getthumbnail</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Image.html#Image.getthumbnail"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Image.Image.getthumbnail" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get the thumbnail image file name</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>None</strong></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">string</p>
+<blockquote class="last">
+<div><p>The file name of the thumbnail image, relative to the encasing
+BDP</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Image.Image.removeimage">
+<code class="descname">removeimage</code><span class="sig-paren">(</span><em>typ</em>, <em>basedir=''</em>, <em>delete=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Image.html#Image.removeimage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Image.Image.removeimage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to remove a specific image from the class, including from
+disk if requested.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>type</strong> : string</p>
+<blockquote>
+<div><p>The type of the image to be removed. Can be any of the
+following: bt.AUX to remove the auxiliary file,
+bt.THUMB to remove the thumbnail, or a file format
+(e.g. bt.FITS) to remove the requested format from
+the main image dictionary.</p>
+</div></blockquote>
+<p><strong>delete</strong> : Boolean</p>
+<blockquote>
+<div><p>Whether to delete the actual image from disk (default is True)</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Image.Image.serialize">
+<code class="descname">serialize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Image.html#Image.serialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Image.Image.serialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a string representation of the Image that can
+be converted to native Python structures with ast.literal_eval
+or back to a Table with deserialize().
+Intended for the summary but can be used wherever.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>None</strong></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A string representation of the Image that can be converted back</p>
+<p class="last">to a Image with deserialize().</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Image.Image.setkey">
+<code class="descname">setkey</code><span class="sig-paren">(</span><em>name=''</em>, <em>value=''</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Image.html#Image.setkey"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Image.Image.setkey" title="Permalink to this definition">¶</a></dt>
+<dd><p>set keys, two styles are possible:</p>
+<ol class="arabic simple">
+<li>name = {key:val}            e.g. <strong>setkey({&#8220;a&#8221;:1})</strong></li>
+<li>name = &#8220;key&#8221;, value = val     e.g. <strong>setkey(&#8220;a&#8221;, 1)</strong></li>
+</ol>
+<p>This method checks the type of the keyword value, as it must
+remain the same. Also new keywords cannot be added.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>name</strong> : dictionary or string</p>
+<blockquote>
+<div><p>Dictionary of keyword value pais to set or a string with the
+name of a single key</p>
+</div></blockquote>
+<p><strong>value</strong> : any</p>
+<blockquote>
+<div><p>The value to change the keyword to</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="admit.util.Image.imagedescriptor">
+<em class="property">class </em><code class="descclassname">admit.util.Image.</code><code class="descname">imagedescriptor</code><span class="sig-paren">(</span><em>file</em>, <em>format</em>, <em>type='DATA'</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Image.html#imagedescriptor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Image.imagedescriptor" title="Permalink to this definition">¶</a></dt>
+<dd><p>A lightweight class for transporting an image, its format and type.
+This class has three and only three data members, and no added methods.
+The members are file for the image file name on disk, format for the
+image format (e.g. bt.FITS), and type (one of bt.THUMB,
+bt.AUX, or bt.DATA) specifying what type of image this
+is.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>file</strong> : string</p>
+<blockquote>
+<div><p>The name of the file containing the image
+No default</p>
+</div></blockquote>
+<p><strong>format</strong> : string</p>
+<blockquote>
+<div><p>The format the image is in (see bt for a list of formats)
+No default</p>
+</div></blockquote>
+<p><strong>type</strong> : string</p>
+<blockquote class="last">
+<div><p>The data type this image is filling in the class auxiliary,
+thumbnail or data (where most images go). Use: bt.AUX, bt.THUMB, or
+bt.DATA
+Default : bt.DATA)</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="66%" />
+<col width="34%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>Same as parameters.</td>
+<td>&nbsp;</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="admit.util.Image.imagedescriptor.file">
+<code class="descname">file</code><a class="headerlink" href="#admit.util.Image.imagedescriptor.file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="admit.util.Image.imagedescriptor.format">
+<code class="descname">format</code><a class="headerlink" href="#admit.util.Image.imagedescriptor.format" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="admit.util.Image.imagedescriptor.type">
+<code class="descname">type</code><a class="headerlink" href="#admit.util.Image.imagedescriptor.type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/module/admit.util/Image.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" >Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

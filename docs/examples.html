@@ -1,0 +1,1833 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>How To Write Your Own ADMIT Task &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="index.html" />
+    <link rel="next" title="Usage of python in CASA" href="casapython.html" />
+    <link rel="prev" title="Documentation Style Guide" href="style.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="casapython.html" title="Usage of python in CASA"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="style.html" title="Documentation Style Guide"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">ADMIT 1.0.6 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="how-to-write-your-own-admit-task">
+<h1>How To Write Your Own ADMIT Task<a class="headerlink" href="#how-to-write-your-own-admit-task" title="Permalink to this headline">¶</a></h1>
+<p>So here you are: you love ADMIT so much you want to write your own ADMIT Task.  This guide
+provides you with the instructions to do so.   We assume you already understand
+the concept of input and output <a class="reference external" href="module/admit.bdp/BDP.html">Basic Data Products</a> (BDPs) and how they relate to
+<a class="reference external" href="module/admit/AT.html">ADMIT Tasks</a> (ATs).    In a typical new task, you will want to read in an image cube, do something
+to it, and write out the modified cube, and perhaps a table.  For this, you don&#8217;t need
+to define any new type of BDP, so can use the <a class="reference internal" href="#the-quick-way"><span class="std std-ref">template method</span></a>.
+If for some reason the BDP base types we have already defined (Image, Table, Line)
+are not sufficient for your purposes, you need to <a class="reference internal" href="#basic-example"><span class="std std-ref">start from scratch</span></a>
+However, you should probably begin with writing a simple task using the template anyway, so you become
+familiar with the basics of AT operation.</p>
+<div class="section" id="the-quick-way">
+<span id="id1"></span><h2>The Quick Way<a class="headerlink" href="#the-quick-way" title="Permalink to this headline">¶</a></h2>
+<p>The easiest way to write your own task is to start with an existing AT
+and make modifications to it.   Lucky for you we have provided a template,
+aptly called <a class="reference internal" href="module/admit.at/Template_AT.html#template-at-api"><span class="std std-ref">Template_AT</span></a>, specifically for this use.
+Template_AT includes the basic steps of
+reading in an image cube, writing out Table and Image BDPs, and writing information about the task to the
+<a class="reference internal" href="module/admit/Summary.html#summary-api"><span class="std std-ref">Summary</span></a> so that you can view your results in the web page.</p>
+</div>
+<div class="section" id="starting-from-scratch">
+<span id="basic-example"></span><h2>Starting from Scratch<a class="headerlink" href="#starting-from-scratch" title="Permalink to this headline">¶</a></h2>
+<p>Below are basic (Hello World level) examples of how to write a BDP and AT. This is followed by documentation on how
+to incorporate new BDPs and ATs into the ADMIT system. The following <a class="reference internal" href="#complex-example"><span class="std std-ref">section</span></a>
+shows more complex examples. Each example file can be located in admit/doc/examples if you want a closer inspection
+or to play with them.</p>
+<div class="section" id="helloworld-bdp">
+<span id="id2"></span><h3>HelloWorld_BDP<a class="headerlink" href="#helloworld-bdp" title="Permalink to this headline">¶</a></h3>
+<p>The Basic Data Product (BDP) is the basic unit of data storage in Admit. Each BDP is specified in a single
+file in admit/bdp. The file contains a single class which holds the data. Every BDP must inherit from the BDP
+base class, or one or more other BDPs. There should be only a minimal number of methods defined in each BDP
+as they are not meant to do much if any processing.</p>
+<div class="highlight-python"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;Hello World BDP</span>
+<span class="sd">   ---------------</span>
+
+<span class="sd">   This module defines the HelloWorld_BDP class.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">BDP</span> <span class="kn">import</span> <span class="n">BDP</span>
+
+<span class="k">class</span> <span class="nc">HelloWorld_BDP</span><span class="p">(</span><span class="n">BDP</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; An example BDP class.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        xmlFile : string, optional</span>
+<span class="sd">            Basename of the file where the BDP data will be stored on write</span>
+
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        yourname : string</span>
+<span class="sd">            The name of the person in the BDP</span>
+
+<span class="sd">        planet : string</span>
+<span class="sd">            Then name of the home planet</span>
+
+<span class="sd">        star : string</span>
+<span class="sd">            The name of the home star</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">xmlFile</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="o">**</span><span class="n">keyval</span><span class="p">):</span>
+        <span class="n">BDP</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">xmlFile</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">yourname</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">planet</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">star</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="n">keyval</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<table border="1" class="docutils">
+<colgroup>
+<col width="12%" />
+<col width="88%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Line #</th>
+<th class="head">Notes</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>1-5</td>
+<td>Initial docstring documentation. See the section on <a class="reference internal" href="style.html#documentation"><span class="std std-ref">Documentation Style Guide</span></a> for details.</td>
+</tr>
+<tr class="row-odd"><td>6</td>
+<td>Required import statement &#8211; the class that HelloWorld_BDP inherits from, others (e.g.
+Line_BDP, Image_BDP, &amp; Table_BDP) can also be used. Any other needed includes should be
+added here.</td>
+</tr>
+<tr class="row-even"><td>8</td>
+<td>The BDP class name with inheritance. The class name must match the file name (except for
+the .py), in this example the file is called HelloWorld_BDP.py. Also be sure to include
+any inheritance.</td>
+</tr>
+<tr class="row-odd"><td>9-27</td>
+<td>Notes and documentation for the class. See the section on <a class="reference internal" href="style.html#documentation"><span class="std std-ref">Documentation Style Guide</span></a> for
+details.</td>
+</tr>
+<tr class="row-even"><td>28</td>
+<td>The __init__ function signature. The method takes only 3 arguments: self, xmlfile, and
+keyval, and no others. This is so that any BDP can be initialized with empty parentheses
+(e.g. a = HelloWorld_BDP()).</td>
+</tr>
+<tr class="row-odd"><td>29</td>
+<td>Initialize the base class or any other parent classes.</td>
+</tr>
+<tr class="row-even"><td>30-32</td>
+<td>Initialization of attributes. Any attributes that need to be saved when the BDP is
+written to disk must be initialized here along with default values. The default values
+must be of the same type of data that the attribute will hold. Attributes can be of any
+python basic data type (integer, long, float, string, boolean, list, dictionary, set,
+and tuple) and numpy arrays. To store tables, molecular or atomic data, or images,
+inherit from <a class="reference internal" href="design.html#table-bdp-design"><span class="std std-ref">Table_BDP</span></a>, <a class="reference internal" href="design.html#line-bdp-design"><span class="std std-ref">Line_BDP</span></a>, or <a class="reference internal" href="design.html#image-bdp-design"><span class="std std-ref">Image_BDP</span></a>
+respectively. The following attribute names are reserved and cannot be used:
+project, sous, gous, mous, _date, _type, xmlFile _updated, _taskid,
+_usedby, uid, and alias. Those that start with an &#8220;_&#8221; should not be modified by code in
+a BDP or AT, they are system variables that are set and maintained in the background.
+The following method names are reserved and cannot be overloaded: getfiles, show,
+depends_on, report, set, get, setkeys, write, and delete.</td>
+</tr>
+<tr class="row-odd"><td>33</td>
+<td>This method call sets any given key-value pairs passed in via keyval and must be after
+the parent class initialization and attribute definition.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="helloworld-at">
+<span id="id3"></span><h3>HelloWorld_AT<a class="headerlink" href="#helloworld-at" title="Permalink to this headline">¶</a></h3>
+<p>The Admit Task (AT) is the basic unit of processing in Admit. All AT&#8217;s have the same __init__ signature and
+must inherit from the AT base class, or one or more other AT&#8217;s.</p>
+<div class="highlight-python"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;HelloWorld</span>
+<span class="sd">   ----------</span>
+
+<span class="sd">   Defines the HelloWorld class.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">admit.AT</span> <span class="kn">import</span> <span class="n">AT</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.HelloWorld_BDP</span> <span class="kn">import</span> <span class="n">HelloWorld_BDP</span>
+
+<span class="k">class</span> <span class="nc">HelloWorld_AT</span><span class="p">(</span><span class="n">AT</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Basic example of an ADMIT Task</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        keyval : keyword - value pairs passed to the constructor for ease</span>
+<span class="sd">            of assignment.</span>
+
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">**</span><span class="n">keyval</span><span class="p">):</span>
+        <span class="c1"># set the key words up with default values</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;yourname&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;planet&quot;</span>  <span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">}</span>
+        <span class="n">AT</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">keys</span><span class="p">,</span><span class="n">keyval</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_version</span> <span class="o">=</span> <span class="s2">&quot;1.0.0&quot;</span>
+
+        <span class="c1"># must call even if task takes no input bdp, so that</span>
+        <span class="c1"># various internal AT values are set correctly</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_bdp_in</span><span class="p">()</span> 
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_bdp_out</span><span class="p">([(</span><span class="n">HelloWorld_BDP</span><span class="p">,</span><span class="mi">1</span><span class="p">)])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in_order_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in_order_type</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the summary dictionary from the AT, for merging</span>
+<span class="sd">           into the ADMIT Summary object.  </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;_summary&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{}</span>
+
+
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Destroy old output BDPs before rebuilding the output BDP list.</span>
+        <span class="c1"># Omit this call if you will reuse existing BDPs.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clearoutput</span><span class="p">()</span>
+
+        <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;test.txt&quot;</span>
+        <span class="n">hw</span> <span class="o">=</span> <span class="n">HelloWorld_BDP</span><span class="p">()</span>
+        <span class="n">hw</span><span class="o">.</span><span class="n">yourname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;yourname&quot;</span><span class="p">)</span>
+        <span class="n">hw</span><span class="o">.</span><span class="n">planet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;planet&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;planet&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;Earth&quot;</span> <span class="p">:</span>
+            <span class="n">hw</span><span class="o">.</span><span class="n">star</span> <span class="o">=</span> <span class="s2">&quot;Sol&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">hw</span><span class="o">.</span><span class="n">star</span> <span class="o">=</span> <span class="s2">&quot;Unknown&quot;</span>
+        <span class="n">hw</span><span class="o">.</span><span class="n">favoritefile</span> <span class="o">=</span> <span class="n">filename</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addoutput</span><span class="p">(</span><span class="n">hw</span><span class="p">)</span>
+
+</pre></div>
+</td></tr></table></div>
+<table border="1" class="docutils">
+<colgroup>
+<col width="12%" />
+<col width="88%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Line #</th>
+<th class="head">Notes</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>1-5</td>
+<td>Initial docstring documentation. See the section on <a class="reference internal" href="style.html#documentation"><span class="std std-ref">Documentation Style Guide</span></a> for details.</td>
+</tr>
+<tr class="row-odd"><td>6</td>
+<td>Required import string. Most ATs will inherit only from the base AT class. See the
+<a class="reference internal" href="#complex-at"><span class="std std-ref">Complex AT</span></a> for information on how to inherit from any other AT.</td>
+</tr>
+<tr class="row-even"><td>7</td>
+<td>Any BDPs that are used (either as inputs or outputs) by the AT should be imported next.</td>
+</tr>
+<tr class="row-odd"><td>9</td>
+<td>The AT class name with inheritance. As with the BDPs, the AT class name must match the
+name of the file it is defined in (minus the .py extension, in this case
+HelloWorld_AT.py.</td>
+</tr>
+<tr class="row-even"><td>10-20</td>
+<td>Notes and documentation for the class. See the section on <a class="reference internal" href="style.html#documentation"><span class="std std-ref">Documentation Style Guide</span></a> for
+details.</td>
+</tr>
+<tr class="row-odd"><td>21</td>
+<td>The __init__ function signature. The method takes only 2 arguments: self and keyval
+and no others. This is so that any AT can be initialized with empty parentheses
+(e.g. a = HelloWorld_AT()).</td>
+</tr>
+<tr class="row-even"><td>23-24</td>
+<td>Define all keywords and assign default values. Unlike BDPs the AT keywords are kept in a
+single dictionary where the key is the keyword for the dictionary entry. As with BDPs
+every keyword and attribute must have a default value of the same type as the data are
+expected to hold. Any data stored in the keyword dictionary or defined in the __init__
+method will be saved to disk. Attributes can be of any
+python basic data type (integer, long, float, string, boolean, list, dictionary, set,
+and tuple) and numpy arrays. The following attribute names are reserved and cannot be
+used:
+_stale, _enabled, _do_polt, _plot_mode, _type, _bdp_out, _bdp_out_map, _bdp_in,
+_bdp_in_map, _valid_bdp_in, _valid_bdp_out, _taskid, _version, and _needToSave. Reserved
+method names are: markUpToDate, markChanged, uptodate, isstale, show, check, setkey,
+getkey, haskey, checktype, addoutput, addinput, clearinputs, clearoutputs, getVersion,
+getdtd, write, save, execute, checkfiles, copy, and validateinput.</td>
+</tr>
+<tr class="row-odd"><td>25</td>
+<td>Initialize the parent class, passing both the dictionary of keywords and values and the
+input keyval argument.</td>
+</tr>
+<tr class="row-even"><td>26</td>
+<td>Set some of the static attributes, in this case the version.</td>
+</tr>
+<tr class="row-odd"><td>27</td>
+<td>Set the <a class="reference internal" href="#bdp-in"><span class="std std-ref">_valid_bdp_in</span></a>, and/or <a class="reference internal" href="#bdp-out"><span class="std std-ref">_valid_bdp_out</span></a>. See the
+following sections for a description of how to use <a class="reference internal" href="#bdp-in"><span class="std std-ref">_valid_bdp_in</span></a> and
+<a class="reference internal" href="#bdp-out"><span class="std std-ref">_valid_bdp_out</span></a>.</td>
+</tr>
+<tr class="row-even"><td>29</td>
+<td>Define the run method, which takes no arguments except self. Every AT should implement
+the run method as this is the method that does all of the work of the AT.</td>
+</tr>
+<tr class="row-odd"><td>32</td>
+<td>Clear the output BDP array. If this call is not made then any produced BDPs will be
+added to the existing list, until slots run out.</td>
+</tr>
+<tr class="row-even"><td>35</td>
+<td>Initialize the HelloWorld BDP which is the output of this AT.</td>
+</tr>
+<tr class="row-odd"><td>36-38</td>
+<td>Set some of the BDP values based on attributes in the AT. THe use of getkey is the only
+supported method of getting the value of an AT keyword. Similarly setkey is the only
+supported method of changing the value of a keyword.</td>
+</tr>
+<tr class="row-even"><td>43</td>
+<td>Add the BDP to the AT output list. Any BDPs that are the products of the AT must be
+added to the AT with this call.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="adding-new-bdps-and-ats-to-admit">
+<h2>Adding New BDPs and ATs to ADMIT<a class="headerlink" href="#adding-new-bdps-and-ats-to-admit" title="Permalink to this headline">¶</a></h2>
+<p>New BDP files need to be placed in admit/bdp and new AT files need to be placed in admit/at. Once they are
+in place run the dtdGenerator. Also if
+the attributes of any BDP or AT are changed the <a class="reference internal" href="#dtdgenerator-sec"><span class="std std-ref">dtdGenerator</span></a> should be run. Now go ahead and start using
+your new BDP/AT in ADMIT.</p>
+<div class="section" id="writing-unit-and-integration-tests">
+<h3>Writing Unit and Integration Tests<a class="headerlink" href="#writing-unit-and-integration-tests" title="Permalink to this headline">¶</a></h3>
+<p>For each AT there should be two test programs written: a unit test and an integration test. Below are
+examples for the HelloWorld_AT.</p>
+<div class="section" id="unit-test">
+<h4>Unit Test<a class="headerlink" href="#unit-test" title="Permalink to this headline">¶</a></h4>
+<p>The purpose of the unit test is to test the functionality of the AT itself and need not
+have much dependence on outside systems. The test should test as much of the AT code as possible.
+There is also not a specific formula for the unit tests.
+Here is the unit test for the HelloWorld AT:</p>
+<div class="highlight-python"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="ch">#! /usr/bin/env casarun</span>
+<span class="c1">#</span>
+<span class="c1">#</span>
+<span class="c1">#   you can either use the &quot;import&quot; method from within casapy</span>
+<span class="c1">#   or use the casarun shortcut to run this from a unix shell</span>
+<span class="c1">#   with the argument being the casa image file to be processed</span>
+<span class="c1">#</span>
+<span class="sd">&quot;&quot;&quot; Right now you need to run this test inside of casapy</span>
+
+<span class="sd">This test does the following:</span>
+<span class="sd">    creates an admit class</span>
+<span class="sd">    creates a helloworld AT</span>
+<span class="sd">    sets some helloworld parameters</span>
+<span class="sd">    adds the helloworld AT to the admit class</span>
+<span class="sd">    runs admit (which in turn runs the needed AT&#39;s)</span>
+<span class="sd">    writes the results out to disk</span>
+<span class="sd">    reads them into a new admit instance</span>
+<span class="sd">    prints out one of the BDP xml file names</span>
+
+<span class="sd">    to run this test do the following:</span>
+<span class="sd">        import admit.at.test.test_helloworld as th</span>
+<span class="sd">        th.run()</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">admit.Admit</span> <span class="kn">as</span> <span class="nn">ad</span>
+<span class="kn">import</span> <span class="nn">admit.at.HelloWorld_AT</span> <span class="kn">as</span> <span class="nn">hw</span>
+<span class="kn">import</span> <span class="nn">admit.at.Ingest_AT</span> <span class="kn">as</span> <span class="nn">ia</span>
+<span class="kn">import</span> <span class="nn">admit.util.bdp_types</span> <span class="kn">as</span> <span class="nn">bt</span>
+
+<span class="k">def</span> <span class="nf">run</span><span class="p">():</span>
+    <span class="c1"># instantiate the class</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">ad</span><span class="o">.</span><span class="n">Admit</span><span class="p">()</span>
+
+    <span class="c1"># instantiate a moment AT</span>
+    <span class="n">h</span> <span class="o">=</span> <span class="n">hw</span><span class="o">.</span><span class="n">HelloWorld_AT</span><span class="p">()</span>
+    <span class="c1"># add the moment AT to the admit class</span>
+    <span class="n">a</span><span class="o">.</span><span class="n">addtask</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+    <span class="c1"># set some moment parameters</span>
+    <span class="n">h</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;yourname&quot;</span><span class="p">,</span><span class="s2">&quot;Bill&quot;</span><span class="p">)</span>
+    <span class="n">h</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;planet&quot;</span><span class="p">,</span><span class="s2">&quot;Mars&quot;</span><span class="p">)</span>
+
+    <span class="c1"># run admit (specifically the tasks that need it)</span>
+    <span class="n">h</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+    <span class="c1"># save it out to disk (this will not be needed soon as I a working on</span>
+    <span class="c1"># a way to write out the xml inside of the run commmand</span>
+    <span class="n">a</span><span class="o">.</span><span class="n">write</span><span class="p">()</span>
+
+    <span class="n">a2</span> <span class="o">=</span> <span class="n">ad</span><span class="o">.</span><span class="n">Admit</span><span class="p">()</span>   <span class="c1"># read in the admit.xml and bdp.xml files</span>
+
+    <span class="k">print</span> <span class="s2">&quot;These pairs should match&quot;</span>
+    <span class="k">for</span> <span class="n">at</span> <span class="ow">in</span> <span class="n">a</span><span class="o">.</span><span class="n">fm</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s2">&quot;FlowManager task &quot;</span><span class="p">,</span><span class="n">a</span><span class="o">.</span><span class="n">fm</span><span class="p">[</span><span class="n">at</span><span class="p">]</span>
+        <span class="k">print</span> <span class="s2">&quot;FlowManager task &quot;</span><span class="p">,</span><span class="n">a2</span><span class="o">.</span><span class="n">fm</span><span class="p">[</span><span class="n">at</span><span class="p">]</span>
+        <span class="k">print</span> <span class="s2">&quot;LEN &quot;</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">fm</span><span class="p">[</span><span class="n">at</span><span class="p">]</span><span class="o">.</span><span class="n">_bdp_out</span><span class="p">)</span>
+        <span class="k">print</span> <span class="s2">&quot;LEN &quot;</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">a2</span><span class="o">.</span><span class="n">fm</span><span class="p">[</span><span class="n">at</span><span class="p">]</span><span class="o">.</span><span class="n">_bdp_out</span><span class="p">)</span>
+        <span class="k">print</span> <span class="s2">&quot;Input &quot;</span><span class="p">,</span><span class="n">a</span><span class="o">.</span><span class="n">fm</span><span class="p">[</span><span class="n">at</span><span class="p">]</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">_taskid</span>
+        <span class="k">print</span> <span class="s2">&quot;Input &quot;</span><span class="p">,</span><span class="n">a2</span><span class="o">.</span><span class="n">fm</span><span class="p">[</span><span class="n">at</span><span class="p">]</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">_taskid</span>
+        <span class="k">print</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+
+
+    <span class="k">print</span> <span class="s2">&quot;Conn map &quot;</span><span class="p">,</span><span class="n">a</span><span class="o">.</span><span class="n">fm</span><span class="o">.</span><span class="n">_connmap</span>
+    <span class="k">print</span> <span class="s2">&quot;Conn map &quot;</span><span class="p">,</span><span class="n">a2</span><span class="o">.</span><span class="n">fm</span><span class="o">.</span><span class="n">_connmap</span>
+    <span class="k">print</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+
+    <span class="k">print</span> <span class="s2">&quot;Conn map &quot;</span><span class="p">,</span><span class="n">a</span><span class="o">.</span><span class="n">fm</span><span class="o">.</span><span class="n">_depsmap</span>
+    <span class="k">print</span> <span class="s2">&quot;Conn map &quot;</span><span class="p">,</span><span class="n">a2</span><span class="o">.</span><span class="n">fm</span><span class="o">.</span><span class="n">_depsmap</span>
+    <span class="k">print</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+
+    <span class="k">for</span> <span class="n">at</span> <span class="ow">in</span> <span class="n">a</span><span class="o">.</span><span class="n">fm</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">a</span><span class="o">.</span><span class="n">fm</span><span class="p">[</span><span class="n">at</span><span class="p">]</span><span class="o">.</span><span class="n">bdp_out</span> <span class="p">:</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">xmlFile</span> <span class="o">==</span> <span class="n">a2</span><span class="o">.</span><span class="n">fm</span><span class="p">[</span><span class="n">at</span><span class="p">]</span><span class="o">.</span><span class="n">_bdp_out</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">_xmlFile</span><span class="p">):</span>
+                <span class="k">print</span> <span class="s2">&quot;File &quot;</span><span class="p">,</span><span class="n">i</span><span class="o">.</span><span class="n">xmlFile</span>
+                <span class="k">print</span> <span class="s2">&quot;File &quot;</span><span class="p">,</span><span class="n">a2</span><span class="o">.</span><span class="n">fm</span><span class="p">[</span><span class="n">at</span><span class="p">]</span><span class="o">.</span><span class="n">_bdp_out</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">_xmlFile</span>
+                <span class="k">print</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">PASS</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="k">return</span>
+    <span class="k">print</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">FAIL</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">sys</span>
+
+    <span class="n">argv</span> <span class="o">=</span> <span class="n">ad</span><span class="o">.</span><span class="n">casa_argv</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">argv</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s2">&quot;Working on &quot;</span><span class="p">,</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">run</span><span class="p">(</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+</pre></div>
+</td></tr></table></div>
+<table border="1" class="docutils">
+<colgroup>
+<col width="12%" />
+<col width="88%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Line #</th>
+<th class="head">Notes</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>1-23</td>
+<td>Documentation and description of the module.</td>
+</tr>
+<tr class="row-odd"><td>24-27</td>
+<td>Import the needed classes and modules.</td>
+</tr>
+<tr class="row-even"><td>29</td>
+<td>Define the run function. It can take arguments but does not have to.</td>
+</tr>
+<tr class="row-odd"><td>31</td>
+<td>Instantiate the Admit main class.</td>
+</tr>
+<tr class="row-even"><td>34</td>
+<td>Instantiate the AT being tested, HelloWorld_AT in this case.</td>
+</tr>
+<tr class="row-odd"><td>36</td>
+<td>Add the task to Admit. In many instances input BDPs will need to be added, but since
+HelloWorld_AT has no input BDPs, it is not done in this instance.</td>
+</tr>
+<tr class="row-even"><td>38-39</td>
+<td>Set some of the keys for the AT.</td>
+</tr>
+<tr class="row-odd"><td>42</td>
+<td>Run the Admit tree.</td>
+</tr>
+<tr class="row-even"><td>45</td>
+<td>Write it out to disk.</td>
+</tr>
+<tr class="row-odd"><td>47</td>
+<td>Instantiate another Admit class, it will automatically see and read the files that were
+just written.</td>
+</tr>
+<tr class="row-even"><td>51-66</td>
+<td>Printing information to the screen for comparison.</td>
+</tr>
+<tr class="row-odd"><td>68-75</td>
+<td>Compare elements and report the results: PASS or FAIL.</td>
+</tr>
+<tr class="row-even"><td>77-83</td>
+<td>Code to automatically execute the run method if this script is executed on the command
+line.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="integration-test">
+<h4>Integration Test<a class="headerlink" href="#integration-test" title="Permalink to this headline">¶</a></h4>
+<p>The purpose of the integration test is to test the AT inside of the ADMIT system. The integration test
+has a more stringent style than the unit test. Here is the integration test for HelloWorld AT:</p>
+<div class="highlight-python"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+ 10
+ 11
+ 12
+ 13
+ 14
+ 15
+ 16
+ 17
+ 18
+ 19
+ 20
+ 21
+ 22
+ 23
+ 24
+ 25
+ 26
+ 27
+ 28
+ 29
+ 30
+ 31
+ 32
+ 33
+ 34
+ 35
+ 36
+ 37
+ 38
+ 39
+ 40
+ 41
+ 42
+ 43
+ 44
+ 45
+ 46
+ 47
+ 48
+ 49
+ 50
+ 51
+ 52
+ 53
+ 54
+ 55
+ 56
+ 57
+ 58
+ 59
+ 60
+ 61
+ 62
+ 63
+ 64
+ 65
+ 66
+ 67
+ 68
+ 69
+ 70
+ 71
+ 72
+ 73
+ 74
+ 75
+ 76
+ 77
+ 78
+ 79
+ 80
+ 81
+ 82
+ 83
+ 84
+ 85
+ 86
+ 87
+ 88
+ 89
+ 90
+ 91
+ 92
+ 93
+ 94
+ 95
+ 96
+ 97
+ 98
+ 99
+100
+101
+102</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="ch">#! /usr/bin/env casarun</span>
+<span class="c1">#</span>
+<span class="c1">#</span>
+<span class="c1">#   you can either use the &quot;import&quot; method from within casapy</span>
+<span class="c1">#   or use the casarun shortcut to run this from a unix shell</span>
+<span class="c1">#   with the argument being the casa image file to be processed</span>
+<span class="c1">#</span>
+<span class="sd">&quot;&quot;&quot; Run this test using integrationtest_helloworld.csh</span>
+
+<span class="sd">This test does the following:</span>
+<span class="sd">    creates an admit class</span>
+<span class="sd">    creates a helloworld AT</span>
+<span class="sd">    sets some parameters</span>
+<span class="sd">    adds the helloworld AT to the admit class</span>
+<span class="sd">    runs admit (which in turn runs the needed AT&#39;s)</span>
+<span class="sd">    writes the results out to disk</span>
+<span class="sd">    reads them into a new admit instance</span>
+<span class="sd">    prints out one of the BDP xml file names</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">admit</span>
+<span class="kn">import</span> <span class="nn">admit.xmlio.dtdGenerator</span> <span class="kn">as</span> <span class="nn">dtd</span>
+<span class="kn">import</span> <span class="nn">unittest</span>
+
+<span class="k">class</span> <span class="nc">IntegTestHelloWorldAT</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="n">admit</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">admit_root</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">admitdir</span>   <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">+</span> <span class="s2">&quot;/admit/at/test/helloworld.admit&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">testoutput</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">+</span><span class="s2">&quot;/INTEGTESTRESULT&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">success</span>   <span class="o">=</span> <span class="s2">&quot;FAILED&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">tearDown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">testoutput</span><span class="p">,</span><span class="s2">&quot;a&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">success</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span>  <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">cleanup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">cmd</span> <span class="o">=</span> <span class="s2">&quot;/bin/rm -rf </span><span class="si">%s</span><span class="s2">*&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">admitdir</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span> <span class="n">cmd</span> <span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;/bin/rm -rf ipython*.log casapy*.log&quot;</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+    <span class="c1"># Call the main method runTest() for automatic running.</span>
+    <span class="c1">#</span>
+    <span class="k">def</span> <span class="nf">runTest</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># instantiate the class</span>
+            <span class="n">a</span> <span class="o">=</span> <span class="n">admit</span><span class="o">.</span><span class="n">Project</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">admitdir</span><span class="p">)</span>
+
+            <span class="c1"># instantiate hello world at</span>
+            <span class="n">h</span> <span class="o">=</span> <span class="n">admit</span><span class="o">.</span><span class="n">HelloWorld_AT</span><span class="p">(</span><span class="n">yourname</span><span class="o">=</span><span class="s2">&quot;Bob&quot;</span><span class="p">)</span>
+
+            <span class="n">task1id</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">addtask</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+
+            <span class="c1"># check the fm</span>
+            <span class="n">a</span><span class="o">.</span><span class="n">fm</span><span class="o">.</span><span class="n">verify</span><span class="p">()</span>
+
+            <span class="c1"># run admit and save to disk</span>
+            <span class="n">a</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+            <span class="n">a2</span> <span class="o">=</span> <span class="n">admit</span><span class="o">.</span><span class="n">Project</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">admitdir</span><span class="p">)</span>   <span class="c1"># read in the admit.xml and bdp files</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">fm</span><span class="p">),</span><span class="nb">len</span><span class="p">(</span><span class="n">a2</span><span class="o">.</span><span class="n">fm</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">atask</span> <span class="ow">in</span> <span class="n">a</span><span class="o">.</span><span class="n">fm</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">fm</span><span class="p">[</span><span class="n">atask</span><span class="p">]</span><span class="o">.</span><span class="n">_bdp_out</span><span class="p">),</span>
+                                 <span class="nb">len</span><span class="p">(</span><span class="n">a2</span><span class="o">.</span><span class="n">fm</span><span class="p">[</span><span class="n">atask</span><span class="p">]</span><span class="o">.</span><span class="n">_bdp_out</span><span class="p">))</span>
+                <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">fm</span><span class="p">[</span><span class="n">atask</span><span class="p">]</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">a2</span><span class="o">.</span><span class="n">fm</span><span class="p">[</span><span class="n">atask</span><span class="p">]</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span> <span class="n">a</span><span class="o">.</span><span class="n">fm</span><span class="p">[</span><span class="n">atask</span><span class="p">]</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">_taskid</span><span class="p">,</span>
+                                      <span class="n">a2</span><span class="o">.</span><span class="n">fm</span><span class="p">[</span><span class="n">atask</span><span class="p">]</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">_taskid</span><span class="p">)</span>
+
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">fm</span><span class="o">.</span><span class="n">_connmap</span><span class="p">,</span><span class="n">a2</span><span class="o">.</span><span class="n">fm</span><span class="o">.</span><span class="n">_connmap</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">at</span> <span class="ow">in</span> <span class="n">a</span><span class="o">.</span><span class="n">fm</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">fm</span><span class="p">[</span><span class="n">at</span><span class="p">]</span><span class="o">.</span><span class="n">_bdp_out</span><span class="p">))</span> <span class="p">:</span>
+                    <span class="k">print</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2"> </span><span class="si">%d</span><span class="s2"> </span><span class="si">%d</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span> <span class="p">,</span>
+                             <span class="n">a</span><span class="o">.</span><span class="n">fm</span><span class="p">[</span><span class="n">at</span><span class="p">]</span><span class="o">.</span><span class="n">_bdp_out</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">_taskid</span><span class="p">,</span>
+                            <span class="n">a2</span><span class="o">.</span><span class="n">fm</span><span class="p">[</span><span class="n">at</span><span class="p">]</span><span class="o">.</span><span class="n">_bdp_out</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">_taskid</span><span class="p">,</span>
+                             <span class="n">a</span><span class="o">.</span><span class="n">fm</span><span class="p">[</span><span class="n">at</span><span class="p">]</span><span class="o">.</span><span class="n">_bdp_out</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">xmlFile</span><span class="p">,</span>
+                            <span class="n">a2</span><span class="o">.</span><span class="n">fm</span><span class="p">[</span><span class="n">at</span><span class="p">]</span><span class="o">.</span><span class="n">_bdp_out</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">xmlFile</span> <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">success</span> <span class="o">=</span> <span class="s2">&quot;OK&quot;</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="s2">&quot;exception=</span><span class="si">%s</span><span class="s2">, file=</span><span class="si">%s</span><span class="s2">, lineno=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">tb_frame</span><span class="o">.</span><span class="n">f_code</span><span class="o">.</span><span class="n">co_filename</span><span class="p">),</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">tb_lineno</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">success</span> <span class="o">=</span> <span class="s2">&quot;FAILED&quot;</span>
+            <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fail</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> failed with: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span> <span class="p">,</span> <span class="n">m</span><span class="p">))</span>
+
+
+<span class="c1">###############################################################################</span>
+<span class="c1"># END CLASS                                                                   #</span>
+<span class="c1">###############################################################################</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+
+    <span class="n">suite</span> <span class="o">=</span> <span class="n">unittest</span><span class="o">.</span><span class="n">TestLoader</span><span class="p">()</span><span class="o">.</span><span class="n">loadTestsFromTestCase</span><span class="p">(</span><span class="n">IntegTestHelloWorldAT</span><span class="p">)</span>
+    <span class="n">unittest</span><span class="o">.</span><span class="n">TextTestRunner</span><span class="p">(</span><span class="n">verbosity</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">suite</span><span class="p">)</span>
+
+</pre></div>
+</td></tr></table></div>
+<table border="1" class="docutils">
+<colgroup>
+<col width="12%" />
+<col width="88%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Line #</th>
+<th class="head">Notes</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>1-20</td>
+<td>Documentation on the test and description of the module.</td>
+</tr>
+<tr class="row-odd"><td>21-23</td>
+<td>Import the needed classes and modules.</td>
+</tr>
+<tr class="row-even"><td>24</td>
+<td>Required import of the unittest module.</td>
+</tr>
+<tr class="row-odd"><td>26</td>
+<td>Class definition and required inheritance from unittest.TestCase.</td>
+</tr>
+<tr class="row-even"><td>28-31</td>
+<td>The required setup method. The purpose of this method is to prepare the environment
+for the test. In this case it just calls another method to clean up any files that may
+have been left over from a previous run.</td>
+</tr>
+<tr class="row-odd"><td>33-32</td>
+<td>teardown() is another required method, called when the test is done to do any cleanup.</td>
+</tr>
+<tr class="row-even"><td>36-42</td>
+<td>The cleanup method called by the above setup and teardown methods.</td>
+</tr>
+<tr class="row-odd"><td>46</td>
+<td>The required runTest method. This method does all of the work of the test.</td>
+</tr>
+<tr class="row-even"><td>49</td>
+<td>Instantiate an Admit object.</td>
+</tr>
+<tr class="row-odd"><td>52</td>
+<td>Instantiate the AT being tested.</td>
+</tr>
+<tr class="row-even"><td>54</td>
+<td>Add the AT to the Admit class.</td>
+</tr>
+<tr class="row-odd"><td>57</td>
+<td>Verify that all requirements (input BDP) are met before running.</td>
+</tr>
+<tr class="row-even"><td>60</td>
+<td>Run Admit and write out the results.</td>
+</tr>
+<tr class="row-odd"><td>62</td>
+<td>Instantiate another Admit object, this one will detect the files from the previous run
+and load them.</td>
+</tr>
+<tr class="row-even"><td>53-72</td>
+<td>Do some tests by asserting results.</td>
+</tr>
+<tr class="row-odd"><td>74-80</td>
+<td>Print some information out to the screen for comparison.</td>
+</tr>
+<tr class="row-even"><td>89</td>
+<td>Set up the test to run.</td>
+</tr>
+<tr class="row-odd"><td>90</td>
+<td>Run the test.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="section" id="some-inner-workings-you-should-know">
+<h2>Some Inner Workings You Should Know<a class="headerlink" href="#some-inner-workings-you-should-know" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="the-bdp-types-py-file">
+<span id="bdp-types"></span><h3>The bdp_types.py File<a class="headerlink" href="#the-bdp-types-py-file" title="Permalink to this headline">¶</a></h3>
+<p>Since Python does not directly support enumerated types the ADMIT system has chosen to use static strings
+in order to facilitate comparisons of BDP and AT types and other internal data management. These strings
+are defined in the admit/util/bdp_types.py file. Any additions to this file should not be made directly
+but via the <a class="reference internal" href="#dtdgenerator-sec"><span class="std std-ref">dtdGenerator</span></a> as it generates the contents of the bdp_types file based
+on an internal list and detected AT and BDP files.</p>
+</div>
+<div class="section" id="the-dtdgenerator">
+<span id="dtdgenerator-sec"></span><h3>The dtdGenerator<a class="headerlink" href="#the-dtdgenerator" title="Permalink to this headline">¶</a></h3>
+<p>The ADMIT I/O system relies on Document Type Definition (dtd) files to verify the data as it is written
+and read from disk. These dtd files are automatically generated by introspection of the BDP and AT classes.
+The dtdGenerator module does this functionality. To run the generator just type</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">admit.xmlio.dtdGenerator</span> <span class="kn">as</span> <span class="nn">dtd</span>
+<span class="n">dtd</span><span class="o">.</span><span class="n">generate</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>That&#8217;s it. Any time a new AT or BDP is added to the system or any attributes or keys are added, removed,
+or change type, the dtdGenerator must be run.</p>
+<p>The dtdGenerator also creates the __init__.py files in both the at and bdp directories, to facilitate
+imports, and the bdp_types.py file in admit/util.</p>
+</div>
+<div class="section" id="the-valid-bdp-in-attribute">
+<span id="bdp-in"></span><h3>The valid_bdp_in Attribute<a class="headerlink" href="#the-valid-bdp-in-attribute" title="Permalink to this headline">¶</a></h3>
+<p>In order for the ADMIT system to know what BDPs an AT will take as input, each AT will specify the numbers
+and types of BDPs it expects in the _valid_bdp_in attribute. The _valid_bdp_in attribute is a list of tuples,
+where each tuple specifies one type of input. The tuple consists of 3 parts: BDP type, number, and whther
+they are required or optional. Lets take the following examples:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">Moment_BDP</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">bt</span><span class="o">.</span><span class="n">REQUIRED</span><span class="p">)</span>
+
+<span class="p">(</span><span class="n">LineList_BDP</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="n">bt</span><span class="o">.</span><span class="n">OPTIONAL</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The first example states that 1 Moment_BDP (or any BDP that inherits from Moment_BDP) is required as input, the
+second states the zero or more LineList_BDPs (or any BDP that inherits from LineList_BDP)
+are optional inputs. To combine them together one would write:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">set_bdp_in</span><span class="p">([(</span><span class="n">Moment_BDP</span><span class="p">,</span>  <span class="mi">1</span><span class="p">,</span> <span class="n">bt</span><span class="o">.</span><span class="n">REQUIRED</span><span class="p">),</span>
+                 <span class="p">(</span><span class="n">LineList_BDP</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span> <span class="n">bt</span><span class="o">.</span><span class="n">OPTIONAL</span><span class="p">)])</span>
+</pre></div>
+</div>
+<p>Order is important when specifying the _valid_bdp_in, the Flow Manager will fill in the inputs based on what order
+they appear, and optional BDPs must come after all required BDPs. If one wants to specify that one or more of a BDP
+type can be an input it can be written as:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">set_bdp_in</span><span class="p">([(</span><span class="n">Moment_BDP</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">bt</span><span class="o">.</span><span class="n">REQUIRED</span><span class="p">),</span>
+                 <span class="p">(</span><span class="n">Moment_BDP</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">bt</span><span class="o">.</span><span class="n">OPTIONAL</span><span class="p">)])</span>
+</pre></div>
+</div>
+<p>Note: may need more work.</p>
+</div>
+<div class="section" id="the-valid-bdp-out-attribute">
+<span id="bdp-out"></span><h3>The valid_bdp_out Attribute<a class="headerlink" href="#the-valid-bdp-out-attribute" title="Permalink to this headline">¶</a></h3>
+<p>Similar to the _valid_bdp_in attribute, the _valid_bdp_out attribute is used to tell the Flow Manager what type(s)
+of BDPs to be produced by each AT. The _valid_bdp_out is a list of tuples, where each tuple contains the type of
+BDP and the number to expect. For example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">Moment_BDP</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="p">(</span><span class="n">SpwCube_BDP</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The first example states that 2 Moment_BDPs will be the output, and the second states that zero or more SpwCube_BDPs
+will be output. As with the _valid_bdp_in these can be combined:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">set_bdp_out</span><span class="p">([(</span><span class="n">Moment_BDP</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+                  <span class="p">(</span><span class="n">SpwCube_BDP</span><span class="p">,</span><span class="mi">0</span><span class="p">)])</span>
+</pre></div>
+</div>
+<p>Order is important, so in this example the first two BDPs in the output BDPs will be of type Moment_BDP and any
+others will be of type SpwCube_BDP.</p>
+</div>
+</div>
+<div class="section" id="files-to-be-checked-in-when-adding-an-at-and-or-bdp">
+<h2>Files to be checked (in) when adding an AT and/or BDP<a class="headerlink" href="#files-to-be-checked-in-when-adding-an-at-and-or-bdp" title="Permalink to this headline">¶</a></h2>
+<p>Summarizing, when you add (or even modify) a new AT and/or BDP, there are quite a few
+files (some generated after running dtdGenerator) that may need to be
+checked into the system. Taking the example of HelloWorld you could
+have the following (up to 15) files:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="74%" />
+<col width="26%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">File</th>
+<th class="head">Notes</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>admit/at/HelloWorld_AT.py</td>
+<td>authored</td>
+</tr>
+<tr class="row-odd"><td>admit/at/__init__.py</td>
+<td>dtdGenerator</td>
+</tr>
+<tr class="row-even"><td>admit/bdp/HelloWorld_BDP.py</td>
+<td>authored</td>
+</tr>
+<tr class="row-odd"><td>admit/bdp/__init__.py</td>
+<td>dtdGenerator</td>
+</tr>
+<tr class="row-even"><td>admit/util/bdp_types.py</td>
+<td>dtdGenerator</td>
+</tr>
+<tr class="row-odd"><td>admit/xmlio/dtd/admit.dtd</td>
+<td>dtdGenerator</td>
+</tr>
+<tr class="row-even"><td>admit/xmlio/dtd/HelloWorld_AT.dtd</td>
+<td>dtdGenerator</td>
+</tr>
+<tr class="row-odd"><td>admit/xmlio/dtd/HelloWorld_BDP.dtd</td>
+<td>dtdGenerator</td>
+</tr>
+<tr class="row-even"><td>doc/sphinx/module/admit.at/HelloWorld_AT.rst</td>
+<td>authored</td>
+</tr>
+<tr class="row-odd"><td>doc/sphinx/module/admit.bdp/HelloWorld_BDP.rst</td>
+<td>authored</td>
+</tr>
+<tr class="row-even"><td>admit/at/test/test_helloworld.py</td>
+<td>authored</td>
+</tr>
+<tr class="row-odd"><td>admit/at/test/integrationtest_helloworld.py</td>
+<td>authored</td>
+</tr>
+<tr class="row-even"><td>admit/Summary.py</td>
+<td>authored</td>
+</tr>
+<tr class="row-odd"><td>doc/sphinx/design.rst</td>
+<td>new section</td>
+</tr>
+<tr class="row-even"><td>doc/sphinx/examples.rst</td>
+<td>new section</td>
+</tr>
+</tbody>
+</table>
+<p>The last two entries, a section in the design document, and relevant
+descriptions in the examples document, are optional, but recommended of course.
+The additional code in Summary.py depends on any Summary items that needs
+to be written to the ADMIT database.</p>
+</div>
+<div class="section" id="using-tables-images-lines-and-sources">
+<h2>Using Tables, Images, Lines and Sources<a class="headerlink" href="#using-tables-images-lines-and-sources" title="Permalink to this headline">¶</a></h2>
+<p>This section shows you how to use the Table, Image, and Line BDPs and their underlying classes.</p>
+<div class="section" id="table-bdp">
+<span id="table-example"></span><h3>Table BDP<a class="headerlink" href="#table-bdp" title="Permalink to this headline">¶</a></h3>
+<p>The Table_BDP (<a class="reference internal" href="design.html#table-bdp-design"><span class="std std-ref">design</span></a>, <a class="reference internal" href="module/admit.bdp/Table_BDP.html#table-bdp-api"><span class="std std-ref">api</span></a>) is essentially a BDP wrapper
+for the Table (<a class="reference internal" href="design.html#table-base-design"><span class="std std-ref">design</span></a>, <a class="reference internal" href="module/admit.util/Table.html#table-api"><span class="std std-ref">api</span></a>) class. The Table_BDP class has a single non-inherited attribute: table, which is an instance of the Table class. The Table class has the following attributes:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="18%" />
+<col width="82%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>columns</td>
+<td>A List containing the names of the columns, columns can be retrieved by name or by
+column number (0 based index).</td>
+</tr>
+<tr class="row-even"><td>units</td>
+<td>A List containing the units for the columns.</td>
+</tr>
+<tr class="row-odd"><td>planes</td>
+<td>A List containing the names for each plane (3D only) in the table.</td>
+</tr>
+<tr class="row-even"><td>description</td>
+<td>A string for a description or caption of the table.</td>
+</tr>
+<tr class="row-odd"><td>data</td>
+<td>A NumPy array of the actual data, can contain a mix of types.</td>
+</tr>
+</tbody>
+</table>
+<p>Any of the attributes can be set via the constructor or via the setkey command. Below is an example of
+constructing a Table_BDP.</p>
+<div class="highlight-python"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">admit.bdp.Table_BDP</span> <span class="kn">import</span> <span class="n">Table_BDP</span>
+
+<span class="n">cols</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Number&quot;</span><span class="p">,</span><span class="s2">&quot;Square&quot;</span><span class="p">]</span>
+<span class="n">units</span> <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">,</span><span class="bp">None</span><span class="p">]</span>
+<span class="n">dat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],[</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">],[</span><span class="mi">3</span><span class="p">,</span><span class="mi">9</span><span class="p">]])</span>
+<span class="n">desc</span> <span class="o">=</span> <span class="s2">&quot;Numbers and their square&quot;</span>
+<span class="n">tbl</span> <span class="o">=</span> <span class="n">Table_BDP</span><span class="p">()</span>
+<span class="n">tbl</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;columns&quot;</span><span class="p">,</span><span class="n">cols</span><span class="p">)</span>
+<span class="n">tbl</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;units&quot;</span><span class="p">,</span><span class="n">units</span><span class="p">)</span>
+<span class="n">tbl</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">,</span><span class="n">dat</span><span class="p">)</span>
+<span class="n">tbl</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">,</span><span class="n">desc</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<table border="1" class="docutils">
+<colgroup>
+<col width="12%" />
+<col width="88%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Line #</th>
+<th class="head">Notes</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>1</td>
+<td>Import the needed class.</td>
+</tr>
+<tr class="row-odd"><td>3</td>
+<td>Create the column labels.</td>
+</tr>
+<tr class="row-even"><td>4</td>
+<td>Create the units, in this case there are none, but we set them for completeness.</td>
+</tr>
+<tr class="row-odd"><td>5</td>
+<td>Create the numpy array for the data, in many cases this may come from one or more
+external tasks.</td>
+</tr>
+<tr class="row-even"><td>6</td>
+<td>Create the description of the table.</td>
+</tr>
+<tr class="row-odd"><td>7</td>
+<td>Instantiate a Table_BDP.</td>
+</tr>
+<tr class="row-even"><td>8-11</td>
+<td>Set the individual data members for the table.</td>
+</tr>
+</tbody>
+</table>
+<p>In this simple Table example the data members were created and then set individually in the Table_BDP
+class. There is no checking for the number of columns to match either the length of the column or units
+lists as they can be set in any order and will not match until they are all set. Below is a more complex
+example where the data columns are of different data types.</p>
+<div class="highlight-python"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">admit.bdp.Table_BDP</span> <span class="kn">import</span> <span class="n">Table_BDP</span>
+<span class="kn">from</span> <span class="nn">admit.util.Table</span> <span class="kn">import</span> <span class="n">Table</span>
+
+<span class="n">cols</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Atom&quot;</span><span class="p">,</span><span class="s2">&quot;# electrons&quot;</span><span class="p">]</span>
+<span class="n">desc</span> <span class="o">=</span> <span class="s2">&quot;Listing of the atoms and number of electrons.&quot;</span>
+<span class="n">atoms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="s2">&quot;Hydrogen&quot;</span><span class="p">,</span> <span class="s2">&quot;Helium&quot;</span><span class="p">,</span> <span class="s2">&quot;Oxygen&quot;</span><span class="p">,</span> <span class="s2">&quot;Nitrogen&quot;</span><span class="p">])</span>
+<span class="n">electrons</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="mi">7</span><span class="p">])</span>
+<span class="n">edata</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">((</span><span class="n">atoms</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;object&quot;</span><span class="p">),</span><span class="n">electrons</span><span class="p">))</span>
+<span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">columns</span> <span class="o">=</span> <span class="n">cols</span><span class="p">,</span> <span class="n">description</span> <span class="o">=</span> <span class="n">desc</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">edata</span><span class="p">)</span>
+<span class="n">tbdp</span> <span class="o">=</span> <span class="n">Table_BDP</span><span class="p">(</span><span class="n">table</span> <span class="o">=</span> <span class="n">table</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<table border="1" class="docutils">
+<colgroup>
+<col width="12%" />
+<col width="88%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Line #</th>
+<th class="head">Notes</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>1-2</td>
+<td>Import the needed classes.</td>
+</tr>
+<tr class="row-odd"><td>4</td>
+<td>Create the column labels</td>
+</tr>
+<tr class="row-even"><td>5</td>
+<td>Create the description of the table</td>
+</tr>
+<tr class="row-odd"><td>6-7</td>
+<td>Create columns of data, these may come from external tasks.</td>
+</tr>
+<tr class="row-even"><td>8</td>
+<td>Stack the columns together to create a single 2D array. Note that the first column
+(atoms) has the addition of .astype(&#8220;object&#8221;). This is necessary if you are creating
+a table with different data types (strings and ints in this case), as it will preserve
+the data type in the array. Otherwise all columns will be converted to the lowest
+possible type (strings in this case).</td>
+</tr>
+<tr class="row-odd"><td>9</td>
+<td>Create a Table with the given parameters.</td>
+</tr>
+<tr class="row-even"><td>10</td>
+<td>Create a Table_BDP with the given table as its contents.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="image-bdp">
+<span id="image-example"></span><h3>Image BDP<a class="headerlink" href="#image-bdp" title="Permalink to this headline">¶</a></h3>
+<p>The Image_BDP (<a class="reference internal" href="design.html#image-bdp-design"><span class="std std-ref">design</span></a>, <a class="reference internal" href="module/admit.bdp/Image_BDP.html#image-bdp-api"><span class="std std-ref">api</span></a>) is essentially a BDP wrapper
+for the Image (<a class="reference internal" href="design.html#image-base-design"><span class="std std-ref">design</span></a>, <a class="reference internal" href="module/admit.util/Image.html#image-api"><span class="std std-ref">api</span></a>) class. The Image_BDP class has a single non-inherited attribute: image, which is an instance of the Image class. The Image class has the following attributes:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="18%" />
+<col width="82%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>images</td>
+<td>A Dictionary containing the names of the image files as values and image formats
+as keys.</td>
+</tr>
+<tr class="row-even"><td>thumbnail</td>
+<td>A string for the thumbnail image file name.</td>
+</tr>
+<tr class="row-odd"><td>thumbnailtype</td>
+<td>A string for the format of the thumbnail image.</td>
+</tr>
+<tr class="row-even"><td>auxiliary</td>
+<td>A string for the auxiliary file name.</td>
+</tr>
+<tr class="row-odd"><td>auxtype</td>
+<td>A string for the format of the auxiliary file.</td>
+</tr>
+<tr class="row-even"><td>description</td>
+<td>A string for a caption or description of the image.</td>
+</tr>
+</tbody>
+</table>
+<p>Any of the attributes can be set via the constructor or with the setkey command. Below is an example of
+constructing an Image_BDP.</p>
+<div class="highlight-python"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">admit.util.bdp_types</span> <span class="kn">as</span> <span class="nn">bt</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.Image_BDP</span> <span class="kn">import</span> <span class="n">Image_BDP</span>
+
+<span class="n">image</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;bt.CASA&quot;</span><span class="p">:</span> <span class="s2">&quot;moment.im&quot;</span><span class="p">,</span>
+         <span class="s2">&quot;bt.PNG&quot;</span> <span class="p">:</span> <span class="s2">&quot;moment.png&quot;</span><span class="p">}</span>
+<span class="n">thumb</span> <span class="o">=</span> <span class="s2">&quot;moment.thumb.png&quot;</span>
+<span class="n">thumbform</span> <span class="o">=</span> <span class="n">bt</span><span class="o">.</span><span class="n">PNG</span>
+<span class="n">desc</span> <span class="o">=</span> <span class="s2">&quot;A 1st moment map of the source&quot;</span>
+<span class="n">im</span> <span class="o">=</span> <span class="n">Image_BDP</span><span class="p">()</span>
+<span class="n">im</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;images&quot;</span><span class="p">,</span> <span class="n">image</span><span class="p">)</span>
+<span class="n">im</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;thumbnail&quot;</span><span class="p">,</span> <span class="n">thumb</span><span class="p">)</span>
+<span class="n">im</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;thumbnailtype&quot;</span><span class="p">,</span> <span class="n">thumbform</span><span class="p">)</span>
+<span class="n">im</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">,</span> <span class="n">desc</span><span class="p">)</span>
+
+<span class="n">im2</span> <span class="o">=</span> <span class="n">Image_BDP</span><span class="p">(</span><span class="n">images</span> <span class="o">=</span> <span class="n">image</span><span class="p">,</span> <span class="n">thumbnail</span> <span class="o">=</span> <span class="n">thumb</span><span class="p">,</span> <span class="n">thumbnailtype</span> <span class="o">=</span> <span class="n">thumbform</span><span class="p">,</span> <span class="n">description</span> <span class="o">=</span> <span class="n">desc</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<table border="1" class="docutils">
+<colgroup>
+<col width="12%" />
+<col width="88%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Line #</th>
+<th class="head">Notes</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>1-2</td>
+<td>Class and utility imports.</td>
+</tr>
+<tr class="row-odd"><td>4-5</td>
+<td>Create the image dictionary with format : file name. In this instance two images are
+included, one CASA format and one PNG format. Both images must show the same picture,
+however no internal check is made.</td>
+</tr>
+<tr class="row-even"><td>6</td>
+<td>Create the thumbnail entry, a PNG image in this instance.</td>
+</tr>
+<tr class="row-odd"><td>7</td>
+<td>Create the thumbnail format entry, bt.PNG is hard coded to &#8220;PNG&#8221; and makes catching
+errors easier.</td>
+</tr>
+<tr class="row-even"><td>8</td>
+<td>Create the description of the image.</td>
+</tr>
+<tr class="row-odd"><td>9</td>
+<td>Instantiate the Image_BDP class.</td>
+</tr>
+<tr class="row-even"><td>10-13</td>
+<td>Set the different attributes of the class.</td>
+</tr>
+<tr class="row-odd"><td>15</td>
+<td>Identical to lines 9-13, but all in one line.</td>
+</tr>
+</tbody>
+</table>
+<p>There is a lightweight convenience class in ADMIT for transporting (adding or retrieving) an single image to/from
+the Image_BDP class. This class is called imagedescriptor and has the following three attributes.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="12%" />
+<col width="88%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>file</td>
+<td>A string for the image file name.</td>
+</tr>
+<tr class="row-even"><td>format</td>
+<td>The format of the image (e.g. bt.PNG, bt.JPG).</td>
+</tr>
+<tr class="row-odd"><td>type</td>
+<td>The type of the image: bt.AUX (for auxiliary file), bt.THUMB (for thumbnail image), or
+bt.DATA (for the main image). Default is bt.DATA.</td>
+</tr>
+</tbody>
+</table>
+<p>To add an image to the above example:</p>
+<div class="highlight-python"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">admit.util.Image</span> <span class="kn">as</span> <span class="nn">Image</span>
+
+<span class="n">im3</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">imagedescriptor</span><span class="p">(</span><span class="nb">file</span> <span class="o">=</span> <span class="s2">&quot;moment.jpg&quot;</span><span class="p">,</span> <span class="n">format</span> <span class="o">=</span> <span class="n">bt</span><span class="o">.</span><span class="n">JPG</span><span class="p">,</span> <span class="nb">type</span> <span class="o">=</span> <span class="n">bt</span><span class="o">.</span><span class="n">DATA</span><span class="p">)</span>
+
+<span class="n">im</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">addimage</span><span class="p">(</span><span class="n">im3</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<table border="1" class="docutils">
+<colgroup>
+<col width="12%" />
+<col width="88%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Line #</th>
+<th class="head">Notes</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>1</td>
+<td>Import the needed module.</td>
+</tr>
+<tr class="row-odd"><td>3</td>
+<td>Create an imagedescriptor with a file moment.jpg, a JPG format, and set it for the main
+image.</td>
+</tr>
+<tr class="row-even"><td>5</td>
+<td>Add the new image to the previous class. The class now contains 3 images with 3
+different formats. If an image of the given format already exists then the existing
+entry is overwritten.</td>
+</tr>
+</tbody>
+</table>
+<p>There are several ways to get a specific image from the Image_BDP, either by retrieving an imagedescriptor
+or by jet getting the file name.</p>
+<div class="highlight-python"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="n">id1</span> <span class="o">=</span> <span class="n">im</span><span class="o">.</span><span class="n">getimage</span><span class="p">(</span><span class="n">bt</span><span class="o">.</span><span class="n">THUMB</span><span class="p">)</span>
+<span class="n">id2</span> <span class="o">=</span> <span class="n">im</span><span class="o">.</span><span class="n">getimage</span><span class="p">(</span><span class="n">bt</span><span class="o">.</span><span class="n">PNG</span><span class="p">)</span>
+
+<span class="n">imfile</span> <span class="o">=</span> <span class="n">im</span><span class="o">.</span><span class="n">getimagefile</span><span class="p">(</span><span class="n">bt</span><span class="o">.</span><span class="n">PNG</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<table border="1" class="docutils">
+<colgroup>
+<col width="12%" />
+<col width="88%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Line #</th>
+<th class="head">Notes</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>1</td>
+<td>Get an imagedescriptor of the thumbnail image.</td>
+</tr>
+<tr class="row-odd"><td>2</td>
+<td>Get an imagedescriptor of the PNG format of the image.</td>
+</tr>
+<tr class="row-even"><td>4</td>
+<td>Get just the file name of the PNG formatted image.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="line-bdp">
+<span id="line-example"></span><h3>Line BDP<a class="headerlink" href="#line-bdp" title="Permalink to this headline">¶</a></h3>
+<p>The Line_BDP (<a class="reference internal" href="design.html#line-bdp-design"><span class="std std-ref">design</span></a>, <a class="reference internal" href="module/admit.bdp/Line_BDP.html#line-bdp-api"><span class="std std-ref">api</span></a>) is essentially a BDP wrapper
+for the Line (<a class="reference internal" href="design.html#line-base-design"><span class="std std-ref">design</span></a>, <a class="reference internal" href="module/admit.util/Line.html#line-api"><span class="std std-ref">api</span></a>) class. The Line_BDP class has a single non-inherited attribute: line, which is an instance of the Line class. The Line class has the following attributes:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="18%" />
+<col width="82%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>name</td>
+<td>String for the name of the molecule or atom.</td>
+</tr>
+<tr class="row-even"><td>formula</td>
+<td>The chemical formula of the molecule/atom.</td>
+</tr>
+<tr class="row-odd"><td>transition</td>
+<td>String for the transition/quantum number information.</td>
+</tr>
+<tr class="row-even"><td>energies</td>
+<td>A List of length 2, to hold the lower and upper state energies of the transition.</td>
+</tr>
+<tr class="row-odd"><td>energyunits</td>
+<td>String for the units of thetransition energies (e.g. K, cm<sup>-1</sup>).</td>
+</tr>
+<tr class="row-even"><td>linestrength</td>
+<td>Float for the intensity/line strength of the transition.</td>
+</tr>
+<tr class="row-odd"><td>lsunits</td>
+<td>String for the units of the line strength (e.g. Debye<sup>2</sup>).</td>
+</tr>
+<tr class="row-even"><td>frequency</td>
+<td>Float for the frequency of the transition.</td>
+</tr>
+<tr class="row-odd"><td>funits</td>
+<td>String for the units of the frequency (e.g. MHz, GHz)</td>
+</tr>
+<tr class="row-even"><td>blend</td>
+<td>Integer denoting the index of a blend (0 means no blend)</td>
+</tr>
+</tbody>
+</table>
+<p>Any of the attributes can be set via the constructor or with the setkey command. Below is an example of
+constructing an Line_BDP.</p>
+<div class="highlight-python"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">admit.bdp.Line_BDP</span> <span class="kn">import</span> <span class="n">Line_BDP</span>
+<span class="kn">from</span> <span class="nn">admit.util.Line</span> <span class="kn">import</span> <span class="n">Line</span>
+
+<span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Carbon monoxide&quot;</span>
+<span class="n">form</span> <span class="o">=</span> <span class="s2">&quot;CO&quot;</span>
+<span class="n">trans</span> <span class="o">=</span> <span class="s2">&quot;1-0&quot;</span>
+<span class="n">energies</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">5.53</span><span class="p">]</span>
+<span class="n">energyun</span> <span class="o">=</span> <span class="s2">&quot;K&quot;</span>
+<span class="n">linestr</span> <span class="o">=</span> <span class="mf">0.012</span>
+<span class="n">lsunits</span> <span class="o">=</span> <span class="s2">&quot;Debye^2&quot;</span>
+<span class="n">freq</span> <span class="o">=</span> <span class="mf">115.27120</span>
+<span class="n">funits</span> <span class="o">=</span> <span class="s2">&quot;GHz&quot;</span>
+
+<span class="n">line</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="p">,</span> <span class="n">formula</span> <span class="o">=</span> <span class="n">form</span><span class="p">,</span> <span class="n">transition</span> <span class="o">=</span> <span class="n">trans</span><span class="p">,</span> <span class="n">energies</span> <span class="o">=</span> <span class="n">energies</span><span class="p">,</span>
+            <span class="n">energyunits</span> <span class="o">=</span> <span class="n">energyun</span><span class="p">,</span> <span class="n">linestrength</span> <span class="o">=</span> <span class="n">linestr</span><span class="p">,</span> <span class="n">lsunits</span> <span class="o">=</span> <span class="n">lsunits</span><span class="p">,</span>
+            <span class="n">frequency</span> <span class="o">=</span> <span class="n">freq</span><span class="p">,</span> <span class="n">funits</span> <span class="o">=</span> <span class="n">funits</span><span class="p">)</span>
+
+<span class="n">lbdp</span> <span class="o">=</span> <span class="n">Line_BDP</span><span class="p">(</span><span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<table border="1" class="docutils">
+<colgroup>
+<col width="12%" />
+<col width="88%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Line #</th>
+<th class="head">Notes</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>1-2</td>
+<td>Import the needed classes.</td>
+</tr>
+<tr class="row-odd"><td>4-12</td>
+<td>Set variables to hold the different line parameters.</td>
+</tr>
+<tr class="row-even"><td>14-16</td>
+<td>Instantiate the Line class with the values.</td>
+</tr>
+<tr class="row-odd"><td>18</td>
+<td>Instantiate the Line_BDP and setting the line attribute.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="sourcelist-bdp">
+<span id="sourcelist-example"></span><h3>SourceList BDP<a class="headerlink" href="#sourcelist-bdp" title="Permalink to this headline">¶</a></h3>
+<p>The SourceList_BDP (<a class="reference internal" href="module/admit.bdp/SourceList_BDP.html#sourcelist-bdp-api"><span class="std std-ref">api</span></a>) contains a table describing
+the following source attributes:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="18%" />
+<col width="82%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>name</td>
+<td>Name/Label of the source</td>
+</tr>
+<tr class="row-even"><td>ra</td>
+<td>String representing the RA (in CASA hms notation)</td>
+</tr>
+<tr class="row-odd"><td>dec</td>
+<td>String representing the DEC (in CASA dms notation)</td>
+</tr>
+<tr class="row-even"><td>flux</td>
+<td>Float for the total flux, in Jy.</td>
+</tr>
+<tr class="row-odd"><td>peak</td>
+<td>Float for the peak flux, in Jy/beam</td>
+</tr>
+<tr class="row-even"><td>major</td>
+<td>Major axis of the fitted gaussian. This includes the beam</td>
+</tr>
+<tr class="row-odd"><td>minor</td>
+<td>Minor axis of the fitted gaussian. This includes the beam</td>
+</tr>
+<tr class="row-even"><td>pa</td>
+<td>Position angle of the beam, east from north, in degrees</td>
+</tr>
+</tbody>
+</table>
+<p>Any of the attributes can be set via the constructor or with the setkey
+command.</p>
+</div>
+</div>
+<div class="section" id="more-complex-examples">
+<span id="complex-example"></span><h2>More Complex Examples<a class="headerlink" href="#more-complex-examples" title="Permalink to this headline">¶</a></h2>
+<p>This section presents more complex examples of BDPs and ATs, including how to inherit from other BDP types.</p>
+<div class="section" id="complex-bdp">
+<span id="id4"></span><h3>Complex BDP<a class="headerlink" href="#complex-bdp" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;Hello World Inherit BDP</span>
+<span class="sd">   -----------------------</span>
+
+<span class="sd">   This module defines the HelloWorld_Inherit_BDP class.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.Image_BDP</span> <span class="kn">import</span> <span class="n">Image_BDP</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.Table_BDP</span> <span class="kn">import</span> <span class="n">Table_BDP</span>
+
+<span class="k">class</span> <span class="nc">HelloWorld_Inherit_BDP</span><span class="p">(</span><span class="n">Image_BDP</span><span class="p">,</span><span class="n">Table_BDP</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; An example BDP class. Inherits from Image_BDP and Table_BDP.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        xmlFile : string, optional</span>
+<span class="sd">            Basename of the file where the BDP data will be stored on write</span>
+
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        yourname : string</span>
+<span class="sd">            The name of the person in the BDP</span>
+
+<span class="sd">        planet : string</span>
+<span class="sd">            Then name of the home planet</span>
+
+<span class="sd">        star : string</span>
+<span class="sd">            The name of the home star</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">xmlFile</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="o">**</span><span class="n">keyval</span><span class="p">):</span>
+        <span class="n">Image_BDP</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">xmlFile</span><span class="p">)</span>
+        <span class="n">Table_BDP</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">xmlFile</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">yourname</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">planet</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">star</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="n">keyval</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<table border="1" class="docutils">
+<colgroup>
+<col width="12%" />
+<col width="88%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Line #</th>
+<th class="head">Notes</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>1-5</td>
+<td>Initial docstring documentation. See the section on <a class="reference internal" href="style.html#documentation"><span class="std std-ref">Documentation Style Guide</span></a> for details.</td>
+</tr>
+<tr class="row-odd"><td>6-7</td>
+<td>Import the parent classes, in this case Image_BDP and Line_BDP.</td>
+</tr>
+<tr class="row-even"><td>9</td>
+<td>The class name with inheritance from two classes.</td>
+</tr>
+<tr class="row-odd"><td>10-28</td>
+<td>Class documentation, giving all parameters and attributes.</td>
+</tr>
+<tr class="row-even"><td>29</td>
+<td>Class initialization definition, including the inheritance from Image_BDP and
+Table_BDP.</td>
+</tr>
+<tr class="row-odd"><td>30-31</td>
+<td>Initialize the parent classes, passing only the xmlFile.</td>
+</tr>
+<tr class="row-even"><td>32-34</td>
+<td>Initialize the attributes for the class.</td>
+</tr>
+<tr class="row-odd"><td>35</td>
+<td>This method call sets any attributes to the given values in keyval.</td>
+</tr>
+</tbody>
+</table>
+<p>The HelloWorld_Inherit_BDP can be treated just like any other BDP, and has the additional attributes
+of image and line, which were inherited from the Image_BDP and Table_BDP parent classes.</p>
+</div>
+<div class="section" id="complex-at">
+<span id="id5"></span><h3>Complex AT<a class="headerlink" href="#complex-at" title="Permalink to this headline">¶</a></h3>
+<p>This section is incomplete at this time.</p>
+</div>
+<div class="section" id="image-cube-manipulation-sample-template">
+<h3>Image cube manipulation sample template<a class="headerlink" href="#image-cube-manipulation-sample-template" title="Permalink to this headline">¶</a></h3>
+<p>We have provided more complete <a class="reference internal" href="module/admit.at/Template_AT.html#template-at-api"><span class="std std-ref">template AT</span></a> which you can use
+to develop your own cube analysis routines.   Template_AT includes the basic steps of
+reading in an image cube, writing out Table and Image BDPs, and writing information about the task to the
+<a class="reference internal" href="module/admit/Summary.html#summary-api"><span class="std std-ref">Summary</span></a>.</p>
+</div>
+</div>
+<div class="section" id="line-detection-with-admit">
+<h2>Line Detection With ADMIT<a class="headerlink" href="#line-detection-with-admit" title="Permalink to this headline">¶</a></h2>
+<p>The primary AT used for line detetion and identification is the LineID_AT. The AT does not rely on a
+single method of detecting a line, but has several methods available to the user. Additional line
+detection modules can be added provided they adhere to the following standards:</p>
+<ul class="simple">
+<li>The method must be defined as a class with the code stored in admit/util/linfinder</li>
+<li>The __init__ method must take **keyval as its only argument (aside from self). The method then needs
+to process any inputs given, ignoring any it does not need. The input spectrum (1D, list of intensities)
+will always be given as spec= in the input dictionary.</li>
+<li>The class must specify a set_options method that takes **keyval as its only argument (aside from self).
+The method must process any inpuy keywords it gets and ignore any that are not needed.</li>
+<li>The class must specify a find method that takes **keyval as its only argument (aside from self).
+The method must process any inpuy keywords it gets and ignore any that are not needed.</li>
+</ul>
+<p>See the admit/util/linefinder/AdmitLineFinder.py for an example.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">How To Write Your Own ADMIT Task</a><ul>
+<li><a class="reference internal" href="#the-quick-way">The Quick Way</a></li>
+<li><a class="reference internal" href="#starting-from-scratch">Starting from Scratch</a><ul>
+<li><a class="reference internal" href="#helloworld-bdp">HelloWorld_BDP</a></li>
+<li><a class="reference internal" href="#helloworld-at">HelloWorld_AT</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#adding-new-bdps-and-ats-to-admit">Adding New BDPs and ATs to ADMIT</a><ul>
+<li><a class="reference internal" href="#writing-unit-and-integration-tests">Writing Unit and Integration Tests</a><ul>
+<li><a class="reference internal" href="#unit-test">Unit Test</a></li>
+<li><a class="reference internal" href="#integration-test">Integration Test</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#some-inner-workings-you-should-know">Some Inner Workings You Should Know</a><ul>
+<li><a class="reference internal" href="#the-bdp-types-py-file">The bdp_types.py File</a></li>
+<li><a class="reference internal" href="#the-dtdgenerator">The dtdGenerator</a></li>
+<li><a class="reference internal" href="#the-valid-bdp-in-attribute">The valid_bdp_in Attribute</a></li>
+<li><a class="reference internal" href="#the-valid-bdp-out-attribute">The valid_bdp_out Attribute</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#files-to-be-checked-in-when-adding-an-at-and-or-bdp">Files to be checked (in) when adding an AT and/or BDP</a></li>
+<li><a class="reference internal" href="#using-tables-images-lines-and-sources">Using Tables, Images, Lines and Sources</a><ul>
+<li><a class="reference internal" href="#table-bdp">Table BDP</a></li>
+<li><a class="reference internal" href="#image-bdp">Image BDP</a></li>
+<li><a class="reference internal" href="#line-bdp">Line BDP</a></li>
+<li><a class="reference internal" href="#sourcelist-bdp">SourceList BDP</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#more-complex-examples">More Complex Examples</a><ul>
+<li><a class="reference internal" href="#complex-bdp">Complex BDP</a></li>
+<li><a class="reference internal" href="#complex-at">Complex AT</a></li>
+<li><a class="reference internal" href="#image-cube-manipulation-sample-template">Image cube manipulation sample template</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#line-detection-with-admit">Line Detection With ADMIT</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="style.html"
+                        title="previous chapter">Documentation Style Guide</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="casapython.html"
+                        title="next chapter">Usage of python in CASA</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/examples.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="casapython.html" title="Usage of python in CASA"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="style.html" title="Documentation Style Guide"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">ADMIT 1.0.6 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

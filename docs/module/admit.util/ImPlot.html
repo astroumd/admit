@@ -1,0 +1,211 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ImPlot — Simple image plotter. &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../index.html" />
+    <link rel="up" title="Python Scripting Interface (API)" href="../../api.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" accesskey="U">Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-admit.util.ImPlot"></span><div class="section" id="implot-simple-image-plotter">
+<span id="implot-api"></span><h1><strong>ImPlot</strong> &#8212; Simple image plotter.<a class="headerlink" href="#implot-simple-image-plotter" title="Permalink to this headline">¶</a></h1>
+<p>This module defines the ImPlot class.</p>
+<dl class="class">
+<dt id="admit.util.ImPlot.ImPlot">
+<em class="property">class </em><code class="descclassname">admit.util.ImPlot.</code><code class="descname">ImPlot</code><span class="sig-paren">(</span><em>pmode=None</em>, <em>ptype=None</em>, <em>figno=None</em>, <em>abspath=''</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/ImPlot.html#ImPlot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.ImPlot.ImPlot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Basic ADMIT image plotter that uses casa calls to create figures.</p>
+<ul class="simple">
+<li>uses CASA imview</li>
+<li>plot modes and plot types as in util.PlotControl</li>
+<li>keeps track of figure number</li>
+<li>make thumbnails if requested</li>
+</ul>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="AbstractPlot.html#module-admit.util.AbstractPlot" title="admit.util.AbstractPlot"><code class="xref py py-obj docutils literal"><span class="pre">admit.util.AbstractPlot</span></code></a>, <a class="reference internal" href="casautil.html#module-admit.util.casautil" title="admit.util.casautil"><code class="xref py py-obj docutils literal"><span class="pre">admit.util.casautil</span></code></a></p>
+</div>
+<p class="rubric">Attributes</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">plotmode</span></code></td>
+<td>Get the plotting mode</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">plottype</span></code></td>
+<td>Get the plot type</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">backend</span></code>(thebackend)</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">figure</span></code>([figno])</td>
+<td>set the figure number.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">getFigure</span></code>(figno,&nbsp;relative)</td>
+<td>Get the name of the figure file for given figure number</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">getThumbnail</span></code>(figno,&nbsp;relative)</td>
+<td>Get the name of the thumbnail file for given figure number</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">makeThumbnail</span></code>([figno,&nbsp;scale,&nbsp;fig])</td>
+<td>Create a thumbnail for a given figure number.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.ImPlot.ImPlot.plotter" title="admit.util.ImPlot.ImPlot.plotter"><code class="xref py py-obj docutils literal"><span class="pre">plotter</span></code></a>(figname[,&nbsp;rasterfile,&nbsp;contourfile,&nbsp;...])</td>
+<td>Image plotter</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">show</span></code>()</td>
+<td>show internals for debugging</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="admit.util.ImPlot.ImPlot.plotter">
+<code class="descname">plotter</code><span class="sig-paren">(</span><em>figname</em>, <em>rasterfile=None</em>, <em>contourfile=None</em>, <em>colorwedge=False</em>, <em>thumbnail=True</em>, <em>zoom=1</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/ImPlot.html#ImPlot.plotter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.ImPlot.ImPlot.plotter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Image plotter</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>figname</strong> : str</p>
+<blockquote>
+<div><p>Root of output file name.  An extension matching the plot
+type will be appended. For instance, for, figname=&#8217;fig&#8217;
+and plottype=PlotControl.PNG, the output file is &#8216;fig.png&#8217;</p>
+</div></blockquote>
+<p><strong>rasterfile</strong> : str</p>
+<blockquote>
+<div><p>Image file to use as raster map.  Optional if contourfile is given.</p>
+</div></blockquote>
+<p><strong>contourfile</strong> : str</p>
+<blockquote>
+<div><p>Image file to use as contour map. Contours will be overlaid on
+rasterfile if both are given.  Optional if rasterfile is given.</p>
+</div></blockquote>
+<p><strong>colorwedge</strong> : boolean</p>
+<blockquote>
+<div><p>True - show color wedge, False - don&#8217;t show color wedge</p>
+</div></blockquote>
+<p><strong>thumbnail</strong> : boolean</p>
+<blockquote>
+<div><p>If True, create a thumbnail when creating an output figure.
+Thumbnails will have &#8216;_thumb&#8217; appended for file root.
+For instance, if the output file is &#8216;fig.png&#8217;, the thumbnail
+will be &#8216;fig_thumb.png&#8217;.  Note: only PNG format is currently
+supported (matplotlib restriction, Exception raised otherwise).</p>
+</div></blockquote>
+<p><strong>zoom</strong> : int</p>
+<blockquote>
+<div><p>Image zoom ratio.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/module/admit.util/ImPlot.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" >Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

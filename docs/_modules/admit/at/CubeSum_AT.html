@@ -1,0 +1,528 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.at.CubeSum_AT &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.at.CubeSum_AT</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; .. _CubeSum-at-api:</span>
+
+<span class="sd">   **CubeSum_AT** --- Sums the emission in a cube.</span>
+<span class="sd">   -----------------------------------------------</span>
+
+<span class="sd">   This module defines the CubeSum_AT class.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">admit.AT</span> <span class="k">import</span> <span class="n">AT</span>
+<span class="kn">from</span> <span class="nn">admit.Summary</span> <span class="k">import</span> <span class="n">SummaryEntry</span>
+<span class="kn">from</span> <span class="nn">admit.util</span> <span class="k">import</span> <span class="n">APlot</span>
+<span class="kn">import</span> <span class="nn">admit.util.bdp_types</span> <span class="k">as</span> <span class="nn">bt</span>
+<span class="kn">import</span> <span class="nn">admit.util.casautil</span> <span class="k">as</span> <span class="nn">casautil</span>
+<span class="kn">import</span> <span class="nn">admit.util.Image</span> <span class="k">as</span> <span class="nn">Image</span>
+<span class="kn">import</span> <span class="nn">admit.util.Line</span> <span class="k">as</span> <span class="nn">Line</span>
+<span class="kn">import</span> <span class="nn">admit.util.ImPlot</span> <span class="k">as</span> <span class="nn">ImPlot</span>
+<span class="kn">import</span> <span class="nn">admit.util.Segments</span> <span class="k">as</span> <span class="nn">Segments</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.Image_BDP</span> <span class="k">import</span> <span class="n">Image_BDP</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.CubeStats_BDP</span> <span class="k">import</span> <span class="n">CubeStats_BDP</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.LineList_BDP</span> <span class="k">import</span> <span class="n">LineList_BDP</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.Moment_BDP</span> <span class="k">import</span> <span class="n">Moment_BDP</span>
+<span class="kn">import</span> <span class="nn">admit.util.utils</span> <span class="k">as</span> <span class="nn">utils</span>
+<span class="kn">import</span> <span class="nn">admit.util.filter.Filter1D</span> <span class="k">as</span> <span class="nn">Filter1D</span>
+<span class="kn">from</span> <span class="nn">admit.util.AdmitLogging</span> <span class="k">import</span> <span class="n">AdmitLogging</span> <span class="k">as</span> <span class="n">logging</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy.ma</span> <span class="k">as</span> <span class="nn">ma</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
+
+<span class="kn">import</span> <span class="nn">types</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="k">try</span><span class="p">:</span>
+  <span class="kn">import</span> <span class="nn">casa</span>
+  <span class="kn">import</span> <span class="nn">taskinit</span>
+<span class="k">except</span><span class="p">:</span>
+  <span class="nb">print</span> <span class="s2">&quot;WARNING: No CASA; CubeSum task cannot function.&quot;</span>
+
+<div class="viewcode-block" id="CubeSum_AT"><a class="viewcode-back" href="../../../module/admit.at/CubeSum_AT.html#admit.at.CubeSum_AT.CubeSum_AT">[docs]</a><span class="k">class</span> <span class="nc">CubeSum_AT</span><span class="p">(</span><span class="n">AT</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Creates a moment-0 map of a cube, with optional channel segment selection.</span>
+
+<span class="sd">    In optical astronomy this would be called a white light image.  In</span>
+<span class="sd">    radio astronomy it&#39;s often called a Moment-0 map.  CubeSum_AT is a</span>
+<span class="sd">    special version of Moment_AT, mostly used to produce an unbiased</span>
+<span class="sd">    reference line emission image, one that eliminates most of the</span>
+<span class="sd">    (optionally frequency dependent) noise. Since it is not interested</span>
+<span class="sd">    in the possibly many lines in the cube, it only adds up the</span>
+<span class="sd">    emission.  Higher order moments are thus meaningless. Use the</span>
+<span class="sd">    LineID_AT/LineCube_AT/Moment_AT sequence to get meaningful higher</span>
+<span class="sd">    order moments. This image is often used as a reference image to</span>
+<span class="sd">    extract positions for CubeSpectrum_AT, or for PVSlice_AT to compute</span>
+<span class="sd">    a best slice based on the moments of inertia in this map.</span>
+
+<span class="sd">    An optional CubeStats_BDP can be given, which will also contain</span>
+<span class="sd">    the variation of the RMS accross the channels in this spectral window, from</span>
+<span class="sd">    which one can judge if a channel based RMS clipping is really</span>
+<span class="sd">    needed. In most cases this is not.</span>
+<span class="sd">    NOTE: Currently channel based RMS clipping can be slow.</span>
+
+<span class="sd">    Also optionally a LineList_BDP (from LineSegment_AT or LineID_AT) can</span>
+<span class="sd">    be added to the input, in which case you can select if the line</span>
+<span class="sd">    segments are used to form an even better CubeSum. You can also select its complement,</span>
+<span class="sd">    using linesum=False, in effect creating an image where only noise</span>
+<span class="sd">    should be present (assuming the continuum had been subtracted properly).</span>
+<span class="sd">    numsigma=0 is recommended in this case. This image is recommended</span>
+<span class="sd">    to test your continuum subtraction strategy and should thus only contain</span>
+<span class="sd">    noise and no obvious source structure.</span>
+
+<span class="sd">    See also :ref:`CubeSum-AT-Design` for the design document.</span>
+
+<span class="sd">    **Keywords**</span>
+
+<span class="sd">        **numsigma**: float</span>
+<span class="sd">            The cutoff level for the moment map in terms of the characterictic</span>
+<span class="sd">            noise, sigma. How sigma is determined, can be set via the sigma= keyword.</span>
+<span class="sd">            Note that the values above numsigma*sigma and below -numsigma*sigma</span>
+<span class="sd">            will be taken into the sum in order for this imagine to be unbiased,</span>
+<span class="sd">            and for properly continuum subtracted cubes display absorbtion signal.</span>
+<span class="sd">            **Default**: 2.0.</span>
+
+<span class="sd">        **sigma**: float</span>
+<span class="sd">            The noise level to be used for calculating the cutoff values. </span>
+<span class="sd">            If a CubeStats_BDP is provided and sigma is provided negative, then CubeSum_AT</span>
+<span class="sd">            uses the frequency-dependent sigma from the CubeStats_BDP used in</span>
+<span class="sd">            the cutoff. This sigma was determined for each plane in the input cube.</span>
+<span class="sd">            If a CubeStats_BDP is provided and sigma is provided positive, then the sigma</span>
+<span class="sd">            is taken from its cube rms value and the actual value of sigma is ignored.</span>
+<span class="sd">            If a CubeStats_BDP is not provided, sigma must be set to a positive value</span>
+<span class="sd">            for masking. Otherwise, an exception will be thrown. A negative value is</span>
+<span class="sd">            not allowed in this case.</span>
+<span class="sd">            **Default**: -1.0. Units are those of the input image, typically Jy/beam.</span>
+<span class="sd">        </span>
+<span class="sd">        **linesum**: boolean</span>
+<span class="sd">            Only used if a LineList_BDP is part of the input. In that case by default</span>
+<span class="sd">            the line segments will be used to add to the Moment-0. If linesum=False,</span>
+<span class="sd">            its complement (supposedly just noise) will be used.</span>
+<span class="sd">            **Default**: True.</span>
+
+<span class="sd">        **pad**: integer</span>
+<span class="sd">            Extra channels added on either side of a line (as given by</span>
+<span class="sd">            the LineList).  </span>
+<span class="sd">            **Default**: 5.</span>
+
+<span class="sd">        **zoom**: int</span>
+<span class="sd">          Image zoom ratio applied to the moment map plots. This does not</span>
+<span class="sd">          affect the base (CASA) image itself. Default: 1.</span>
+
+
+<span class="sd">    **Input BDPs**</span>
+
+<span class="sd">        **SpwCube_BDP**: count: 1</span>
+<span class="sd">           Input spectral window cube; usually the output of an</span>
+<span class="sd">           `Ingest_AT &lt;Ingest_AT.html&gt;`_.</span>
+
+<span class="sd">        **CubeStats_BDP**: count: 1 (optional)</span>
+<span class="sd">            Optional input for the global RMS or channel-based RMS (if</span>
+<span class="sd">            sigma&gt;0). Note that tracking channel-based RMS is currently very</span>
+<span class="sd">            expensive. Normally the output of a</span>
+<span class="sd">            `CubeStats_AT &lt;CubeStats_AT.html&gt;`_.</span>
+<span class="sd"> </span>
+<span class="sd">        **LineList_BDP**: count: 1 (optional)</span>
+<span class="sd">            Optional input of a LineList in case channels segments are selected</span>
+<span class="sd">            or rejected to be included; usually the output of a</span>
+<span class="sd">            `LineID_AT &lt;LineID_AT.html&gt;`_. A LineSegment_BDP (from</span>
+<span class="sd">            `LineSegment_AT &lt;LineSegment_AT.html&gt;`_) is also allowed.</span>
+
+<span class="sd">    **Output BDPs**</span>
+
+<span class="sd">        **Moment_BDP**: count: 1</span>
+
+<span class="sd">    **Graphics Produced**</span>
+<span class="sd">        TBD</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">        keyval : dictionary, optional</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">        _version : string</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1">### deprecated keywords</span>
+    
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        **smooth** : tuple   (NOTE: THIS IS NOW A LIST, with a standard interface)                                                                     </span>
+<span class="sd">            A tuple of length 2. The first element is a string giving the                 </span>
+<span class="sd">            smoothing method to use; choices are: &#39;savgol&#39;, &#39;boxcar&#39;, &#39;gaussian&#39;, &#39;hanning&#39;,                  </span>
+<span class="sd">            &#39;triangle&#39;, and &#39;welch&#39;. The second element is a dictionary given any keyword/value</span>
+<span class="sd">            arguments for the smoothing algorithm. See :ref:`filter1D` for details on the </span>
+<span class="sd">            individual methods and their keywords. For example</span>
+<span class="sd">            {&quot;window_size&quot; : 7, &quot;order&quot; : 3, &quot;deriv&quot; : 0}</span>
+<span class="sd">            This keyword is also used by LineID_AT.</span>
+<span class="sd">            **Default**: ()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+ 
+    <span class="c1"># @todo  it should also write a theoretical sigma into the header, based on the sigma</span>
+    <span class="c1">#        in the spw cube and # channels (sigma/sqrt(N)) used.</span>
+    <span class="c1">#</span>
+       
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">keyval</span><span class="p">):</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;numsigma&quot;</span>   <span class="p">:</span> <span class="mf">2.0</span><span class="p">,</span>    <span class="c1"># default to 2.0*sigma cutoff</span>
+            <span class="s2">&quot;sigma&quot;</span>      <span class="p">:</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span>   <span class="c1"># default to CubeStats rms(freq)</span>
+            <span class="s2">&quot;linesum&quot;</span>    <span class="p">:</span> <span class="kc">True</span><span class="p">,</span>   <span class="c1"># Select line segments for from the (optional) LineList</span>
+            <span class="s2">&quot;pad&quot;</span>        <span class="p">:</span> <span class="mi">5</span><span class="p">,</span>      <span class="c1"># number of channels to pad onto the line segments from LineList</span>
+            <span class="s2">&quot;zoom&quot;</span>       <span class="p">:</span> <span class="mi">1</span><span class="p">,</span>      <span class="c1"># default map plot zoom ratio</span>
+        <span class="p">}</span>
+        <span class="n">AT</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">keys</span><span class="p">,</span><span class="n">keyval</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_version</span> <span class="o">=</span> <span class="s2">&quot;1.1.0&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_bdp_in</span><span class="p">([(</span><span class="n">Image_BDP</span><span class="p">,</span>     <span class="mi">1</span><span class="p">,</span> <span class="n">bt</span><span class="o">.</span><span class="n">REQUIRED</span><span class="p">),</span>
+                         <span class="p">(</span><span class="n">CubeStats_BDP</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">bt</span><span class="o">.</span><span class="n">OPTIONAL</span><span class="p">),</span>
+                         <span class="p">(</span><span class="n">LineList_BDP</span><span class="p">,</span>  <span class="mi">1</span><span class="p">,</span> <span class="n">bt</span><span class="o">.</span><span class="n">OPTIONAL</span><span class="p">)])</span>    <span class="c1"># LineSegment_BDP also allowed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_bdp_out</span><span class="p">([(</span><span class="n">Moment_BDP</span><span class="p">,</span><span class="mi">1</span><span class="p">)])</span>
+
+<div class="viewcode-block" id="CubeSum_AT.run"><a class="viewcode-back" href="../../../module/admit.at/CubeSum_AT.html#admit.at.CubeSum_AT.CubeSum_AT.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; The run method creates the BDP</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">Dtime</span><span class="p">(</span><span class="s2">&quot;CubeSum&quot;</span><span class="p">)</span>              <span class="c1"># tagging time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span> <span class="o">=</span> <span class="p">{}</span>                       <span class="c1"># an ADMIT summary will be created here</span>
+ 
+        <span class="n">numsigma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;numsigma&quot;</span><span class="p">)</span>       <span class="c1"># get the input keys</span>
+        <span class="n">sigma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;sigma&quot;</span><span class="p">)</span>
+        <span class="n">use_lines</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;linesum&quot;</span><span class="p">)</span>
+        <span class="n">pad</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;pad&quot;</span><span class="p">)</span> 
+
+        <span class="n">b1</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>                    <span class="c1"># spw image cube</span>
+        <span class="n">b1a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>                    <span class="c1"># cubestats (optional)</span>
+        <span class="n">b1b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>                    <span class="c1"># linelist  (optional)</span>
+
+        <span class="n">ia</span> <span class="o">=</span> <span class="n">taskinit</span><span class="o">.</span><span class="n">iatool</span><span class="p">()</span>
+
+        <span class="n">f1</span> <span class="o">=</span>  <span class="n">b1</span><span class="o">.</span><span class="n">getimagefile</span><span class="p">(</span><span class="n">bt</span><span class="o">.</span><span class="n">CASA</span><span class="p">)</span>
+        <span class="n">ia</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">f1</span><span class="p">))</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
+        <span class="n">nchan</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="s1">&#39;shape&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">b1b</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ch0</span> <span class="o">=</span> <span class="n">b1b</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">getFullColumnByName</span><span class="p">(</span><span class="s2">&quot;startchan&quot;</span><span class="p">)</span>
+            <span class="n">ch1</span> <span class="o">=</span> <span class="n">b1b</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">getFullColumnByName</span><span class="p">(</span><span class="s2">&quot;endchan&quot;</span><span class="p">)</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">Segments</span><span class="p">(</span><span class="n">ch0</span><span class="p">,</span><span class="n">ch1</span><span class="p">,</span><span class="n">nchan</span><span class="o">=</span><span class="n">nchan</span><span class="p">)</span>
+            <span class="c1"># @todo something isn&#39;t merging here as i would have expected,</span>
+            <span class="c1">#       e.g. test0.fits [(16, 32), (16, 30), (16, 29)]</span>
+            <span class="k">if</span> <span class="n">pad</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">for</span> <span class="p">(</span><span class="n">c0</span><span class="p">,</span><span class="n">c1</span><span class="p">)</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">getsegmentsastuples</span><span class="p">():</span>
+                    <span class="n">s</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">c0</span><span class="o">-</span><span class="n">pad</span><span class="p">,</span><span class="n">c0</span><span class="p">])</span>
+                    <span class="n">s</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">c1</span><span class="p">,</span><span class="n">c1</span><span class="o">+</span><span class="n">pad</span><span class="p">])</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">merge</span><span class="p">()</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">recalcmask</span><span class="p">()</span>
+            <span class="c1"># print &quot;PJT segments:&quot;,s.getsegmentsastuples()</span>
+            <span class="n">ns</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">getsegmentsastuples</span><span class="p">())</span>
+            <span class="n">chans</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">chans</span><span class="p">(</span><span class="ow">not</span> <span class="n">use_lines</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">use_lines</span><span class="p">:</span>
+                <span class="n">msum</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">getmask</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">msum</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">s</span><span class="o">.</span><span class="n">getmask</span><span class="p">()</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Read </span><span class="si">%d</span><span class="s2"> segments&quot;</span> <span class="o">%</span> <span class="n">ns</span><span class="p">)</span>
+            <span class="c1"># print &quot;chans&quot;,chans</span>
+            <span class="c1"># print &quot;msum&quot;,msum</span>
+
+        <span class="c1">#  from a deprecated keyword, but kept here to pre-smooth the spectrum before clipping</span>
+        <span class="c1">#  examples are:  [&#39;boxcar&#39;,3]    [&#39;gaussian&#39;,7]    [&#39;hanning&#39;,5] </span>
+        <span class="n">smooth</span><span class="o">=</span> <span class="p">[]</span>
+                
+        <span class="n">sig_const</span> <span class="o">=</span> <span class="kc">False</span>                        <span class="c1"># figure out if sigma is taken as constant in the cube</span>
+        <span class="k">if</span> <span class="n">b1a</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>                          <span class="c1"># if no 2nd BDP was given, sigma needs to be specified </span>
+            <span class="k">if</span> <span class="n">sigma</span> <span class="o">&lt;=</span> <span class="mf">0.0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span><span class="s2">&quot;Neither user-supplied sigma nor CubeStats_BDP input given. One is required.&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">sig_const</span> <span class="o">=</span> <span class="kc">True</span>                 <span class="c1"># and is constant</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">sigma</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">sigma</span> <span class="o">=</span> <span class="n">b1a</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;sigma&quot;</span><span class="p">)</span>
+                <span class="n">sig_const</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="k">if</span> <span class="n">sig_const</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Using constant sigma = </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">sigma</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Using varying sigma per plane&quot;</span><span class="p">)</span>
+
+        <span class="n">infile</span> <span class="o">=</span> <span class="n">b1</span><span class="o">.</span><span class="n">getimagefile</span><span class="p">(</span><span class="n">bt</span><span class="o">.</span><span class="n">CASA</span><span class="p">)</span>          <span class="c1"># ADMIT filename of the image (cube)</span>
+        <span class="n">bdp_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mkext</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span><span class="s1">&#39;csm&#39;</span><span class="p">)</span>        <span class="c1"># morph to the new output name with replaced extension &#39;csm&#39;</span>
+        <span class="n">image_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">bdp_name</span><span class="p">)</span>             <span class="c1"># absolute filename</span>
+        
+        <span class="n">args</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;imagename&quot;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">infile</span><span class="p">)}</span>    <span class="c1"># assemble arguments for immoments()</span>
+        <span class="n">args</span><span class="p">[</span><span class="s2">&quot;moments&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>                        <span class="c1"># only need moments=0 (or [0] is ok as well)</span>
+        <span class="n">args</span><span class="p">[</span><span class="s2">&quot;outfile&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">image_out</span>                <span class="c1"># note full pathname</span>
+
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;start&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">sig_const</span><span class="p">:</span>
+            <span class="n">args</span><span class="p">[</span><span class="s2">&quot;excludepix&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="n">numsigma</span><span class="o">*</span><span class="n">sigma</span><span class="p">,</span> <span class="n">numsigma</span><span class="o">*</span><span class="n">sigma</span><span class="p">]</span>        <span class="c1"># single global sigma</span>
+            <span class="k">if</span> <span class="n">b1b</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># print &quot;PJT: &quot;,chans</span>
+                <span class="n">args</span><span class="p">[</span><span class="s2">&quot;chans&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">chans</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># @todo    in this section bad channels can cause a fully masked cubesum = bad</span>
+            <span class="c1"># cubestats input</span>
+            <span class="n">sigma_array</span> <span class="o">=</span> <span class="n">b1a</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">getColumnByName</span><span class="p">(</span><span class="s2">&quot;sigma&quot;</span><span class="p">)</span>              <span class="c1"># channel dependent sigma</span>
+            <span class="n">sigma_pos</span> <span class="o">=</span> <span class="n">sigma_array</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">sigma_array</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">)]</span>
+            <span class="n">smin</span> <span class="o">=</span> <span class="n">sigma_pos</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+            <span class="n">smax</span> <span class="o">=</span> <span class="n">sigma_pos</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;sigma varies from </span><span class="si">%f</span><span class="s2"> to </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">smin</span><span class="p">,</span><span class="n">smax</span><span class="p">))</span>
+            <span class="n">maxval</span> <span class="o">=</span> <span class="n">b1a</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;maxval&quot;</span><span class="p">)</span>                                    <span class="c1"># max in cube</span>
+            <span class="n">nzeros</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">sigma_array</span><span class="o">&lt;=</span><span class="mf">0.0</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>                   <span class="c1"># check bad channels</span>
+            <span class="k">if</span> <span class="n">nzeros</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;There are </span><span class="si">%d</span><span class="s2"> NaN channels &quot;</span> <span class="o">%</span> <span class="n">nzeros</span><span class="p">)</span>
+                <span class="c1"># raise Exception,&quot;need to recode CubeSum or use constant sigma&quot; </span>
+            <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;grab_sig&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">smooth</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># see also LineID and others</span>
+                <span class="nb">filter</span> <span class="o">=</span> <span class="n">Filter1D</span><span class="o">.</span><span class="n">Filter1D</span><span class="p">(</span><span class="n">sigma_array</span><span class="p">,</span><span class="n">smooth</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="o">**</span><span class="n">Filter1D</span><span class="o">.</span><span class="n">Filter1D</span><span class="o">.</span><span class="n">convertargs</span><span class="p">(</span><span class="n">smooth</span><span class="p">))</span>
+                <span class="n">sigma_array</span> <span class="o">=</span> <span class="nb">filter</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+                <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;smooth_sig&quot;</span><span class="p">)</span>
+            <span class="c1"># create a CASA image copy for making the mirror sigma cube to mask against</span>
+            <span class="n">file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">infile</span><span class="p">)</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">file</span><span class="o">+</span><span class="s2">&quot;_mask&quot;</span>
+            <span class="n">ia</span><span class="o">.</span><span class="n">fromimage</span><span class="p">(</span><span class="n">infile</span><span class="o">=</span><span class="n">file</span><span class="p">,</span> <span class="n">outfile</span><span class="o">=</span><span class="n">mask</span><span class="p">)</span>
+            <span class="n">nx</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">shape</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">ny</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">shape</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">nchan</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">shape</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">ia</span><span class="o">.</span><span class="n">fromshape</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">nx</span><span class="p">,</span><span class="n">ny</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">plane</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">getchunk</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>     <span class="c1"># convenience plane for masking operation</span>
+            <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;mask_sig&quot;</span><span class="p">)</span>
+
+            <span class="n">ia</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span> 
+            <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;open_mask&quot;</span><span class="p">)</span>
+              
+            <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nchan</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">sigma_array</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">b1b</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">msum</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+                            <span class="n">ia</span><span class="o">.</span><span class="n">putchunk</span><span class="p">(</span><span class="n">plane</span><span class="o">*</span><span class="mi">0</span><span class="o">+</span><span class="n">sigma_array</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">blc</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                            <span class="n">count</span> <span class="o">=</span> <span class="n">count</span> <span class="o">+</span> <span class="mi">1</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">ia</span><span class="o">.</span><span class="n">putchunk</span><span class="p">(</span><span class="n">plane</span><span class="o">*</span><span class="mi">0</span><span class="o">+</span><span class="n">maxval</span><span class="p">,</span><span class="n">blc</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>                            
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">ia</span><span class="o">.</span><span class="n">putchunk</span><span class="p">(</span><span class="n">plane</span><span class="o">*</span><span class="mi">0</span><span class="o">+</span><span class="n">sigma_array</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">blc</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                        <span class="n">count</span> <span class="o">=</span> <span class="n">count</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">ia</span><span class="o">.</span><span class="n">putchunk</span><span class="p">(</span><span class="n">plane</span><span class="o">*</span><span class="mi">0</span><span class="o">+</span><span class="n">maxval</span><span class="p">,</span><span class="n">blc</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">ia</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">/</span><span class="si">%d</span><span class="s2"> channels used for CubeSum&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">count</span><span class="p">,</span><span class="n">nchan</span><span class="p">))</span>
+            <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;close_mask&quot;</span><span class="p">)</span>
+
+            <span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="n">file</span><span class="p">,</span> <span class="n">mask</span><span class="p">]</span>
+            <span class="n">tmp</span> <span class="o">=</span> <span class="n">file</span> <span class="o">+</span> <span class="s1">&#39;.tmp&#39;</span>
+            <span class="k">if</span> <span class="n">numsigma</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+                <span class="c1"># hopefully this will also make use of the mask</span>
+                <span class="n">exp</span> <span class="o">=</span> <span class="s2">&quot;IM0[IM1&lt;</span><span class="si">%f</span><span class="s2">]&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="mf">0.99</span><span class="o">*</span><span class="n">maxval</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">exp</span> <span class="o">=</span> <span class="s2">&quot;IM0[abs(IM0/IM1)&gt;</span><span class="si">%f</span><span class="s2">]&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">numsigma</span><span class="p">)</span>
+            <span class="c1"># print &quot;PJT: exp&quot;,exp</span>
+            <span class="n">casa</span><span class="o">.</span><span class="n">immath</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;evalexpr&#39;</span><span class="p">,</span> <span class="n">imagename</span><span class="o">=</span><span class="n">names</span><span class="p">,</span> <span class="n">expr</span><span class="o">=</span><span class="n">exp</span><span class="p">,</span> <span class="n">outfile</span><span class="o">=</span><span class="n">tmp</span><span class="p">)</span> 
+            <span class="n">args</span><span class="p">[</span><span class="s2">&quot;imagename&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmp</span>
+            <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;immath&quot;</span><span class="p">)</span>
+
+        <span class="n">casa</span><span class="o">.</span><span class="n">immoments</span><span class="p">(</span><span class="o">**</span><span class="n">args</span><span class="p">)</span> 
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;immoments&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">sig_const</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>  
+            <span class="c1"># get rid of temporary files</span>
+            <span class="n">utils</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span>
+            <span class="n">utils</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+
+        <span class="c1"># get the flux</span>
+        <span class="n">ia</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">image_out</span><span class="p">)</span>
+        <span class="n">st</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">statistics</span><span class="p">()</span>
+        <span class="n">ia</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;statistics&quot;</span><span class="p">)</span>
+        <span class="c1"># report that flux, but there&#39;s no way to get the units from casa it seems</span>
+        <span class="c1"># ia.summary()[&#39;unit&#39;] is usually &#39;Jy/beam.km/s&#39; for ALMA</span>
+        <span class="c1"># imstat() does seem to know it.</span>
+        <span class="k">if</span> <span class="n">st</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="s1">&#39;flux&#39;</span><span class="p">):</span>
+            <span class="n">rdata</span> <span class="o">=</span> <span class="p">[</span><span class="n">st</span><span class="p">[</span><span class="s1">&#39;flux&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">st</span><span class="p">[</span><span class="s1">&#39;sum&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Total flux: </span><span class="si">%f</span><span class="s2"> (sum=</span><span class="si">%f</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">st</span><span class="p">[</span><span class="s1">&#39;flux&#39;</span><span class="p">],</span><span class="n">st</span><span class="p">[</span><span class="s1">&#39;sum&#39;</span><span class="p">]))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rdata</span> <span class="o">=</span> <span class="p">[</span><span class="n">st</span><span class="p">[</span><span class="s1">&#39;sum&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Sum: </span><span class="si">%f</span><span class="s2"> (beam parameters missing)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">st</span><span class="p">[</span><span class="s1">&#39;sum&#39;</span><span class="p">]))</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">regression</span><span class="p">(</span><span class="s2">&quot;CSM: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">rdata</span><span class="p">))</span>
+            
+        <span class="c1"># Create two output images for html and their thumbnails, too</span>
+        <span class="n">implot</span> <span class="o">=</span> <span class="n">ImPlot</span><span class="p">(</span><span class="n">ptype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_plot_type</span><span class="p">,</span><span class="n">pmode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_plot_mode</span><span class="p">,</span><span class="n">abspath</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">())</span>
+        <span class="n">implot</span><span class="o">.</span><span class="n">plotter</span><span class="p">(</span><span class="n">rasterfile</span><span class="o">=</span><span class="n">bdp_name</span><span class="p">,</span><span class="n">figname</span><span class="o">=</span><span class="n">bdp_name</span><span class="p">,</span>
+                       <span class="n">colorwedge</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">zoom</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;zoom&quot;</span><span class="p">))</span>
+        <span class="n">figname</span>   <span class="o">=</span> <span class="n">implot</span><span class="o">.</span><span class="n">getFigure</span><span class="p">(</span><span class="n">figno</span><span class="o">=</span><span class="n">implot</span><span class="o">.</span><span class="n">figno</span><span class="p">,</span><span class="n">relative</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">thumbname</span> <span class="o">=</span> <span class="n">implot</span><span class="o">.</span><span class="n">getThumbnail</span><span class="p">(</span><span class="n">figno</span><span class="o">=</span><span class="n">implot</span><span class="o">.</span><span class="n">figno</span><span class="p">,</span><span class="n">relative</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+       
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;implot&quot;</span><span class="p">)</span>
+
+        <span class="n">thumbtype</span> <span class="o">=</span> <span class="n">bt</span><span class="o">.</span><span class="n">PNG</span>            <span class="c1"># really should be correlated with self._plot_type!!</span>
+
+        <span class="c1"># 2. Create a histogram of the map data</span>
+        <span class="c1"># get the data for a histogram</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">casautil</span><span class="o">.</span><span class="n">getdata</span><span class="p">(</span><span class="n">image_out</span><span class="p">,</span><span class="n">zeromask</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">compressed</span><span class="p">()</span>
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;getdata&quot;</span><span class="p">)</span>
+
+        <span class="c1"># get the label for the x axis</span>
+        <span class="n">bunit</span> <span class="o">=</span> <span class="n">casa</span><span class="o">.</span><span class="n">imhead</span><span class="p">(</span><span class="n">imagename</span><span class="o">=</span><span class="n">image_out</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;get&quot;</span><span class="p">,</span> <span class="n">hdkey</span><span class="o">=</span><span class="s2">&quot;bunit&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Make the histogram plot</span>
+        <span class="c1"># Since we give abspath in the constructor, figname should be relative</span>
+        <span class="n">myplot</span> <span class="o">=</span> <span class="n">APlot</span><span class="p">(</span><span class="n">ptype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_plot_type</span><span class="p">,</span><span class="n">pmode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_plot_mode</span><span class="p">,</span><span class="n">abspath</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">())</span>
+        <span class="n">auxname</span> <span class="o">=</span> <span class="n">bdp_name</span> <span class="o">+</span> <span class="s2">&quot;_histo&quot;</span>
+        <span class="n">auxtype</span> <span class="o">=</span> <span class="n">bt</span><span class="o">.</span><span class="n">PNG</span>  <span class="c1"># really should be correlated with self._plot_type!!</span>
+        <span class="n">myplot</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="n">columns</span> <span class="o">=</span> <span class="n">data</span><span class="p">,</span>
+                         <span class="n">figname</span> <span class="o">=</span> <span class="n">auxname</span><span class="p">,</span>
+                         <span class="n">xlab</span>    <span class="o">=</span> <span class="n">bunit</span><span class="p">,</span>
+                         <span class="n">ylab</span>    <span class="o">=</span> <span class="s2">&quot;Count&quot;</span><span class="p">,</span>
+                         <span class="n">title</span>   <span class="o">=</span> <span class="s2">&quot;Histogram of CubeSum: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">bdp_name</span><span class="p">),</span>
+                         <span class="n">thumbnail</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">auxname</span> <span class="o">=</span> <span class="n">myplot</span><span class="o">.</span><span class="n">getFigure</span><span class="p">(</span><span class="n">figno</span><span class="o">=</span><span class="n">myplot</span><span class="o">.</span><span class="n">figno</span><span class="p">,</span><span class="n">relative</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">auxthumb</span> <span class="o">=</span> <span class="n">myplot</span><span class="o">.</span><span class="n">getThumbnail</span><span class="p">(</span><span class="n">figno</span><span class="o">=</span><span class="n">myplot</span><span class="o">.</span><span class="n">figno</span><span class="p">,</span><span class="n">relative</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">images</span> <span class="o">=</span> <span class="p">{</span><span class="n">bt</span><span class="o">.</span><span class="n">CASA</span> <span class="p">:</span> <span class="n">bdp_name</span><span class="p">,</span> <span class="n">bt</span><span class="o">.</span><span class="n">PNG</span> <span class="p">:</span> <span class="n">figname</span><span class="p">}</span>
+        <span class="n">casaimage</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span><span class="n">images</span>    <span class="o">=</span> <span class="n">images</span><span class="p">,</span>
+                                <span class="n">auxiliary</span> <span class="o">=</span> <span class="n">auxname</span><span class="p">,</span>
+                                <span class="n">auxtype</span>   <span class="o">=</span> <span class="n">auxtype</span><span class="p">,</span>
+                                <span class="n">thumbnail</span> <span class="o">=</span> <span class="n">thumbname</span><span class="p">,</span>
+                                <span class="n">thumbnailtype</span> <span class="o">=</span> <span class="n">thumbtype</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">b1</span><span class="p">,</span><span class="s2">&quot;line&quot;</span><span class="p">):</span>                      <span class="c1"># SpwCube doesn&#39;t have Line</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">b1</span><span class="p">,</span><span class="s2">&quot;line&quot;</span><span class="p">))</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="n">Line</span><span class="p">):</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Undetermined&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">Line</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Undetermined&quot;</span><span class="p">)</span>    <span class="c1"># fake a Line if there wasn&#39;t one</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">addoutput</span><span class="p">(</span><span class="n">Moment_BDP</span><span class="p">(</span><span class="n">xmlFile</span><span class="o">=</span><span class="n">bdp_name</span><span class="p">,</span><span class="n">moment</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">image</span><span class="o">=</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">casaimage</span><span class="p">),</span><span class="n">line</span><span class="o">=</span><span class="n">line</span><span class="p">))</span>
+        <span class="n">imcaption</span> <span class="o">=</span> <span class="s2">&quot;Integral (moment 0) of all emission in image cube&quot;</span>
+        <span class="n">auxcaption</span> <span class="o">=</span> <span class="s2">&quot;Histogram of cube sum for image cube&quot;</span>
+        <span class="n">taskargs</span> <span class="o">=</span> <span class="s2">&quot;numsigma=</span><span class="si">%.1f</span><span class="s2"> sigma=</span><span class="si">%g</span><span class="s2"> smooth=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">numsigma</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">smooth</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="s2">&quot;cubesum&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SummaryEntry</span><span class="p">([</span><span class="n">figname</span><span class="p">,</span><span class="n">thumbname</span><span class="p">,</span><span class="n">imcaption</span><span class="p">,</span><span class="n">auxname</span><span class="p">,</span><span class="n">auxthumb</span><span class="p">,</span><span class="n">auxcaption</span><span class="p">,</span><span class="n">bdp_name</span><span class="p">,</span><span class="n">infile</span><span class="p">],</span><span class="s2">&quot;CubeSum_AT&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">(</span><span class="kc">True</span><span class="p">),</span><span class="n">taskargs</span><span class="p">)</span>
+
+        <span class="n">ia</span><span class="o">.</span><span class="n">done</span><span class="p">()</span>
+        
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;done&quot;</span><span class="p">)</span>
+        <span class="n">dt</span><span class="o">.</span><span class="n">end</span><span class="p">()</span></div>
+
+    <span class="c1"># @todo i don&#39;t see this table in HTML</span>
+<div class="viewcode-block" id="CubeSum_AT.summary"><a class="viewcode-back" href="../../../module/admit.at/CubeSum_AT.html#admit.at.CubeSum_AT.CubeSum_AT.summary">[docs]</a>    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the summary dictionary from the AT, for merging</span>
+<span class="sd">           into the ADMIT Summary object.</span>
+
+<span class="sd">           CubeSum_AT adds the following to ADMIT summary:</span>
+
+<span class="sd">           .. table::</span>
+<span class="sd">              :class: borderless</span>
+
+<span class="sd">              +---------+--------+---------------------------------------------+</span>
+<span class="sd">              |   Key   | type   |    Description                              |</span>
+<span class="sd">              +=========+========+=============================================+</span>
+<span class="sd">              | cubesum | list   |    Info about CubeSum produced              |</span>
+<span class="sd">              +---------+--------+---------------------------------------------+</span>
+
+<span class="sd">           Parameters</span>
+<span class="sd">           ----------</span>
+<span class="sd">           None</span>
+
+<span class="sd">           Returns</span>
+<span class="sd">           -------</span>
+<span class="sd">           dict</span>
+<span class="sd">               Dictionary of SummaryEntry</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;_summary&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{}</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

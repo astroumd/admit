@@ -710,6 +710,7 @@ class APlot(AbstractPlot):
         if xlab:     ax1.set_xlabel(xlab)
         if ylab:     ax1.set_ylabel(ylab)
 
+        ax1.tick_params(axis='both',color='white',width=1)
 #   Note this (inadvertently) can change the axis order if m0>m1 or n0>n1!
         zoom = data[m0:m1,n0:n1]
 #        logging.info("data[0,0] %g data[m1,n1] %g zoom[0,0] %g zoom[m1,n1] %g" % (data[0,0],data[m1-1,n1-1],zoom[0,0],zoom[m1-1,n1-1]))

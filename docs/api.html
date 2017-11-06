@@ -1,0 +1,493 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Python Scripting Interface (API) &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="index.html" />
+    <link rel="next" title="ADMIT Package" href="module/admit/0-index.html" />
+    <link rel="prev" title="Overview of ADMIT" href="userguideintro.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="module/admit/0-index.html" title="ADMIT Package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="userguideintro.html" title="Overview of ADMIT"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">ADMIT 1.0.6 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="python-scripting-interface-api">
+<h1>Python Scripting Interface (API)<a class="headerlink" href="#python-scripting-interface-api" title="Permalink to this headline">¶</a></h1>
+<p>ADMIT offers an extensive collection of pre-defined modules for creating
+data processing scripts in Python. The programming interface is divided into
+several importable packages, whose contents are detailed in the following
+sections. Names in <strong>boldface</strong> indicate the name of the class as imported into
+the top-level <code class="docutils literal"><span class="pre">admit</span></code> module (e.g., <code class="docutils literal"><span class="pre">admit.Ingest_AT</span></code>); these are the names
+users will see in scripts. Otherwise, class names reside within the
+corresponding module only (e.g., <code class="docutils literal"><span class="pre">admit.xmlio.Parser</span></code>). The detailed
+documentation for each item contains the full, low-level Python class name
+(e.g., <code class="docutils literal"><span class="pre">admit.at.Ingest_AT.Ingest_AT</span></code>), which indicates where the class&#8217;s
+Python code can be found within the ADMIT source tree.</p>
+<div class="section" id="module-admit">
+<h2>Module <cite>admit</cite><a class="headerlink" href="#module-admit" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="module/admit/0-index.html">ADMIT Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit/AT.html"><strong>Task</strong> &#8212; ADMIT task (AT) base.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit/Admit.html"><strong>Project</strong> &#8212; ADMIT project.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit/FlowManager.html"><strong>Flow</strong> &#8212; Project task flow manager.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit/ProjectManager.html"><strong>Manager</strong> &#8212; Multiflow project manager.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit/Summary.html"><strong>Summary</strong> &#8212; Project summary metadata.</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="module-admit-at">
+<h2>Module <cite>admit.at</cite><a class="headerlink" href="#module-admit-at" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.at/0-index.html">AT Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.at/BDPIngest_AT.html"><strong>BDPIngest_AT</strong> &#8212; Ingests an arbitrary BDP disk file.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.at/ContinuumSub_AT.html"><strong>ContinuumSub_AT</strong> &#8212; Subtracts continuum emission from a cube.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.at/CubeSpectrum_AT.html"><strong>CubeSpectrum_AT</strong> &#8212; Cuts one or more spectra through a cube.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.at/CubeStats_AT.html"><strong>CubeStats_AT</strong> &#8212; Calculates cube statistics.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.at/CubeSum_AT.html"><strong>CubeSum_AT</strong> &#8212; Sums the emission in a cube.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.at/Export_AT.html"><strong>Export_AT</strong> &#8212; Exports an Image_BDP to FITS.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.at/File_AT.html"><strong>File_AT</strong> &#8212; Test task representing an arbitrary disk file.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.at/Flow11_AT.html"><strong>Flow11_AT</strong> &#8212; Test task copying a File_BDP to the output.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.at/Flow1N_AT.html"><strong>Flow1N_AT</strong> &#8212; Test task consuming one File_BDP and creating N.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.at/FlowMN_AT.html"><strong>FlowMN_AT</strong> &#8212; Test task consuming M File_BDPs and creating N.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.at/FlowN1_AT.html"><strong>FlowN1_AT</strong> &#8212; Test task consuming N File_BDPs and creating one.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.at/GenerateSpectrum_AT.html"><strong>GenerateSpectrum_AT</strong> &#8212; Generates synthetic test spectra.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.at/Ingest_AT.html"><strong>Ingest_AT</strong> &#8212; Ingests a (FITS) data cube.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.at/LineCube_AT.html"><strong>LineCube_AT</strong> &#8212; Cuts a cube into one or more line-oriented cubes.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.at/LineID_AT.html"><strong>LineID_AT</strong> &#8212; Identifies molecular lines in spectra.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.at/LineSegment_AT.html"><strong>LineSegment_AT</strong> &#8212; Finds segments of line emission in spectra.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.at/Moment_AT.html"><strong>Moment_AT</strong> &#8212; Generates various moment maps of a cube.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.at/OverlapIntegral_AT.html"><strong>OverlapIntegral_AT</strong> &#8212; Computes the overlap integral between images.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.at/PVCorr_AT.html"><strong>PVCorr_AT</strong> &#8212; Determines position-velocity correlations in a map.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.at/PVSlice_AT.html"><strong>PVSlice_AT</strong> &#8212; Creates a position-velocity slice through a cube.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.at/PrincipalComponent_AT.html"><strong>PrincipalComponent_AT</strong> &#8212; Calculates principal components of maps.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.at/Regrid_AT.html"><strong>Regrid_AT</strong> &#8212; Regrids multiple cubes to a common resolution.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.at/SFind2D_AT.html"><strong>SFind2D_AT</strong> &#8212; Finds sources in a 2D map.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.at/Smooth_AT.html"><strong>Smooth_AT</strong> &#8212; Creates a smoothed version of a cube.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.at/Template_AT.html"><strong>Template_AT</strong> &#8212; Cube manipulation template.</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="module-admit-bdp">
+<h2>Module <cite>admit.bdp</cite><a class="headerlink" href="#module-admit-bdp" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.bdp/0-index.html">BDP Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.bdp/BDP.html"><strong>BDP</strong> &#8212; Basic data product base.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.bdp/CubeSpectrum_BDP.html"><strong>CubeSpectrum_BDP</strong> &#8212; Data cube spectra.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.bdp/CubeStats_BDP.html"><strong>CubeStats_BDP</strong> &#8212; Plane-based cube statistics.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.bdp/File_BDP.html"><strong>File_BDP</strong> &#8212; Test data product representing a disk file.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.bdp/Image_BDP.html"><strong>Image_BDP</strong> &#8212; Image data base.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.bdp/LineCube_BDP.html"><strong>LineCube_BDP</strong> &#8212; LineCube_AT data (cube and line information).</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.bdp/LineList_BDP.html"><strong>LineList_BDP</strong> &#8212; LineID_AT data (line information and spectra).</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.bdp/LineSegment_BDP.html"><strong>LineSegment_BDP</strong> &#8212; LineSegment_AT data (line segment information).</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.bdp/Line_BDP.html"><strong>Line_BDP</strong> &#8212; Line data base.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.bdp/Moment_BDP.html"><strong>Moment_BDP</strong> &#8212; Moment_AT data (images and line information).</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.bdp/PVCorr_BDP.html"><strong>PVCorr_BDP</strong> &#8212; PVCorr_AT data (image and table).</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.bdp/PVSlice_BDP.html"><strong>PVSlice_BDP</strong> &#8212; PVSlice_AT data (image).</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.bdp/SourceList_BDP.html"><strong>SourceList_BDP</strong> &#8212; SFind2D_AT data (image and table).</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.bdp/SpwCube.html"><strong>SpwCube_BDP</strong> &#8212; Spectral window cube.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.bdp/Table_BDP.html"><strong>Table_BDP</strong> &#8212; Tabular data base.</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="module-admit-recipes">
+<h2>Module <cite>admit.recipes</cite><a class="headerlink" href="#module-admit-recipes" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.recipes/0-index.html">Recipes Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.recipes/Archive_Pipeline.html"><strong>Archive_Pipeline</strong> &#8212; Produces standard JAO ADMIT pipeline products for spectral line plus continuum images.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.recipes/Archive_SpecLine.html"><strong>Archive_SpecLine</strong> &#8212; Produces standard JAO ADMIT pipeline products for spectral line images.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.recipes/Line_Moment.html"><strong>Line_Moment</strong> &#8212; Image cube to line moment map analysis.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.recipes/Source_Find.html"><strong>Source_Find</strong> &#8212; Finds sources in a 2-D image.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.recipes/Source_Spectra.html"><strong>Source_Spectra</strong> &#8212; Generates spectra for a series of map locations.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.recipes/recipe.html"><strong>recipe</strong> &#8212; Executes a pre-defined ADMIT recipe (script).</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="module-admit-util">
+<h2>Module <cite>admit.util</cite><a class="headerlink" href="#module-admit-util" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.util/0-index.html">Utilities Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.util/APlot.html"><strong>APlot</strong> &#8212; Standardized plot generator.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.util/AbstractPlot.html"><strong>AbstractPlot</strong> &#8212; Plotting base class.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.util/AdmitHTTP.html"><strong>AdmitHTTP</strong> &#8212; Data browser services module.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.util/AdmitLogging.html"><strong>logging</strong> &#8212; Message logging functionality.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.util/ImPlot.html"><strong>ImPlot</strong> &#8212; Simple image plotter.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.util/Image.html"><strong>Image</strong> &#8212; Image data base.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.util/Line.html"><strong>Line</strong> &#8212; Spectral line metadata.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.util/LineData.html"><strong>LineData</strong> &#8212; Extended spectral line metadata.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.util/LinePlot.html"><strong>LinePlot</strong> &#8212; Interactive/non-interactive line plotting utility.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.util/MultiImage.html"><strong>MultiImage</strong> &#8212; Multiple image container base.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.util/PlotControl.html"><strong>PlotControl</strong> &#8212; Defines plot mode, type and orientation.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.util/Segments.html"><strong>Segments</strong> &#8212; Manages groups of line segments.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.util/Source.html"><strong>Source</strong> &#8212; Astronomical source metadata.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.util/SpectralLineSearch.html"><strong>SpectralLineSearch</strong> &#8212; Interface to spectral line searching.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.util/Spectrum.html"><strong>Spectrum</strong> &#8212; Spectral line data container.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.util/SpectrumIngest.html"><strong>SpectrumIngest</strong> &#8212; Converts non-ADMIT spectral data to ADMIT format.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.util/Splatalogue.html"><strong>Splatalogue</strong> &#8212; Module for performing splatalogue queries.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.util/Table.html"><strong>Table</strong> &#8212; Raw tabular data base.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.util/Tier1DB.html"><strong>Tier1DB</strong> &#8212; Tier 1 molecular line database services.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.util/UtilBase.html"><strong>UtilBase</strong> &#8212; Base for all ADMIT utilities.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.util/VLSR.html"><strong>VLSR</strong> &#8212; Simple VLSR catalog and calculator.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.util/casautil.html"><strong>casautil</strong> &#8212; CASA-dependent utilities module.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.util/specutil.html"><strong>specutil</strong> &#8212; Module for low-level manipulation of spectral line data.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.util/stats.html"><strong>stats</strong> &#8212; Statistics functions module.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.util/utils.html"><strong>utils</strong> &#8212; Generic (CASA-independent) utilities module.</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="module-admit-util-continuumsubtraction">
+<h2>Module <cite>admit.util.continuumsubtraction</cite><a class="headerlink" href="#module-admit-util-continuumsubtraction" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.util.continuumsubtraction/0-index.html">Continuum Subtraction Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.util.continuumsubtraction/spectral/ContinuumSubtraction.html">ContinuumSubtraction &#8212; Subtracts the continuum from a spectrum.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.util.continuumsubtraction/spectral/algorithms/PolyFit.html">PolyFit &#8212; Continuum subtraction using a polynomial fit.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.util.continuumsubtraction/spectral/algorithms/SplineFit.html">SplineFit &#8212; Continuum subtraction using a spline fit.</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="module-admit-util-filter">
+<h2>Module <cite>admit.util.filter</cite><a class="headerlink" href="#module-admit-util-filter" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.util.filter/0-index.html">Filter Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.util.filter/Filter1D.html">Filter1D &#8212; 1-dimensional spectral filtering.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.util.filter/Filter2D.html">Filter2D &#8212; 2-dimensional spectral filtering.</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="module-admit-util-peakfinder">
+<h2>Module <cite>admit.util.peakfinder</cite><a class="headerlink" href="#module-admit-util-peakfinder" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.util.peakfinder/0-index.html">Peak Finder Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.util.peakfinder/FindPeaksCWT.html">FindPeaksCWT &#8212; Peak finding with continuous wavelet transforms.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.util.peakfinder/PeakDetect.html">PeakDetect &#8212; Peak detection of peaks and valleys.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.util.peakfinder/PeakFinder.html">PeakFinder &#8212; Peak finding with derivatives.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.util.peakfinder/PeakUtils.html">PeakUtils &#8212; A peak finding algorithm.</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="module-admit-util-segmentfinder">
+<h2>Module <cite>admit.util.segmentfinder</cite><a class="headerlink" href="#module-admit-util-segmentfinder" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.util.segmentfinder/0-index.html">Segment Finder Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.util.segmentfinder/ADMITSegmentFinder.html">ADMITSegmentFinder &#8212; Finds segments of emission within a spectrum.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.util.segmentfinder/ASAPSegmentFinder.html">ASAPSegmentFinder &#8212; Finds segments of emission within a spectrum.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.util.segmentfinder/SegmentFinder.html">SegmentFinder &#8212; Top-level spectral emission segment finder.</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="module-admit-xmlio">
+<h2>Module <cite>admit.xmlio</cite><a class="headerlink" href="#module-admit-xmlio" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.xmlio/0-index.html">XML I/O Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.xmlio/AdmitParser.html">AdmitParser &#8212; Specialized parser for ADMIT XML files.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.xmlio/BDPReader.html">BDPReader &#8212; Converts BDP in XML format to in-memory BDP object.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.xmlio/DTDParser.html">DTDParser &#8212; Parses DTD information within an XML file.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.xmlio/DtdReader.html">DtdReader &#8212; Reads a DTD file.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.xmlio/ErrorHandler.html">ErrorHandler &#8212; Handles errors from the XML parser.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.xmlio/Parser.html">Parser &#8212; Converts an ADMIT project on disk to in-memory objects.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.xmlio/XmlWriter.html">XmlWriter &#8212; Converts in-memory ADMIT objects to XML format.</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="module/admit.xmlio/dtdGenerator.html">dtdGenerator &#8212; Generates the ADMIT DTD files.</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Python Scripting Interface (API)</a><ul>
+<li><a class="reference internal" href="#module-admit">Module <cite>admit</cite></a></li>
+<li><a class="reference internal" href="#module-admit-at">Module <cite>admit.at</cite></a></li>
+<li><a class="reference internal" href="#module-admit-bdp">Module <cite>admit.bdp</cite></a></li>
+<li><a class="reference internal" href="#module-admit-recipes">Module <cite>admit.recipes</cite></a></li>
+<li><a class="reference internal" href="#module-admit-util">Module <cite>admit.util</cite></a></li>
+<li><a class="reference internal" href="#module-admit-util-continuumsubtraction">Module <cite>admit.util.continuumsubtraction</cite></a></li>
+<li><a class="reference internal" href="#module-admit-util-filter">Module <cite>admit.util.filter</cite></a></li>
+<li><a class="reference internal" href="#module-admit-util-peakfinder">Module <cite>admit.util.peakfinder</cite></a></li>
+<li><a class="reference internal" href="#module-admit-util-segmentfinder">Module <cite>admit.util.segmentfinder</cite></a></li>
+<li><a class="reference internal" href="#module-admit-xmlio">Module <cite>admit.xmlio</cite></a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="userguideintro.html"
+                        title="previous chapter">Overview of ADMIT</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="module/admit/0-index.html"
+                        title="next chapter">ADMIT Package</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/api.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="module/admit/0-index.html" title="ADMIT Package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="userguideintro.html" title="Overview of ADMIT"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">ADMIT 1.0.6 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

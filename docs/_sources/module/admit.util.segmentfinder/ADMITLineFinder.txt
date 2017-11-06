@@ -1,0 +1,1 @@
+.. automodule:: admit.util.segmentfinder.ADMITLineFinder

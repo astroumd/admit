@@ -1,0 +1,893 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Flow — Project task flow manager. &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../index.html" />
+    <link rel="up" title="Python Scripting Interface (API)" href="../../api.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" accesskey="U">Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-admit.FlowManager"></span><div class="section" id="flow-project-task-flow-manager">
+<span id="flowmanager-api"></span><h1><strong>Flow</strong> &#8212; Project task flow manager.<a class="headerlink" href="#flow-project-task-flow-manager" title="Permalink to this headline">¶</a></h1>
+<p>This module defines the FlowManager class.</p>
+<dl class="class">
+<dt id="admit.FlowManager.FlowManager">
+<em class="property">class </em><code class="descclassname">admit.FlowManager.</code><code class="descname">FlowManager</code><span class="sig-paren">(</span><em>connmap=None</em>, <em>bdpmap=None</em>, <em>depsmap=None</em>, <em>varimap=None</em>, <em>tasklevs=None</em>, <em>tasks=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/FlowManager.html#FlowManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.FlowManager.FlowManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Manages the flow of data products between ADMIT tasks.</p>
+<p>The flow manager maintains the tree of ADMIT tasks (ATs) constituting
+a data flow. Tasks communicate through basic data products (BDPs)
+that flow between tasks, which combine and transform them into new
+BDPs according to their function. This class implements the bookkeeping
+to track task connections and inter-dependencies. A central concept
+is the task connection 4-tuple, <code class="docutils literal"><span class="pre">(si,</span> <span class="pre">sp,</span> <span class="pre">di,</span> <span class="pre">dp)</span></code>, connecting a
+source task (ID <code class="docutils literal"><span class="pre">si</span></code>) output BDP (port <code class="docutils literal"><span class="pre">sp</span></code>) to a destination
+task (ID <code class="docutils literal"><span class="pre">di</span></code>) input BDP (port <code class="docutils literal"><span class="pre">dp</span></code>). The primary concern of the
+flow manager is to organize and maintain this connection information
+to permit efficient execution and modification of data flows.</p>
+<p>The flow manager includes limited functionality supporting
+self-modifying variadic flows (variflows). In a variflow, at least one
+AT produces a variable number of outputs, whether from instance to
+instance or between runs of the same instance. This presents a problem
+for defining the sub-flow emanating from a variadic AT, as every
+concrete flow must assume a fixed number of outputs from each AT to
+define the connection map. To support variflows, the flow manager will
+automatically clone or prune (disable) sub-flows attached to the
+variadic output ports of an AT, each time the AT is executed, according
+to the actual number of BDPs present. When additional parallel
+sub-flows are needed, the sub-flow(s) attached to the <em>first</em> variadic
+output port is cloned and connected to the new, extra outputs. (If 
+the port already has <em>any</em> ATs attached to it, the existing sub-flow(s)
+are enabled but no cloning is performed.) If fewer sub-flows are
+needed, the excess tasks are simply disabled (i.e., not removed).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>connmap</strong> : triple-nested dictionary of 4-tuples, optional</p>
+<blockquote>
+<div><p>Initial value of the <cite>_connmap</cite> attribute
+(defaults to an empty dictionary).</p>
+</div></blockquote>
+<p><strong>bdpmap</strong> : dictionary of list of 2-tuples, optional</p>
+<blockquote>
+<div><p>Initial value of the <cite>_bdpmap</cite> attribute
+(defaults to an empty dictionary).</p>
+</div></blockquote>
+<p><strong>depsmap</strong> : dictionary of sets, optional</p>
+<blockquote>
+<div><p>Initial value of the <cite>_depsmap</cite> attribute
+(defaults to an empty dictionary).</p>
+</div></blockquote>
+<p><strong>varimap</strong> : double-nested dictionary of list of sets, optional</p>
+<blockquote>
+<div><p>Initial value of the <cite>_varimap</cite> attribute
+(defaults to an empty dictionary).</p>
+</div></blockquote>
+<p><strong>tasklevs</strong> : dictionary of int, optional</p>
+<blockquote>
+<div><p>Initial value of the <cite>_tasklevs</cite> attribute
+(defaults to an empty dictionary).</p>
+</div></blockquote>
+<p><strong>tasks</strong> : dictionary of task references, optional</p>
+<blockquote class="last">
+<div><p>Initial value of the <cite>_tasks</cite> attribute
+(defaults to an empty dictionary).</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>All internal state is kept up to date by <a class="reference external" href="#admit.FlowManager.FlowManager.add">add()</a> and <a class="reference external" href="#admit.FlowManager.FlowManager.remove">remove()</a>
+so that it is valid at all times. Hence <cite>_connmap</cite>, <cite>_depsmap</cite>, etc.
+should never be modified by any other methods, either inside or
+outside of FlowManager (the leading underscore emphasizes this
+intent).</p>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="2%" />
+<col width="98%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>_connmap</td>
+<td>(triple-nested dictionary of 4-tuples) Organizes connection 4-tuples in a 3-level dictionary hierarchy; <cite>_connmap[si][di][dp]</cite> is a connection 4-tuple <code class="docutils literal"><span class="pre">(si,</span> <span class="pre">sp,</span> <span class="pre">di,</span> <span class="pre">dp)</span></code> connecting source task ID <code class="docutils literal"><span class="pre">si</span></code>, BDP output port <code class="docutils literal"><span class="pre">sp</span></code>, to destination task <code class="docutils literal"><span class="pre">di</span></code>, input <code class="docutils literal"><span class="pre">dp</span></code>.</td>
+</tr>
+<tr class="row-even"><td>_bdpmap</td>
+<td>(dictionary of list of 2-tuples) Relates BDP outputs from source tasks with the BDP inputs to connected destination tasks; <cite>_bdpmap[di]</cite> is a list of 2-tuples <code class="docutils literal"><span class="pre">(si,</span> <span class="pre">sp)</span></code>, one for each BDP input port, describing the source of the corresponding BDP.</td>
+</tr>
+<tr class="row-odd"><td>_depsmap</td>
+<td>(dictionary of sets) Maintains the task dependency levels needed by the <a class="reference external" href="#admit.FlowManager.FlowManager.run">run()</a> method; <cite>_depsmap[level]</cite> is the set of task IDs residing at the dependency <code class="docutils literal"><span class="pre">level</span></code>. Lower level tasks must execute prior to higher level tasks to satisfy dependency requirements; tasks at the same level may be executed in any order (even concurrently).</td>
+</tr>
+<tr class="row-even"><td>_varimap</td>
+<td>(double-nested dictionary of list of sets) Tracks variadic sub-flows and their controlling (variadic) root task; <cite>_varimap[si][sp]</cite> is a list of sub-flow task IDs, each stored as a set (one per sub-flow), emanating from task ID <code class="docutils literal"><span class="pre">si</span></code>, (variadic) output port <code class="docutils literal"><span class="pre">sp</span></code>.</td>
+</tr>
+<tr class="row-odd"><td>_tasklevs</td>
+<td>(dictionary of int) Maintains task dependency information in a complementary (inverse) manner to <cite>_depsmap</cite>; <cite>_tasklevels[id]</cite> is the dependency level for task <code class="docutils literal"><span class="pre">id</span></code>.</td>
+</tr>
+<tr class="row-even"><td>_tasks</td>
+<td>(dictionary of task references) Holds references to all ADMIT tasks in the flow, keyed by task id; <cite>_tasks[id]</cite> is an ADMIT task reference.</td>
+</tr>
+<tr class="row-odd"><td>_aliases</td>
+<td>(2-tuple of dictionary of task aliases) Reserved alias registry, keyed by alias base name (index 0) or AT type (index 1). For index 0, the value is an integer count of aliases created with that base name; for index 1, it is the number of default aliases created for ATs of that type. In both cases, the duplicate aliases are appended with &#8216;&#64;N&#8217; for some integer N. Not present in XML.</td>
+</tr>
+<tr class="row-even"><td>_taskid</td>
+<td>(int) Task ID counter, used to ensure unqiue task IDs within the flow. Not present in XML.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#admit.FlowManager.FlowManager.add" title="admit.FlowManager.FlowManager.add"><code class="xref py py-obj docutils literal"><span class="pre">add</span></code></a>(a[,&nbsp;stuples,&nbsp;dtuples])</td>
+<td>Appends or inserts an AT into the task flow.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.FlowManager.FlowManager.clone" title="admit.FlowManager.FlowManager.clone"><code class="xref py py-obj docutils literal"><span class="pre">clone</span></code></a>(id[,&nbsp;flow,&nbsp;idmap])</td>
+<td>Clones the flow emanating from a given root task (included).</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.FlowManager.FlowManager.connectInputs" title="admit.FlowManager.FlowManager.connectInputs"><code class="xref py py-obj docutils literal"><span class="pre">connectInputs</span></code></a>()</td>
+<td>Connects input BDPs to all tasks in the flow.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.FlowManager.FlowManager.diagram" title="admit.FlowManager.FlowManager.diagram"><code class="xref py py-obj docutils literal"><span class="pre">diagram</span></code></a>(dotfile)</td>
+<td>Generates dot (graphviz) diagram for the current flow.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.FlowManager.FlowManager.downstream" title="admit.FlowManager.FlowManager.downstream"><code class="xref py py-obj docutils literal"><span class="pre">downstream</span></code></a>(id[,&nbsp;leaf])</td>
+<td>Determines the ATs downstream of a task (includes itself).</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.FlowManager.FlowManager.dryrun" title="admit.FlowManager.FlowManager.dryrun"><code class="xref py py-obj docutils literal"><span class="pre">dryrun</span></code></a>()</td>
+<td>Performs a dry run.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.FlowManager.FlowManager.find" title="admit.FlowManager.FlowManager.find"><code class="xref py py-obj docutils literal"><span class="pre">find</span></code></a>(isMatch)</td>
+<td>Finds ATs in the flow matching a criterion.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.FlowManager.FlowManager.findTwin" title="admit.FlowManager.FlowManager.findTwin"><code class="xref py py-obj docutils literal"><span class="pre">findTwin</span></code></a>(tid,&nbsp;flow0,&nbsp;twins)</td>
+<td>Attempts to find corresponding task in another flow.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.FlowManager.FlowManager.inFlow" title="admit.FlowManager.FlowManager.inFlow"><code class="xref py py-obj docutils literal"><span class="pre">inFlow</span></code></a>(a[,&nbsp;stuples])</td>
+<td>Determines whether a compatible task exists in the flow.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.FlowManager.FlowManager.mergeTasks" title="admit.FlowManager.FlowManager.mergeTasks"><code class="xref py py-obj docutils literal"><span class="pre">mergeTasks</span></code></a>(summary,&nbsp;flow0,&nbsp;summary0,&nbsp;twins,&nbsp;...)</td>
+<td>Merges task settings from another flow.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.FlowManager.FlowManager.remove" title="admit.FlowManager.FlowManager.remove"><code class="xref py py-obj docutils literal"><span class="pre">remove</span></code></a>(id[,&nbsp;keepRoot,&nbsp;delFiles])</td>
+<td>Removes an AT and its downstream tasks.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.FlowManager.FlowManager.replace" title="admit.FlowManager.FlowManager.replace"><code class="xref py py-obj docutils literal"><span class="pre">replace</span></code></a>(id,&nbsp;a[,&nbsp;stuples])</td>
+<td>Replaces one task with another, removing the original.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.FlowManager.FlowManager.run" title="admit.FlowManager.FlowManager.run"><code class="xref py py-obj docutils literal"><span class="pre">run</span></code></a>([dryrun])</td>
+<td>Executes the flow, but only tasks that are out of date.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.FlowManager.FlowManager.sameLineage" title="admit.FlowManager.FlowManager.sameLineage"><code class="xref py py-obj docutils literal"><span class="pre">sameLineage</span></code></a>(tid,&nbsp;tid0,&nbsp;flow0,&nbsp;twins,&nbsp;match)</td>
+<td>Determines whether two tasks in different flows have identical ancestry.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.FlowManager.FlowManager.script" title="admit.FlowManager.FlowManager.script"><code class="xref py py-obj docutils literal"><span class="pre">script</span></code></a>(py[,&nbsp;proj,&nbsp;tcube])</td>
+<td>Generates a Python script recreating the current flow.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.FlowManager.FlowManager.show" title="admit.FlowManager.FlowManager.show"><code class="xref py py-obj docutils literal"><span class="pre">show</span></code></a>()</td>
+<td>Displays formatted internal FlowManager state.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.FlowManager.FlowManager.showsetkey" title="admit.FlowManager.FlowManager.showsetkey"><code class="xref py py-obj docutils literal"><span class="pre">showsetkey</span></code></a>([outfile])</td>
+<td>Display keysettings for all tasks, meant to be used to</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.FlowManager.FlowManager.stale" title="admit.FlowManager.FlowManager.stale"><code class="xref py py-obj docutils literal"><span class="pre">stale</span></code></a>(id[,&nbsp;direct])</td>
+<td>Sets the stale flag of an AT and its downstream ATs.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.FlowManager.FlowManager.verify" title="admit.FlowManager.FlowManager.verify"><code class="xref py py-obj docutils literal"><span class="pre">verify</span></code></a>()</td>
+<td>Verifies the internal state of the FlowManager.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="admit.FlowManager.FlowManager.add">
+<code class="descname">add</code><span class="sig-paren">(</span><em>a</em>, <em>stuples=None</em>, <em>dtuples=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/FlowManager.html#FlowManager.add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.FlowManager.FlowManager.add" title="Permalink to this definition">¶</a></dt>
+<dd><p>Appends or inserts an AT into the task flow.</p>
+<p>Appending a task creates a new leaf&#8212;a task whose BDP outputs (if
+any) are not connected to any tasks; in this case, <cite>dtuples</cite> can
+be omitted. Insertion implies that one or more of the tasks&#8217;s
+outputs feeds back into the flow, in which case <cite>dtuples</cite> will be
+non-empty.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>a</strong> : AT</p>
+<blockquote>
+<div><p>ADMIT task to append/insert into the flow.</p>
+</div></blockquote>
+<p><strong>stuples</strong> : list of 2-tuples, optional</p>
+<blockquote>
+<div><p>List of source connection 2-tuples, one per BDP input port.  For
+example, <code class="docutils literal"><span class="pre">[(si0,sp0),</span> <span class="pre">(si1,sp1)]</span></code> if the task requires two BDP
+inputs, the first (input port 0) from task <code class="docutils literal"><span class="pre">si0</span></code>, BDP output
+<code class="docutils literal"><span class="pre">sp0</span></code> and the second (input port 1) from task <code class="docutils literal"><span class="pre">si1</span></code>, BDP
+output <code class="docutils literal"><span class="pre">sp1</span></code>. Defaults to <cite>None</cite> (no upstream tasks).</p>
+</div></blockquote>
+<p><strong>dtuples</strong> : list of 4-tuples, optional</p>
+<blockquote>
+<div><p>List of destination connection 4-tuples <code class="docutils literal"><span class="pre">(si,</span> <span class="pre">sp,</span> <span class="pre">di,</span> <span class="pre">dp)</span></code>.
+The number of connections varies but will be zero for leaf
+(i.e., appended) tasks. The source task ID in these tuples must
+match the input task ID <code class="docutils literal"><span class="pre">a.id</span></code>, as it is the source for all
+<cite>dtuples</cite> connections. For example, [(1, 0, 2, 1), (1, 0, 3, 2)]
+if this task (id #1) disseminates its BDP output (port 0) to
+two downstream task inputs (#2 port 1 and #3 port 2). Defaults
+to <cite>None</cite> (no downstream tasks).</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">int</p>
+<blockquote class="last">
+<div><p>Input task ID on success, else -1 (error detected).</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#admit.FlowManager.FlowManager.remove" title="admit.FlowManager.FlowManager.remove"><code class="xref py py-obj docutils literal"><span class="pre">remove</span></code></a>, <a class="reference internal" href="#admit.FlowManager.FlowManager.replace" title="admit.FlowManager.FlowManager.replace"><code class="xref py py-obj docutils literal"><span class="pre">replace</span></code></a></p>
+</div>
+<p class="rubric">Notes</p>
+<p>Usually all but the root task(s) will have a non-empty <cite>stuples</cite>
+list.</p>
+<p>As a convenience, in the <code class="docutils literal"><span class="pre">stuples</span></code> and <code class="docutils literal"><span class="pre">dtuples</span></code> arguments the
+task alias may be used in place of the integer task ID. Also, for 
+the <code class="docutils literal"><span class="pre">stuples</span></code> argument (only), a destination port of zero may be
+omitted (implied); i.e., <code class="docutils literal"><span class="pre">(si,</span> <span class="pre">0)</span></code> may be replaced with <code class="docutils literal"><span class="pre">si</span></code> (or
+the alias name).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.FlowManager.FlowManager.clone">
+<code class="descname">clone</code><span class="sig-paren">(</span><em>id</em>, <em>flow=None</em>, <em>idmap=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/FlowManager.html#FlowManager.clone"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.FlowManager.FlowManager.clone" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clones the flow emanating from a given root task (included).</p>
+<p>Creates an independent, parallel sub-flow duplicating the
+action of the original. If <cite>flow</cite> is <cite>None</cite>, the sub-flow emanating
+from task <cite>id</cite> (inclusive) is duplicated. Otherwise, the sub-flow 
+defined by <cite>flow = (fm, tid)</cite>, where <cite>fm</cite> is a FlowManager instance
+and task <cite>tid</cite> (contained in <cite>fm</cite>) is the root of the sub-flow, is
+duplicated and spliced into the current flow, using task <cite>id</cite> as
+its root instead&#8212;i.e., task <cite>tid</cite> is identified with <cite>id</cite> and the
+tasks <em>following</em> <cite>tid</cite> are cloned and appended to <cite>id</cite>. In the
+latter case, task <cite>id</cite> is <em>not</em> duplicated; the new sub-flow is
+merely appended to it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>id</strong> : int</p>
+<blockquote>
+<div><p>Task ID of the existing sub-flow root task.</p>
+</div></blockquote>
+<p><strong>flow</strong> : 2-tuple, optional</p>
+<blockquote>
+<div><p>Tuple (fm, tid) describing an external sub-flow; <cite>fm</cite> is a 
+FlowManager object and <cite>tid</cite> the ID of a task within it.</p>
+</div></blockquote>
+<p><strong>idmap</strong> : dict of int key-values, optional</p>
+<blockquote>
+<div><p>Dictionary mapping root task IDs in <cite>flow</cite> to corresponding
+tasks in <cite>self</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">int</p>
+<blockquote class="last">
+<div><p>Task ID of the new (possibly cloned) root task.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>If an external <cite>flow</cite> is provided that is not autonomous (i.e.,
+one or more of its ATs receives inputs from ATs outside the
+sub-flow), the <cite>idmap</cite> argument is required and must map task IDs
+from <cite>flow</cite> to <cite>self</cite> for all ATs outside the sub-flow. This
+informs the method how to identify parent tasks between flows.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.FlowManager.FlowManager.connectInputs">
+<code class="descname">connectInputs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/FlowManager.html#FlowManager.connectInputs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.FlowManager.FlowManager.connectInputs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connects input BDPs to all tasks in the flow.</p>
+<p>Connections are made regardless of whether tasks are out of date or
+disabled. Missing inputs are ignored. This method also updates the
+stale flag on each task.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.FlowManager.FlowManager.diagram">
+<code class="descname">diagram</code><span class="sig-paren">(</span><em>dotfile</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/FlowManager.html#FlowManager.diagram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.FlowManager.FlowManager.diagram" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates dot (graphviz) diagram for the current flow.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>dotfile</strong> : str</p>
+<blockquote>
+<div><p>Output dot file name.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.FlowManager.FlowManager.downstream">
+<code class="descname">downstream</code><span class="sig-paren">(</span><em>id</em>, <em>leaf=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/FlowManager.html#FlowManager.downstream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.FlowManager.FlowManager.downstream" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determines the ATs downstream of a task (includes itself).</p>
+<p>The downstream tasks constitute the sub-flow emanating from the
+specified root task (also considered part of the sub-flow).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>id</strong> : int</p>
+<blockquote>
+<div><p>Root task ID.</p>
+</div></blockquote>
+<p><strong>leaf</strong> : set of int, optional</p>
+<blockquote>
+<div><p>Initial set of leaf task IDs.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">set</p>
+<blockquote class="last">
+<div><p>Set of AT task IDs (including the root, <cite>id</cite>) on success,
+else an empty list if recursion is detected.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>Recursion through task <cite>id</cite> is detected. This is used by <strong>add()</strong>
+to prevent the creation of cyclic flows.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.FlowManager.FlowManager.dryrun">
+<code class="descname">dryrun</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/FlowManager.html#FlowManager.dryrun"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.FlowManager.FlowManager.dryrun" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs a dry run.</p>
+<p>Dry runs provide a summary of which tasks are in the flow,
+which are stale (out-of-date), and the order in which they will be
+executed in a live run.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.FlowManager.FlowManager.find">
+<code class="descname">find</code><span class="sig-paren">(</span><em>isMatch</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/FlowManager.html#FlowManager.find"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.FlowManager.FlowManager.find" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds ATs in the flow matching a criterion.</p>
+<p>Applies the function <cite>isMatch</cite> to all ATs in the flow, in proper
+dependency order, accumulating matching ATs in a list (the return
+value). Downstream ATs are guaranteed to follow their predecessors in
+this list. Often <cite>isMatch</cite> may be conveniently expressed as a lambda
+function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>isMatch</strong> : bool functor(AT)</p>
+<blockquote>
+<div><p>Function object taking one AT as input and returning a Boolean.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">list of ATs</p>
+<blockquote class="last">
+<div><p>ATs testing True using <cite>isMatch</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>Tasks at the same dependency level are scanned in an unspecified order.
+(Such tasks are all independent of each other.)</p>
+<p class="rubric">Examples</p>
+<p>To find all ATs with ID less than 100 in flow <cite>fm</cite>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fm</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="k">lambda</span> <span class="n">at</span><span class="p">:</span> <span class="n">at</span><span class="o">.</span><span class="n">id</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.FlowManager.FlowManager.findTwin">
+<code class="descname">findTwin</code><span class="sig-paren">(</span><em>tid</em>, <em>flow0</em>, <em>twins</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/FlowManager.html#FlowManager.findTwin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.FlowManager.FlowManager.findTwin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attempts to find corresponding task in another flow.</p>
+<p>For tasks to correspond they must be of identical types with identical
+lineage. The latter means that the two tasks have identical parents
+(the same number of inputs connected to the same ports on tasks of
+identical type), grandparents, etc.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>tid</strong> : int</p>
+<blockquote>
+<div><p>Task ID in current flow.</p>
+</div></blockquote>
+<p><strong>flow0</strong> : FlowManager</p>
+<blockquote>
+<div><p>Flow in which to search for matching task.</p>
+</div></blockquote>
+<p><strong>twins</strong> : dict of ints</p>
+<blockquote>
+<div><p>Mapping of previously matched task IDs in <cite>flow0</cite> (keys) to
+corresponding IDs in the current flow (values).</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">int or None</p>
+<blockquote class="last">
+<div><p>Valid <cite>flow0</cite> task ID on success, else <code class="docutils literal"><span class="pre">None</span></code>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.FlowManager.FlowManager.inFlow">
+<code class="descname">inFlow</code><span class="sig-paren">(</span><em>a</em>, <em>stuples=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/FlowManager.html#FlowManager.inFlow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.FlowManager.FlowManager.inFlow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determines whether a compatible task exists in the flow.</p>
+<p>A task is compatible with another if:
+1. It has the identical concrete type.
+2. It has the same task ID.
+3. It has identical source connections (if supplied).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>a</strong> : ADMIT task</p>
+<blockquote>
+<div><p>Task reference.</p>
+</div></blockquote>
+<p><strong>stuples</strong> : list of 2-tuples, optional</p>
+<blockquote>
+<div><p>List of source connection 2-tuples, one per BDP input port
+(default <cite>None</cite> bypasses the connection check).</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">True if a compatible task exists in the flow, else False.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#admit.FlowManager.FlowManager.add" title="admit.FlowManager.FlowManager.add"><code class="xref py py-obj docutils literal"><span class="pre">add</span></code></a></p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.FlowManager.FlowManager.mergeTasks">
+<code class="descname">mergeTasks</code><span class="sig-paren">(</span><em>summary</em>, <em>flow0</em>, <em>summary0</em>, <em>twins</em>, <em>final</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/FlowManager.html#FlowManager.mergeTasks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.FlowManager.FlowManager.mergeTasks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Merges task settings from another flow.</p>
+<p>Compares the tasks in <cite>flow0</cite> to <cite>self</cite>; tasks of the same type, 
+at the same dependency level and with equivalent BDP input trees, are
+identified and relevant settings transferred into the current flow.
+Any task in the current flow which cannot be matched with a <cite>flow0</cite>
+task according to these criteria is passed unaltered. Each task in
+<cite>flow0</cite> may be merged with at most one task in the current flow.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>summary</strong> : SummaryData</p>
+<blockquote>
+<div><p>Summary data for current flow.</p>
+</div></blockquote>
+<p><strong>flow0</strong> : FlowManager</p>
+<blockquote>
+<div><p>Flow from which to merge task stale settings.</p>
+</div></blockquote>
+<p><strong>summary0</strong> : SummaryData</p>
+<blockquote>
+<div><p>Original summary data for <cite>flow0</cite>.</p>
+</div></blockquote>
+<p><strong>twins</strong> : dict of ints</p>
+<blockquote>
+<div><p>Task IDs of all known pairs of identified (merged) tasks.</p>
+</div></blockquote>
+<p><strong>final</strong> : bool</p>
+<blockquote>
+<div><p>Whether this will be the last call to this method for the current
+flow. If so, any unattached variflow branches will be merged.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>This is a low-level method normally called only by Admit.mergeFlow().</p>
+<p>In support of incremental flow construction, it is permissible to merge
+a flow multiple times; individual tasks will be merged at most once.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.FlowManager.FlowManager.remove">
+<code class="descname">remove</code><span class="sig-paren">(</span><em>id</em>, <em>keepRoot=False</em>, <em>delFiles=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/FlowManager.html#FlowManager.remove"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.FlowManager.FlowManager.remove" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes an AT and its downstream tasks.</p>
+<p>Deletes an entire sub-flow starting from the specified root task.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>id</strong> : int</p>
+<blockquote>
+<div><p>Task ID of root AT to be removed.</p>
+</div></blockquote>
+<p><strong>keepRoot</strong> : bool, optional</p>
+<blockquote>
+<div><p>Whether to preserve the root AT, <cite>id</cite>, and remove only its
+descendents.</p>
+</div></blockquote>
+<p><strong>delFiles</strong> : bool, optional</p>
+<blockquote>
+<div><p>Whether to delete BDP data when removing tasks.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#admit.FlowManager.FlowManager.add" title="admit.FlowManager.FlowManager.add"><code class="xref py py-obj docutils literal"><span class="pre">add</span></code></a>, <a class="reference internal" href="#admit.FlowManager.FlowManager.replace" title="admit.FlowManager.FlowManager.replace"><code class="xref py py-obj docutils literal"><span class="pre">replace</span></code></a></p>
+</div>
+<p class="rubric">Notes</p>
+<p>This method does <em>not</em> remove any variflow-related metadata as this
+would disrupt the flow management performed by veriflows
+themselves. User removal of tasks within variadic flows is only
+supported via editing and re-running of script files.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.FlowManager.FlowManager.replace">
+<code class="descname">replace</code><span class="sig-paren">(</span><em>id</em>, <em>a</em>, <em>stuples=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/FlowManager.html#FlowManager.replace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.FlowManager.FlowManager.replace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replaces one task with another, removing the original.</p>
+<p>The replacement task must have the same output signature (i.e,
+produce the same types/number of output BDPs)&#8212;otherwise the
+existing task could not be removed&#8212;but <cite>stuples</cite> may be specified
+if the inputs differ.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>id</strong> : int</p>
+<blockquote>
+<div><p>Task ID of AT to be removed.</p>
+</div></blockquote>
+<p><strong>a</strong> : AT</p>
+<blockquote>
+<div><p>Task to insert into the flow.</p>
+</div></blockquote>
+<p><strong>stuples</strong> : list of 2-tuples, optional</p>
+<blockquote>
+<div><p>Source connection 2-tuples <code class="docutils literal"><span class="pre">(si,</span> <span class="pre">sp)</span></code> for <cite>a</cite>. The special
+default value None indicates that the existing task&#8217;s sources
+should be reused verbatim.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="#admit.FlowManager.FlowManager.add" title="admit.FlowManager.FlowManager.add"><code class="xref py py-obj docutils literal"><span class="pre">add</span></code></a>, <a class="reference internal" href="#admit.FlowManager.FlowManager.remove" title="admit.FlowManager.FlowManager.remove"><code class="xref py py-obj docutils literal"><span class="pre">remove</span></code></a></p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.FlowManager.FlowManager.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>dryrun=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/FlowManager.html#FlowManager.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.FlowManager.FlowManager.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Executes the flow, but only tasks that are out of date.</p>
+<p>Runs all stale, enabled tasks in the correct order, accounting for
+their inter-dependencies. This will reduce to a no-op for tasks
+whose outputs are up-to-date (not dependent on stale tasks). The
+(global) project summary is updated on-the-fly as tasks are
+executed and must contain a valid Summary object on entry.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>dryrun</strong> : bool, optional</p>
+<blockquote>
+<div><p>Whether to perform a dry run (else a live run); defaults to
+<code class="docutils literal"><span class="pre">False</span></code>.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.FlowManager.FlowManager.sameLineage">
+<code class="descname">sameLineage</code><span class="sig-paren">(</span><em>tid</em>, <em>tid0</em>, <em>flow0</em>, <em>twins</em>, <em>match</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/FlowManager.html#FlowManager.sameLineage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.FlowManager.FlowManager.sameLineage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determines whether two tasks in different flows have identical ancestry.</p>
+<p>Ancestry is determined by the type and number of parents, the
+associated port connections, and likewise for all grandparents, etc.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>tid</strong> : int</p>
+<blockquote>
+<div><p>Task ID in current flow.</p>
+</div></blockquote>
+<p><strong>tid0</strong> : int</p>
+<blockquote>
+<div><p>Task ID in <cite>flow0</cite>.</p>
+</div></blockquote>
+<p><strong>flow0</strong> : FlowManager</p>
+<blockquote>
+<div><p>Flow in which to search for matching task.</p>
+</div></blockquote>
+<p><strong>twins</strong> : dict of ints</p>
+<blockquote>
+<div><p>Mapping of previously matched task IDs in <cite>flow0</cite> (keys) to
+corresponding IDs in the current flow (values).</p>
+</div></blockquote>
+<p><strong>match</strong> : int (or None)</p>
+<blockquote>
+<div><p>Current best-match task ID in <cite>flow0</cite> known to have lineage
+compatible with <cite>tid</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">bool</p>
+<blockquote class="last">
+<div><p>Whether <cite>tid0</cite> task has lineage compatible with <cite>tid</cite> and is the
+better-matching task (compared to <cite>match</cite>).</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li>Fix stale setting when parent keywords have changed <em>between flows</em>,
+even though each task is individually up to date.</li>
+</ul>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.FlowManager.FlowManager.script">
+<code class="descname">script</code><span class="sig-paren">(</span><em>py</em>, <em>proj='p'</em>, <em>tcube=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/FlowManager.html#FlowManager.script"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.FlowManager.FlowManager.script" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates a Python script recreating the current flow.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>py</strong> : file</p>
+<blockquote>
+<div><p>Open, writable Python file object.</p>
+</div></blockquote>
+<p><strong>proj</strong> : str, optional</p>
+<blockquote>
+<div><p>Project variable name; defaults to &#8216;p&#8217;.</p>
+</div></blockquote>
+<p><strong>tcube</strong> : int, optional</p>
+<blockquote>
+<div><p>Task ID of Ingest_AT to set input file=cubefile; defaults to <cite>None</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>This is a low-level method normally called only by Admit.script().</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.FlowManager.FlowManager.show">
+<code class="descname">show</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/FlowManager.html#FlowManager.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.FlowManager.FlowManager.show" title="Permalink to this definition">¶</a></dt>
+<dd><p>Displays formatted internal FlowManager state.</p>
+<p>Pretty-prints the current contents of the instance to the screen
+(standard output).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.FlowManager.FlowManager.showsetkey">
+<code class="descname">showsetkey</code><span class="sig-paren">(</span><em>outfile=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/FlowManager.html#FlowManager.showsetkey"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.FlowManager.FlowManager.showsetkey" title="Permalink to this definition">¶</a></dt>
+<dd><p>Display keysettings for all tasks, meant to be used to
+write a template file for rerunning an admit</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.FlowManager.FlowManager.stale">
+<code class="descname">stale</code><span class="sig-paren">(</span><em>id</em>, <em>direct=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/FlowManager.html#FlowManager.stale"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.FlowManager.FlowManager.stale" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the stale flag of an AT and its downstream ATs.</p>
+<p>Stale tasks will be re-run upon execution of the flow, updating
+their output BDPs in the process; tasks not so marked are skipped
+to minimize running time.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>id</strong> : int</p>
+<blockquote>
+<div><p>Root task ID.</p>
+</div></blockquote>
+<p><strong>direct</strong> : bool, optional</p>
+<blockquote>
+<div><p>Whether to mark only direct descendants stale (else the entire
+sub-flow); defaults to <code class="docutils literal"><span class="pre">True</span></code>.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.FlowManager.FlowManager.verify">
+<code class="descname">verify</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/FlowManager.html#FlowManager.verify"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.FlowManager.FlowManager.verify" title="Permalink to this definition">¶</a></dt>
+<dd><p>Verifies the internal state of the FlowManager.</p>
+<p>Verification searches for internal inconsistencies in the flow
+bookkeeping, which to improve runtime efficiency is partially
+redundant.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">bool</p>
+<blockquote class="last">
+<div><p><code class="docutils literal"><span class="pre">True</span></code> if the FlowManager state is valid, else <code class="docutils literal"><span class="pre">False</span></code>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/module/admit/FlowManager.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" >Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

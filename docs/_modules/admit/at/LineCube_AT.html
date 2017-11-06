@@ -1,0 +1,389 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.at.LineCube_AT &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.at.LineCube_AT</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; .. _LineCube-at-api:</span>
+
+<span class="sd">   **LineCube_AT** --- Cuts a cube into one or more line-oriented cubes.</span>
+<span class="sd">   ---------------------------------------------------------------------</span>
+
+<span class="sd">   This module defines the LineCube_AT class.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># ADMIT imports</span>
+<span class="kn">from</span> <span class="nn">admit.AT</span> <span class="k">import</span> <span class="n">AT</span>
+<span class="kn">from</span> <span class="nn">admit.Summary</span> <span class="k">import</span> <span class="n">SummaryEntry</span>
+<span class="kn">import</span> <span class="nn">admit.util.bdp_types</span> <span class="k">as</span> <span class="nn">bt</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.Image_BDP</span> <span class="k">import</span> <span class="n">Image_BDP</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.LineList_BDP</span> <span class="k">import</span> <span class="n">LineList_BDP</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.LineCube_BDP</span> <span class="k">import</span> <span class="n">LineCube_BDP</span>
+<span class="kn">from</span> <span class="nn">admit.util.Line</span> <span class="k">import</span> <span class="n">Line</span>
+<span class="kn">from</span> <span class="nn">admit.util.Image</span> <span class="k">import</span> <span class="n">Image</span>
+<span class="kn">import</span> <span class="nn">admit.util.Table</span>
+<span class="kn">import</span> <span class="nn">admit.util.utils</span> <span class="k">as</span> <span class="nn">utils</span>
+<span class="kn">from</span> <span class="nn">admit.util.AdmitLogging</span> <span class="k">import</span> <span class="n">AdmitLogging</span> <span class="k">as</span> <span class="n">logging</span>
+
+
+<span class="c1"># CASA imports</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">imsubimage</span> <span class="k">import</span> <span class="n">imsubimage</span>
+    <span class="kn">from</span> <span class="nn">imrebin</span> <span class="k">import</span> <span class="n">imrebin</span>
+    <span class="kn">from</span> <span class="nn">casa</span> <span class="k">import</span> <span class="n">imhead</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="nb">print</span> <span class="s2">&quot;WARNING: No CASA; LineCube task cannot function.&quot;</span>
+
+<span class="c1"># system imports</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">math</span>
+
+<span class="c1"># @todo</span>
+<span class="c1"># - use CoordSys tool and setrestfrequency to set the restfreq per linecube</span>
+<span class="c1"># - the current code cannot make cubes with equal velocity gridding</span>
+<span class="c1">#   the cheat is that as long as bandwidth not too wide, it&#39;s about right</span>
+<span class="c1">#   but to compare between bands, this will not work anymore, or even USB/LSB?</span>
+
+
+<div class="viewcode-block" id="LineCube_AT"><a class="viewcode-back" href="../../../module/admit.at/LineCube_AT.html#admit.at.LineCube_AT.LineCube_AT">[docs]</a><span class="k">class</span> <span class="nc">LineCube_AT</span><span class="p">(</span><span class="n">AT</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; AT for generating a subcube of s specific spectral line.</span>
+
+<span class="sd">        See also :ref:`LineCube-AT-design` for design documentation.</span>
+
+<span class="sd">        The produced LineCube_BDP(s) holds a spectral cube for each of the </span>
+<span class="sd">        specified spectral lines.</span>
+
+<span class="sd">        **Keywords**</span>
+<span class="sd">          **pad**: int</span>
+<span class="sd">            Extra channels added on either side of a line (as given by</span>
+<span class="sd">            the LineList).  If a negative number is given, its</span>
+<span class="sd">            positive value will be the number of channels of each</span>
+<span class="sd">            linecube.  This keyword has no meaning when gridding in</span>
+<span class="sd">            velocity space is done.</span>
+<span class="sd">            Default: 5 (add 5 channels to both sides of the line).</span>
+
+<span class="sd">          **equalize**: bool</span>
+<span class="sd">            Whether or not to create equal size cubes (based on widest line</span>
+<span class="sd">            in input LineList_BDP).</span>
+<span class="sd">            These cubes will be padded based on the value of pad.</span>
+<span class="sd">            Default: False.</span>
+
+<span class="sd">        **Input BDPs**</span>
+
+<span class="sd">          **Image_BDP**: count: 1</span>
+<span class="sd">            Spectral cube from which the line cube is sliced, as from an</span>
+<span class="sd">            `Ingest_AT &lt;Ingest_AT.html&gt;`_ or </span>
+<span class="sd">            `ContinuumSub_AT &lt;ContinuumSub_AT.html&gt;`_.</span>
+
+<span class="sd">          **LineList_BDP**: count: 1</span>
+<span class="sd">            List of spectral lines to cut (including the channel ranges),</span>
+<span class="sd">            typically the output of a `LineID_AT &lt;LineID_AT.html&gt;`_.</span>
+
+<span class="sd">        **Output BDPs**</span>
+
+<span class="sd">          **LineCube_BDP**: count: `varies`</span>
+<span class="sd">            The image slices of each spectral line (one for each).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        keyval : dictionary of keyword:value pairs, optional</span>
+<span class="sd">          Keyword values.</span>
+
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        _version : string</span>
+<span class="sd">          Version information.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">keyval</span><span class="p">):</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;equalize&quot;</span> <span class="p">:</span> <span class="kc">False</span><span class="p">,</span>  <span class="c1"># default to no equalization and no regridding</span>
+                <span class="s2">&quot;pad&quot;</span>      <span class="p">:</span> <span class="mi">5</span><span class="p">,</span>      <span class="c1"># default to 5 channels on either side</span>
+                <span class="p">}</span>
+        <span class="n">AT</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">keyval</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_version</span> <span class="o">=</span> <span class="s2">&quot;1.0.2&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_bdp_in</span><span class="p">([(</span><span class="n">Image_BDP</span><span class="p">,</span>     <span class="mi">1</span><span class="p">,</span> <span class="n">bt</span><span class="o">.</span><span class="n">REQUIRED</span><span class="p">),</span>
+                         <span class="p">(</span><span class="n">LineList_BDP</span><span class="p">,</span>  <span class="mi">1</span><span class="p">,</span> <span class="n">bt</span><span class="o">.</span><span class="n">REQUIRED</span><span class="p">)])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_bdp_out</span><span class="p">([(</span><span class="n">LineCube_BDP</span><span class="p">,</span> <span class="mi">0</span><span class="p">)])</span>
+
+<div class="viewcode-block" id="LineCube_AT.summary"><a class="viewcode-back" href="../../../module/admit.at/LineCube_AT.html#admit.at.LineCube_AT.LineCube_AT.summary">[docs]</a>    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the summary dictionary for LineCube_AT&quot;.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_summary&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{}</span></div>
+
+<div class="viewcode-block" id="LineCube_AT.run"><a class="viewcode-back" href="../../../module/admit.at/LineCube_AT.html#admit.at.LineCube_AT.LineCube_AT.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; The run method, creates the slices, regrids if requested, and </span>
+<span class="sd">            creates the BDP(s)</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">Dtime</span><span class="p">(</span><span class="s2">&quot;LineCube&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c1"># look for an input noise level, either through keyword or input </span>
+        <span class="c1"># CubeStats BDP or calculate it if needed</span>
+        <span class="n">pad</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;pad&quot;</span><span class="p">)</span>
+        <span class="n">equalize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;equalize&quot;</span><span class="p">)</span>
+        <span class="n">minchan</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="n">linelist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">linelist</span> <span class="o">==</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">linelist</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;No lines found in input LineList_BDP, exiting.&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="n">spw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c1"># get the columns from the table</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="n">linelist</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">getHeader</span><span class="p">()</span>
+        <span class="c1"># get the casa image</span>
+        <span class="n">imagename</span> <span class="o">=</span> <span class="n">spw</span><span class="o">.</span><span class="n">getimagefile</span><span class="p">(</span><span class="n">bt</span><span class="o">.</span><span class="n">CASA</span><span class="p">)</span>
+        <span class="n">imh</span> <span class="o">=</span> <span class="n">imhead</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">imagename</span><span class="p">),</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;list&#39;</span><span class="p">)</span>
+        <span class="c1"># set the overall parameters for imsubimage</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;imagename&quot;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">imagename</span><span class="p">),</span>
+                <span class="s2">&quot;overwrite&quot;</span> <span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;start&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">pad</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">nchan</span> <span class="o">=</span> <span class="n">imh</span><span class="p">[</span><span class="s1">&#39;shape&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;pad&quot;</span><span class="p">)</span> 
+
+        <span class="c1"># if equal size cubes are requested, this will honor the requested pad</span>
+        <span class="k">if</span> <span class="n">equalize</span><span class="p">:</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">linelist</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">getColumnByName</span><span class="p">(</span><span class="s2">&quot;startchan&quot;</span><span class="p">)</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">linelist</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">getColumnByName</span><span class="p">(</span><span class="s2">&quot;endchan&quot;</span><span class="p">)</span>
+            <span class="c1"># look for the widest line</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">start</span><span class="p">)):</span>
+                <span class="n">diff</span> <span class="o">=</span> <span class="n">end</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">start</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="n">minchan</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">minchan</span> <span class="p">,</span> <span class="n">diff</span> <span class="o">+</span> <span class="p">(</span><span class="n">pad</span> <span class="o">*</span> <span class="mi">2</span><span class="p">))</span>
+            <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;equalize&quot;</span><span class="p">)</span>
+
+        <span class="c1"># get all of the rows in the table</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="n">linelist</span><span class="o">.</span><span class="n">getall</span><span class="p">()</span>
+        <span class="n">delrow</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">procblend</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c1"># search through looking for blended lines, leave only the strongest from each blend</span>
+        <span class="c1"># in the list</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">rows</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">row</span><span class="o">.</span><span class="n">blend</span> <span class="ow">in</span> <span class="n">procblend</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">strongest</span> <span class="o">=</span> <span class="o">-</span><span class="mf">100.</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="n">indexes</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">blend</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">blend</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="n">rows</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">blend</span> <span class="o">!=</span> <span class="n">blend</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">indexes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">rows</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">linestrength</span> <span class="o">&gt;</span> <span class="n">strongest</span><span class="p">:</span>
+                    <span class="n">strongest</span> <span class="o">=</span> <span class="n">rows</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">linestrength</span>
+                    <span class="n">index</span> <span class="o">=</span> <span class="n">j</span>
+            <span class="n">indexes</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+            <span class="n">delrow</span> <span class="o">=</span> <span class="n">delrow</span> <span class="o">|</span> <span class="nb">set</span><span class="p">(</span><span class="n">indexes</span><span class="p">)</span>
+            <span class="n">procblend</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">blend</span><span class="p">)</span>
+        <span class="n">dr</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">delrow</span><span class="p">)</span>
+        <span class="n">dr</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="n">dr</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">dr</span><span class="p">:</span>
+            <span class="k">del</span> <span class="n">rows</span><span class="p">[</span><span class="n">row</span><span class="p">]</span>
+
+        <span class="c1"># check on duplicate UID&#39;s, since those are the directory names here</span>
+        <span class="n">uid1</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+            <span class="n">uid1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;uid&quot;</span><span class="p">))</span>
+        <span class="n">uid2</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">uid1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">uid1</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">uid2</span><span class="p">):</span>
+            <span class="nb">print</span> <span class="s2">&quot;LineList:&quot;</span><span class="p">,</span><span class="n">uid1</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;There are duplicate names in the LineList&quot;</span><span class="p">)</span>
+            <span class="c1">#raise Exception,&quot;There are duplicate names in the LineList&quot;</span>
+
+        <span class="c1"># Create Summary table</span>
+        <span class="n">lc_description</span> <span class="o">=</span> <span class="n">admit</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">Table</span><span class="p">()</span>
+        <span class="n">lc_description</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Line Name&quot;</span><span class="p">,</span><span class="s2">&quot;Start Channel&quot;</span><span class="p">,</span><span class="s2">&quot;End Channel&quot;</span><span class="p">,</span><span class="s2">&quot;Output Cube&quot;</span><span class="p">]</span>
+        <span class="n">lc_description</span><span class="o">.</span><span class="n">units</span>   <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="s2">&quot;int&quot;</span><span class="p">,</span><span class="s2">&quot;int&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">]</span>
+        <span class="n">lc_description</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;Parameters of Line Cubes&quot;</span>
+        <span class="c1"># loop over all entries in the line list</span>
+        <span class="n">rdata</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+            <span class="n">uid</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;uid&quot;</span><span class="p">)</span>
+            <span class="n">cdir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mkext</span><span class="p">(</span><span class="n">imagename</span><span class="p">,</span><span class="n">uid</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">cdir</span><span class="p">)</span>
+            <span class="n">basefl</span> <span class="o">=</span> <span class="n">uid</span>
+            <span class="n">lcd</span> <span class="o">=</span> <span class="p">[</span><span class="n">basefl</span><span class="p">]</span>
+            <span class="n">outfl</span> <span class="o">=</span> <span class="n">cdir</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s2">&quot;lc.im&quot;</span>
+            <span class="n">args</span><span class="p">[</span><span class="s2">&quot;outfile&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">outfl</span><span class="p">)</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;startchan&quot;</span><span class="p">)</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;endchan&quot;</span><span class="p">)</span>
+            <span class="n">diff</span> <span class="o">=</span> <span class="n">end</span> <span class="o">-</span> <span class="n">start</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">startch</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">if</span> <span class="n">diff</span> <span class="o">&lt;</span> <span class="n">minchan</span><span class="p">:</span>
+                <span class="n">add</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">minchan</span> <span class="o">-</span> <span class="n">diff</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">))</span>
+                <span class="n">start</span> <span class="o">-=</span> <span class="n">add</span>
+                <span class="n">end</span> <span class="o">+=</span> <span class="n">add</span>
+                <span class="n">startch</span> <span class="o">+=</span> <span class="n">add</span>
+                <span class="k">if</span> <span class="n">start</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> is too close to the edge to encompass with the &quot;</span>
+                          <span class="o">+</span> <span class="s2">&quot;requested channels, start=</span><span class="si">%d</span><span class="s2"> resetting to 0&quot;</span> <span class="o">%</span> 
+                          <span class="p">(</span><span class="n">uid</span><span class="p">,</span> <span class="n">start</span><span class="p">))</span>
+                    <span class="n">startch</span> <span class="o">+=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">start</span><span class="p">)</span>
+                    <span class="n">start</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">if</span> <span class="n">end</span> <span class="o">&gt;=</span> <span class="n">nchan</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> is too close to the edge to encompass with the &quot;</span>
+                          <span class="o">+</span> <span class="s2">&quot;requested channels, end=</span><span class="si">%d</span><span class="s2"> resetting to </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> 
+                          <span class="p">(</span><span class="n">uid</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">nchan</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+                    <span class="n">end</span> <span class="o">=</span> <span class="n">nchan</span> <span class="o">-</span> <span class="mi">1</span>
+                <span class="c1">#print &quot;\n\nDIFF &quot;,startch,&quot;\n\n&quot;</span>
+            <span class="k">if</span> <span class="n">pad</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">equalize</span><span class="p">:</span>
+                <span class="n">start</span> <span class="o">-=</span> <span class="n">pad</span>
+                <span class="n">end</span> <span class="o">+=</span> <span class="n">pad</span>
+                <span class="k">if</span> <span class="n">start</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;pad=</span><span class="si">%d</span><span class="s2"> too large, start=</span><span class="si">%d</span><span class="s2"> resetting to 0&quot;</span>
+                          <span class="o">%</span> <span class="p">(</span><span class="n">pad</span><span class="p">,</span> <span class="n">start</span><span class="p">))</span>
+                    <span class="n">startch</span> <span class="o">+=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">start</span><span class="p">)</span>
+                    <span class="n">start</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">startch</span> <span class="o">+=</span> <span class="n">pad</span>
+                <span class="k">if</span> <span class="n">end</span> <span class="o">&gt;=</span> <span class="n">nchan</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;pad=</span><span class="si">%d</span><span class="s2"> too large, end=</span><span class="si">%d</span><span class="s2"> resetting to </span><span class="si">%d</span><span class="s2">&quot;</span>
+                          <span class="o">%</span> <span class="p">(</span><span class="n">pad</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">nchan</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+                    <span class="n">end</span> <span class="o">=</span> <span class="n">nchan</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="n">pad</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">equalize</span><span class="p">:</span>
+                <span class="n">mid</span> <span class="o">=</span> <span class="p">(</span><span class="n">start</span> <span class="o">+</span> <span class="n">end</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+                <span class="n">start</span> <span class="o">=</span> <span class="n">mid</span> <span class="o">+</span> <span class="n">pad</span> <span class="o">/</span> <span class="mi">2</span>
+                <span class="n">end</span> <span class="o">=</span> <span class="n">mid</span> <span class="o">-</span> <span class="n">pad</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">start</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;pad=</span><span class="si">%d</span><span class="s2"> too large, start=</span><span class="si">%d</span><span class="s2"> resetting to 0&quot;</span>
+                          <span class="o">%</span> <span class="p">(</span><span class="n">pad</span><span class="p">,</span> <span class="n">start</span><span class="p">))</span>
+                    <span class="n">startch</span> <span class="o">+=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">start</span><span class="p">)</span>
+                    <span class="n">start</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">startch</span> <span class="o">+=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">start</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">end</span> <span class="o">&gt;=</span> <span class="n">nchan</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;pad=</span><span class="si">%d</span><span class="s2"> too large, end=</span><span class="si">%d</span><span class="s2"> resetting to </span><span class="si">%d</span><span class="s2">&quot;</span>
+                          <span class="o">%</span> <span class="p">(</span><span class="n">pad</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">nchan</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+                    <span class="n">end</span> <span class="o">=</span> <span class="n">nchan</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="n">endch</span> <span class="o">=</span> <span class="n">startch</span> <span class="o">+</span> <span class="n">diff</span>
+            <span class="n">args</span><span class="p">[</span><span class="s2">&quot;chans&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%i</span><span class="s2">~</span><span class="si">%i</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+            <span class="n">rdata</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">start</span><span class="p">)</span>
+            <span class="n">rdata</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">end</span><span class="p">)</span>
+            <span class="c1"># for the summmary, which will be a table of</span>
+            <span class="c1"># Line name, start channel, end channel, output image</span>
+            <span class="n">lc_description</span><span class="o">.</span><span class="n">addRow</span><span class="p">([</span><span class="n">basefl</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">outfl</span><span class="p">])</span>
+
+            <span class="c1"># create the slices</span>
+            <span class="n">imsubimage</span><span class="p">(</span><span class="o">**</span><span class="n">args</span><span class="p">)</span>
+
+            <span class="n">line</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">converttoline</span><span class="p">()</span>
+            <span class="c1"># set the restfrequency ouf the output cube</span>
+            <span class="n">imhead</span><span class="p">(</span><span class="n">imagename</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="s2">&quot;outfile&quot;</span><span class="p">],</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;put&quot;</span><span class="p">,</span> <span class="n">hdkey</span><span class="o">=</span><span class="s2">&quot;restfreq&quot;</span><span class="p">,</span> 
+                   <span class="n">hdvalue</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%f</span><span class="s2">GHz&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;frequency&quot;</span><span class="p">)))</span>
+            <span class="c1"># set up the output BDP</span>
+            <span class="n">images</span> <span class="o">=</span> <span class="p">{</span><span class="n">bt</span><span class="o">.</span><span class="n">CASA</span> <span class="p">:</span> <span class="n">outfl</span><span class="p">}</span>
+            <span class="n">casaimage</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span><span class="n">images</span><span class="o">=</span><span class="n">images</span><span class="p">)</span>
+            <span class="c1"># note that Summary.getLineFluxes() implicitly relies on the BDP out order</span>
+            <span class="c1"># being the same order as in the line list table.  If this is ever not</span>
+            <span class="c1"># true, then Summary.getLineFluxes mismatch BDPs and flux values.</span>
+            <span class="c1">#self.addoutput(LineCube_BDP(xmlFile=cdir + os.sep + basefl + &quot;.lc&quot;,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">addoutput</span><span class="p">(</span><span class="n">LineCube_BDP</span><span class="p">(</span><span class="n">xmlFile</span><span class="o">=</span><span class="n">outfl</span><span class="p">,</span>
+                           <span class="n">image</span><span class="o">=</span><span class="n">casaimage</span><span class="p">,</span> <span class="n">line</span><span class="o">=</span><span class="n">line</span><span class="p">,</span> <span class="n">linechans</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%i</span><span class="s2">~</span><span class="si">%i</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">startch</span><span class="p">,</span> <span class="n">endch</span><span class="p">)))</span>
+            <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;trans-</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">cdir</span><span class="p">)</span>
+
+        <span class="n">logging</span><span class="o">.</span><span class="n">regression</span><span class="p">(</span><span class="s2">&quot;LC: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">rdata</span><span class="p">))</span>
+
+        <span class="n">taskargs</span> <span class="o">=</span> <span class="s2">&quot;pad=</span><span class="si">%s</span><span class="s2"> equalize=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pad</span><span class="p">,</span> <span class="n">equalize</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="s2">&quot;linecube&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SummaryEntry</span><span class="p">(</span><span class="n">lc_description</span><span class="o">.</span><span class="n">serialize</span><span class="p">(),</span> <span class="s2">&quot;LineCube_AT&quot;</span><span class="p">,</span>
+                                                 <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">(</span><span class="kc">True</span><span class="p">),</span> <span class="n">taskargs</span><span class="p">)</span>
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;done&quot;</span><span class="p">)</span>
+        <span class="n">dt</span><span class="o">.</span><span class="n">end</span><span class="p">()</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

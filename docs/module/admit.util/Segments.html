@@ -1,0 +1,513 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Segments — Manages groups of line segments. &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../index.html" />
+    <link rel="up" title="Python Scripting Interface (API)" href="../../api.html" />
+    <link rel="prev" title="PlotControl — Defines plot mode, type and orientation." href="PlotControl.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="PlotControl.html" title="PlotControl — Defines plot mode, type and orientation."
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" accesskey="U">Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-admit.util.Segments"></span><div class="section" id="segments-manages-groups-of-line-segments">
+<span id="segments-api"></span><h1><strong>Segments</strong> &#8212; Manages groups of line segments.<a class="headerlink" href="#segments-manages-groups-of-line-segments" title="Permalink to this headline">¶</a></h1>
+<p>This module defines the Segments class.</p>
+<dl class="class">
+<dt id="admit.util.Segments.Segments">
+<em class="property">class </em><code class="descclassname">admit.util.Segments.</code><code class="descname">Segments</code><span class="sig-paren">(</span><em>st=None</em>, <em>en=None</em>, <em>nchan=None</em>, <em>startchan=0</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Segments.html#Segments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Segments.Segments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class to hold segments and convert them between different types.</p>
+<p>Segments are defined by a beginning and ending channel (both
+inclusive). ADMIT gives special meaning to a segment, for example a
+line can be found within that segment, or a continuum has to be fitted
+in that segment (or group of segments).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>st</strong> : array like</p>
+<blockquote>
+<div><p>Array like object containing either the full segment list (array of
+two element arrays containing the start and end channel numbers for
+each segment), or an array of starting channel numbers.
+Default: None.</p>
+</div></blockquote>
+<p><strong>en</strong> : array like</p>
+<blockquote>
+<div><p>An array of the ending channel number corresponding to the starting
+channel numbers given in st. Leave as None if st contains the full
+listing.
+Default: None.</p>
+</div></blockquote>
+<p><strong>nchan</strong> : int</p>
+<blockquote>
+<div><p>The number of channels in the spectrum that the segments refer to.
+This is used to construct the bit mask for tracking all segments.
+If left as None, no bitmask will be made.
+Default: None.</p>
+</div></blockquote>
+<p><strong>startchan</strong> : int</p>
+<blockquote class="last">
+<div><p>The starting channel number of the spectrum that the segments refer
+to. Must be &gt;= 0.
+Default: 0.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Segments.Segments.append" title="admit.util.Segments.Segments.append"><code class="xref py py-obj docutils literal"><span class="pre">append</span></code></a>(item)</td>
+<td>Method to append a new segment to the current list</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Segments.Segments.chans" title="admit.util.Segments.Segments.chans"><code class="xref py py-obj docutils literal"><span class="pre">chans</span></code></a>([invert])</td>
+<td>Method to convert the bit mask into a string of channel ranges in CASA format.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Segments.Segments.getchannels" title="admit.util.Segments.Segments.getchannels"><code class="xref py py-obj docutils literal"><span class="pre">getchannels</span></code></a>([invert])</td>
+<td>Method to return the current list of channel numbers in the bitmask</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Segments.Segments.getmask" title="admit.util.Segments.Segments.getmask"><code class="xref py py-obj docutils literal"><span class="pre">getmask</span></code></a>()</td>
+<td>Method to return the current bitmask</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Segments.Segments.getnchan" title="admit.util.Segments.Segments.getnchan"><code class="xref py py-obj docutils literal"><span class="pre">getnchan</span></code></a>()</td>
+<td>Method to return the number of channels in the current bit mask</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Segments.Segments.getsegments" title="admit.util.Segments.Segments.getsegments"><code class="xref py py-obj docutils literal"><span class="pre">getsegments</span></code></a>()</td>
+<td>Method to get the list of segments</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Segments.Segments.getsegmentsaslists" title="admit.util.Segments.Segments.getsegmentsaslists"><code class="xref py py-obj docutils literal"><span class="pre">getsegmentsaslists</span></code></a>()</td>
+<td>Method to get the list of segments</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Segments.Segments.getsegmentsastuples" title="admit.util.Segments.Segments.getsegmentsastuples"><code class="xref py py-obj docutils literal"><span class="pre">getsegmentsastuples</span></code></a>()</td>
+<td>Method to get the list of segments as tuples</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Segments.Segments.getstartchan" title="admit.util.Segments.Segments.getstartchan"><code class="xref py py-obj docutils literal"><span class="pre">getstartchan</span></code></a>()</td>
+<td>Method to get the starting channel number of the current bit mask</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Segments.Segments.limits" title="admit.util.Segments.Segments.limits"><code class="xref py py-obj docutils literal"><span class="pre">limits</span></code></a>()</td>
+<td>Method to return the channel range of the internal channel bit mask</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Segments.Segments.merge" title="admit.util.Segments.Segments.merge"><code class="xref py py-obj docutils literal"><span class="pre">merge</span></code></a>([other])</td>
+<td>Method to merge overlapping segments into one segment.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Segments.Segments.pop" title="admit.util.Segments.Segments.pop"><code class="xref py py-obj docutils literal"><span class="pre">pop</span></code></a>()</td>
+<td>Method to pop, or remove and return, the last segment in the list</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Segments.Segments.recalcmask" title="admit.util.Segments.Segments.recalcmask"><code class="xref py py-obj docutils literal"><span class="pre">recalcmask</span></code></a>([test])</td>
+<td>Method to recalculate the bit mask based on the current segment list.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Segments.Segments.remove" title="admit.util.Segments.Segments.remove"><code class="xref py py-obj docutils literal"><span class="pre">remove</span></code></a>(index)</td>
+<td>Method to remove a segment from the segment list</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.Segments.Segments.setnchan" title="admit.util.Segments.Segments.setnchan"><code class="xref py py-obj docutils literal"><span class="pre">setnchan</span></code></a>(nchan)</td>
+<td>Method to set the number of channels in the internal channel bit mask</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.Segments.Segments.setstartchan" title="admit.util.Segments.Segments.setstartchan"><code class="xref py py-obj docutils literal"><span class="pre">setstartchan</span></code></a>(chan)</td>
+<td>Method to set the starting channels number for the internal bit mask</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="admit.util.Segments.Segments.append">
+<code class="descname">append</code><span class="sig-paren">(</span><em>item</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Segments.html#Segments.append"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Segments.Segments.append" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to append a new segment to the current list</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>item</strong> : two element array</p>
+<blockquote>
+<div><p>The new segment to append to the list</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Segments.Segments.chans">
+<code class="descname">chans</code><span class="sig-paren">(</span><em>invert=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Segments.html#Segments.chans"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Segments.Segments.chans" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to convert the bit mask into a string of channel ranges in CASA format. e.g.
+[3,10],[25,50] =&gt; &#8220;3~10;25~50&#8221;</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">string containing the formatted channel ranges</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Segments.Segments.getchannels">
+<code class="descname">getchannels</code><span class="sig-paren">(</span><em>invert=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Segments.html#Segments.getchannels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Segments.Segments.getchannels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to return the current list of channel numbers in the bitmask</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>invert</strong> : boolean</p>
+<blockquote>
+<div><p>Return the list of channels outside the bitmask instead</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Array like object containing the (zero based) channel numbers that are in the segments</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Segments.Segments.getmask">
+<code class="descname">getmask</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Segments.html#Segments.getmask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Segments.Segments.getmask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to return the current bitmask</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Array like object containing the bit current bit mask, 1 = in segment, 0 = not in segment</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Segments.Segments.getnchan">
+<code class="descname">getnchan</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Segments.html#Segments.getnchan"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Segments.Segments.getnchan" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to return the number of channels in the current bit mask</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">int giving the number of channels</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Segments.Segments.getsegments">
+<code class="descname">getsegments</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Segments.html#Segments.getsegments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Segments.Segments.getsegments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get the list of segments</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">list of the segment end points [start, end]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Segments.Segments.getsegmentsaslists">
+<code class="descname">getsegmentsaslists</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Segments.html#Segments.getsegmentsaslists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Segments.Segments.getsegmentsaslists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get the list of segments</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">list of the segment end points [start, end]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Segments.Segments.getsegmentsastuples">
+<code class="descname">getsegmentsastuples</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Segments.html#Segments.getsegmentsastuples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Segments.Segments.getsegmentsastuples" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get the list of segments as tuples</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">list of the segment end points as tuples (start, end)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Segments.Segments.getstartchan">
+<code class="descname">getstartchan</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Segments.html#Segments.getstartchan"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Segments.Segments.getstartchan" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get the starting channel number of the current bit mask</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">int containing the starting channel number</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Segments.Segments.limits">
+<code class="descname">limits</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Segments.html#Segments.limits"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Segments.Segments.limits" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to return the channel range of the internal channel bit mask</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Array like 2 element list of the segment starting and ending channels</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Segments.Segments.merge">
+<code class="descname">merge</code><span class="sig-paren">(</span><em>other=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Segments.html#Segments.merge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Segments.Segments.merge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to merge overlapping segments into one segment. This operates on the current
+instance or takes a second instance or list of segments as input.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>other</strong> : Segments instance or list of segments</p>
+<blockquote>
+<div><p>If given then these segments are added to the current list and then merged, to give
+a single list of non-overlapping segments.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Segments.Segments.pop">
+<code class="descname">pop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Segments.html#Segments.pop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Segments.Segments.pop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to pop, or remove and return, the last segment in the list</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>None</strong></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Array like 2 element list of the segment starting and ending channels of the last</p>
+<p class="last">segment in the list</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Segments.Segments.recalcmask">
+<code class="descname">recalcmask</code><span class="sig-paren">(</span><em>test=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Segments.html#Segments.recalcmask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Segments.Segments.recalcmask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to recalculate the bit mask based on the current segment list. 1 = in segment
+0 = not in segment</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>test</strong> : bool</p>
+<blockquote>
+<div><p>If True then test each segment to be sure it is in the current allowed channel range.
+If False the do not test.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Segments.Segments.remove">
+<code class="descname">remove</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Segments.html#Segments.remove"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Segments.Segments.remove" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to remove a segment from the segment list</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>index</strong> : int</p>
+<blockquote>
+<div><p>The location of the segment to remove</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Segments.Segments.setnchan">
+<code class="descname">setnchan</code><span class="sig-paren">(</span><em>nchan</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Segments.html#Segments.setnchan"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Segments.Segments.setnchan" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to set the number of channels in the internal channel bit mask</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>nchan</strong> : int</p>
+<blockquote>
+<div><p>The number of channels in the bit mask</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.Segments.Segments.setstartchan">
+<code class="descname">setstartchan</code><span class="sig-paren">(</span><em>chan</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/Segments.html#Segments.setstartchan"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.Segments.Segments.setstartchan" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to set the starting channels number for the internal bit mask</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>chan</strong> : int</p>
+<blockquote>
+<div><p>The starting channel number</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="PlotControl.html"
+                        title="previous chapter"><strong>PlotControl</strong> &#8212; Defines plot mode, type and orientation.</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/module/admit.util/Segments.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="PlotControl.html" title="PlotControl — Defines plot mode, type and orientation."
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" >Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

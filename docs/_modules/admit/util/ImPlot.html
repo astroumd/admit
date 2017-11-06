@@ -1,0 +1,197 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.util.ImPlot &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.util.ImPlot</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env casarun</span>
+<span class="sd">&quot;&quot;&quot; .. _ImPlot-api:</span>
+
+<span class="sd">    **ImPlot** --- Simple image plotter.</span>
+<span class="sd">    ------------------------------------</span>
+
+<span class="sd">    This module defines the ImPlot class.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">AbstractPlot</span> <span class="k">import</span> <span class="n">AbstractPlot</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">PlotControl</span>
+<span class="kn">import</span> <span class="nn">casautil</span>
+
+<div class="viewcode-block" id="ImPlot"><a class="viewcode-back" href="../../../module/admit.util/ImPlot.html#admit.util.ImPlot.ImPlot">[docs]</a><span class="k">class</span> <span class="nc">ImPlot</span><span class="p">(</span><span class="n">AbstractPlot</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Basic ADMIT image plotter that uses casa calls to create figures.</span>
+
+<span class="sd">    - uses CASA imview</span>
+<span class="sd">    - plot modes and plot types as in util.PlotControl </span>
+<span class="sd">    - keeps track of figure number</span>
+<span class="sd">    - make thumbnails if requested</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    admit.util.AbstractPlot</span>
+<span class="sd">    admit.util.casautil</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">pmode</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">ptype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">figno</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">abspath</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="c1"># @todo figno given here really must be figno-1 since every</span>
+        <span class="c1"># method increments it.  probably should start static at 1 and</span>
+        <span class="c1"># increment AFTER plt is made.</span>
+        <span class="n">AbstractPlot</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">pmode</span><span class="p">,</span><span class="n">ptype</span><span class="p">,</span><span class="n">figno</span><span class="p">,</span><span class="n">abspath</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ImPlot.plotter"><a class="viewcode-back" href="../../../module/admit.util/ImPlot.html#admit.util.ImPlot.ImPlot.plotter">[docs]</a>    <span class="k">def</span> <span class="nf">plotter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">figname</span><span class="p">,</span> <span class="n">rasterfile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">contourfile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">colorwedge</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">thumbnail</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">zoom</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+       <span class="sd">&quot;&quot;&quot;Image plotter</span>
+
+<span class="sd">          Parameters</span>
+<span class="sd">          ----------</span>
+<span class="sd">          figname : str</span>
+<span class="sd">              Root of output file name.  An extension matching the plot</span>
+<span class="sd">              type will be appended. For instance, for, figname=&#39;fig&#39;</span>
+<span class="sd">              and plottype=PlotControl.PNG, the output file is &#39;fig.png&#39;</span>
+
+<span class="sd">          rasterfile : str</span>
+<span class="sd">            Image file to use as raster map.  Optional if contourfile is given.</span>
+
+<span class="sd">          contourfile : str</span>
+<span class="sd">            Image file to use as contour map. Contours will be overlaid on</span>
+<span class="sd">            rasterfile if both are given.  Optional if rasterfile is given.</span>
+
+<span class="sd">          colorwedge  : boolean</span>
+<span class="sd">            True - show color wedge, False - don&#39;t show color wedge</span>
+
+<span class="sd">          thumbnail : boolean </span>
+<span class="sd">             If True, create a thumbnail when creating an output figure.</span>
+<span class="sd">             Thumbnails will have &#39;_thumb&#39; appended for file root.</span>
+<span class="sd">             For instance, if the output file is &#39;fig.png&#39;, the thumbnail</span>
+<span class="sd">             will be &#39;fig_thumb.png&#39;.  Note: only PNG format is currently</span>
+<span class="sd">             supported (matplotlib restriction, Exception raised otherwise).</span>
+
+<span class="sd">          zoom : int</span>
+<span class="sd">            Image zoom ratio.</span>
+
+<span class="sd">          Returns</span>
+<span class="sd">          -------</span>
+<span class="sd">          None</span>
+<span class="sd">       &quot;&quot;&quot;</span>
+
+       <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">figno</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">figno</span> <span class="o">+</span> <span class="mi">1</span>
+       <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_abspath</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+           <span class="n">figname</span>    <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_abspath</span> <span class="o">+</span> <span class="n">figname</span>
+           <span class="k">if</span> <span class="n">rasterfile</span><span class="p">:</span>  <span class="n">rasterfile</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_abspath</span> <span class="o">+</span> <span class="n">rasterfile</span>
+           <span class="k">if</span> <span class="n">contourfile</span><span class="p">:</span> <span class="n">contourfile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_abspath</span> <span class="o">+</span> <span class="n">contourfile</span>
+
+       <span class="n">figname</span> <span class="o">=</span> <span class="n">figname</span> <span class="o">+</span> <span class="n">PlotControl</span><span class="o">.</span><span class="n">mkext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_plot_type</span><span class="p">,</span><span class="kc">True</span><span class="p">)</span>
+       <span class="bp">self</span><span class="o">.</span><span class="n">_figurefiles</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">figno</span><span class="p">]</span> <span class="o">=</span> <span class="n">figname</span>
+
+       <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_plot_mode</span> <span class="o">!=</span> <span class="n">PlotControl</span><span class="o">.</span><span class="n">NOPLOT</span><span class="p">:</span>
+           <span class="c1">#print &quot;%s figno=%d figname=%s rasterfile=%s&quot; % (self.__class__.__name__,self.__class__.figno,figname,rasterfile)</span>
+           <span class="n">casautil</span><span class="o">.</span><span class="n">implot</span><span class="p">(</span><span class="n">rasterfile</span><span class="o">=</span><span class="n">rasterfile</span><span class="p">,</span><span class="n">figname</span><span class="o">=</span><span class="n">figname</span><span class="p">,</span><span class="n">contourfile</span><span class="o">=</span><span class="n">contourfile</span><span class="p">,</span><span class="n">plottype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_plot_type</span><span class="p">,</span><span class="n">plotmode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_plot_mode</span><span class="p">,</span><span class="n">colorwedge</span><span class="o">=</span><span class="n">colorwedge</span><span class="p">,</span><span class="n">zoom</span><span class="o">=</span><span class="n">zoom</span><span class="p">)</span>
+
+           <span class="k">if</span> <span class="n">thumbnail</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">makeThumbnail</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">figno</span><span class="p">)</span></div></div>
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+
+    <span class="kn">import</span> <span class="nn">os.path</span>
+    <span class="kn">import</span> <span class="nn">sys</span>
+    <span class="kn">import</span> <span class="nn">PlotControl</span>
+    
+    <span class="n">rasterfile</span><span class="o">=</span><span class="s2">&quot;implot_test.fits&quot;</span>
+
+    <span class="n">abspath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;ADMIT&quot;</span><span class="p">)</span><span class="o">+</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="o">+</span><span class="s2">&quot;data&quot;</span>
+    <span class="c1"># nb interactive won&#39;t show with casarun because --nogui!</span>
+    <span class="c1"># use casapy -c </span>
+    <span class="n">a1</span> <span class="o">=</span> <span class="n">ImPlot</span><span class="p">(</span><span class="n">pmode</span><span class="o">=</span><span class="n">PlotControl</span><span class="o">.</span><span class="n">INTERACTIVE</span><span class="p">,</span><span class="n">ptype</span><span class="o">=</span><span class="n">PlotControl</span><span class="o">.</span><span class="n">PNG</span><span class="p">,</span><span class="n">figno</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span><span class="n">abspath</span><span class="o">=</span><span class="n">abspath</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">a1</span><span class="o">.</span><span class="n">_abspath</span><span class="o">+</span><span class="n">rasterfile</span><span class="p">):</span>
+        <span class="n">a1</span><span class="o">.</span><span class="n">plotter</span><span class="p">(</span><span class="n">figname</span><span class="o">=</span><span class="s2">&quot;figone&quot;</span><span class="p">,</span><span class="n">rasterfile</span><span class="o">=</span><span class="n">rasterfile</span><span class="p">,</span><span class="n">contourfile</span><span class="o">=</span><span class="s2">&quot;implot_test.fits&quot;</span><span class="p">,</span><span class="n">thumbnail</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">a1</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span> <span class="s2">&quot;## Exception: Could not find file: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">a1</span><span class="o">.</span><span class="n">_abspath</span><span class="o">+</span><span class="n">rasterfile</span>
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

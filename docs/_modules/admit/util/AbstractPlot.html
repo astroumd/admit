@@ -1,0 +1,377 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.util.AbstractPlot &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.util.AbstractPlot</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; .. _AbstractPlot-base-api:</span>
+
+<span class="sd">    **AbstractPlot** --- Plotting base class.</span>
+<span class="sd">    -----------------------------------------</span>
+
+<span class="sd">    This module defines the base class for ADMIT plotters (APlot, ImPlot):</span>
+
+<span class="sd">    - keeps track of figure numbers</span>
+<span class="sd">    - plotmodes as in util.PlotControl </span>
+<span class="sd">    - thumbnail generation built-in</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">PlotControl</span>
+<span class="kn">import</span> <span class="nn">utils</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<div class="viewcode-block" id="AbstractPlot"><a class="viewcode-back" href="../../../module/admit.util/AbstractPlot.html#admit.util.AbstractPlot.AbstractPlot">[docs]</a><span class="k">class</span> <span class="nc">AbstractPlot</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Base class of ADMIT plotters.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    figno : int</span>
+<span class="sd">      Figure number (1 and up). This is a static class variable.</span>
+
+<span class="sd">    _figurefiles : dict</span>
+<span class="sd">      Dictionary of figure file names with key equal to figno.</span>
+
+<span class="sd">    _thumbnailfiles : dict</span>
+<span class="sd">      Dictionary of thumbnail file names with key equal to figno.</span>
+
+<span class="sd">    _plot_mode : int</span>
+<span class="sd">      Plot mode, one of util.PlotControl plot mode (e.g.,</span>
+<span class="sd">      PlotControl.INTERACTIVE). Default: PlotControl.NOPLOT .</span>
+
+<span class="sd">    _plot_type : int</span>
+<span class="sd">      Plotting format, one of util.PlotControl plot type (e.g.,</span>
+<span class="sd">      PlotControl.PNG). Default: PlotControl.NONE.</span>
+
+<span class="sd">    _abspath : str</span>
+<span class="sd">      Fully-qualified path where images will be written.  Default: empty string,      meaning write in current working directory or the path will be given</span>
+<span class="sd">      in the figname argument to plot methods.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Figure number is a static member</span>
+    <span class="n">figno</span> <span class="o">=</span> <span class="mi">0</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">pmode</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">ptype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">figno</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">abspath</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_plot_mode</span> <span class="o">=</span> <span class="n">PlotControl</span><span class="o">.</span><span class="n">NOPLOT</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_plot_type</span> <span class="o">=</span> <span class="n">PlotControl</span><span class="o">.</span><span class="n">NONE</span>
+
+        <span class="k">if</span> <span class="n">pmode</span><span class="o">!=</span><span class="kc">None</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_plot_mode</span> <span class="o">=</span> <span class="n">pmode</span>
+        <span class="k">if</span> <span class="n">ptype</span><span class="o">!=</span><span class="kc">None</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_plot_type</span><span class="o">=</span> <span class="n">ptype</span>
+        <span class="k">if</span> <span class="n">figno</span><span class="o">!=</span><span class="kc">None</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">figno</span> <span class="o">=</span> <span class="n">figno</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_abspath</span>      <span class="o">=</span> <span class="n">abspath</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_abspath</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_abspath</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_abspath</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">:</span>
+                 <span class="bp">self</span><span class="o">.</span><span class="n">_abspath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_abspath</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_figurefiles</span>   <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_thumbnailfiles</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="c1">#        self.backend(&quot;Agg&quot;)</span>
+<span class="c1">#        self.backend(&quot;TkAgg&quot;)</span>
+
+<div class="viewcode-block" id="AbstractPlot.show"><a class="viewcode-back" href="../../../module/admit.util/AbstractPlot.html#admit.util.AbstractPlot.AbstractPlot.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;show internals for debugging </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">print</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">:  plotmode=</span><span class="si">%s</span><span class="s2"> plottype=</span><span class="si">%s</span><span class="s2"> current figno=</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="n">PlotControl</span><span class="o">.</span><span class="n">plotmode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_plot_mode</span><span class="p">),</span> <span class="n">PlotControl</span><span class="o">.</span><span class="n">plottype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_plot_type</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">figno</span><span class="p">)</span>
+        <span class="nb">print</span> <span class="s2">&quot;abspath = </span><span class="si">%s</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_abspath</span>
+        <span class="nb">print</span> <span class="s2">&quot;Figure files created by this Aplot: &quot;</span>    <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_figurefiles</span><span class="p">)</span>
+        <span class="nb">print</span> <span class="s2">&quot;Thumbnail files created by this Aplot: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_thumbnailfiles</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">plotmode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the plotting mode</span>
+
+<span class="sd">           Returns</span>
+<span class="sd">           -------</span>
+<span class="sd">           int </span>
+<span class="sd">               Plotting mode. </span>
+
+<span class="sd">           See Also</span>
+<span class="sd">           --------</span>
+<span class="sd">           util.PlotControl plot modes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_plot_mode</span>
+
+    <span class="nd">@plotmode</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">plotmode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">plotmode</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the plot mode</span>
+
+<span class="sd">           Parameters</span>
+<span class="sd">           ----------</span>
+<span class="sd">           plotmode : int</span>
+<span class="sd">               Plotting mode. </span>
+
+<span class="sd">           See Also</span>
+<span class="sd">           --------</span>
+<span class="sd">           util.PlotControl plot modes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_plotmode</span> <span class="o">=</span> <span class="n">plotmode</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">plottype</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the plot type</span>
+
+<span class="sd">           Returns</span>
+<span class="sd">           ----------</span>
+<span class="sd">           int</span>
+<span class="sd">               Plot format type. </span>
+
+<span class="sd">           See Also</span>
+<span class="sd">           --------</span>
+<span class="sd">           util.PlotControl plot types.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_plot_type</span>
+
+    <span class="nd">@plottype</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">plottype</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">plottype</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the plot type</span>
+
+<span class="sd">           Parameters</span>
+<span class="sd">           ----------</span>
+<span class="sd">           plottype : int  </span>
+<span class="sd">               Plot format type. </span>
+
+<span class="sd">           See Also</span>
+<span class="sd">           --------</span>
+<span class="sd">           util.PlotControl plot types.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_plot_type</span> <span class="o">=</span> <span class="n">plottype</span>
+
+<div class="viewcode-block" id="AbstractPlot.getThumbnail"><a class="viewcode-back" href="../../../module/admit.util/AbstractPlot.html#admit.util.AbstractPlot.AbstractPlot.getThumbnail">[docs]</a>    <span class="k">def</span> <span class="nf">getThumbnail</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">figno</span><span class="p">,</span><span class="n">relative</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the name of the thumbnail file for given figure number</span>
+
+<span class="sd">           Parameters</span>
+<span class="sd">           ----------</span>
+<span class="sd">           figno : int  </span>
+<span class="sd">               Figure number to look up</span>
+
+<span class="sd">           relative : boolean</span>
+<span class="sd">               Whether to return with relative path or absolute path.  If True,</span>
+<span class="sd">               plot _abspath will be removed from retured string.</span>
+
+<span class="sd">           Returns</span>
+<span class="sd">           -------</span>
+<span class="sd">           str</span>
+<span class="sd">              Thumbnail file name</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">relative</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_thumbnailfiles</span><span class="p">[</span><span class="n">figno</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_abspath</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_thumbnailfiles</span><span class="p">[</span><span class="n">figno</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span> <span class="s2">&quot;Thumbnail for figure </span><span class="si">%d</span><span class="s2"> was not created by this </span><span class="si">%s</span><span class="s2"> .&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">figno</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AbstractPlot.getFigure"><a class="viewcode-back" href="../../../module/admit.util/AbstractPlot.html#admit.util.AbstractPlot.AbstractPlot.getFigure">[docs]</a>    <span class="k">def</span> <span class="nf">getFigure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">figno</span><span class="p">,</span><span class="n">relative</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the name of the figure file for given figure number</span>
+
+<span class="sd">           Parameters</span>
+<span class="sd">           ----------</span>
+<span class="sd">           figno : int  </span>
+<span class="sd">               Figure number to look up</span>
+
+<span class="sd">           relative : boolean</span>
+<span class="sd">               Whether to return with relative path or absolute path.  If True,</span>
+<span class="sd">               plot _abspath will be removed from retured string.</span>
+
+<span class="sd">           Returns</span>
+<span class="sd">           -------</span>
+<span class="sd">           str</span>
+<span class="sd">               Figure file name</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">relative</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_figurefiles</span><span class="p">[</span><span class="n">figno</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_abspath</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_figurefiles</span><span class="p">[</span><span class="n">figno</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span> <span class="s2">&quot;Figure </span><span class="si">%d</span><span class="s2"> was not created by this </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">figno</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span> <span class="p">)</span></div>
+
+<div class="viewcode-block" id="AbstractPlot.figure"><a class="viewcode-back" href="../../../module/admit.util/AbstractPlot.html#admit.util.AbstractPlot.AbstractPlot.figure">[docs]</a>    <span class="k">def</span> <span class="nf">figure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">figno</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;set the figure number. </span>
+<span class="sd">        This should normally not be needed, unless you want to alternate drawing in different figures.</span>
+<span class="sd">        This option has not been tested at all.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">figno</span> <span class="o">=</span> <span class="n">figno</span><span class="o">-</span><span class="mi">1</span></div>
+
+<div class="viewcode-block" id="AbstractPlot.makeThumbnail"><a class="viewcode-back" href="../../../module/admit.util/AbstractPlot.html#admit.util.AbstractPlot.AbstractPlot.makeThumbnail">[docs]</a>    <span class="k">def</span> <span class="nf">makeThumbnail</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">figno</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">0.33</span><span class="p">,</span> <span class="n">fig</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a thumbnail for a given figure number. The output</span>
+<span class="sd">           file will be root of input plus &#39;_thumb&#39; plus plot type extension.</span>
+<span class="sd">           For instance, if the input were &quot;myimage.png&quot;, the output</span>
+<span class="sd">           would be &quot;myimage_thumb.png&quot;.   Note: only PNG format is currently</span>
+<span class="sd">           supported (matplotlib restriction, Exception raised otherwise).</span>
+
+<span class="sd">           Parameters</span>
+<span class="sd">           ----------</span>
+<span class="sd">           figno: int</span>
+<span class="sd">               figure number for a plot that has been created by this Plot </span>
+<span class="sd">               instance.  </span>
+
+<span class="sd">           scale: float</span>
+<span class="sd">               multiplier to scale input image, e.g. for 50% scaling, </span>
+<span class="sd">               scale = 0.5.  Default: 0.33</span>
+
+<span class="sd">           fig : figure, optional</span>
+<span class="sd">               Populated matplotlib.figure.Figure instance</span>
+<span class="sd">               (if `None`, input plot type must be PNG).</span>
+
+<span class="sd">           Returns</span>
+<span class="sd">           ----------</span>
+<span class="sd">           None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">figno</span><span class="p">:</span>
+           <span class="n">fno</span> <span class="o">=</span> <span class="n">figno</span>
+        <span class="k">else</span><span class="p">:</span>
+           <span class="c1"># not safe if static member has been changed between</span>
+           <span class="c1"># method invocation and here!</span>
+           <span class="n">fno</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">figno</span>
+
+        <span class="n">pngfile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_figurefiles</span><span class="p">[</span><span class="n">fno</span><span class="p">]</span>
+        <span class="n">filename</span><span class="p">,</span> <span class="n">file_extension</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">pngfile</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_plot_type</span> <span class="o">!=</span> <span class="n">PlotControl</span><span class="o">.</span><span class="n">PNG</span><span class="p">:</span>
+           <span class="k">if</span> <span class="n">fig</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span> <span class="s2">&quot;Thumbnails for plot types other than PNG require specifying fig=&quot;</span>
+           <span class="k">else</span><span class="p">:</span>
+             <span class="n">pngfile</span> <span class="o">=</span> <span class="n">filename</span> <span class="o">+</span> <span class="s2">&quot;.png&quot;</span>
+             <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">pngfile</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;png&#39;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">get_dpi</span><span class="p">())</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># strip the file extension so that the base name can be appended to</span>
+            <span class="c1"># make sure the file to be processed exists and is readable</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">pngfile</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">access</span><span class="p">(</span><span class="n">pngfile</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">R_OK</span><span class="p">):</span>
+                <span class="n">outfile</span> <span class="o">=</span> <span class="n">filename</span> <span class="o">+</span> <span class="s2">&quot;_thumb.png&quot;</span>
+                <span class="c1"># generate the thumbnail</span>
+                <span class="n">fig</span> <span class="o">=</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">thumbnail</span><span class="p">(</span><span class="n">pngfile</span><span class="p">,</span> <span class="n">outfile</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;File not found or not readable: </span><span class="si">%s</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="n">file</span><span class="p">)</span>
+            <span class="c1"># set the class variable to the name</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_thumbnailfiles</span><span class="p">[</span><span class="n">fno</span><span class="p">]</span> <span class="o">=</span> <span class="n">outfile</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Figure </span><span class="si">%d</span><span class="s2"> was not created by this </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fno</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">))</span></div>
+
+    <span class="sd">&quot;&quot;&quot;Set a particular backend for matplotlib</span>
+
+<span class="sd">       Parameters</span>
+<span class="sd">       ----------</span>
+<span class="sd">       thebackend: str</span>
+<span class="sd">           backend string, e.g. &#39;agg&#39;</span>
+<span class="sd">   </span>
+<span class="sd">       Returns</span>
+<span class="sd">       ----------</span>
+<span class="sd">       None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="AbstractPlot.backend"><a class="viewcode-back" href="../../../module/admit.util/AbstractPlot.html#admit.util.AbstractPlot.AbstractPlot.backend">[docs]</a>    <span class="k">def</span> <span class="nf">backend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">thebackend</span><span class="p">):</span>
+        <span class="c1">#try:</span>
+        <span class="k">global</span> <span class="n">plt</span>
+        <span class="nb">print</span> <span class="s2">&quot;started with </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">plt</span><span class="o">.</span><span class="n">get_backend</span><span class="p">()</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">switch_backend</span><span class="p">(</span><span class="n">thebackend</span><span class="p">)</span>
+    <span class="c1">#except Exception, e:</span>
+        <span class="nb">print</span> <span class="s2">&quot;changing matplotlib backend the hard way&quot;</span>
+        <span class="c1"># See http://stackoverflow.com/questions/3285193/how-to-switch-backends-in-matplotlib-python</span>
+
+        <span class="n">modules</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">module</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">module</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;matplotlib&#39;</span><span class="p">):</span>
+                <span class="n">modules</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">module</span> <span class="ow">in</span> <span class="n">modules</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
+
+        <span class="kn">import</span> <span class="nn">matplotlib</span>
+        <span class="n">matplotlib</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">thebackend</span><span class="p">)</span>
+        <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+        <span class="nb">print</span> <span class="s2">&quot;ended with </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">plt</span><span class="o">.</span><span class="n">get_backend</span><span class="p">()</span></div></div>
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

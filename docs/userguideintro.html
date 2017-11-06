@@ -1,0 +1,799 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Overview of ADMIT &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="index.html" />
+    <link rel="next" title="Python Scripting Interface (API)" href="api.html" />
+    <link rel="prev" title="The ALMA Data Mining Toolkit" href="index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api.html" title="Python Scripting Interface (API)"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="The ALMA Data Mining Toolkit"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">ADMIT 1.0.6 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="overview-of-admit">
+<h1>Overview of ADMIT<a class="headerlink" href="#overview-of-admit" title="Permalink to this headline">¶</a></h1>
+<p>The ALMA Data-Mining Toolkit (ADMIT) is an execution environment and set of
+tools for analyzing image data cubes. ADMIT is based on python and designed
+to be fully compliant with <a class="reference external" href="http://casaguides.nrao.edu/index.php/Main_Page">CASA</a> and to utilize <a class="reference external" href="http://casaguides.nrao.edu/index.php/Main_Page">CASA</a> routines where possible.
+ADMIT has a flow-oriented approach, executing a series of ADMIT Tasks (ATs)
+in a sequence to produce a sequence of outputs. For the beginner, ADMIT can
+be driven by simple scripts that can be run at the Unix level or from inside
+of <a class="reference external" href="http://casaguides.nrao.edu/index.php/Main_Page">CASA</a>. ADMIT provides a simple browser interface for looking at the data
+products, and all major data products are on disk as <a class="reference external" href="http://casaguides.nrao.edu/index.php/Main_Page">CASA</a> images and graphics
+files. For the advanced user, ADMIT is a python environment for data analysis
+and for creating new tools for analyzing data.</p>
+<p>The primary operations supported by ADMIT
+are focused on analysis of images commonly produced by ALMA and similar radio
+telescopes. ADMIT has three primary functionalities:</p>
+<ol class="arabic simple">
+<li>An automatic pipeline flow which produces a fixed set of science <a class="reference external" href="module/admit.bdp/BDP.html">data products</a> which are ingested into the ALMA Archive and available to the requester from the ALMA Archive. These ADMIT products are created from the ALMA image cubes after they are accepted as valid by the observatory. ADMIT products are not currently available from the ALMA Archive &#8211; they should become available later in 2016.</li>
+<li>A desktop environment where the astronomer can quickly create flows to produce and inspect ADMIT <a class="reference external" href="module/admit.bdp/BDP.html">data products</a> via a web or graphic file browser and access information in the form of XML table, PNG files, and FITS files.  Because ADMIT is a Python environment, the user can choose to examine the data using the Python capabilities.</li>
+<li>A capability for astronomers to rerun pipeline flows with hand-tuned parameters and to modify flows based on existing ADMIT Tasks. Additionally, the advanced user may create new ADMIT tasks to suit the needs of their scientific goals.</li>
+</ol>
+<p>Typically an astronomer will interact with ADMIT in one of two ways:</p>
+<ul class="simple">
+<li>By retrieving the ADMIT products from the ALMA Archive. These products will be in a gzipped tar file of size a few to a few tens of megabytes. Once untar&#8217;ed on the disk, these products can be viewed with a browser utilizing the index.html file provided or inspected directly with Unix or xml tools. Archive products available later in 2016.</li>
+<li>By creating a local ADMIT flow to do the user requested analysis, inspect the results, and then modify and improve the flow parameters to achieve the desired final data products.</li>
+</ul>
+<p><em>ADMIT does not interact with u,v data or create images from u,v data</em>;
+<a class="reference external" href="http://casaguides.nrao.edu/index.php/Main_Page">CASA</a> should be used to create images. ADMIT provides a number of ways to inspect
+your image cubes. The astronomer can then decide whether the ALMA image
+cubes need to be improved, which requires running standard <a class="reference external" href="http://casaguides.nrao.edu/index.php/Main_Page">CASA</a> routines
+to re-image the u,v data. If new images are made, the ADMIT
+flow can be run on these new image cubes to produce new set
+of ADMIT products.</p>
+<p>ADMIT requires that you have the image cubes local to the execution
+machine to create new data products. You do not need to have the image
+cubes local to view pre-existing ADMIT products. The tarball from the
+ALMA archive will contain ADMIT products without the image cubes. If
+you wish to modify parameters and make new ADMIT products, you need to
+download the appropriate data cubes from the ALMA archive and then
+re-run the ADMIT flow.</p>
+</div>
+<div class="section" id="a-short-summary-of-the-technical-side-of-admit">
+<h1>A Short Summary of the Technical Side of ADMIT<a class="headerlink" href="#a-short-summary-of-the-technical-side-of-admit" title="Permalink to this headline">¶</a></h1>
+<p>ADMIT is Python-based software which utilizes <a class="reference external" href="http://casaguides.nrao.edu/index.php/Main_Page">CASA</a> routines where possible
+and reads <a class="reference external" href="http://casaguides.nrao.edu/index.php/Main_Page">CASA</a> image format or FITS.  ADMIT is an add-on package to <a class="reference external" href="http://casaguides.nrao.edu/index.php/Main_Page">CASA</a>
+and designed to be compatable with the <a class="reference external" href="http://casaguides.nrao.edu/index.php/Main_Page">CASA</a> Python environment. Currently,
+compatability with <a class="reference external" href="http://casaguides.nrao.edu/index.php/Main_Page">CASA</a> forces incompatability with some commonly used
+Python packages (e.g., APLpy, astropy). <a class="reference external" href="http://casaguides.nrao.edu/index.php/Main_Page">CASA</a> must be installed on your
+computer and instantiated in your working shell in order to use ADMIT. ADMIT
+software must be installed on your system (see <a class="reference external" href="installguide.html">Install Guide</a>).</p>
+<p>The basic components of ADMIT are:</p>
+<ul class="simple">
+<li><a class="reference external" href="module/admit/AT.html">ADMIT Task</a> (AT): An ADMIT task is a Python script that accomplishes a specfic job. Each task has a specific set of keywords and a set of outputs. Most tasks follow a load-and-execute model so that they can be run automatically based on set inputs.</li>
+<li><a class="reference external" href="module/admit.bdp/BDP.html">Basic Data Product</a> (BDP): A Basic Data Product is an output from an AT and often the input to another AT. The content of the BDP is defined by the AT that produces it. It can consist of XML, PNG images, and image data in <a class="reference external" href="http://casaguides.nrao.edu/index.php/Main_Page">CASA</a> or FITS format. BDPs are written to disk.</li>
+<li><a class="reference external" href="design.html#workflow-management">Flow</a>:  <a class="reference external" href="module/admit/AT.html">ADMIT Tasks</a> are generally run sequentially to create a set of BDPs. Tasks are created and added to the <a class="reference external" href="design.html#workflow-management">Flow</a>, and once the flow is set up, the user runs the flow which runs each task in turn. Tasks are connected to each other via BDPs &#8211; the output BDP of an AT is used as the input BDP to another AT downstream.  ADMIT has a <a class="reference external" href="module/admit/FlowManager.html">Flow Manager</a> which maintains information about the sequence of ATs and the input and output BDPs. The <a class="reference external" href="module/admit/FlowManager.html">Flow Manager</a> allows the astronomer to re-run any sequence and only execute tasks whose input parameters have changed.  Furthermore, if an input BDP or keyword value for one AT in a flow is altered, the <a class="reference external" href="module/admit/FlowManager.html">Flow Manager</a> knows to execute not only that AT, but any ATs further along in the flow that depend on the output of altered AT.</li>
+</ul>
+<p>ADMIT operates on individual ALMA data cubes. The output BDPs are written to
+a directory named <em>input-cube-name.admit</em>, where the originating FITS file
+would be <em>input-cube-name.fits</em>. (As ALMA FITS file names can be rather
+long, the the user has the option to give an alias for the basename).
+Each data cube is associated with its own <em>input-cube-name.admit</em>
+directory. Within that directory, the admit.xml file contains metadata
+about the BDPs and the summary information that that is used to create the
+index.html file for displaying the BDPs in the browser. Each BDP created
+by an AT has a xml file (file extension .bdp) in this directory which
+contains information about the BDP and pointers to any PNG or image files
+associated with the BDP.  Most users will never examine admit.xml or a BDP file directly, rather they will use the web browser interface or Python methods.</p>
+<p>ADMIT expects to be in control the contents of its BDPs so users should
+not delete files in the <em>input-cube-name.admit</em> directory. Furthermore,
+if the <em>input-cube-name.admit</em> directory is deleted at the Unix level,
+all information about the flow and all data products are deleted.</p>
+</div>
+<div class="section" id="getting-started-with-admit-for-linux-users">
+<h1>Getting Started with ADMIT (for Linux users)<a class="headerlink" href="#getting-started-with-admit-for-linux-users" title="Permalink to this headline">¶</a></h1>
+<p>You should have already installed ADMIT on your local machine (see <a class="reference external" href="installguide.html">Install Guide</a>).</p>
+<p>In the shell that you want to work, there must be a path to <a class="reference external" href="http://casaguides.nrao.edu/index.php/Main_Page">CASA</a>.</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>which casa
+</pre></div>
+</div>
+<p>on your Unix command line and you should see the path to <a class="reference external" href="http://casaguides.nrao.edu/index.php/Main_Page">CASA</a>. If not,
+you need to either install CASA or invoke your local script that
+defines your path to <a class="reference external" href="http://casaguides.nrao.edu/index.php/Main_Page">CASA</a>. Similarly, admit should be in your path</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>     which admit
+or   echo $ADMIT
+</pre></div>
+</div>
+<p>on your Unix command line and you should see the path to ADMIT.
+If you do not, go to the directory where ADMIT was installed and
+source the admit start-up script:</p>
+<div class="highlight-tcsh"><div class="highlight"><pre><span></span><span class="nb">source </span>admit_start.csh
+</pre></div>
+</div>
+<p>You can type &#8220;echo $ADMIT&#8221; again and now you should see the path.</p>
+<p>Now you are ready. If you have downloaded an ADMIT products tarball from
+the ALMA archive and just want to look at the products, you can skip
+down to the <a class="reference internal" href="#admit-in-your-web-browser">ADMIT in Your Web Browser</a> section on viewing data products.
+Right now, since ADMIT products are not yet in the archive, you should
+proceed to the next section to create simple ADMIT data products
+from an ALMA image in FITS or <a class="reference external" href="http://casaguides.nrao.edu/index.php/Main_Page">CASA</a> format.</p>
+</div>
+<div class="section" id="getting-started-with-admit-for-os-x-users">
+<h1>Getting Started with ADMIT (for OS X users)<a class="headerlink" href="#getting-started-with-admit-for-os-x-users" title="Permalink to this headline">¶</a></h1>
+<p>You should have already installed ADMIT on your local machine (see <a class="reference external" href="installguide.html">Install Guide</a>).</p>
+<p>In the shell that you want to work, there must be a path to <a class="reference external" href="http://casaguides.nrao.edu/index.php/Main_Page">CASA</a>.</p>
+<div class="highlight-tcsh"><div class="highlight"><pre><span></span><span class="nb">which </span>casa
+</pre></div>
+</div>
+<p>on your OS X command line and you should see the path to <a class="reference external" href="http://casaguides.nrao.edu/index.php/Main_Page">CASA</a>. If not,
+you need to either install CASA or invoke your local script that
+defines your path to <a class="reference external" href="http://casaguides.nrao.edu/index.php/Main_Page">CASA</a>. Similarly, admit should be in your path</p>
+<div class="highlight-tcsh"><div class="highlight"><pre><span></span>       <span class="nb">which </span>admit
+or     <span class="nb">echo</span> <span class="nv">$ADMIT</span>
+</pre></div>
+</div>
+<p>on your OS X command line and you should see the path to ADMIT.
+If you do not, go to the directory where ADMIT was installed and
+source the admit start-up script:</p>
+<div class="highlight-tcsh"><div class="highlight"><pre><span></span><span class="nb">source </span>admit_start.csh
+</pre></div>
+</div>
+<p>You can type &#8220;echo $ADMIT&#8221; again and now you should see the path.</p>
+<p>There are now two more steps. First, CASA must be able to &#8220;see&#8221; where ADMIT is.
+The mac executable &#8216;casa&#8217; or &#8216;casapy&#8217; overwrites the system supplied path. To
+fix this, edit (in your home directory) the ~/.casa/init.py file to reflect both the
+ADMIT path and the ADMIT/bin path.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+
+<span class="k">try</span><span class="p">:</span>
+   <span class="n">admit_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;ADMIT&#39;</span><span class="p">]</span>
+   <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">admit_path</span><span class="p">)</span>
+       <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;PATH&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">os</span><span class="o">.</span><span class="n">pathsep</span> <span class="o">+</span> <span class="n">admit_path</span> <span class="o">+</span> <span class="s1">&#39;/bin/&#39;</span>  <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">pathsep</span> <span class="o">+</span> <span class="s1">&#39;/usr/local/bin/&#39;</span>
+<span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+       <span class="k">print</span><span class="p">(</span><span class="s2">&quot;ADMIT path not defined. If you wish to use ADMIT, source the admit_start.[c]sh file.&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>(you can find a template of this script in <em>$ADMIT/scripts/casa.init.py</em>)
+The second thing that must be done is that calls to the ADMIT-supplied script
+&#8216;casarun&#8217; must be replaced with calls to the CASA-supplied command &#8216;casa-config.&#8217;
+As an explicit example, one test that is run to establish the Python-path as seen
+by CASA is performed by running</p>
+<div class="highlight-tcsh"><div class="highlight"><pre><span></span>make python1
+</pre></div>
+</div>
+<p>This command in the Makefile reads &#8216;casarun bin/python-env&#8217;, and it will hang on OS X.
+Instead, this should be edited to read &#8216;casa-config &#8211;exec bin/python-env&#8217;.</p>
+<p>Now you are ready. If you have downloaded an ADMIT products tarball from
+the ALMA archive and just want to look at the products, you can skip
+down to the <a class="reference internal" href="#admit-in-your-web-browser">ADMIT in Your Web Browser</a> section on viewing data products.
+Right now, since ADMIT products are not yet in
+the ALMA archive, you should proceed to the next section
+to create simple ADMIT data products from an ALMA image FITS file or CASA image.</p>
+</div>
+<div class="section" id="prepared-admit-recipes">
+<h1>Prepared ADMIT Recipes<a class="headerlink" href="#prepared-admit-recipes" title="Permalink to this headline">¶</a></h1>
+<p>ADMIT will provide standard recipe scripts for common flows.  These can
+be invoked in CASA or at the shell command line.  For example, to
+invoke the recipe <a class="reference external" href="module/admit.recipes/Line_Moment.html">Line_Moment</a> in CASA:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">CASA</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">:</span> <span class="kn">import</span> <span class="nn">admit</span>
+<span class="n">CASA</span><span class="o">&lt;</span><span class="mi">2</span><span class="o">&gt;</span><span class="p">:</span> <span class="n">admit</span><span class="o">.</span><span class="n">recipe</span><span class="p">(</span><span class="s2">&quot;Line_Moment&quot;</span><span class="p">,</span><span class="s2">&quot;myimage.fits&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>and at the shell command line:</p>
+<div class="highlight-csh"><div class="highlight"><pre><span></span>admit_recipe Line_Moment myimage.fits
+</pre></div>
+</div>
+<p>To see the list of available recipes, type <em>admit_recipe</em> with no arguments.  There are some advanced
+Unix scripts to run ADMIT flows, but these are discussed below. See <a class="reference internal" href="tricks.html#runa1-script"><span class="std std-ref">runa1 and admit1.py</span></a>.</p>
+</div>
+<div class="section" id="making-an-admit-data-product">
+<h1>Making an ADMIT Data Product<a class="headerlink" href="#making-an-admit-data-product" title="Permalink to this headline">¶</a></h1>
+<p>ADMIT Tasks &#8211; which do the work &#8211; can be run directly
+within <a class="reference external" href="http://casaguides.nrao.edu/index.php/Main_Page">CASA</a> from the command line, or from scripts in either the Unix or
+<a class="reference external" href="http://casaguides.nrao.edu/index.php/Main_Page">CASA</a> environment.
+The goal of ADMIT is to produce, reproduce and simplify the production
+of data products of scientific interest to you, so ADMIT must internally keep track of
+what you are doing. To do this, ADMIT will create a &#8220;your-name-choice&#8221;.admit
+directory and store information there. This tracking capability also means
+that simple ADMIT usage will involve a couple of administrative steps.</p>
+<p>Let&#8217;s start in the CASA environment. At the CASA prompt, type:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">CASA</span> <span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">:</span> <span class="kn">import</span> <span class="nn">admit</span>
+<span class="n">CASA</span> <span class="o">&lt;</span><span class="mi">2</span><span class="o">&gt;</span><span class="p">:</span> <span class="n">p</span>  <span class="o">=</span> <span class="n">admit</span><span class="o">.</span><span class="n">Project</span><span class="p">(</span><span class="s1">&#39;your-name-choice.admit&#39;</span><span class="p">,</span><span class="n">dataserver</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">CASA</span> <span class="o">&lt;</span><span class="mi">3</span><span class="o">&gt;</span><span class="p">:</span> <span class="n">t0</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">addtask</span><span class="p">(</span><span class="n">admit</span><span class="o">.</span><span class="n">Ingest_AT</span><span class="p">(</span><span class="nb">file</span><span class="o">=</span><span class="s1">&#39;your-image-cube-name.fits&#39;</span><span class="p">,</span> <span class="n">vlsr</span><span class="o">=</span><span class="mf">10.0</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>The admit.Project command initiates the project, opens the directory
+with the name that you gave and creates a Python &#8216;Admit object&#8217; in memory named
+&#8220;p&#8221;. The &#8220;p&#8221; can be anything that you choose; as it will become the first
+piece of every project command you type, a short name is recommended.  The
+dataserver=True flag causes ADMIT to start up a webpage for showing the
+results; more on that later (in <a class="reference internal" href="#admit-in-your-web-browser">ADMIT in Your Web Browser</a>).  The webpage
+will be blank until you actually perform calculations.</p>
+<p>The <code class="docutils literal"><span class="pre">addtask()</span></code> method (see <a class="reference external" href="module/admit/Admit.html">Admit Project</a>) puts an ADMIT task into your
+flow&#8212;in this case, <a class="reference external" href="module/admit.at/Ingest_AT.html">Ingest_AT</a>&#8212;and returns a handle to the task (the
+task&#8217;s ID number). The <a class="reference external" href="module/admit.at/Ingest_AT.html">Ingest_AT</a> brings an image cube
+into ADMIT. If it is a FITS file, the image cube will be read into a <a class="reference external" href="http://casaguides.nrao.edu/index.php/Main_Page">CASA</a>
+image on disk. If it is a <a class="reference external" href="http://casaguides.nrao.edu/index.php/Main_Page">CASA</a> image, <a class="reference external" href="module/admit.at/Ingest_AT.html">Ingest_AT</a> will just create an ADMIT
+information file.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Since <a class="reference external" href="http://casaguides.nrao.edu/index.php/Main_Page">CASA</a> images generally do not have information about
+your source Vlsr, <a class="reference external" href="module/admit.at/Ingest_AT.html">Ingest_AT</a> is typically a good place to input it
+(in km/sec).</p>
+</div>
+<p>The &#8220;t0&#8221; (or whatever name you choose) is the ADMIT task number, which
+provides a handle to the <a class="reference external" href="module/admit.bdp/BDP.html">Basic Data Product</a> (BDP)&#8212;in some cases,
+multiple BDPs&#8212;produced by the task. BDP outputs from a task are numbered from
+zero and referred to with Python tuples such as (<em>t0</em>,0), which represents the
+<em>first</em> BDP output from task <em>t0</em>. (Since many tasks produce only one BDP, for
+convenience tuples such as (<em>t0</em>,0) can be abbreviated simply to <em>t0</em>, as
+shown in the following example.)</p>
+<p>To make a moment map, such as zero, first and second moment maps, from the
+image cube, you would then type:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">CASA</span> <span class="o">&lt;</span><span class="mi">4</span><span class="o">&gt;</span><span class="p">:</span> <span class="n">t1</span>  <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">addtask</span><span class="p">(</span><span class="n">admit</span><span class="o">.</span><span class="n">CubeStats_AT</span><span class="p">(</span><span class="n">ppp</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span> <span class="p">[</span><span class="n">t0</span><span class="p">])</span>
+<span class="n">CASA</span> <span class="o">&lt;</span><span class="mi">5</span><span class="o">&gt;</span><span class="p">:</span> <span class="n">t2</span>  <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">addtask</span><span class="p">(</span><span class="n">admit</span><span class="o">.</span><span class="n">Moment_AT</span><span class="p">(</span><span class="n">mom0clip</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">numsigma</span><span class="o">=</span><span class="p">[</span><span class="mf">3.0</span><span class="p">]),</span> <span class="p">[</span><span class="n">t0</span><span class="p">,</span> <span class="n">t1</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>The <a class="reference external" href="module/admit.at/CubeStats_AT.html">CubeStats_AT</a> will produce a series of statistics about its input data
+[<em>t0</em>]&#8212;shorthand for [(<em>t0</em>,0)]&#8212;which will be output in BDP (<em>t1</em>,0), the
+first (and only) BDP generated by the task, <em>t1</em>. The <a class="reference external" href="module/admit.at/Moment_AT.html">Moment_AT</a> produces the
+requested moment map(s)&#8212;by default, just moment-0&#8212;for the image cube
+<em>t0</em> that you digested. In this case, for the entire cube (all spectral
+channels) with a S/N cutoff of 3 times the RMS noise determined by CubeStats
+(the <em>t1</em> input), and with the higher moment maps (1,2,3...) clipped to be
+valid only where the moment zero map is greater than 2 times the RMS. (In this
+example, no higher-order moments are produced.)</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The moments=[...] argument to <a class="reference external" href="module/admit.at/Moment_AT.html">Moment_AT</a> specifies the list of moments
+to produce, each in its own BDP. For example, adding moments=[0,1,2] to
+the preceding call will direct <a class="reference external" href="module/admit.at/Moment_AT.html">Moment_AT</a> to produce moment-0, moment-1 and
+moment-2 maps, which can be input to other tasks using the BDP handles
+(<em>t2</em>,0), (<em>t2</em>,1) and (<em>t2</em>,2), respectively.</p>
+</div>
+<p>Up to this point, you have just been creating a flow; the data products have
+not actually been calculated yet. You should have seen an &#8220;INFO&#8221; message as you
+entered each of the above lines. To execute your flow and create the BDPs,
+type:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">CASA</span> <span class="o">&lt;</span><span class="mi">6</span><span class="o">&gt;</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><code class="docutils literal"><span class="pre">p.run()</span></code> causes ADMIT to calculate your data products. The data products can
+be viewed in your local browser window&#8212;there should be one now created by
+ADMIT. If not, you can start up the data browser by typing</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">CASA</span> <span class="o">&lt;</span><span class="mi">7</span><span class="o">&gt;</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">startDataServer</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>If you already have a data server running, the above command, will inform you:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>A data server for this Admit object is already running on localhost:NNNNN
+</pre></div>
+</div>
+<p>where NNNNN is a port number.  If so, look through the webpages in your
+browser to see if it is hiding among your tabs, or copy and paste the
+<em>localhost:NNNNN</em> to a new tab.  You should now have a browser page
+with bars for Ingest, CubeStats and Moment, as well as a flow diagram. Click on
+the bars to see the products. In this case, the most interesting one is
+probably the moment-0 map, which is the emission in your cube integrated over
+frequency. Examining the flow diagram is a good way to visually explore how the
+tasks in your flow relate to each other.</p>
+<p>Great. Now let&#8217;s say that you want a spectrum at the highest peak in your
+moment map. ADMIT can do that automatically given the <a class="reference external" href="module/admit.at/Moment_AT.html">Moment_AT</a> output.
+To make the spectrum, you use the <a class="reference external" href="module/admit.at/CubeSpectrum_AT.html">CubeSpectrum_AT</a>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">CASA</span> <span class="o">&lt;</span><span class="mi">8</span><span class="o">&gt;</span><span class="p">:</span> <span class="n">t3</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">addtask</span><span class="p">(</span><span class="n">admit</span><span class="o">.</span><span class="n">CubeSpectrum_AT</span><span class="p">(),</span> <span class="p">[</span><span class="n">t0</span><span class="p">,</span> <span class="n">t2</span><span class="p">])</span>
+<span class="n">CASA</span> <span class="o">&lt;</span><span class="mi">9</span><span class="o">&gt;</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The p.run() command is needed again&#8212;the addtask() puts
+the task into the flow and p.run() executes it. Your browser page should
+now have a new line at the bottom which is labeled CubeSpectrum. Click
+on the bar and you will see your spectrum.</p>
+<p>The ADMIT tasks, as they execute, create a python structure in memory
+containing all of the task and flow information, and they write out information,
+images, and files to the &#8220;your-name-choice&#8221;.admit directory. As long
+as you remain in your <a class="reference external" href="http://casaguides.nrao.edu/index.php/Main_Page">CASA</a> session, you have access to the contents
+of the structure&#8212;you can add tasks to and re-execute the flow and your browser
+page will continue to update accordingly.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">To minimize execution time, ADMIT re-runs projects intelligently. Each time
+you add a task and re-run the flow, <em>only</em> the task(s) which have not yet
+been run (or are otherwise out-of-date; e.g., due to changing the task
+arguments) are executed. Unchanged tasks are skipped.</p>
+</div>
+</div>
+<div class="section" id="using-admit-scripts">
+<h1>Using ADMIT Scripts<a class="headerlink" href="#using-admit-scripts" title="Permalink to this headline">¶</a></h1>
+<p>ADMIT can also be run from script files using either the Unix
+command line or the <a class="reference external" href="http://casaguides.nrao.edu/index.php/Main_Page">CASA</a> command line. The direct connection
+to the browser page and the ability to dynamically add to flows from the
+command line is only available from within <a class="reference external" href="http://casaguides.nrao.edu/index.php/Main_Page">CASA</a> because the
+CASA session keeps your python structures in active memory. When a
+script is run from the Unix command line, all memory-based products
+disappear when the script ends; however, ADMIT writes all of the products to
+persistent disk files so you can view your ADMIT products using the browser, as
+described in the next section, or modify and re-run the flow using a script
+file.</p>
+<p>An ADMIT script looks very much like what you would type
+on the <a class="reference external" href="http://casaguides.nrao.edu/index.php/Main_Page">CASA</a> command line. For example, the script below will
+create all of the same products in the CASA session of the previous section.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env casarun</span>
+<span class="c1"># set up admit in the casa environment</span>
+<span class="kn">import</span> <span class="nn">admit</span>
+<span class="c1"># define project name</span>
+<span class="n">p</span> <span class="o">=</span> <span class="n">admit</span><span class="o">.</span><span class="n">Project</span><span class="p">(</span><span class="s1">&#39;your-name-choice.admit&#39;</span><span class="p">,</span><span class="n">dataserver</span><span class="o">=</span><span class="bp">True</span> <span class="p">)</span>
+<span class="c1"># Flow tasks.</span>
+<span class="n">t0</span>  <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">addtask</span><span class="p">(</span><span class="n">admit</span><span class="o">.</span><span class="n">Ingest_AT</span><span class="p">(</span><span class="nb">file</span><span class="o">=</span><span class="s1">&#39;your-image-cube-name.fits&#39;</span><span class="p">))</span>
+<span class="n">t1</span>  <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">addtask</span><span class="p">(</span><span class="n">admit</span><span class="o">.</span><span class="n">CubeStats_AT</span><span class="p">(</span><span class="n">ppp</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span> <span class="p">[</span><span class="n">t0</span><span class="p">])</span>
+<span class="n">t2</span>  <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">addtask</span><span class="p">(</span><span class="n">admit</span><span class="o">.</span><span class="n">Moment_AT</span><span class="p">(</span><span class="n">mom0clip</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">numsigma</span><span class="o">=</span><span class="p">[</span><span class="mf">3.0</span><span class="p">]),</span> <span class="p">[</span><span class="n">t0</span><span class="p">,</span> <span class="n">t1</span><span class="p">])</span>
+<span class="n">t3</span>  <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">addtask</span><span class="p">(</span><span class="n">admit</span><span class="o">.</span><span class="n">CubeSpectrum_AT</span><span class="p">(),</span> <span class="p">[</span><span class="n">t0</span><span class="p">,</span> <span class="p">(</span><span class="n">t2</span><span class="p">,</span><span class="mi">0</span><span class="p">)])</span>
+<span class="n">p</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The script can be run in <a class="reference external" href="http://casaguides.nrao.edu/index.php/Main_Page">CASA</a> using the &#8220;execfile&#8221; command, or
+from the Unix command line by making the script file executable
+(<code class="docutils literal"><span class="pre">chmod</span> <span class="pre">+x</span></code>) and then executing it. The file containing your
+script can be named &#8216;anything-you-want.py&#8217;.</p>
+<p>The &#8216;your-name-choice.admit&#8217; directory includes a file, admit0.py, containing a
+transcript (an ADMIT script) of the flow that created &#8216;your-name-choice.admit&#8217;.
+Comparing this script to the graphical representation of the flow (shown in the
+&#8220;Flow Diagram&#8221; tab at the top of the data browser window) can be instructive
+when learning how to create your own ADMIT scripts.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Flow transcripts are <em>not</em> intended to be used directly as script templates
+(although this will work in simple cases). In particular, flows containing
+tasks producing a variable number of BDP outputs, such as <a class="reference external" href="module/admit.at/LineCube_AT.html">LineCube_AT</a>,
+require special care&#8212;the transcript includes all literal outputs of such
+<em>variadic</em> tasks, whereas user scripts should assume only a single,
+placeholder output is present (see the following section for an example).</p>
+</div>
+</div>
+<div class="section" id="molecular-line-identification">
+<h1>Molecular Line Identification<a class="headerlink" href="#molecular-line-identification" title="Permalink to this headline">¶</a></h1>
+<p>ADMIT is very useful for finding spectral lines in your data,
+identifying the molecular species and transition of the line,
+and cutting out a sub-cube which contains only the channels
+with line emission. The primary tasks for this purpose are
+<a class="reference external" href="module/admit.at/LineID_AT.html">LineID_AT</a> and <a class="reference external" href="module/admit.at/LineCube_AT.html">LineCube_AT</a>. <a class="reference external" href="module/admit.at/LineID_AT.html">LineID_AT</a> find the
+channel intervals with emission above a user-selected
+noise level and then tries to identify the lines in the
+Splatalog database. <a class="reference external" href="module/admit.at/LineCube_AT.html">LineCube_AT</a> cuts out sub-cubes for
+each identified line emission region and writes out a
+separate <a class="reference external" href="http://casaguides.nrao.edu/index.php/Main_Page">CASA</a> image file for each.</p>
+<p>Information about the Vlsr of your object is not passed down the ALMA
+imaging pipeline to your ALMA image cubes. Hence, ADMIT does not
+have access to the Vlsr or spectral line information that
+you input in your observing set up and correlator setting in the ALMA OT.
+The proper identification of lines is greatly aided by having the
+approximately correct Vlsr of your target source. You are allowed to put
+this value into ADMIT when you ingest your image cube, and/or when you run
+<a class="reference external" href="module/admit.at/LineID_AT.html">LineID_AT</a>. If you use the Vlsr keyword in <a class="reference external" href="module/admit.at/LineID_AT.html">LineID_AT</a> it overrides
+the value used in <a class="reference external" href="module/admit.at/Ingest_AT.html">Ingest_AT</a>.</p>
+<p>A typical use of <a class="reference external" href="module/admit.at/LineID_AT.html">LineID_AT</a> would look like this in a script:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env casarun</span>
+<span class="c1"># set up admit in the casa environment</span>
+<span class="kn">import</span> <span class="nn">admit</span>
+<span class="c1"># Master project.</span>
+<span class="n">p</span> <span class="o">=</span> <span class="n">admit</span><span class="o">.</span><span class="n">Project</span><span class="p">(</span><span class="s1">&#39;you-name-choice.admit&#39;</span><span class="p">,</span> <span class="n">Dataserver</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="c1"># Flow tasks.</span>
+<span class="n">t0</span>  <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">addtask</span><span class="p">(</span><span class="n">admit</span><span class="o">.</span><span class="n">Ingest_AT</span><span class="p">(</span><span class="nb">file</span><span class="o">=</span><span class="s1">&#39;your-image-cube-name.fits&#39;</span><span class="p">))</span>
+<span class="n">t1</span>  <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">addtask</span><span class="p">(</span><span class="n">admit</span><span class="o">.</span><span class="n">CubeStats_AT</span><span class="p">(</span><span class="n">ppp</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span> <span class="p">[</span><span class="n">t0</span><span class="p">])</span>
+<span class="n">t2</span>  <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">addtask</span><span class="p">(</span><span class="n">admit</span><span class="o">.</span><span class="n">Moment_AT</span><span class="p">(</span><span class="n">mom0clip</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">numsigma</span><span class="o">=</span><span class="p">[</span><span class="mf">3.0</span><span class="p">]),</span> <span class="p">[</span><span class="n">t0</span><span class="p">,</span> <span class="n">t1</span><span class="p">])</span>
+<span class="n">t3</span>  <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">addtask</span><span class="p">(</span><span class="n">admit</span><span class="o">.</span><span class="n">CubeSpectrum_AT</span><span class="p">(),</span> <span class="p">[</span><span class="n">t0</span><span class="p">,</span> <span class="n">t2</span><span class="p">])</span>
+<span class="n">t4</span>  <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">addtask</span><span class="p">(</span><span class="n">admit</span><span class="o">.</span><span class="n">LineID_AT</span><span class="p">(</span><span class="n">csub</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">minchan</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">maxgap</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">numsigma</span><span class="o">=</span><span class="mf">5.0</span><span class="p">),</span> <span class="p">[</span><span class="n">t1</span><span class="p">,</span> <span class="n">t3</span><span class="p">])</span>
+<span class="n">t5</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">addtask</span><span class="p">(</span><span class="n">admit</span><span class="o">.</span><span class="n">LineCube_AT</span><span class="p">(</span><span class="n">pad</span><span class="o">=</span><span class="mi">40</span><span class="p">),</span> <span class="p">[</span><span class="n">t0</span><span class="p">,</span> <span class="n">t4</span><span class="p">])</span>
+<span class="n">t6</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">addtask</span><span class="p">(</span><span class="n">admit</span><span class="o">.</span><span class="n">Moment_AT</span><span class="p">(</span><span class="n">mom0clip</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">moments</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]),</span> <span class="p">[</span><span class="n">t5</span><span class="p">,</span> <span class="n">t1</span><span class="p">])</span>
+<span class="n">t7</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">addtask</span><span class="p">(</span><span class="n">admit</span><span class="o">.</span><span class="n">CubeSpectrum_AT</span><span class="p">(),</span> <span class="p">[</span><span class="n">t5</span><span class="p">,</span> <span class="p">(</span><span class="n">t6</span><span class="p">,</span><span class="mi">0</span><span class="p">)])</span>
+<span class="n">p</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The <a class="reference external" href="module/admit.at/CubeStats_AT.html">CubeStats_AT</a> is done to get the RMS noise in the cube and to generate two
+spectra: one consisting of the maximum flux density in each channel and the
+other the minimum. The <a class="reference external" href="module/admit.at/CubeSpectrum_AT.html">CubeSpectrum_AT</a> is run to get the spectrum at the
+position of the peak total integrated emission. Both of these BDPs are input
+to <a class="reference external" href="module/admit.at/LineID_AT.html">LineID_AT</a> to estimate the emission segments and do the line
+identification. <a class="reference external" href="module/admit.at/LineCube_AT.html">LineCube_AT</a> produces one data cube for each segment found.
+<a class="reference external" href="module/admit.at/Moment_AT.html">Moment_AT</a> and <a class="reference external" href="module/admit.at/CubeSpectrum_AT.html">CubeSpectrum_AT</a> are then repeated for each emission
+segment identified. (ADMIT automatically replicates the latter two tasks in the
+flow for each <a class="reference external" href="module/admit.at/LineCube_AT.html">LineCube_AT</a> output it finds&#8212;do not do this manually!)</p>
+<p>At the present time, some (perhaps many) ALMA total power line cubes have
+baselines that are not &#8220;average&#8221; zero in the non-line channels. There are
+infrequently cases where the 7-m or 12-m interferometric maps have incorrect
+continuum subtractions but you are best off to correct that by remaking the
+maps in <a class="reference external" href="http://casaguides.nrao.edu/index.php/Main_Page">CASA</a> based on a new continuum subtracted u,v dataset. For the
+total power data, the sequence would be similar to the above with the
+insertion of two new tasks: <a class="reference external" href="module/admit.at/LineSegment_AT.html">LineSegment_AT</a> and <a class="reference external" href="module/admit.at/ContinuumSub_AT.html">ContinuumSub_AT</a>.
+<a class="reference external" href="module/admit.at/LineSegment_AT.html">LineSegment_AT</a> finds the channel segments with emission above your
+set noise level; <a class="reference external" href="module/admit.at/ContinuumSub_AT.html">ContinuumSub_AT</a> does a spatial pixel by spatial pixel
+baseline removal in the spectral direction with the emission segments
+ignored in determining the baseline fit. The output of <a class="reference external" href="module/admit.at/ContinuumSub_AT.html">ContinuumSub_AT</a> is
+a new image cube with the baseline removed &#8211; and that is then fed forward
+to the rest of the script.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env casarun</span>
+<span class="c1"># set up admit in the casa environment</span>
+<span class="kn">import</span> <span class="nn">admit</span>
+<span class="c1"># Master project.</span>
+<span class="n">p</span> <span class="o">=</span> <span class="n">admit</span><span class="o">.</span><span class="n">Project</span><span class="p">(</span><span class="s1">&#39;you-name-choice.admit&#39;</span><span class="p">,</span> <span class="n">dataserver</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="c1"># Flow tasks.</span>
+<span class="n">t0</span>  <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">addtask</span><span class="p">(</span><span class="n">admit</span><span class="o">.</span><span class="n">Ingest_AT</span><span class="p">(</span><span class="nb">file</span><span class="o">=</span><span class="s1">&#39;your-image-cube-name.fits&#39;</span><span class="p">))</span>
+<span class="n">t1</span>  <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">addtask</span><span class="p">(</span><span class="n">admit</span><span class="o">.</span><span class="n">CubeStats_AT</span><span class="p">(</span><span class="n">ppp</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span> <span class="p">[</span><span class="n">t0</span><span class="p">])</span>
+<span class="n">t2</span>  <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">addtask</span><span class="p">(</span><span class="n">admit</span><span class="o">.</span><span class="n">CubeSum_AT</span><span class="p">(</span><span class="n">numsigma</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">99.0</span><span class="p">),</span> <span class="p">[</span><span class="n">t0</span><span class="p">,</span> <span class="n">t1</span><span class="p">])</span>
+<span class="n">t3</span>  <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">addtask</span><span class="p">(</span><span class="n">admit</span><span class="o">.</span><span class="n">CubeSpectrum_AT</span><span class="p">(),</span> <span class="p">[</span><span class="n">t0</span><span class="p">,</span> <span class="n">t2</span><span class="p">])</span>
+<span class="n">t4</span>  <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">addtask</span><span class="p">(</span><span class="n">admit</span><span class="o">.</span><span class="n">LineSegment_AT</span><span class="p">(</span><span class="n">csub</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">minchan</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">maxgap</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">numsigma</span><span class="o">=</span><span class="mf">5.0</span><span class="p">),</span> <span class="p">[</span><span class="n">t1</span><span class="p">,</span> <span class="n">t3</span><span class="p">])</span>
+<span class="n">t5</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">addtask</span><span class="p">(</span><span class="n">admit</span><span class="o">.</span><span class="n">ContinuumSub_AT</span><span class="p">(</span><span class="n">fitorder</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">60</span><span class="p">),[</span><span class="n">t0</span><span class="p">,</span> <span class="n">t4</span><span class="p">])</span>
+<span class="n">t6</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">addtask</span><span class="p">(</span><span class="n">admit</span><span class="o">.</span><span class="n">CubeStats_AT</span><span class="p">(</span><span class="n">ppp</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span> <span class="p">[</span><span class="n">t5</span><span class="p">])</span>
+<span class="n">t7</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">addtask</span><span class="p">(</span><span class="n">admit</span><span class="o">.</span><span class="n">CubeSpectrum_AT</span><span class="p">(),</span> <span class="p">[</span><span class="n">t5</span><span class="p">,</span> <span class="n">t6</span><span class="p">])</span>
+<span class="n">t8</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">addtask</span><span class="p">(</span><span class="n">admit</span><span class="o">.</span><span class="n">Moment_AT</span><span class="p">(</span><span class="n">mom0clip</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">numsigma</span><span class="o">=</span><span class="p">[</span><span class="mf">3.0</span><span class="p">]),</span> <span class="p">[</span><span class="n">t5</span><span class="p">,</span> <span class="n">t6</span><span class="p">])</span>
+<span class="n">t9</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">addtask</span><span class="p">(</span><span class="n">admit</span><span class="o">.</span><span class="n">LineID_AT</span><span class="p">(</span><span class="n">csub</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">minchan</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">maxgap</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">numsigma</span><span class="o">=</span><span class="mf">5.0</span><span class="p">),</span> <span class="p">[</span><span class="n">t6</span><span class="p">,</span> <span class="n">t7</span><span class="p">])</span>
+<span class="n">t10</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">addtask</span><span class="p">(</span><span class="n">admit</span><span class="o">.</span><span class="n">LineCube_AT</span><span class="p">(</span><span class="n">pad</span><span class="o">=</span><span class="mi">40</span><span class="p">),</span> <span class="p">[</span><span class="n">t5</span><span class="p">,</span> <span class="n">t9</span><span class="p">])</span>
+<span class="n">t11</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">addtask</span><span class="p">(</span><span class="n">admit</span><span class="o">.</span><span class="n">Moment_AT</span><span class="p">(</span><span class="n">mom0clip</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">moments</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]),</span> <span class="p">[</span><span class="n">t10</span><span class="p">,</span> <span class="n">t6</span><span class="p">])</span>
+<span class="n">t11</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">addtask</span><span class="p">(</span><span class="n">admit</span><span class="o">.</span><span class="n">CubeSpectrum_AT</span><span class="p">(),</span> <span class="p">[</span><span class="n">t10</span><span class="p">,</span> <span class="n">t11</span><span class="p">])</span>
+<span class="n">p</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="interacting-with-line-id">
+<h1>Interacting with Line ID<a class="headerlink" href="#interacting-with-line-id" title="Permalink to this headline">¶</a></h1>
+<p>The identification of emission/absorption from specific molecular species and transitions is important
+to the scientific analysis of ALMA data. The general case of
+species/transition identification is a difficult problem due to the possibilities
+of complex line shapes and line blending, and the high density of potential matching lines
+in the Splatalog database. Add to this the range of physical conditions giving
+rise to molecular emission in the Universe (cold cores, hot cores, evolved stars, galaxies
+diffuse ISM) and the perfect identification of species/transition is not practical
+without significant a priori information, which is not available from the ALMA archive
+data at present.</p>
+<p><a class="reference external" href="module/admit.at/LineID_AT.html">LineID_AT</a> attempts to identify lines based first on the most commonly observed
+species and transitions. CO, CS, HCN, CN, H2CO, and other such common species
+are given preference in a first search for indentification. The <a class="reference internal" href="#tier1db"><span class="std std-ref">Tier 1 Database</span></a>
+contains a list of these molecules along with their transitions. See the following
+section for a more detailed description of the database.
+After that a deeper
+search is done with either the CASA slsearch task or the online splatalogue database.
+There are several keywords in <a class="reference external" href="module/admit.at/LineID_AT.html">LineID_AT</a> for controlling
+aspects of the search and identification. The following are the keywords that may be of the
+most use to the user.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="16%" />
+<col width="84%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Keyword</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>vlsr</td>
+<td>The vlsr of the source in km/s. The closer this is to the source&#8217;s average vlsr, the
+more accurate the results will be.</td>
+</tr>
+<tr class="row-odd"><td>numsigma</td>
+<td>Minimum intensity, in terms of the rms noise of the individual sepctra, to consider a
+given channel to not be noise. Default is 5.0, but lower values may be more appropriate
+in the cases of lower overall S/N.</td>
+</tr>
+<tr class="row-even"><td>minchan</td>
+<td>Minimum number of consecutive channels above numsigma to consider them part of a line.
+The default is 4, but smaller or larger values may give better results depending on the
+typical width of lines in the spectra.</td>
+</tr>
+<tr class="row-odd"><td>smooth</td>
+<td>Smooth the input spectra with one of the several available soothing algorithms. The
+default is to not smooth, but in cases of noisy spectra it is advisable to smooth the
+data.</td>
+</tr>
+<tr class="row-even"><td>force</td>
+<td>If there is a transition that you want to mark specifically, use the force keyword to
+pass the information to <a class="reference external" href="module/admit.at/LineID_AT.html">LineID_AT</a>. Any other transitions will be forbidden from the
+specified channel region.</td>
+</tr>
+<tr class="row-odd"><td>reject</td>
+<td>If there are specific molecules or transitions that you do not want to be considered for
+identifications, the reject keyword can be used to pass this to <a class="reference external" href="module/admit.at/LineID_AT.html">LineID_AT</a>.</td>
+</tr>
+<tr class="row-even"><td>csub</td>
+<td><a class="reference external" href="module/admit.at/LineID_AT.html">LineID_AT</a> works best when there is no continuum in the input spectra. If the spectra
+are not continuum free then the csub keyword can be used to remove the continua from the
+spectra. By definition the spectra from <a class="reference external" href="module/admit.at/CubeStats_AT.html">CubeStats_AT</a> have a continuum that needs to
+be removed. The default ([1, None]) removes this continuum, but leaves all other spectra
+as they are.</td>
+</tr>
+</tbody>
+</table>
+<p>The output of <a class="reference external" href="module/admit.at/LineID_AT.html">LineID_AT</a> in the browser page includes
+a table of emission segments found, and identification for each segment if found.
+The LineId Editor mode in the browser (see tabs along the second line from the
+top of the ADMIT page for your data prducts). Click on that button and you
+initiate the capability to edit the results from <a class="reference external" href="module/admit.at/LineID_AT.html">LineID_AT</a>. You can: change the
+frequency, id, and channel range of an emission region. You can reject an
+emission segment; then you can write out your estimate of the best line
+identification as a replacement for the original <a class="reference external" href="module/admit.at/LineID_AT.html">LineID_AT</a> BDP,
+which can be fed into <a class="reference external" href="module/admit.at/LineCube_AT.html">LineCube_AT</a> to cut line cubes. You can also use
+the force and reject buttons as input advise to a second run of <a class="reference external" href="module/admit.at/LineID_AT.html">LineID_AT</a>.</p>
+<p>The interaction mode with LineID Editor can only be used if your ADMIT
+file is created or opened from within your current CASA session. The
+editing mode requires that your ADMIT flow be present as an active
+python memory structure. The interactive edits that you make within
+LineID Editor are not saved to the flow so, at present, you cannot
+automatically recreated your final data products by re-running the
+flow from the scratch.</p>
+<div class="section" id="tier-1-database">
+<span id="tier1db"></span><h2>Tier 1 Database<a class="headerlink" href="#tier-1-database" title="Permalink to this headline">¶</a></h2>
+<p>The Tier 1 Database (DB) contains the transitions of molecules
+that if present, are expected to be a dominant emission peak in the spectrum. The allowed
+frequency/velocity ranges for these transitions are relaxed compared to those of others. In gneneral
+any peak detected within 30 km/s (galactic source) and 200 km/s (extragalactic source) of a Tier 1
+rest frequency will be assigned the identification of that transition. Additionally, the identified
+peak is traced down to the cutoff level and any additional peaks found along the way are also labeled
+the Tier 1 transition. Tier 1 molecules are:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="15%" />
+<col width="85%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Molecule</th>
+<th class="head">Constraints</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>CO</td>
+<td>31.0 - 950.0 GHz</td>
+</tr>
+<tr class="row-odd"><td>13CO</td>
+<td>31.0 - 950.0 GHz</td>
+</tr>
+<tr class="row-even"><td>C17O</td>
+<td>31.0 - 950.0 GHz</td>
+</tr>
+<tr class="row-odd"><td>HCO+</td>
+<td>31.0 - 950.0 GHz</td>
+</tr>
+<tr class="row-even"><td>HDO</td>
+<td>31.0 - 950.0 GHz</td>
+</tr>
+<tr class="row-odd"><td>CCH</td>
+<td>31.0 - 950.0 GHz, HFL</td>
+</tr>
+<tr class="row-even"><td>CN</td>
+<td>31.0 - 950.0 GHz, HFL, weakest lines eliminated</td>
+</tr>
+<tr class="row-odd"><td>HCN</td>
+<td>31.0 - 950.0 GHz, HFL</td>
+</tr>
+<tr class="row-even"><td>HNC</td>
+<td>31.0 - 950.0 GHz</td>
+</tr>
+<tr class="row-odd"><td>13CN</td>
+<td>31.0 - 950.0 GHz, HFL, weakest lines eliminated</td>
+</tr>
+<tr class="row-even"><td>H13CN</td>
+<td>31.0 - 950.0 GHz, HFL</td>
+</tr>
+<tr class="row-odd"><td>HN13C</td>
+<td>31.0 - 950.0 GHz</td>
+</tr>
+<tr class="row-even"><td>N2H+</td>
+<td>31.0 - 950.0 GHz, HFL</td>
+</tr>
+<tr class="row-odd"><td>C18O&#8221;</td>
+<td>31.0 - 950.0 GHz</td>
+</tr>
+<tr class="row-even"><td>H13CO+</td>
+<td>31.0 - 950.0 GHz</td>
+</tr>
+<tr class="row-odd"><td>DCO+</td>
+<td>31.0 - 950.0 GHz</td>
+</tr>
+<tr class="row-even"><td>H2CO</td>
+<td>31.0 - 950.0 GHz, weakest lines eliminated, limited to Eu &lt; 200 K</td>
+</tr>
+<tr class="row-odd"><td>DCN</td>
+<td>31.0 - 950.0 GHz, HFL</td>
+</tr>
+<tr class="row-even"><td>CS</td>
+<td>31.0 - 950.0 GHz</td>
+</tr>
+<tr class="row-odd"><td>SiO</td>
+<td>31.0 - 950.0 GHz</td>
+</tr>
+<tr class="row-even"><td>SO</td>
+<td>31.0 - 950.0 GHz, weakest lines eliminated</td>
+</tr>
+<tr class="row-odd"><td>HC3N</td>
+<td>31.0 - 950.0 GHz, HFL, weakest lines eliminated</td>
+</tr>
+<tr class="row-even"><td>13CS</td>
+<td>31.0 - 950.0 GHz</td>
+</tr>
+<tr class="row-odd"><td>C34S</td>
+<td>31.0 - 950.0 GHz</td>
+</tr>
+</tbody>
+</table>
+<p>HFL indicates hyperfine lines, these transitions are treated specially in that only
+the strongest hyperfine line is searched for initially. If that line is found then
+the rest of the hyperfine components are searched for. There are currently 962 transitions
+in the DB (542 primary transitions and 420 hyperfine transitions).</p>
+<p>You can query the DB directly through python as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">admit.util.Tier1DB</span> <span class="kn">import</span> <span class="n">Tier1DB</span>
+<span class="c1"># connect to the DB</span>
+<span class="n">t1db</span> <span class="o">=</span> <span class="n">Tier1DB</span><span class="p">()</span>
+<span class="c1"># query for all primary transitions between 90.0 and 90.1 GHz</span>
+<span class="n">t1db</span><span class="o">.</span><span class="n">searchtransitions</span><span class="p">(</span><span class="n">freq</span><span class="o">=</span><span class="p">[</span><span class="mf">90.0</span><span class="p">,</span> <span class="mf">90.1</span><span class="p">])</span>
+<span class="c1"># get the results as LineData objects</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">t1db</span><span class="o">.</span><span class="n">getall</span><span class="p">()</span>
+<span class="c1"># look for any with hyperfine transitions (hfnum &gt; 0) and get them</span>
+<span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+  <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;hfnum&quot;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">t1db</span><span class="o">.</span><span class="n">searchhfs</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;hfnum&quot;</span><span class="p">))</span>
+    <span class="n">hfsresults</span> <span class="o">=</span> <span class="n">t1db</span><span class="o">.</span><span class="n">getall</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="admit-in-your-web-browser">
+<h1>ADMIT in Your Web Browser<a class="headerlink" href="#admit-in-your-web-browser" title="Permalink to this headline">¶</a></h1>
+<p>ADMIT Data Products are most easily viewed from your favorite
+web browser utilizing the index.html file that is present within the
+<em>input-cube-name.admit</em> (default, or <em>your-alias-name.admit</em>) directory.</p>
+<p>You can do this
+To do so, start up CASA and instantiate an ADMIT object of the
+output data:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">CASA</span> <span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">:</span> <span class="kn">import</span> <span class="nn">admit</span>
+<span class="n">CASA</span> <span class="o">&lt;</span><span class="mi">2</span><span class="o">&gt;</span><span class="p">:</span> <span class="n">a</span> <span class="o">=</span> <span class="n">admit</span><span class="o">.</span><span class="n">Project</span><span class="p">(</span><span class="s1">&#39;/path/to/input-cube-name.admit&#39;</span><span class="p">,</span><span class="n">dataserver</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This will open a new page in your default browser (or new browser
+window if none was open) and load the ADMIT products web page view of
+the specified directory.   The page is divided into 4 separate
+tabs:  <em>Flow View</em>, <em>Form View</em>, <em>ADMIT Log</em>, <em>LineID Editor</em>, and
+<em>ADMIT Documentation</em>.</p>
+<dl class="docutils">
+<dt><em>Flow View</em></dt>
+<dd>This view shows the tasks in the order in which they were executed.
+At the top is the directed acyclic graph of the entire ADMIT Flow.
+Each task has a bar giving the task name and arguments.  If you click on
+the bar, that section will expand to show all the output from that task.
+Clicking on a thumbnail of an image will display a larger version of the
+image.</dd>
+<dt><em>Form View</em></dt>
+<dd>This view allows you to edit task parameters and re-run the ADMIT flow.
+Similar to Flow View, the tasks are show in execution order and clicking
+on each bar will expand to give an editable form of the task keywords.
+Once you are done editting keywords, click on <em>Re-run ADMIT Flow&#8221; button</em>
+at the bottom of the page.  This will communicate your changes back to
+your CASA session and re-run the tasks that you changed (and any that
+depended on them).</dd>
+<dt><em>ADMIT Log</em></dt>
+<dd>This is the full log file of the ADMIT process/script that created your
+ADMIT data.</dd>
+<dt><em>LineID Editor</em></dt>
+<dd>This allows you do modify the results of LineID_AT.  <strong>Currently in prototype stage.</strong></dd>
+<dt><em>ADMIT Documentation</em></dt>
+<dd>Link to the on-line ADMIT documentation webpages.</dd>
+</dl>
+<p>ADMIT output for multiple projects can be loaded one at a time into
+separate browser pages. The browser pages do not interact.</p>
+<p>For simply viewing the products without a CASA session, you
+can enter the full directory path into an open browser
+(<code class="docutils literal"><span class="pre">file:///full-directory-path</span></code> as the url) or by using the ADMIT <em>aopen</em>.</p>
+<blockquote>
+<div><em>aopen index.html</em> or <em>aopen sub-directory-name/index.html</em></div></blockquote>
+<p>However, note you do not get the Form or LineID Editor functionality with
+this mode.</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Overview of ADMIT</a></li>
+<li><a class="reference internal" href="#a-short-summary-of-the-technical-side-of-admit">A Short Summary of the Technical Side of ADMIT</a></li>
+<li><a class="reference internal" href="#getting-started-with-admit-for-linux-users">Getting Started with ADMIT (for Linux users)</a></li>
+<li><a class="reference internal" href="#getting-started-with-admit-for-os-x-users">Getting Started with ADMIT (for OS X users)</a></li>
+<li><a class="reference internal" href="#prepared-admit-recipes">Prepared ADMIT Recipes</a></li>
+<li><a class="reference internal" href="#making-an-admit-data-product">Making an ADMIT Data Product</a></li>
+<li><a class="reference internal" href="#using-admit-scripts">Using ADMIT Scripts</a></li>
+<li><a class="reference internal" href="#molecular-line-identification">Molecular Line Identification</a></li>
+<li><a class="reference internal" href="#interacting-with-line-id">Interacting with Line ID</a><ul>
+<li><a class="reference internal" href="#tier-1-database">Tier 1 Database</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#admit-in-your-web-browser">ADMIT in Your Web Browser</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">The ALMA Data Mining Toolkit</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api.html"
+                        title="next chapter">Python Scripting Interface (API)</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/userguideintro.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api.html" title="Python Scripting Interface (API)"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="The ALMA Data Mining Toolkit"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">ADMIT 1.0.6 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,807 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.util.Splatalogue &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.util.Splatalogue</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; .. _splatalogue:</span>
+
+<span class="sd">    **Splatalogue** --- Module for performing splatalogue queries.</span>
+<span class="sd">    --------------------------------------------------------------</span>
+
+<span class="sd">    Module to search Splatalogue.net via splat, modeled loosely on</span>
+<span class="sd">    ftp://ftp.cv.nrao.edu/NRAO-staff/bkent/slap/idl/</span>
+<span class="sd">    :author: Adam Ginsburg &lt;adam.g.ginsburg@gmail.com&gt;</span>
+<span class="sd">    :updated for CASA:  Brian Kent &lt;bkent@nrao.edu&gt;</span>
+<span class="sd">    :updated for ADMIT: Douglas Friedel &lt;friedel@illinois.edu&gt;</span>
+
+<span class="sd">    Dependencies for python requests and astropy modules have been removed.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">urllib</span>
+<span class="kn">import</span> <span class="nn">urllib2</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="kn">from</span> <span class="nn">admit.util.AdmitLogging</span> <span class="k">import</span> <span class="n">AdmitLogging</span> <span class="k">as</span> <span class="n">logging</span>
+
+<span class="n">column_headings_map</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Log&lt;sub&gt;10&lt;/sub&gt; (A&lt;sub&gt;ij&lt;/sub&gt;)&#39;</span><span class="p">:</span> <span class="s1">&#39;log10(Aij)&#39;</span><span class="p">,</span>
+                       <span class="s1">&#39;E_U (K)&#39;</span><span class="p">:</span> <span class="s1">&#39;EU_K&#39;</span><span class="p">,</span>
+                       <span class="s1">&#39;Resolved QNs&#39;</span><span class="p">:</span> <span class="s1">&#39;QNs&#39;</span><span class="p">,</span>
+                       <span class="s1">&#39;S&lt;sub&gt;ij&lt;/sub&gt;&#39;</span><span class="p">:</span> <span class="s1">&#39;Sij&#39;</span><span class="p">,</span> <span class="p">}</span>
+
+
+<div class="viewcode-block" id="clean_column_headings"><a class="viewcode-back" href="../../../module/admit.util/Splatalogue.html#admit.util.Splatalogue.clean_column_headings">[docs]</a><span class="k">def</span> <span class="nf">clean_column_headings</span><span class="p">(</span><span class="n">header</span><span class="p">,</span> <span class="n">renaming_dict</span><span class="o">=</span><span class="n">column_headings_map</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Rename column headings to shorter version that are easier for display</span>
+<span class="sd">        on-screen / at the terminal</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        header : dict</span>
+<span class="sd">            A dictionary of the header keywords</span>
+
+<span class="sd">        renaming_dict : dict</span>
+<span class="sd">            A dictionary containing the old names (as the key) and the new</span>
+<span class="sd">            names (as the value)</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        The new header.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">renaming_dict</span><span class="p">:</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="p">[</span><span class="n">renaming_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="n">key</span> <span class="k">else</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">header</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">header</span></div>
+
+
+<div class="viewcode-block" id="SpeciesLookuptable"><a class="viewcode-back" href="../../../module/admit.util/Splatalogue.html#admit.util.Splatalogue.SpeciesLookuptable">[docs]</a><span class="k">class</span> <span class="nc">SpeciesLookuptable</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Simple class that extends the dictionary class so that keys can be searched</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="SpeciesLookuptable.find"><a class="viewcode-back" href="../../../module/admit.util/Splatalogue.html#admit.util.Splatalogue.SpeciesLookuptable.find">[docs]</a>    <span class="k">def</span> <span class="nf">find</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">return_dict</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Search dictionary keys for a regex match to string s</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        s : str</span>
+<span class="sd">            String to compile as a regular expression</span>
+
+<span class="sd">        return_dict : bool</span>
+<span class="sd">            Return a dictionary if true or just the matching values if false.</span>
+<span class="sd">            Default: True</span>
+
+<span class="sd">        flags : int</span>
+<span class="sd">            re (regular expression) flags. Default: 0</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Subset of parent dictionary if return_dict, else list of values</span>
+<span class="sd">        corresponding to matches</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">R</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
+
+        <span class="n">out</span> <span class="o">=</span> <span class="n">SpeciesLookuptable</span><span class="p">(</span><span class="nb">dict</span><span class="p">((</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">R</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">k</span><span class="p">)))</span>
+
+        <span class="k">if</span> <span class="n">return_dict</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">out</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">out</span><span class="o">.</span><span class="n">values</span><span class="p">()</span></div></div>
+
+<div class="viewcode-block" id="species_lookuptable"><a class="viewcode-back" href="../../../module/admit.util/Splatalogue.html#admit.util.Splatalogue.species_lookuptable">[docs]</a><span class="k">def</span> <span class="nf">species_lookuptable</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s1">&#39;species.json&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Method to read in a file and turn it into a searchable dictionary</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        filename : str</span>
+<span class="sd">            The name of the file to read. Default: &#39;species.json&#39;</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        A lookup table with the contents of the input file</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">J</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+    <span class="n">lookuptable</span> <span class="o">=</span> <span class="n">SpeciesLookuptable</span><span class="p">(</span><span class="nb">dict</span><span class="p">((</span><span class="n">v</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">J</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
+
+    <span class="k">return</span> <span class="n">lookuptable</span></div>
+
+
+<div class="viewcode-block" id="Splatalogue"><a class="viewcode-back" href="../../../module/admit.util/Splatalogue.html#admit.util.Splatalogue.Splatalogue">[docs]</a><span class="k">class</span> <span class="nc">Splatalogue</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Class for searching for lines in the online Splatalogue database.</span>
+<span class="sd">        The resulting Splatalogue tables can be returned as a list of dictionaries.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        kwargs : dict</span>
+<span class="sd">            The keyword value pairs of the arguments, possible keywords are:</span>
+
+<span class="sd">            **min_frequency** : float</span>
+<span class="sd">                Lower limit of frequency search range in GHz. Default: 0.0</span>
+
+<span class="sd">            **max_frequency** : float</span>
+<span class="sd">                Upper limit of frequency search range in GHz. Defualt: 100000.0</span>
+
+<span class="sd">            **band** : str</span>
+<span class="sd">                The frequency band to search in. &#39;min/max_frequency&#39; and &#39;band&#39; are mutually</span>
+<span class="sd">                exclusive. If both are given then &#39;band&#39; is preferred. Possibles are</span>
+
+<span class="sd">                &quot;any&quot;: All bands</span>
+
+<span class="sd">                &quot;alma3&quot;: ALMA Band 3 (84-116 GHz)</span>
+
+<span class="sd">                &quot;alma4&quot;: ALMA Band 4 (125-163 GHz)</span>
+
+<span class="sd">                &quot;alma5&quot;: ALMA Band 5 (163-211 GHz)</span>
+
+<span class="sd">                &quot;alma6&quot;: ALMA Band 6 (211-275 GHz)</span>
+
+<span class="sd">                &quot;alma7&quot;: ALMA Band 7 (275-373 GHz)</span>
+
+<span class="sd">                &quot;alma8&quot;: ALMA Band 8 (385-500 GHz)</span>
+
+<span class="sd">                &quot;alma9&quot;: ALMA Band 9 (602-720 GHz)</span>
+
+<span class="sd">                &quot;alma10&quot;: ALMA Band 10 (787-950 GHz)</span>
+
+<span class="sd">                &quot;pf1&quot;: GBT PF1 (0.29-0.92 GHz)</span>
+
+<span class="sd">                &quot;pf2&quot;: GBT PF2 (0.91-1.23 GHz)</span>
+
+<span class="sd">                &quot;l&quot;: GBT/VLA L (1-2 GHz)</span>
+
+<span class="sd">                &quot;s&quot;: GBT/VLA S (1.7-4 GHz)</span>
+
+<span class="sd">                &quot;c&quot;: GBT/VLA C (3.9-8 GHz)</span>
+
+<span class="sd">                &quot;x&quot;: GBT/VLA X (8-12 GHz)</span>
+
+<span class="sd">                &quot;ku&quot;: GBT/VLA Ku (12-18 GHz)</span>
+
+<span class="sd">                &quot;kfpa&quot;: GBT KFPA (18-27.5 GHz)</span>
+
+<span class="sd">                &quot;k&quot;: VLA K (18-26.5 GHz)</span>
+
+<span class="sd">                &quot;ka&quot;: GBT/VLA Ka (26-40 GHz)</span>
+
+<span class="sd">                &quot;q&quot;: GBT/VLA Q (38-50 GHz)</span>
+
+<span class="sd">                &quot;w&quot;: GBT W (67-93.3 GHz)</span>
+
+<span class="sd">                &quot;mustang&quot;: GBT Mustang (80-100 GHz)</span>
+
+<span class="sd">                Default: &#39;any&#39;</span>
+
+<span class="sd">            **top20** : list</span>
+<span class="sd">                Limit results to the given top20 list(s). Possibles are:</span>
+
+<span class="sd">                &#39;comet&#39;: molecules most likely found in comets</span>
+
+<span class="sd">                &#39;planet&#39;: molecules most likely planetary atmospheres</span>
+
+<span class="sd">                &#39;top20&#39;: most common molecules</span>
+
+<span class="sd">                &#39;ism_hotcore&#39;: molecules most likely found in hot cores</span>
+
+<span class="sd">                &#39;ism_darkcloud&#39;: molecules most likely found in dark clouds</span>
+
+<span class="sd">                &#39;ism_diffusecloud&#39;: molecules most likely found in diffuse clouds</span>
+
+<span class="sd">                Default: None</span>
+
+<span class="sd">            **chemical_name** : str</span>
+<span class="sd">                Limit results to the specified chemical, by name. Default: &#39;&#39;</span>
+
+<span class="sd">            **line_lists** : list</span>
+<span class="sd">                Which line list(s) to use for the search. Possibles are:</span>
+
+<span class="sd">                &#39;Lovas&#39;: Search the Lovas/NIST list of molecules</span>
+
+<span class="sd">                &#39;SLAIM&#39;: Search the SLAIM list of molecules</span>
+
+<span class="sd">                &#39;JPL&#39;: Search the Jet Propulsion Lab list of molecules</span>
+
+<span class="sd">                &#39;CDMS&#39;: Search the Cologne database of molecules</span>
+
+<span class="sd">                &#39;ToyoMA&#39;: Search the ToyoMA list of moleules</span>
+
+<span class="sd">                &#39;OSU&#39;: Search the Ohio State list of molecules</span>
+
+<span class="sd">                &#39;Recomb&#39;: Search for recombination lines</span>
+
+<span class="sd">                &#39;Lisa&#39;: Search the TopModel list</span>
+
+<span class="sd">                &#39;RFI&#39;: Search for radio frequency interference lines</span>
+
+<span class="sd">                Default: [&#39;Lovas&#39;, &#39;SLAIM&#39;, &#39;JPL&#39;, &#39;CDMS&#39;, &#39;ToyoMA&#39;, &#39;OSU&#39;, &#39;Recomb&#39;, &#39;Lisa&#39;, &#39;RFI&#39;]</span>
+
+<span class="sd">            **line_strengths** : list</span>
+<span class="sd">                Which line strength units should be reported, several can be given.</span>
+<span class="sd">                Possibles are:</span>
+
+<span class="sd">                &#39;ls1&#39;: JPL/CDMS</span>
+
+<span class="sd">                &#39;ls2&#39;: Sijmu^2</span>
+
+<span class="sd">                &#39;ls3&#39;: Sij</span>
+
+<span class="sd">                &#39;ls4&#39;: Aij</span>
+
+<span class="sd">                &#39;ls5&#39;: Lovas/SLAIM</span>
+
+<span class="sd">                Default: (&#39;ls1&#39;, &#39;ls2&#39;, &#39;ls3&#39;, &#39;ls4&#39;, &#39;ls5&#39;)</span>
+
+<span class="sd">            **energy_levels** : list</span>
+<span class="sd">                Which energies should be reported. Possibles are:</span>
+
+<span class="sd">                &#39;el1&#39;: Lower state in cm^-1</span>
+
+<span class="sd">                &#39;el2&#39;: Lower state in K</span>
+
+<span class="sd">                &#39;el3&#39;: Upper state in cm^-1</span>
+
+<span class="sd">                &#39;el4&#39;: Upper state in K</span>
+
+<span class="sd">                Default: [&#39;el1&#39;, &#39;el2&#39;, &#39;el3&#39;, &#39;el4&#39;]</span>
+
+<span class="sd">            **exclude** : list</span>
+<span class="sd">                Which types of molecules to exclude from the search. Possibles are:</span>
+
+<span class="sd">                &#39;potential&#39;: Species that may be found in the ISM</span>
+
+<span class="sd">                &#39;atmospheric&#39;: Species know to be in the Earth&#39;s atmosphere</span>
+
+<span class="sd">                &#39;probable&#39;: Species that might be found in the ISM</span>
+
+<span class="sd">                Default: [&#39;potential&#39;, &#39;atmospheric&#39;, &#39;probable&#39;]</span>
+
+<span class="sd">            **version** : str</span>
+<span class="sd">                Which Splatalogue interface is being used. Default: &#39;v2.0&#39;</span>
+
+<span class="sd">            **only_NRAO_recommended** : bool</span>
+<span class="sd">                Only return lines that are recommended by NROA. Can eliminate duplicate</span>
+<span class="sd">                lines from multiple databases. Default: False</span>
+
+<span class="sd">            **export** : bool</span>
+<span class="sd">                Wherther splatalogue should return an export formatted list rather than HTML.</span>
+<span class="sd">                Default: True</span>
+
+<span class="sd">            **export_limit** : int</span>
+<span class="sd">                The maximum number of lines to return. Default: 10000</span>
+
+<span class="sd">            **noHFS** : bool</span>
+<span class="sd">                Whether or not to suppress hyperfine components in the results.</span>
+<span class="sd">                Default: False</span>
+
+<span class="sd">            **displayHFS** : bool</span>
+<span class="sd">                Whether or not to return the hyperfine line strength.</span>
+<span class="sd">                Default: False</span>
+
+<span class="sd">            **show_unres_qn** : bool</span>
+<span class="sd">                Whether or not to return the unresolved quantum numbers. Typically in a</span>
+<span class="sd">                machine readable format. Default: False</span>
+
+<span class="sd">            **show_upper_degeneracy** : bool</span>
+<span class="sd">                Whether or not th return the upper state degeneracy of each transition.</span>
+<span class="sd">                Default: False</span>
+
+<span class="sd">            **show_molecule_tag** : bool</span>
+<span class="sd">                Whether or not to return the molecule tag. Default: False</span>
+
+<span class="sd">            **show_qn_code** : bool</span>
+<span class="sd">                Whether or not to return the quantum number encoding (the encoding of</span>
+<span class="sd">                &#39;show_unres_qn&#39;). Default: False</span>
+
+<span class="sd">            **show_lovas_labref** : bool</span>
+<span class="sd">                Whether or not to return the lab reference frequency from the Lovas/NIST list.</span>
+<span class="sd">                Default: False</span>
+
+<span class="sd">            **show_lovas_obsref** : bool</span>
+<span class="sd">                Whether or not to return the observational reference from the Loval/NIST list.</span>
+<span class="sd">                Default: False</span>
+
+<span class="sd">            **show_orderedfreq_only** : bool</span>
+<span class="sd">                Default: False</span>
+
+<span class="sd">            **show_nrao_recommended** : bool</span>
+<span class="sd">                Whether or not to return the NRAO recommended rest frequency. Default: False</span>
+
+<span class="sd">            **chem_re_flags** : int</span>
+<span class="sd">                Default: 0</span>
+
+<span class="sd">            **energy_min** : float</span>
+<span class="sd">                Minimum lower/upper state energy to search for. Units are specified in</span>
+<span class="sd">                &#39;energy_type&#39;. Default None</span>
+
+<span class="sd">            **energy_max** : float</span>
+<span class="sd">                Maximum lower/upper state energy to search for. Units are specified in</span>
+<span class="sd">                &#39;energy_type&#39;. Default None</span>
+
+<span class="sd">            **energy_type** : str</span>
+<span class="sd">                The energy units for the &#39;energy_min&#39; and &#39;energy_max&#39; columns. Possibles are:</span>
+
+<span class="sd">                &#39;el_cm1&#39;: Lower state in cm^-1</span>
+
+<span class="sd">                &#39;el_k&#39;: Lower state in K</span>
+
+<span class="sd">                &#39;eu_cm1&#39;: Upper state in cm^-1</span>
+
+<span class="sd">                &#39;eu_k&#39;: Upper state in K</span>
+
+<span class="sd">                Default: None</span>
+
+<span class="sd">            **intensity_lower_limit** : float</span>
+<span class="sd">                Lower limit for the transition strength, units are specified in &#39;intensity_type&#39;.</span>
+<span class="sd">                Default: None</span>
+
+<span class="sd">            **intensity_type** : str</span>
+<span class="sd">                The units for the &#39;intensity_lower_limit&#39; parameter. Possibles are:</span>
+
+<span class="sd">                &#39;cdms_jpl&#39;: Cologne database/JPL intensity units</span>
+
+<span class="sd">                &#39;aij&#39;: Einstein A units</span>
+
+<span class="sd">                &#39;sijmu2&#39;: Smu^2, line strength times the square of the relevant dipole</span>
+<span class="sd">                    moment</span>
+
+<span class="sd">                Default: None</span>
+
+<span class="sd">            **transition** : str</span>
+<span class="sd">                Seach for a specific transition (i.e. &#39;(1-0)&#39;&#39;). Default: None</span>
+
+<span class="sd">            **fel** : bool</span>
+<span class="sd">                Whether or not to remove results that have an uncertainty of over 50 MHz.</span>
+<span class="sd">                Default: False</span>
+
+<span class="sd">            Attributes</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+
+<span class="sd">        &gt;&gt;&gt; from splatalogue import Splatalogue</span>
+<span class="sd">        &gt;&gt;&gt; sp = Splatalogue  #Create an object of type Splatalogue</span>
+
+<span class="sd">        &gt;&gt;&gt; # Query by frequency range in units of GHz</span>
+<span class="sd">        &gt;&gt;&gt; sp.query_lines(min_frequency=114.0, max_frequency=116.0)</span>
+
+<span class="sd">        &gt;&gt;&gt; # Query by frequency range and chemical name</span>
+<span class="sd">        &gt;&gt;&gt; sp.query_lines(min_frequency=114.0, max_frequency=116.0, chemical_name=&quot; CO &quot;)</span>
+
+<span class="sd">        &gt;&gt;&gt; # Query by frequency range (no keywords needed and chemical name)</span>
+<span class="sd">        &gt;&gt;&gt; sp.query_lines(0.1,1000.0, chemical_name=&#39;Ethylene Glycol&#39;)</span>
+
+<span class="sd">        &gt;&gt;&gt; # Query by line list and energy</span>
+<span class="sd">        &gt;&gt;&gt; sp.query_lines(218.40, 218.50, energy_max=300, energy_type=&#39;eu_k&#39;, line_lists=&#39;JPL&#39;)</span>
+
+<span class="sd">        &gt;&gt;&gt; # Parse response into a list of dictionaries and store in result</span>
+<span class="sd">        &gt;&gt;&gt; result = sp.parse_response()</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1">#SLAP_URL = &#39;http://find.nrao.edu/splata-slap/slap&#39;  #NOT USED</span>
+    <span class="n">QUERY_URL</span> <span class="o">=</span> <span class="s1">&#39;http://www.cv.nrao.edu/php/splat/c_export.php&#39;</span>
+    <span class="n">TIMEOUT</span> <span class="o">=</span> <span class="mi">60</span>
+    <span class="n">versions</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;v1.0&#39;</span><span class="p">,</span> <span class="s1">&#39;v2.0&#39;</span><span class="p">)</span>
+    <span class="n">LINES_LIMIT</span> <span class="o">=</span> <span class="mi">10000</span>
+    <span class="n">ALL_LINE_LISTS</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Lovas&#39;</span><span class="p">,</span> <span class="c1"># Lovas/NIST list http://physics.nist.gov/PhysRefData/</span>
+                      <span class="s1">&#39;SLAIM&#39;</span><span class="p">,</span> <span class="c1"># SLAIM List http://physics.nist.gov/cgi-bin/micro/table5/start.pl</span>
+                      <span class="s1">&#39;JPL&#39;</span><span class="p">,</span>   <span class="c1"># JPL list http://spec.jpl.nasa.gov/</span>
+                      <span class="s1">&#39;CDMS&#39;</span><span class="p">,</span>  <span class="c1"># Cologne database http://www.ph1.uni-koeln.de/vorhersagen/</span>
+                      <span class="s1">&#39;ToyoMA&#39;</span><span class="p">,</span><span class="c1"># Toyama Atlas http://www.sci.u-toyama.ac.jp/phys/4ken/atlas/</span>
+                      <span class="s1">&#39;OSU&#39;</span><span class="p">,</span>   <span class="c1"># Ohio state list</span>
+                      <span class="s1">&#39;Recomb&#39;</span><span class="p">,</span> <span class="c1"># recombination lines</span>
+                      <span class="s1">&#39;Lisa&#39;</span><span class="p">,</span>  <span class="c1"># 13 Methyl formate list</span>
+                      <span class="s1">&#39;RFI&#39;</span><span class="p">)</span>   <span class="c1"># RFI lines</span>
+    <span class="n">TOP20_LIST</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;comet&#39;</span><span class="p">,</span> <span class="s1">&#39;planet&#39;</span><span class="p">,</span> <span class="s1">&#39;top20&#39;</span><span class="p">,</span> <span class="s1">&#39;ism_hotcore&#39;</span><span class="p">,</span> <span class="s1">&#39;ism_darkcloud&#39;</span><span class="p">,</span> <span class="s1">&#39;ism_diffusecloud&#39;</span><span class="p">)</span>
+    <span class="n">FREQUENCY_BANDS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;any&quot;</span><span class="p">:</span><span class="s2">&quot;Any&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;alma3&quot;</span><span class="p">:</span><span class="s2">&quot;ALMA Band 3 (84-116 GHz)&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;alma4&quot;</span><span class="p">:</span><span class="s2">&quot; ALMA Band 4 (125-163 GHz)&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;alma5&quot;</span><span class="p">:</span><span class="s2">&quot; ALMA Band 5 (163-211 GHz)&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;alma6&quot;</span><span class="p">:</span><span class="s2">&quot;ALMA Band 6 (211-275 GHz)&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;alma7&quot;</span><span class="p">:</span><span class="s2">&quot;ALMA Band 7 (275-373 GHz)&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;alma8&quot;</span><span class="p">:</span><span class="s2">&quot;ALMA Band 8 (385-500 GHz)&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;alma9&quot;</span><span class="p">:</span><span class="s2">&quot;ALMA Band 9 (602-720 GHz)&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;alma10&quot;</span><span class="p">:</span><span class="s2">&quot;ALMA Band 10 (787-950 GHz)&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;pf1&quot;</span><span class="p">:</span><span class="s2">&quot;GBT PF1 (0.29-0.92 GHz)&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;pf2&quot;</span><span class="p">:</span><span class="s2">&quot;GBT PF2 (0.91-1.23 GHz)&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;l&quot;</span><span class="p">:</span><span class="s2">&quot;GBT/VLA L (1-2 GHz)&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;s&quot;</span><span class="p">:</span><span class="s2">&quot;GBT/VLA S (1.7-4 GHz)&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;c&quot;</span><span class="p">:</span><span class="s2">&quot;GBT/VLA C (3.9-8 GHz)&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;x&quot;</span><span class="p">:</span><span class="s2">&quot;GBT/VLA X (8-12 GHz)&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;ku&quot;</span><span class="p">:</span><span class="s2">&quot; GBT/VLA Ku (12-18 GHz)&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;kfpa&quot;</span><span class="p">:</span><span class="s2">&quot;GBT KFPA (18-27.5 GHz)&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;k&quot;</span><span class="p">:</span><span class="s2">&quot;VLA K (18-26.5 GHz)&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;ka&quot;</span><span class="p">:</span><span class="s2">&quot; GBT/VLA Ka (26-40 GHz)&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;q&quot;</span><span class="p">:</span><span class="s2">&quot;GBT/VLA Q (38-50 GHz)&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;w&quot;</span><span class="p">:</span><span class="s2">&quot;GBT W (67-93.3 GHz)&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;mustang&quot;</span><span class="p">:</span><span class="s2">&quot;GBT Mustang (80-100 GHz)&quot;</span><span class="p">,</span> <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Initialize a Splatalogue query class with default arguments set.</span>
+<span class="sd">            Frequency specification is required for *every* query, but any</span>
+<span class="sd">            default keyword arguments (see `query_lines`) can be overridden</span>
+<span class="sd">            here.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_kwargs</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_default_options</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Splatalogue.set_default_options"><a class="viewcode-back" href="../../../module/admit.util/Splatalogue.html#admit.util.Splatalogue.Splatalogue.set_default_options">[docs]</a>    <span class="k">def</span> <span class="nf">set_default_options</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to modify the default options.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            kwargs : dict</span>
+<span class="sd">                See the class description for the key words and their meaning</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parse_kwargs</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Splatalogue.get_species_ids"><a class="viewcode-back" href="../../../module/admit.util/Splatalogue.html#admit.util.Splatalogue.Splatalogue.get_species_ids">[docs]</a>    <span class="k">def</span> <span class="nf">get_species_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">restr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">reflags</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Get a dictionary of &quot;species&quot; IDs, where species refers to the molecule</span>
+<span class="sd">            name, mass, and chemical composition.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            restr : str</span>
+<span class="sd">                String to compile into an re, if specified.   Searches table for</span>
+<span class="sd">                species whose names match. Default: None</span>
+
+<span class="sd">            reflags : int</span>
+<span class="sd">                Flags to pass to `re`. Default: 0</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            The id of the species</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># loading can be an expensive operation and should not change at runtime:</span>
+        <span class="c1"># do it lazily</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_species_ids&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_species_ids</span> <span class="o">=</span> <span class="n">species_lookuptable</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">restr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species_ids</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">restr</span><span class="p">,</span> <span class="n">reflags</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species_ids</span></div>
+
+    <span class="k">def</span> <span class="nf">_default_kwargs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">min_frequency</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>  <span class="c1">#GHz</span>
+                      <span class="n">max_frequency</span><span class="o">=</span><span class="mf">100000.0</span><span class="p">,</span>  <span class="c1">#GHz (100000 GHZ = 100 THz)</span>
+                      <span class="n">chemical_name</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+                      <span class="n">line_lists</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ALL_LINE_LISTS</span><span class="p">,</span>
+                      <span class="n">line_strengths</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;ls1&#39;</span><span class="p">,</span> <span class="s1">&#39;ls2&#39;</span><span class="p">,</span> <span class="s1">&#39;ls3&#39;</span><span class="p">,</span> <span class="s1">&#39;ls4&#39;</span><span class="p">,</span> <span class="s1">&#39;ls5&#39;</span><span class="p">),</span>
+                      <span class="n">energy_levels</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;el1&#39;</span><span class="p">,</span> <span class="s1">&#39;el2&#39;</span><span class="p">,</span> <span class="s1">&#39;el3&#39;</span><span class="p">,</span> <span class="s1">&#39;el4&#39;</span><span class="p">),</span>
+                      <span class="n">exclude</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;potential&#39;</span><span class="p">,</span> <span class="s1">&#39;atmospheric&#39;</span><span class="p">,</span> <span class="s1">&#39;probable&#39;</span><span class="p">),</span>
+                      <span class="n">version</span><span class="o">=</span><span class="s1">&#39;v2.0&#39;</span><span class="p">,</span>
+                      <span class="n">only_NRAO_recommended</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                      <span class="n">export</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                      <span class="n">export_limit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">LINES_LIMIT</span><span class="p">,</span>
+                      <span class="n">noHFS</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">displayHFS</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show_unres_qn</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                      <span class="n">show_upper_degeneracy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show_molecule_tag</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                      <span class="n">show_qn_code</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show_lovas_labref</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                      <span class="n">show_lovas_obsref</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">show_orderedfreq_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                      <span class="n">show_nrao_recommended</span><span class="o">=</span><span class="kc">False</span><span class="p">,)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_kwargs</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">_parse_kwargs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_frequency</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_frequency</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">band</span><span class="o">=</span><span class="s1">&#39;any&#39;</span><span class="p">,</span> <span class="n">top20</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">chemical_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">chem_re_flags</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">energy_min</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">energy_max</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">energy_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">intensity_lower_limit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">intensity_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">transition</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">exclude</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">only_NRAO_recommended</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">line_lists</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">line_strengths</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">energy_levels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">export</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">export_limit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">noHFS</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">displayHFS</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">show_unres_qn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">show_upper_degeneracy</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">show_molecule_tag</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">show_qn_code</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">show_lovas_labref</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">show_lovas_obsref</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">show_orderedfreq_only</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">show_nrao_recommended</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fel</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="c1"># set the payload of the http request</span>
+        <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;submit&#39;</span><span class="p">:</span> <span class="s1">&#39;Search&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;frequency_units&#39;</span><span class="p">:</span> <span class="s1">&#39;GHz&#39;</span><span class="p">,</span>
+                  <span class="p">}</span>
+
+        <span class="c1"># set the band or frequency ranges</span>
+        <span class="k">if</span> <span class="n">band</span> <span class="o">!=</span> <span class="s1">&#39;any&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">band</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">FREQUENCY_BANDS</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid frequency band.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">min_frequency</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">max_frequency</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Band was specified, so the frequency specification is overridden&quot;</span><span class="p">)</span>
+            <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;band&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">band</span>
+        <span class="k">elif</span> <span class="n">min_frequency</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">max_frequency</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">min_frequency</span> <span class="o">&gt;</span> <span class="n">max_frequency</span><span class="p">:</span>
+                <span class="n">min_frequency</span><span class="p">,</span> <span class="n">max_frequency</span> <span class="o">=</span> <span class="n">max_frequency</span><span class="p">,</span> <span class="n">min_frequency</span>
+
+            <span class="c1">#ASSUMES UNITS OF GHz</span>
+            <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;from&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">min_frequency</span>
+            <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;to&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">max_frequency</span>
+
+        <span class="c1"># select the top20 list if given</span>
+        <span class="k">if</span> <span class="n">top20</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">top20</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">top20</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">TOP20_LIST</span><span class="p">:</span>
+                <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;top20&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">top20</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Top20 is not one of the allowed values&quot;</span><span class="p">)</span>
+        <span class="c1"># set the chemical name if given</span>
+        <span class="k">elif</span> <span class="n">chemical_name</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="p">{},</span> <span class="p">(),</span> <span class="p">[],</span> <span class="nb">set</span><span class="p">()):</span>
+            <span class="c1"># include all</span>
+            <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;sid[]&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">elif</span> <span class="n">chemical_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># encode the chemical names to species id&#39;s</span>
+            <span class="n">species_ids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_species_ids</span><span class="p">(</span><span class="n">chemical_name</span><span class="p">,</span> <span class="n">chem_re_flags</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">species_ids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No matching chemical species found.&quot;</span><span class="p">)</span>
+            <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;sid[]&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">species_ids</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+        <span class="c1"># set the min an max energy range and untis</span>
+        <span class="k">if</span> <span class="n">energy_min</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;energy_range_from&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">energy_min</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">energy_max</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;energy_range_to&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">energy_max</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">energy_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;energy_range_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">energy_type</span>
+
+        <span class="c1"># set the minimum intensity and units</span>
+        <span class="k">if</span> <span class="n">intensity_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;lill&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;lill_&#39;</span> <span class="o">+</span> <span class="n">intensity_type</span>
+            <span class="k">if</span> <span class="n">intensity_lower_limit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">payload</span><span class="p">[</span><span class="n">payload</span><span class="p">[</span><span class="s1">&#39;lill&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">intensity_lower_limit</span>
+
+        <span class="c1"># set the specific transition</span>
+        <span class="k">if</span> <span class="n">transition</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;tran&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">transition</span>
+
+        <span class="c1"># set the version id</span>
+        <span class="k">if</span> <span class="n">version</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">versions</span><span class="p">:</span>
+            <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;version&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">version</span>
+        <span class="k">elif</span> <span class="n">version</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid version specified.  Allowed versions are </span><span class="si">{vers}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">vers</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">versions</span><span class="p">)))</span>
+
+        <span class="c1"># set which types to exclude</span>
+        <span class="k">if</span> <span class="n">exclude</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">exclude</span><span class="p">:</span>
+                <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;no_&#39;</span> <span class="o">+</span> <span class="n">e</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;no_&#39;</span> <span class="o">+</span> <span class="n">e</span>
+
+        <span class="c1"># set the NRAO recommended frequencies option</span>
+        <span class="k">if</span> <span class="n">only_NRAO_recommended</span><span class="p">:</span>
+            <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;include_only_nrao&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;include_only_nrao&#39;</span>
+
+        <span class="c1"># set any line lists to use</span>
+        <span class="k">if</span> <span class="n">line_lists</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">line_lists</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">line_lists</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Line lists should be a list of linelist names.  See Splatalogue.ALL_LINE_LISTS&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">L</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ALL_LINE_LISTS</span><span class="p">:</span>
+                <span class="n">kwd</span> <span class="o">=</span> <span class="s1">&#39;display&#39;</span> <span class="o">+</span> <span class="n">L</span>
+                <span class="k">if</span> <span class="n">L</span> <span class="ow">in</span> <span class="n">line_lists</span><span class="p">:</span>
+                    <span class="n">payload</span><span class="p">[</span><span class="n">kwd</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwd</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">payload</span><span class="p">[</span><span class="n">kwd</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+
+        <span class="c1"># set which line strengths to return</span>
+        <span class="k">if</span> <span class="n">line_strengths</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">LS</span> <span class="ow">in</span> <span class="n">line_strengths</span><span class="p">:</span>
+                <span class="n">payload</span><span class="p">[</span><span class="n">LS</span><span class="p">]</span> <span class="o">=</span> <span class="n">LS</span>
+
+        <span class="c1"># set which energy levels and units to return</span>
+        <span class="k">if</span> <span class="n">energy_levels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">EL</span> <span class="ow">in</span> <span class="n">energy_levels</span><span class="p">:</span>
+                <span class="n">payload</span><span class="p">[</span><span class="n">EL</span><span class="p">]</span> <span class="o">=</span> <span class="n">EL</span>
+
+        <span class="c1"># set other query parameters</span>
+        <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="s2">&quot;noHFS,displayHFS,show_unres_qn,show_upper_degeneracy,show_molecule_tag,show_qn_code,show_lovas_labref,show_orderedfreq_only,show_lovas_obsref,show_nrao_recommended,fel&quot;</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">locals</span><span class="p">()[</span><span class="n">b</span><span class="p">]:</span>
+                <span class="n">payload</span><span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="o">=</span> <span class="n">b</span>
+
+        <span class="c1"># default arg, unmodifiable...</span>
+        <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;jsMath&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;font:symbol,warn:0&#39;</span>
+        <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;__utma&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;__utmc&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+
+        <span class="c1"># if we are exporting, set the format</span>
+        <span class="k">if</span> <span class="n">export</span><span class="p">:</span>
+            <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;submit&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Export&#39;</span>
+            <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;export_delimiter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;colon&#39;</span>  <span class="c1"># or tab or comma</span>
+            <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;export_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;current&#39;</span>
+            <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;offset&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;range&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;on&#39;</span>
+            <span class="k">if</span> <span class="n">export_limit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;limit&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">export_limit</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">payload</span><span class="p">[</span><span class="s1">&#39;limit&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">LINES_LIMIT</span>
+
+        <span class="k">return</span> <span class="n">payload</span>
+
+    <span class="k">def</span> <span class="nf">_validate_kwargs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_frequency</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_frequency</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                         <span class="n">band</span><span class="o">=</span><span class="s1">&#39;any&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Check that either min_frequency + max_frequency or band are specified.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">band</span> <span class="o">==</span> <span class="s1">&#39;any&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">min_frequency</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">max_frequency</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Must specify either min/max frequency or a valid Band.&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Splatalogue.query_lines"><a class="viewcode-back" href="../../../module/admit.util/Splatalogue.html#admit.util.Splatalogue.Splatalogue.query_lines">[docs]</a>    <span class="k">def</span> <span class="nf">query_lines</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_frequency</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_frequency</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Query Splatalogue for transitions between min_frequency and max_frequency</span>
+<span class="sd">            with the given kwargs.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            min_frequency : float</span>
+<span class="sd">                The starting frequency for the search in GHz. Default: None</span>
+
+<span class="sd">            max_frequency : float</span>
+<span class="sd">                The ending frequency for the search in GHz. Default: None</span>
+
+<span class="sd">            kwargs : dict</span>
+<span class="sd">                Any additional arguments for the search.</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            response : `requests.Response`</span>
+<span class="sd">                The response of the HTTP request.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># have to chomp this kwd here...</span>
+        <span class="k">if</span> <span class="s2">&quot;min_frequency&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">min_frequency</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;min_frequency&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s2">&quot;max_frequency&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">max_frequency</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;max_frequency&quot;</span><span class="p">]</span>
+        <span class="n">get_query_payload</span> <span class="o">=</span> <span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;get_query_payload&#39;</span><span class="p">)</span>
+                             <span class="k">if</span> <span class="s1">&#39;get_query_payload&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span>
+                             <span class="k">else</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_validate_kwargs</span><span class="p">(</span><span class="n">min_frequency</span><span class="o">=</span><span class="n">min_frequency</span><span class="p">,</span>
+                              <span class="n">max_frequency</span><span class="o">=</span><span class="n">max_frequency</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">):</span>
+            <span class="n">data_payload</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">data_payload</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parse_kwargs</span><span class="p">(</span><span class="n">min_frequency</span><span class="o">=</span><span class="n">min_frequency</span><span class="p">,</span>
+                                                   <span class="n">max_frequency</span><span class="o">=</span><span class="n">max_frequency</span><span class="p">,</span>
+                                                   <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">data_payload</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_kwargs</span><span class="p">()</span>
+            <span class="n">data_payload</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parse_kwargs</span><span class="p">(</span><span class="n">min_frequency</span><span class="o">=</span><span class="n">min_frequency</span><span class="p">,</span>
+                                                   <span class="n">max_frequency</span><span class="o">=</span><span class="n">max_frequency</span><span class="p">,</span>
+                                                   <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">get_query_payload</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">data_payload</span>
+
+        <span class="c1">#Need to pass True so that the sid[] list is handled correctly</span>
+        <span class="n">urlparams</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">urlencode</span><span class="p">(</span><span class="n">data_payload</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">response</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">QUERY_URL</span> <span class="o">+</span> <span class="s1">&#39;?</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">urlparams</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">TIMEOUT</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">response</span> <span class="o">=</span> <span class="n">response</span>
+
+        <span class="k">return</span> <span class="n">response</span></div>
+
+<div class="viewcode-block" id="Splatalogue.parse_response"><a class="viewcode-back" href="../../../module/admit.util/Splatalogue.html#admit.util.Splatalogue.Splatalogue.parse_response">[docs]</a>    <span class="k">def</span> <span class="nf">parse_response</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Parse a response (of type urllib2.urlopen) into a list of dictionaries.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            A dictonary of the response</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">response</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">csvstring</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+            <span class="n">tablelist</span> <span class="o">=</span> <span class="n">csvstring</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">header</span> <span class="o">=</span> <span class="n">tablelist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">headerlist</span> <span class="o">=</span> <span class="n">header</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)</span>
+            <span class="n">headerlist</span> <span class="o">=</span> <span class="n">clean_column_headings</span><span class="p">(</span><span class="n">headerlist</span><span class="p">,</span> <span class="n">renaming_dict</span><span class="o">=</span><span class="n">column_headings_map</span><span class="p">)</span>
+
+            <span class="c1">#Populate list of dictionaries</span>
+            <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">tablelist</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="n">rowlist</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)</span>
+                <span class="n">rowdict</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">rowlist</span><span class="p">)):</span>
+                    <span class="n">rowdict</span><span class="p">[</span><span class="n">headerlist</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">=</span> <span class="n">rowlist</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rowdict</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Problem parsing result&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">result</span> <span class="o">=</span> <span class="n">result</span>
+
+        <span class="k">return</span> <span class="n">result</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

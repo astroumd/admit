@@ -1,0 +1,508 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.bdp.BDP &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.bdp.BDP</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   .. _BDP-base-api:</span>
+
+<span class="sd">   **BDP** --- Basic data product base.</span>
+<span class="sd">   ------------------------------------</span>
+
+<span class="sd">   This module defines the Basic Data Product (BDP) base class.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">xml.etree.cElementTree</span> <span class="k">as</span> <span class="nn">et</span>
+<span class="kn">import</span> <span class="nn">types</span>
+<span class="kn">import</span> <span class="nn">admit.util.utils</span> <span class="k">as</span> <span class="nn">utils</span>
+<span class="kn">import</span> <span class="nn">admit.util.bdp_types</span> <span class="k">as</span> <span class="nn">bt</span>
+<span class="kn">from</span> <span class="nn">admit.util.Image</span> <span class="k">import</span> <span class="n">Image</span>
+<span class="kn">from</span> <span class="nn">admit.util.MultiImage</span> <span class="k">import</span> <span class="n">MultiImage</span>
+<span class="kn">from</span> <span class="nn">admit.util.Line</span> <span class="k">import</span> <span class="n">Line</span>
+<span class="kn">from</span> <span class="nn">admit.util.Table</span> <span class="k">import</span> <span class="n">Table</span>
+<span class="kn">from</span> <span class="nn">admit.xmlio.DtdReader</span> <span class="k">import</span> <span class="n">DtdReader</span>
+<span class="c1">##import zipfile</span>
+<span class="c1">#import admit.util.util as util</span>
+<span class="kn">import</span> <span class="nn">admit.xmlio.XmlWriter</span> <span class="k">as</span> <span class="nn">XmlWriter</span>
+
+<span class="n">_debug</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="c1">#_debug = True</span>
+
+<div class="viewcode-block" id="BDP"><a class="viewcode-back" href="../../../module/admit.bdp/BDP.html#admit.bdp.BDP.BDP">[docs]</a><span class="k">class</span> <span class="nc">BDP</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Basic Data Product base.</span>
+
+<span class="sd">       Basic Data Products (BDPs) are data containers used to transport</span>
+<span class="sd">       information within ADMIT, as well as deliver it to users in a</span>
+<span class="sd">       persistent, well-defined format.</span>
+
+<span class="sd">       Parameters</span>
+<span class="sd">       ----------</span>
+<span class="sd">       xmlFile : str, optional</span>
+<span class="sd">           XML file associated with BDP (for persistence);</span>
+<span class="sd">           defaults to ``None``.</span>
+
+<span class="sd">       keyval : dict</span>
+<span class="sd">           Dictionary of keyword value pairs.</span>
+
+<span class="sd">       Attributes</span>
+<span class="sd">       ----------</span>
+<span class="sd">       gous : TBD</span>
+<span class="sd">          TBD</span>
+
+<span class="sd">       mous : TBD</span>
+<span class="sd">          TBD</span>
+
+<span class="sd">       sous : TBD</span>
+<span class="sd">          TBD  (the official name is sous)</span>
+
+<span class="sd">       project : TBD</span>
+<span class="sd">          TBD</span>
+
+<span class="sd">       xmlFile : str</span>
+<span class="sd">          XML file associated with BDP (for persistence).</span>
+
+<span class="sd">       _baseDir : str</span>
+<span class="sd">           ADMIT project directory (None if unknown).</span>
+
+<span class="sd">       _date : TBD</span>
+<span class="sd">          Date of last edit.</span>
+
+<span class="sd">       _taskid : int</span>
+<span class="sd">           Originating ADMIT task ID number.</span>
+
+<span class="sd">       _type : admit.util.bdp_types</span>
+<span class="sd">          Concrete BDP type.</span>
+
+<span class="sd">       _updated : bool</span>
+<span class="sd">           Whether BDP has been modified since latest XML output.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_uid</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="sd">&quot;&quot;&quot;Class static BDP ID number.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xmlFile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">keyval</span><span class="p">):</span>
+        <span class="c1"># just some default values</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">project</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sous</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mous</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gous</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_date</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>                        <span class="c1"># date of last edit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xmlFile</span> <span class="o">=</span> <span class="n">xmlFile</span>                  <span class="c1"># xml file associated with BDP</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_baseDir</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_updated</span> <span class="o">=</span> <span class="kc">False</span>                   <span class="c1"># has been updated</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_taskid</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_version</span> <span class="o">=</span> <span class="s2">&quot;0.0.0&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_uid</span> <span class="o">=</span> <span class="n">BDP</span><span class="o">.</span><span class="n">_uid</span>
+        <span class="n">BDP</span><span class="o">.</span><span class="n">_uid</span> <span class="o">=</span> <span class="n">BDP</span><span class="o">.</span><span class="n">_uid</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">xmlFile</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">xmlFile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_type</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_uid</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="n">keyval</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">print</span> <span class="n">bt</span><span class="o">.</span><span class="n">format</span><span class="o">.</span><span class="n">BOLD</span> <span class="o">+</span> <span class="n">bt</span><span class="o">.</span><span class="n">color</span><span class="o">.</span><span class="n">GREEN</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">BDP :&quot;</span> <span class="o">+</span> <span class="n">bt</span><span class="o">.</span><span class="n">format</span><span class="o">.</span><span class="n">END</span> <span class="o">+</span> \
+              <span class="n">bt</span><span class="o">.</span><span class="n">format</span><span class="o">.</span><span class="n">BOLD</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_type</span> <span class="o">+</span> <span class="n">bt</span><span class="o">.</span><span class="n">format</span><span class="o">.</span><span class="n">END</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="p">(</span><span class="n">Line</span><span class="p">,</span> <span class="n">Image</span><span class="p">,</span> <span class="n">MultiImage</span><span class="p">,</span> <span class="n">Table</span><span class="p">)):</span>
+                <span class="nb">print</span> <span class="n">bt</span><span class="o">.</span><span class="n">format</span><span class="o">.</span><span class="n">BOLD</span> <span class="o">+</span> <span class="n">i</span> <span class="o">+</span> <span class="s2">&quot;: &quot;</span>
+                <span class="nb">print</span> <span class="n">j</span>
+                <span class="k">continue</span>
+            <span class="nb">print</span> <span class="n">bt</span><span class="o">.</span><span class="n">format</span><span class="o">.</span><span class="n">BOLD</span> <span class="o">+</span> <span class="n">i</span> <span class="o">+</span> <span class="s2">&quot;: &quot;</span> <span class="o">+</span> <span class="n">bt</span><span class="o">.</span><span class="n">format</span><span class="o">.</span><span class="n">END</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+<div class="viewcode-block" id="BDP.getfiles"><a class="viewcode-back" href="../../../module/admit.bdp/BDP.html#admit.bdp.BDP.BDP.getfiles">[docs]</a>    <span class="k">def</span> <span class="nf">getfiles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return the filename(s) associated with the basic data in a BDP.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            List of files</span>
+
+<span class="sd">            Notes</span>
+<span class="sd">            -----</span>
+<span class="sd">            .. todo::</span>
+<span class="sd">              Really should look for attribute .filename, but normally</span>
+<span class="sd">              derived classes should implement these; see e.g. File_AT.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">files</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span> <span class="n">Image</span><span class="p">):</span>
+                <span class="c1">#print getattr(self, i).images</span>
+                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">images</span><span class="p">:</span>
+                    <span class="n">files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">images</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+                <span class="c1">#files.append(getattr(self, i).fileName)</span>
+        <span class="k">return</span> <span class="n">files</span></div>
+
+<div class="viewcode-block" id="BDP.show"><a class="viewcode-back" href="../../../module/admit.bdp/BDP.html#admit.bdp.BDP.BDP.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Show the xmlFile name.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            the xml file name</span>
+
+<span class="sd">            Notes</span>
+<span class="sd">            -----</span>
+<span class="sd">            .. todo::</span>
+<span class="sd">                Extend functionality to show more.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">xmlFile</span></div>
+
+<div class="viewcode-block" id="BDP.baseDir"><a class="viewcode-back" href="../../../module/admit.bdp/BDP.html#admit.bdp.BDP.BDP.baseDir">[docs]</a>    <span class="k">def</span> <span class="nf">baseDir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Get/set project base directory.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            path : str, optional</span>
+<span class="sd">                New project base directory (ignored if None).</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            Updated project base directory.</span>
+
+<span class="sd">            Notes</span>
+<span class="sd">            -----</span>
+<span class="sd">            Unless empty, the base directory is guaranteed to end in os.sep.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">path</span> <span class="ow">and</span> <span class="n">path</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">:</span>
+                <span class="n">path</span> <span class="o">+=</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_baseDir</span> <span class="o">=</span> <span class="n">path</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_baseDir</span></div>
+
+<div class="viewcode-block" id="BDP.update"><a class="viewcode-back" href="../../../module/admit.bdp/BDP.html#admit.bdp.BDP.BDP.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_state</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Updates BDP state.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            new_state : varies</span>
+<span class="sd">                New BDP state.</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">_debug</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="s2">&quot;UPDATE: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">xmlFile</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_updated</span> <span class="o">=</span> <span class="n">new_state</span></div>
+
+<div class="viewcode-block" id="BDP.report"><a class="viewcode-back" href="../../../module/admit.bdp/BDP.html#admit.bdp.BDP.BDP.report">[docs]</a>    <span class="k">def</span> <span class="nf">report</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Report BDP properties in human readable format.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">print</span> <span class="s2">&quot;===report===&quot;</span>
+        <span class="nb">print</span> <span class="s2">&quot;BDP::</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">xmlFile</span></div>
+
+<div class="viewcode-block" id="BDP.setkey"><a class="viewcode-back" href="../../../module/admit.bdp/BDP.html#admit.bdp.BDP.BDP.setkey">[docs]</a>    <span class="k">def</span> <span class="nf">setkey</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="sd">&quot;&quot;&quot; Sets keyword value(s).</span>
+
+<span class="sd">            Two styles are possible:</span>
+
+<span class="sd">            1. name = {key:val}            e.g. **setkey({&quot;a&quot;:1})**</span>
+
+<span class="sd">            2. name = &quot;key&quot;, key = val     e.g. **setkey(&quot;a&quot;, 1)**</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            name : dict or str, optional</span>
+<span class="sd">                Keyword/values pairs, or single keyword name; defaults to empty</span>
+<span class="sd">                string.</span>
+
+<span class="sd">            key : str, optional</span>
+<span class="sd">                Keyword value; defaults to empty dictionary.</span>
+
+<span class="sd">            init : bool, optional</span>
+<span class="sd">                Whether keyword is being set for the first time.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="c1">#1</span>
+            <span class="c1"># check that the keys are valid first</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">haskey</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> is not a valid key for </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_type</span><span class="p">))</span>
+                <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="n">name</span><span class="p">[</span><span class="n">i</span><span class="p">]):</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">name</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">Image</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">MultiImage</span><span class="p">):</span>
+                        <span class="k">continue</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;You cannot change the data type of an BDP keyword. Type for </span><span class="si">%s</span><span class="s2"> is </span><span class="si">%s</span><span class="s2"> but needs to be </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">name</span><span class="p">[</span><span class="n">i</span><span class="p">])),</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="kc">None</span><span class="p">)))))</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">name</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">Image</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">MultiImage</span><span class="p">):</span>
+                    <span class="n">t</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                    <span class="n">t</span><span class="o">.</span><span class="n">addimage</span><span class="p">(</span><span class="n">name</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+                    <span class="k">return</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">name</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="c1">#2</span>
+            <span class="c1"># check that the key is valid</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">haskey</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> is not a valid key for </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_type</span><span class="p">))</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">Image</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">MultiImage</span><span class="p">):</span>
+                    <span class="n">t</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                    <span class="n">t</span><span class="o">.</span><span class="n">addimage</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+                    <span class="k">return</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;You cannot change the data type of an BDP keyword. Type for </span><span class="si">%s</span><span class="s2"> is </span><span class="si">%s</span><span class="s2"> but needs to be </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">key</span><span class="p">)),</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)))))</span>
+
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># @todo need to give more feedback to user</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Invalid keys given to setkey&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BDP.haskey"><a class="viewcode-back" href="../../../module/admit.bdp/BDP.html#admit.bdp.BDP.BDP.haskey">[docs]</a>    <span class="k">def</span> <span class="nf">haskey</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Query if a key exists for an BDP.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        key : str</span>
+<span class="sd">            Keyword name.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">            True if keyword is present, else False.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="BDP.get"><a class="viewcode-back" href="../../../module/admit.bdp/BDP.html#admit.bdp.BDP.BDP.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Access an attribute.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        key : str</span>
+<span class="sd">            Keyword name.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        varies</span>
+<span class="sd">            Attribute value if keyword is present, else ``None``.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">_debug</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="s2">&quot;BDP::get </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BDP.write"><a class="viewcode-back" href="../../../module/admit.bdp/BDP.html#admit.bdp.BDP.BDP.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xmlFile</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Writes the BDP to an XML file.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            xmlFile : str, optional</span>
+<span class="sd">                Output XML file name; defaults to eponymous internal attribute.</span>
+
+<span class="sd">            Notes</span>
+<span class="sd">            -----</span>
+<span class="sd">            Do not edit unless you know what you are doing as all BDP&#39;s rely on</span>
+<span class="sd">            this method to work properly.</span>
+<span class="sd">            Normally the xmlFile here should be the full path.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dtdRead</span> <span class="o">=</span> <span class="n">DtdReader</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_type</span> <span class="o">+</span> <span class="s2">&quot;.dtd&quot;</span><span class="p">)</span>
+        <span class="n">order</span> <span class="o">=</span> <span class="n">dtdRead</span><span class="o">.</span><span class="n">getOrder</span><span class="p">()</span>
+        <span class="n">dtd</span> <span class="o">=</span> <span class="n">dtdRead</span><span class="o">.</span><span class="n">getDtd</span><span class="p">()</span>
+        <span class="n">typs</span> <span class="o">=</span> <span class="n">dtdRead</span><span class="o">.</span><span class="n">getTypes</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">xmlFile</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;No output files was specified&quot;</span><span class="p">)</span>
+     
+        <span class="n">root</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s2">&quot;BDP&quot;</span><span class="p">)</span>
+        <span class="n">root</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_type</span><span class="p">)</span>
+
+        <span class="n">XmlWriter</span><span class="o">.</span><span class="n">XmlWriter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">typs</span><span class="p">,</span> <span class="n">root</span><span class="p">)</span>
+
+        <span class="c1">#Return a pretty-printed XML string for the Element.</span>
+        <span class="n">rough_string</span> <span class="o">=</span> <span class="n">et</span><span class="o">.</span><span class="n">tostring</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+
+        <span class="n">temp</span> <span class="o">=</span> <span class="n">rough_string</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;&gt;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="n">temp</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&lt;/&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&lt;/&quot;</span><span class="p">)</span>
+
+        <span class="n">outFile</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">xmlFile</span> <span class="o">+</span> <span class="s2">&quot;.bdp&quot;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+        <span class="n">outFile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;&lt;?xml version=</span><span class="se">\&quot;</span><span class="s2">1.0</span><span class="se">\&quot;</span><span class="s2"> ?&gt;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># write out the dtd info at the top</span>
+        <span class="n">outFile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;&lt;!DOCTYPE BDP [</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">dtd</span><span class="p">:</span>
+            <span class="n">outFile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="n">outFile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;]&gt;</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">outFile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
+        <span class="n">outFile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+        <span class="c1">#zFile = zipfile.ZipFile(self.xmlFile + &quot;.zip&quot;, &#39;w&#39;, compression=zipfile.ZIP_DEFLATED)</span>
+        <span class="c1">#zFile.write(self.xmlFile)</span>
+        <span class="c1">#zFile.close()</span>
+
+<div class="viewcode-block" id="BDP.delete"><a class="viewcode-back" href="../../../module/admit.bdp/BDP.html#admit.bdp.BDP.BDP.delete">[docs]</a>    <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delfiles</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to delete the BDP. This method will search through all class</span>
+<span class="sd">            variables and delete any images since they contain external files, and</span>
+<span class="sd">            then deletes the BDP&#39;s XML file.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            basedir : str, optional</span>
+<span class="sd">                XML file directory; defaults to current directory.</span>
+
+<span class="sd">            delfiles : bool, optional</span>
+<span class="sd">                Whether or not to delete the actual files on disk; defaults to True.</span>
+
+<span class="sd">            Notes</span>
+<span class="sd">            -----</span>
+<span class="sd">            It is recommended that any BDP that stores images inside of lists, </span>
+<span class="sd">            dictionaries, tuples, etc. override this method with a customized</span>
+<span class="sd">            version.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span> <span class="n">MultiImage</span><span class="p">):</span>
+                <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_baseDir</span><span class="p">,</span> <span class="n">delfiles</span><span class="p">)</span>
+                <span class="k">del</span> <span class="n">i</span>
+        <span class="k">if</span> <span class="n">delfiles</span><span class="p">:</span>
+            <span class="n">utils</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_baseDir</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">xmlFile</span> <span class="o">+</span> <span class="s2">&quot;.bdp&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BDP.getdir"><a class="viewcode-back" href="../../../module/admit.bdp/BDP.html#admit.bdp.BDP.BDP.getdir">[docs]</a>    <span class="k">def</span> <span class="nf">getdir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to get the subdirectory(s) of the current BDP relative to the</span>
+<span class="sd">            ADMIT working directory.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            String containing the current BDPs subdirectory</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># @todo   fails if the BDP is in the main admit directory and returns [:-1]</span>
+        <span class="n">loc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xmlFile</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">xmlFile</span><span class="p">[:</span><span class="n">loc</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="BDP.isequal"><a class="viewcode-back" href="../../../module/admit.bdp/BDP.html#admit.bdp.BDP.BDP.isequal">[docs]</a>    <span class="k">def</span> <span class="nf">isequal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bdp</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Tests for equality with another BDP.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            bdp : BDP</span>
+<span class="sd">                The other BDP.</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">                True if the BDP types and contents match, else False.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">bdp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;_type&quot;</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_type</span><span class="p">:</span>
+                <span class="nb">print</span> <span class="s2">&quot;BDP types are not the same: &quot;</span> <span class="o">+</span> <span class="n">bdp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;_type&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; vs &quot;</span> <span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">_type</span>
+                <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">types</span><span class="o">.</span><span class="n">TypeType</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">ClassType</span><span class="p">)):</span>
+                    <span class="k">if</span> <span class="ow">not</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">Image</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">Line</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">Table</span><span class="p">)):</span>
+                        <span class="k">continue</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">isequal</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">bdp</span><span class="p">,</span> <span class="n">i</span><span class="p">)):</span>
+                        <span class="nb">print</span> <span class="s2">&quot;Attribute </span><span class="si">%s</span><span class="s2"> does not match&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                        <span class="k">return</span> <span class="kc">False</span>
+
+                <span class="k">elif</span> <span class="nb">cmp</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">bdp</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="nb">print</span> <span class="s2">&quot;Attribute </span><span class="si">%s</span><span class="s2"> does not match&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,644 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Filter1D — 1-dimensional spectral filtering. &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../index.html" />
+    <link rel="up" title="Python Scripting Interface (API)" href="../../api.html" />
+    <link rel="prev" title="Filter Package" href="0-index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="0-index.html" title="Filter Package"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" accesskey="U">Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-admit.util.filter.Filter1D"></span><div class="section" id="filter1d-1-dimensional-spectral-filtering">
+<span id="filter1d"></span><h1>Filter1D &#8212; 1-dimensional spectral filtering.<a class="headerlink" href="#filter1d-1-dimensional-spectral-filtering" title="Permalink to this headline">¶</a></h1>
+<p>This module defines the 1D filter methods.</p>
+<dl class="class">
+<dt id="admit.util.filter.Filter1D.Filter1D">
+<em class="property">class </em><code class="descclassname">admit.util.filter.Filter1D.</code><code class="descname">Filter1D</code><span class="sig-paren">(</span><em>spec</em>, <em>method</em>, <em>**keyval</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/filter/Filter1D.html#Filter1D"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.filter.Filter1D.Filter1D" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class defines and runs 1D spectral filters. The currently available
+filters are Gaussian, Hanning, Triangle, Welch, Boxcar, and Savitzky 
+Golay. The output spectrum will be of the same length as the input 
+spectrum, however some edge channels may be zeroed by some methods, 
+depending on the input paramters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>spec</strong> : numpy array</p>
+<blockquote>
+<div><p>1D numpy array of the input spectrum (just the amplitudes).</p>
+</div></blockquote>
+<p><strong>method</strong> : str</p>
+<blockquote>
+<div><p>The smoothing filter to apply: boxcar, gaussian, welch, hanning, 
+triangle, or savgol. 
+No default. Minimum matching is enabled with a minimum of 3 
+characters, i.e. box = boxcar.</p>
+</div></blockquote>
+<p><strong>keyval</strong> : various</p>
+<blockquote class="last">
+<div><p>Any keyword value pairs for the specific method chosen, see the 
+notes for specific keywords.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>Details of the different filter keywords and defaults:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="15%" />
+<col width="19%" />
+<col width="8%" />
+<col width="58%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Filter</th>
+<th class="head">Keyword</th>
+<th class="head">Def.</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>&#8220;boxcar&#8221;</td>
+<td>&#8220;width&#8221;</td>
+<td>3</td>
+<td>Number of channels to average together</td>
+</tr>
+<tr class="row-odd"><td>&#8220;gaussian&#8221;</td>
+<td>&#8220;width&#8221;</td>
+<td>7</td>
+<td>Number of channels to span with the gaussian</td>
+</tr>
+<tr class="row-even"><td>&#8220;hanning&#8221;</td>
+<td>&#8220;width&#8221;</td>
+<td>5</td>
+<td>Number of channels to include in the cos</td>
+</tr>
+<tr class="row-odd"><td>&#8220;triangle&#8221;</td>
+<td>&#8220;width&#8221;</td>
+<td>5</td>
+<td>Number of channels to span with the triangle</td>
+</tr>
+<tr class="row-even"><td>&#8220;welch&#8221;</td>
+<td>&#8220;width&#8221;</td>
+<td>5</td>
+<td>Number of channels to use in the function</td>
+</tr>
+<tr class="row-odd"><td>&#8220;savgol&#8221;</td>
+<td>&#8220;window_size&#8221;</td>
+<td>7</td>
+<td>Number of channels to use in the calculation</td>
+</tr>
+<tr class="row-even"><td>&nbsp;</td>
+<td>&#8220;order&#8221;</td>
+<td>3</td>
+<td>Order of the poynomial fit (must be odd)</td>
+</tr>
+<tr class="row-odd"><td>&nbsp;</td>
+<td>&#8220;deriv&#8221;</td>
+<td>0</td>
+<td>The number of the derivative to compute
+(0 = just smooth)</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="13%" />
+<col width="87%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>spec</td>
+<td>(numpy array) The spectrum.</td>
+</tr>
+<tr class="row-even"><td>len</td>
+<td>(int) The length of the spectrum.</td>
+</tr>
+<tr class="row-odd"><td>methods</td>
+<td>(list) A list of the available filters.</td>
+</tr>
+<tr class="row-even"><td>[method]_args</td>
+<td>(dict) A dictionary for each method giving its keywords and defaults (e.g. boxcar_args).</td>
+</tr>
+<tr class="row-odd"><td>method</td>
+<td>(str) The method being used.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.filter.Filter1D.Filter1D.boxcar" title="admit.util.filter.Filter1D.Filter1D.boxcar"><code class="xref py py-obj docutils literal"><span class="pre">boxcar</span></code></a>(width)</td>
+<td>Method to apply a boxcar filter to a spectrum.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.filter.Filter1D.Filter1D.buffer" title="admit.util.filter.Filter1D.Filter1D.buffer"><code class="xref py py-obj docutils literal"><span class="pre">buffer</span></code></a>(nchan)</td>
+<td>Method to buffer/pad an array so that filters can work all the way to the edge.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.filter.Filter1D.Filter1D.checkmethod" title="admit.util.filter.Filter1D.Filter1D.checkmethod"><code class="xref py py-obj docutils literal"><span class="pre">checkmethod</span></code></a>(method)</td>
+<td>Method to interpret the input method and determine the full method</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.filter.Filter1D.Filter1D.convertargs" title="admit.util.filter.Filter1D.Filter1D.convertargs"><code class="xref py py-obj docutils literal"><span class="pre">convertargs</span></code></a>(args)</td>
+<td>Method to convert a tuple of arguments into a dictionary of arguments for the specified method.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.filter.Filter1D.Filter1D.gaussian" title="admit.util.filter.Filter1D.Filter1D.gaussian"><code class="xref py py-obj docutils literal"><span class="pre">gaussian</span></code></a>(width)</td>
+<td>Method to apply a Gaussian filter to a spectrum.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.filter.Filter1D.Filter1D.hanning" title="admit.util.filter.Filter1D.Filter1D.hanning"><code class="xref py py-obj docutils literal"><span class="pre">hanning</span></code></a>(width)</td>
+<td>Method to apply a Hanning filter to a spectrum.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.filter.Filter1D.Filter1D.isodd" title="admit.util.filter.Filter1D.Filter1D.isodd"><code class="xref py py-obj docutils literal"><span class="pre">isodd</span></code></a>(value)</td>
+<td>Method to determine if a number is odd</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.filter.Filter1D.Filter1D.run" title="admit.util.filter.Filter1D.Filter1D.run"><code class="xref py py-obj docutils literal"><span class="pre">run</span></code></a>()</td>
+<td>Method to run the selected filter on the data</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.filter.Filter1D.Filter1D.savgol" title="admit.util.filter.Filter1D.Filter1D.savgol"><code class="xref py py-obj docutils literal"><span class="pre">savgol</span></code></a>(window_size,&nbsp;order[,&nbsp;deriv,&nbsp;rate])</td>
+<td>Smooth (and optionally differentiate) data with a Savitzky-Golay filter.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.filter.Filter1D.Filter1D.triangle" title="admit.util.filter.Filter1D.Filter1D.triangle"><code class="xref py py-obj docutils literal"><span class="pre">triangle</span></code></a>(width)</td>
+<td>Method to apply a Triangular filter to a spectrum.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.filter.Filter1D.Filter1D.welch" title="admit.util.filter.Filter1D.Filter1D.welch"><code class="xref py py-obj docutils literal"><span class="pre">welch</span></code></a>(width)</td>
+<td>Method to apply a Welch filter to a spectrum.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="admit.util.filter.Filter1D.Filter1D.boxcar">
+<code class="descname">boxcar</code><span class="sig-paren">(</span><em>width</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/filter/Filter1D.html#Filter1D.boxcar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.filter.Filter1D.Filter1D.boxcar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to apply a boxcar filter to a spectrum. The filter for point
+x[i] is defined as:</p>
+<div class="math">
+\[x[i] = \frac{1}{N} \sum_{n=0}^{N} x[i + n - \frac{N - 1}{2}]\]</div>
+<p>where N is the width of the filter.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>width</strong> : int</p>
+<blockquote>
+<div><p>The width of the box to use in channels, must be odd</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">numpy array</p>
+<blockquote class="last">
+<div><p>The smoothed spectrum, (width - 1)/2 edge channels will be 
+zeroed</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="admit.util.filter.Filter1D.Filter1D.boxcar_args">
+<code class="descname">boxcar_args</code><em class="property"> = OrderedDict([('width', 3)])</em><a class="headerlink" href="#admit.util.filter.Filter1D.Filter1D.boxcar_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="admit.util.filter.Filter1D.Filter1D.buffer">
+<code class="descname">buffer</code><span class="sig-paren">(</span><em>nchan</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/filter/Filter1D.html#Filter1D.buffer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.filter.Filter1D.Filter1D.buffer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to buffer/pad an array so that filters can work all the way
+to the edge. Uses np.pad with mode=&#8217;reflect&#8217;</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>nchan</strong> : int</p>
+<blockquote>
+<div><p>The number of channels to add to each end of the array</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Numpy array containing the buffered input array</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.filter.Filter1D.Filter1D.checkmethod">
+<code class="descname">checkmethod</code><span class="sig-paren">(</span><em>method</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/filter/Filter1D.html#Filter1D.checkmethod"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.filter.Filter1D.Filter1D.checkmethod" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to interpret the input method and determine the full method 
+name</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>method</strong> : str</p>
+<blockquote>
+<div><p>The method to use, minimal matching is possible, with a minimum
+of 3 characters (e.g. &#8220;box&#8221; will be interpreted to be &#8220;boxcar&#8221;)</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="admit.util.filter.Filter1D.Filter1D.convertargs">
+<em class="property">static </em><code class="descname">convertargs</code><span class="sig-paren">(</span><em>args</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/filter/Filter1D.html#Filter1D.convertargs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.filter.Filter1D.Filter1D.convertargs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to convert a tuple of arguments into a dictionary of arguments for the specified
+method. The first item of the tuple must be the method name. The remaining items are the
+arguments to the method in the order the method lists. To see which arguments a method
+takes call getargs(method) or getargs() to list the arguments for all methods.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>args</strong> : tuple</p>
+<blockquote>
+<div><p>Tuple containing the method as the first item and any arguments for that method in
+the order specified by the method.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Dictionary containing the converted arguments.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.filter.Filter1D.Filter1D.gaussian">
+<code class="descname">gaussian</code><span class="sig-paren">(</span><em>width</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/filter/Filter1D.html#Filter1D.gaussian"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.filter.Filter1D.Filter1D.gaussian" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to apply a Gaussian filter to a spectrum. The filter for 
+point x[i] is defined as:</p>
+<div class="math">
+\[x[i] = \sum_{n=0}^{N} x[i + n - \frac{N - 1}{2}] e^{-\frac{1}{2}\left(\frac{n-(N-1)/2}{\sigma(N-1)/2}\right)^2}\]</div>
+<p>where N is the width of the filter.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>width</strong> : int</p>
+<blockquote>
+<div><p>The number of channels to span with the gaussian for each 
+iteration, must be odd</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">numpy array</p>
+<blockquote class="last">
+<div><p>The smoothed spectrum, (width - 1)/2 edge channels will be zeroed</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="admit.util.filter.Filter1D.Filter1D.gaussian_args">
+<code class="descname">gaussian_args</code><em class="property"> = OrderedDict([('width', 7)])</em><a class="headerlink" href="#admit.util.filter.Filter1D.Filter1D.gaussian_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="admit.util.filter.Filter1D.Filter1D.hanning">
+<code class="descname">hanning</code><span class="sig-paren">(</span><em>width</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/filter/Filter1D.html#Filter1D.hanning"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.filter.Filter1D.Filter1D.hanning" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to apply a Hanning filter to a spectrum. The filter for 
+point x[i] is defined as:</p>
+<div class="math">
+\[x[i] = \sum_{n=0}^{N} x[i + n - \frac{N - 1}{2}] 0.5 \left(1 - \cos\left(\frac{2\pi n}{N-1}\right)\right)\]</div>
+<p>where N is the width of the filter.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>width</strong> : int</p>
+<blockquote>
+<div><p>The number of channels to span with the function for each 
+iteration, must be odd</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">numpy array</p>
+<blockquote class="last">
+<div><p>The smoothed spectrum, (width - 1)/2 edge channels will be zeroed</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="admit.util.filter.Filter1D.Filter1D.hanning_args">
+<code class="descname">hanning_args</code><em class="property"> = OrderedDict([('width', 5)])</em><a class="headerlink" href="#admit.util.filter.Filter1D.Filter1D.hanning_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="admit.util.filter.Filter1D.Filter1D.isodd">
+<code class="descname">isodd</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/filter/Filter1D.html#Filter1D.isodd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.filter.Filter1D.Filter1D.isodd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to determine if a number is odd</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>value</strong> : int</p>
+<blockquote>
+<div><p>The number to check</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">bool, True if the number is odd, False if it is even</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="admit.util.filter.Filter1D.Filter1D.methods">
+<code class="descname">methods</code><em class="property"> = ['boxcar', 'gaussian', 'welch', 'hanning', 'triangle', 'savgol']</em><a class="headerlink" href="#admit.util.filter.Filter1D.Filter1D.methods" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="admit.util.filter.Filter1D.Filter1D.run">
+<code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/filter/Filter1D.html#Filter1D.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.filter.Filter1D.Filter1D.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to run the selected filter on the data</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The smoothed spectrum</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.filter.Filter1D.Filter1D.savgol">
+<code class="descname">savgol</code><span class="sig-paren">(</span><em>window_size</em>, <em>order</em>, <em>deriv=0</em>, <em>rate=1</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/filter/Filter1D.html#Filter1D.savgol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.filter.Filter1D.Filter1D.savgol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Smooth (and optionally differentiate) data with a Savitzky-Golay filter.
+The Savitzky-Golay filter removes high frequency noise from data.
+It has the advantage of preserving the original shape and
+features of the signal better than other types of filtering
+approaches, such as moving averages techniques. Adapted from
+<a class="reference external" href="http://wiki.scipy.org/Cookbook/SavitzkyGolay">http://wiki.scipy.org/Cookbook/SavitzkyGolay</a></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>window_size</strong> : int</p>
+<blockquote>
+<div><p>the length of the window. Must be an odd integer number.</p>
+</div></blockquote>
+<p><strong>order</strong> : int</p>
+<blockquote>
+<div><p>the order of the polynomial used in the filtering.
+Must be less then <cite>window_size</cite> - 1.</p>
+</div></blockquote>
+<p><strong>deriv: int</strong></p>
+<blockquote>
+<div><p>the order of the derivative to compute (default = 0 means only 
+smoothing)</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">ndarray</p>
+<blockquote class="last">
+<div><p>the smoothed signal (or it&#8217;s n-th derivative).</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>The Savitzky-Golay is a type of low-pass filter, particularly
+suited for smoothing noisy data. The main idea behind this
+approach is to make for each point a least-square fit with a
+polynomial of high order over a odd-sized window centered at
+the point.</p>
+<p class="rubric">References</p>
+<table class="docutils citation" frame="void" id="r1" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[R1]</a></td><td>A. Savitzky, M. J. E. Golay, Smoothing and Differentiation of
+Data by Simplified Least Squares Procedures. Analytical
+Chemistry, 1964, 36 (8), pp 1627-1639.</td></tr>
+</tbody>
+</table>
+<table class="docutils citation" frame="void" id="r2" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id2">[R2]</a></td><td>Numerical Recipes 3rd Edition: The Art of Scientific Computing
+W.H. Press, S.A. Teukolsky, W.T. Vetterling, B.P. Flannery
+Cambridge University Press ISBN-13: 9780521880688</td></tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="admit.util.filter.Filter1D.Filter1D.savgol_args">
+<code class="descname">savgol_args</code><em class="property"> = OrderedDict([('window_size', 7), ('order', 3), ('deriv', 0), ('rate', 1)])</em><a class="headerlink" href="#admit.util.filter.Filter1D.Filter1D.savgol_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="admit.util.filter.Filter1D.Filter1D.triangle">
+<code class="descname">triangle</code><span class="sig-paren">(</span><em>width</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/filter/Filter1D.html#Filter1D.triangle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.filter.Filter1D.Filter1D.triangle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to apply a Triangular filter to a spectrum. The filter for 
+point x[i] is defined as:</p>
+<div class="math">
+\[x[i] =  \sum_{n=0}^{N} x[i + n - \frac{N - 1}{2}] \left(1 - \left|\frac{n-\frac{N-1}{2}}{\frac{N}{2}}\right|\right)\]</div>
+<p>where N is the width of the filter.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>width</strong> : int</p>
+<blockquote>
+<div><p>The number of channels to span with the function for each 
+iteration, must be odd</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">numpy array</p>
+<blockquote class="last">
+<div><p>The smoothed spectrum, (width - 1)/2 edge channels will be zeroed</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="admit.util.filter.Filter1D.Filter1D.triangle_args">
+<code class="descname">triangle_args</code><em class="property"> = OrderedDict([('width', 5)])</em><a class="headerlink" href="#admit.util.filter.Filter1D.Filter1D.triangle_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="admit.util.filter.Filter1D.Filter1D.welch">
+<code class="descname">welch</code><span class="sig-paren">(</span><em>width</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/filter/Filter1D.html#Filter1D.welch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.filter.Filter1D.Filter1D.welch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to apply a Welch filter to a spectrum. The filter for point x[i]
+is defined as:</p>
+<div class="math">
+\[x[i] = \sum_{n=0}^{N} x[i + n - \frac{N - 1}{2}] \left(1 - \left(\frac{n - \frac{N-1}{2}}{\frac{N-1}{2}}\right)^2\right)\]</div>
+<p>where N is the width of the filter.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>width</strong> : int</p>
+<blockquote>
+<div><p>The number of channels to span with the function for each 
+iteration, must be odd</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">numpy array</p>
+<blockquote class="last">
+<div><p>The smoothed spectrum, (width - 1)/2 edge channels will be zeroed</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="admit.util.filter.Filter1D.Filter1D.welch_args">
+<code class="descname">welch_args</code><em class="property"> = OrderedDict([('width', 5)])</em><a class="headerlink" href="#admit.util.filter.Filter1D.Filter1D.welch_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="admit.util.filter.Filter1D.getargs">
+<code class="descclassname">admit.util.filter.Filter1D.</code><code class="descname">getargs</code><span class="sig-paren">(</span><em>method=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/filter/Filter1D.html#getargs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.filter.Filter1D.getargs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to report the keywords and default values for smoothing algorithms</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>method</strong> : str</p>
+<blockquote>
+<div><p>The name of the method to report the keywords and default values for. If no method is
+given then all methods are reported on.
+Default: None</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="0-index.html"
+                        title="previous chapter">Filter Package</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/module/admit.util.filter/Filter1D.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="0-index.html" title="Filter Package"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" >Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

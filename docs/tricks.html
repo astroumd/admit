@@ -1,0 +1,535 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ADMIT tricks and advanced script usage &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="index.html" />
+    <link rel="prev" title="Usage of python in CASA" href="casapython.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="casapython.html" title="Usage of python in CASA"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">ADMIT 1.0.6 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="admit-tricks-and-advanced-script-usage">
+<h1>ADMIT tricks and advanced script usage<a class="headerlink" href="#admit-tricks-and-advanced-script-usage" title="Permalink to this headline">¶</a></h1>
+<p>In this section we describe some more advanced usages of ADMIT,
+particularly in the use of the Unix command line.</p>
+<div class="section" id="input-fits-files-listfitsa">
+<h2>Input FITS files: listfitsa<a class="headerlink" href="#input-fits-files-listfitsa" title="Permalink to this headline">¶</a></h2>
+<p>The script <strong>listfitsa</strong> helps to quickly summarizing cube size,
+source name, ra/dec/freq and filesize of your FITS files. The script
+will accept the usual wild card style arguments. E.g.:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>$ listfitsa *.fits
+
+concat.spw17.image.fits <span class="o">[</span>118, 118, 4096, 1<span class="o">]</span> Serpens_Main 277.491666667 1.22916666667 244.867618746 0.212
+concat.spw19.image.fits <span class="o">[</span>116, 116, 4096, 1<span class="o">]</span> Serpens_Main 277.491666667 1.22916666667 240.948346249 0.205
+concat.spw21.image.fits <span class="o">[</span>108, 108, 4096, 1<span class="o">]</span> Serpens_Main 277.491666667 1.22916666667 225.785304399 0.178
+concat.spw23.image.fits <span class="o">[</span>110, 110, 4080, 1<span class="o">]</span> Serpens_Main 277.491666667 1.22916666667 229.146014394 0.184
+concat.spw33.image.fits <span class="o">[</span>138, 138, 4096, 1<span class="o">]</span> Serpens_Main 277.491666667 1.22916666667 342.937829665 0.291
+concat.spw35.image.fits <span class="o">[</span>138, 138, 4080, 1<span class="o">]</span> Serpens_Main 277.491666667 1.22916666667 341.196253808 0.289
+concat.spw37.image.fits <span class="o">[</span>144, 144, 4096, 1<span class="o">]</span> Serpens_Main 277.491666667 1.22916666667 354.435171299 0.316
+concat.spw39.image.fits <span class="o">[</span>142, 142, 4096, 1<span class="o">]</span> Serpens_Main 277.491666667 1.22916666667 351.698458419 0.308
+</pre></div>
+</div>
+<p>The optional <strong>-v</strong> option can be used for a verbose listing of the FITS header.</p>
+</div>
+<div class="section" id="output-fits-files-image2fits">
+<h2>Output FITS files: image2fits<a class="headerlink" href="#output-fits-files-image2fits" title="Permalink to this headline">¶</a></h2>
+<p>If you are in an ADMIT developer environment, your unix shell has direct access to a number of
+CASA commands. In particular the</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>$ image2fits <span class="nv">in</span><span class="o">=</span>test0.admit/x.csm <span class="nv">out</span><span class="o">=</span>test0.mom0.fits
+</pre></div>
+</div>
+<p>(make sure you have a proper 4-element $CASAPATH, otherwise this command will fail).</p>
+<p>An alternative is the ADMIT script <strong>casa2fits</strong>, which handles multiple casa images and appends the fits extension:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>$ casa2fits test1.im test2.im test3.im
+-&gt; test1.im.fits test2.im.fits test3.im.fits
+</pre></div>
+</div>
+</div>
+<div class="section" id="running-admit-recipes">
+<h2>Running ADMIT recipes<a class="headerlink" href="#running-admit-recipes" title="Permalink to this headline">¶</a></h2>
+<p>We already discussed ADMIT recipes earlier, but list them here for completeness. You run them
+in the shell as follows:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>$ admit_recipe Line_Moment test0.fits
+</pre></div>
+</div>
+<p>and just typing the command <strong>admit_recipe</strong> will list the currently available
+recipes.</p>
+</div>
+<div class="section" id="export-admit-projects">
+<h2>Export ADMIT projects<a class="headerlink" href="#export-admit-projects" title="Permalink to this headline">¶</a></h2>
+<p>If you want to share a project with a collaborator, or have a developer look at certain types
+of problems, you can turn your ADMIT project into a tar file. The script <strong>admit_export</strong> makes
+this a little easier, and also have an option to make a more lightweight version of the project
+if your recipient does not need the actual cubes. This is actually the default of the script,</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>$ admit_export test0.admit
+Writing brief test0.admit.tar.gz
+
+$ admit_export -a test0.admit -b test00.admit
+Writing all in test0.admit.tar.gz
+Writing brief test00.admit.tar.gz
+</pre></div>
+</div>
+<p>You can export as many projects as you want, and whenever the <strong>-a</strong> or <strong>-b</strong> arguments are mentioned,
+subsequent projects are in their respective modes.</p>
+</div>
+<div class="section" id="native-file-browser">
+<h2>Native File Browser<a class="headerlink" href="#native-file-browser" title="Permalink to this headline">¶</a></h2>
+<p>The <strong>aopen</strong> script is an alternative to the web based review (and
+re-run) of an ADMIT project. It will use whatever your native OS has
+available to resolve how to <em>display</em> a file given the file extension
+of magic marker. It will accept a directory name, with no arguments
+it will open the current directory.</p>
+</div>
+<div class="section" id="line-fitting">
+<h2>Line Fitting<a class="headerlink" href="#line-fitting" title="Permalink to this headline">¶</a></h2>
+<p>In each ADMIT directory where LineID has run you can currently find ascii tables that represent
+the different spectra that feed into LineID, albeit via their respective BDP&#8217;s.</p>
+<ol class="arabic simple">
+<li>testCubeSpectrum.tab (make sure multiple points come out right now)</li>
+<li>testCubeStats.tab</li>
+<li>testPVCorr.tab</li>
+</ol>
+<p>The tables have two columns, the observed frequency and the &#8220;<em>spectrum</em>&#8221;. Technically we
+call each of them a spectrum, as they represent some response where we expect a
+signal where the transition is. See <strong>admit4.py</strong> below. Of course, within ADMIT these tables
+are really properly stored within a BDP (an XML file). For example, the <em>testCubeSpectrum.tab</em>
+file is probably in a file x.csp.bdp</p>
+</div>
+<div class="section" id="doppler-recession">
+<h2>Doppler Recession<a class="headerlink" href="#doppler-recession" title="Permalink to this headline">¶</a></h2>
+<p>Optical, Radio and Relativistic conventions exist.  CASA has conversion routines,
+so does astropy, and we have a version in admit.util. Would be good to reference
+that here. Add some reminder math as well?</p>
+</div>
+<div class="section" id="apar-files">
+<h2>apar files<a class="headerlink" href="#apar-files" title="Permalink to this headline">¶</a></h2>
+<p>Some of the ADMIT scripts can use an <em>apar</em> file to help you set script parameters.
+These are ascii files, actually meant to be
+executable python code (the first line should contain a magic ** -<em>- python -</em>- ** marker
+for emacs zealots)</p>
+<p>Scripts will typically support looking at certain default names, in the following order:</p>
+<ol class="arabic simple">
+<li><em>&lt;scriptname&gt;.apar</em> for global parameters (for example admit1.apar)</li>
+<li><em>&lt;fitsname&gt;.apar</em>  for specific files (for example test0.fits.apar)</li>
+<li><em>&lt;aparname&gt;.apar</em>  for personal use (for example test123.apar, if your script supported
+the <em>&#8211;apar test123.apar</em> command line option; admit1.py does).</li>
+</ol>
+<p>An example to use executable code is in <em>$ADMIT/etc/data/test253_spw3.fits.apar</em></p>
+</div>
+<div class="section" id="runa1-and-admit1-py">
+<span id="runa1-script"></span><h2>runa1 and admit1.py<a class="headerlink" href="#runa1-and-admit1-py" title="Permalink to this headline">¶</a></h2>
+<p>The <strong>runa1</strong> script is a very simple front-end to the more complex <strong>admit1.py</strong> script,
+which is the current (and still evolving) model how to run ADMIT on the pipeline. It contains
+some decision making which depends on running an admit project at critical times.</p>
+<p>You would only pass the name of a fits file to the script, and the script tries to figure out what
+type of ALMA (or non-ALMA) fits file you have and call <strong>admit1.py</strong> appropriately.  The flow of the
+script can be controlled by a number of admit parameters (<em>apar</em>, see below),
+that match certain AT keywords.
+You can store these in an <em>apar</em> file, but it has to be python executable code.</p>
+<p>If you want to use  <strong>runa1</strong>, here&#8217;s a sample workflow and strategy:</p>
+<ol class="arabic">
+<li><p class="first">Run the script &#8220;listfitsa&#8221; on the fits file to get the object name for vlsr</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>$ listfitsa uid___A001_X12b_X231.NGC_1068_sci.spw17.cube.I.pbcor.fits
+-&gt; [1000, 1000, 3839, 1] NGC_1068 40.6696170833 -0.0133133333333 14.301
+</pre></div>
+</div>
+<p>This is a 1000 x 1000 x 3839 cube, source name is NGC_1068,
+RA,DEC are 40.6696170833 -0.0133133333333 and the datasize is 14.3 GB</p>
+<p>If that does not resolve the source name, use &#8220;listfitsa -v&#8221; and debug the full header
+to find the sourcename (e.g. OBJECT vs. FIELD issue?   use of quotes?)</p>
+</li>
+<li><p class="first">Enter the appropriate VLSR into ADMIT; there are several ways to do this:</p>
+<ol class="arabic simple">
+<li>enter it into <strong>$ADMIT/etc/vlsr.tab</strong>, but this requires you to be able to write there
+and there is the issue what happens if ADMIT gets updated</li>
+<li>enter it into a private apar file:<ol class="arabic">
+<li>admit1.apar , which is used for all fits files in the working directory
+if you use admit1  (other recipes should support this as well)n</li>
+<li>test0.fits.apar, which would only be used for that fits file</li>
+</ol>
+</li>
+</ol>
+<p>You can use NED or SIMBAD, but be sure to get the VLSRK, since that&#8217;s the official
+ALMA frame of reference</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>http://ned.ipac.caltech.edu/
+http://simbad.u-strasbg.fr/simbad/
+</pre></div>
+</div>
+<p>and stuff this into <em>admit1.apar</em> so each fits file will.
+We have this code in VLSR.py, could add a python commandline interface</p>
+<p>If the ALMA source name has spaces, you must use quotes. Otherwise not needed.</p>
+</li>
+<li><p class="first">PB correction is currently very slow in ADMIT (CASA) for large cubes.
+Especially if your imaging area has a large portion outside of the 50%
+you could use a straight ADMIT on the pbcor file, since the inner portion
+is not affected.
+To confirm you can do this, run <em>admit1.py</em> with maxlines=0 in admit1.apar
+and inspect the cubesum (CSM) map how much smaller you can make your map.
+e.g.</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>$ runa1 uid___A001_X12b_X231.NGC_1068_sci.spw17.cube.I.pbcor.fits
+</pre></div>
+</div>
+<p>Assuming all your spw&#8217;s have the same imaging area, add these into admit1.apar
+via the inbox= (and optionally inedge=) keywords for admit1.py:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">inbox</span>  <span class="o">=</span> <span class="p">[</span><span class="n">xmin</span><span class="p">,</span><span class="n">ymin</span><span class="p">,</span><span class="n">xmax</span><span class="p">,</span><span class="n">ymax</span><span class="p">]</span>
+<span class="n">inedge</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>and use the full fits name:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>runa1 uid___A001_X12b_X231.NGC_1068_sci.spw17.cube.I.pbcor.fits
+</pre></div>
+</div>
+<p>If you must go the slow way, the <em>runa1</em> script needs the shorter name
+to deal with the <strong>pbcor.fits</strong> and <strong>pb.fits</strong> file, as follows:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>runa1 uid___A001_X12b_X231.NGC_1068_sci.spw17.cube.I
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Example: just Ingest_AT takes 53 mins on this 14GB cube, but in just</dt>
+<dd><p class="first last"><strong>pbcor.fits</strong> mode it was barely 4 mins.</p>
+</dd>
+</dl>
+<div class="highlight-none"><div class="highlight"><pre><span></span>full:   real/user/sys     100m25.976s / 60m50.785s / 22m35.384s   DIED IN LINEID
+pbcor:  real/user/sys      27m9.151s  / 17m50.085s /  4m10.644s   OK
+
+            pbcor(&quot;)     full(&quot;)
+ingest        223        3205
+cubestats     552         602
+cubesum        47          47
+pvslice       479         574
+lineid         19           -
+linecube       90           -
+</pre></div>
+</div>
+</li>
+<li><p class="first">If you have a large (&gt;1?) set of fits cubes with the ALMA naming and directory
+(project/SOUS/MOUS/GOUS/products) convention, there&#8217;s a script <em>do_aap</em> in
+ADMIT that can help you processing all data in a clean directory.
+Alternatively you can run admit (e.g. <em>runa1</em>) inside of each of the
+(project/SOUS/MOUS/GOUS/products) directories.</p>
+<p>Essentially, the <em>do_aap</em> script creates symlinks into those trees but processes
+in local admit directories, outside of the ALMA tree structure.
+See documentation in script, and more examples to come here.</p>
+<p>A version of <em>do_aap</em> exists that works from <strong>working/</strong> instead of <strong>product/</strong>, and looks
+for the &#8220;*.cont.residual&#8221; files, which are the continuum subtracted cubes.</p>
+</li>
+</ol>
+<div class="section" id="admit1-apar-parameters">
+<h3>admit1 apar parameters<a class="headerlink" href="#admit1-apar-parameters" title="Permalink to this headline">¶</a></h3>
+<p>The ADMIT apar parameters can be placed in up to three files, processed in the following order</p>
+<ol class="arabic simple">
+<li><em>admit1.apar</em> : if present, this apar file will be first parsed</li>
+<li><em>fitsfilename.apar</em> : if present, this apar file will be parsed next</li>
+<li><em>aparname.apar</em> : if present as argument to the <strong>&#8211;apar</strong> command line argument to <strong>admit1.py</strong>,
+this will be read last.</li>
+</ol>
+<p>They normally contain python variables, used by <strong>admit1</strong>, but can also contain python code, if you
+parameters need a minor computation.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">useMask</span>  <span class="o">=</span> <span class="bp">False</span>       <span class="c1"># Ingest_AT(mask=)</span>
+</pre></div>
+</div>
+<p>This uses a mask where fits data == 0.0. Normally not needed, as ALMA fits
+cubes are properly masked where needed.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">vlsr</span>     <span class="o">=</span> <span class="bp">None</span>        <span class="c1"># Ingest_AT(vlsr=) and LineID_AT(vlsr=)</span>
+</pre></div>
+</div>
+<p>Somewhat peculiar. Normally is a float, so you would use <strong>vlsr=236.0</strong>, but by
+setting it to the <strong>None</strong> python value, we tell the AT to try it figure it out
+from the RESTFREQ, if present. If no value found, 0.0 will be used and most likely
+LineID will not do a great job. Look at the output for Ingest_AT, where it lists
+the <em>VLSRc</em> value.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">maxpos</span>   <span class="o">=</span> <span class="p">[]</span>          <span class="c1"># CubeSpectrum_AT(pos=)</span>
+</pre></div>
+</div>
+<p>Paired positions, e.g. <em>maxpos=[10,10,64,64,128,128]</em>,  for the probes for a spectrum
+through the cube with CubeSpectrum_AT that will also normally serve as input for LineID_AT.
+You can also use CASA&#8217;s RA-DEC position: <em>maxpos=[&#8216;00h47m33.041s&#8217;,&#8217;-25d17m26.61s&#8217;]</em></p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">robust</span>   <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;hin&#39;</span><span class="p">,</span><span class="mf">1.5</span><span class="p">]</span>  <span class="c1"># CubeStats_AT(robust=)</span>
+</pre></div>
+</div>
+<p>Robust noise, as an alternative to the default MAD scheme.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">contsub</span>  <span class="o">=</span> <span class="p">[</span><span class="bp">None</span><span class="p">]</span>           <span class="c1"># ContinuumSub_AT(contsub=)</span>
+</pre></div>
+</div>
+<p>By default no continuum is subtracted. You can set this to either a blank list (<em>[]</em>), in
+which case the LineSegment_AT() will be used to block out potential lines and determine
+the continuum, or a specific number of tuples can be given where the continuum should be
+fitted, for example <em>[(0,99), (900,999)]</em></p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">insmooth</span> <span class="o">=</span> <span class="p">[]</span>               <span class="c1"># smooth inside of Ingest_AT, in pixels</span>
+<span class="n">inbox</span>    <span class="o">=</span> <span class="p">[]</span>               <span class="c1"># box to cut in Ingest_AT  [x0,y0,x1,y1] or [x0,y0,z0,x1,y1,z1]</span>
+<span class="n">inedge</span>   <span class="o">=</span> <span class="p">[]</span>               <span class="c1"># edges to cut in Ingest_AT [zleft,zright]</span>
+                            <span class="c1"># [0] and [1] are spatial</span>
+                            <span class="c1"># [2] is frequency:    1=&gt;Hanning  &gt;1 Boxcar</span>
+<span class="n">smooth</span>   <span class="o">=</span> <span class="p">[]</span>               <span class="c1"># if set, smooth the cube right after ingest (list of 2 or 3 can be given)</span>
+<span class="n">usePeak</span>  <span class="o">=</span> <span class="bp">True</span>             <span class="c1"># LineCubeSpectra through peak of a Moment0 map? (else pos[] or SpwCube Peak)</span>
+<span class="n">useCSM</span>   <span class="o">=</span> <span class="bp">False</span>            <span class="c1"># if usePeak, should CubeSum (CSM) be used (instead of mom0 from LineCube)</span>
+<span class="n">pvslice</span>  <span class="o">=</span> <span class="p">[]</span>               <span class="c1"># PV Slice (x0,y0,x1,y1)</span>
+<span class="n">pvslit</span>   <span class="o">=</span> <span class="p">[]</span>               <span class="c1"># PV Slice (xc,yc,len,pa)  if none given, it will try and find out</span>
+<span class="n">pvwidth</span>  <span class="o">=</span> <span class="mi">5</span>                <span class="c1"># width of a slit in PV (&gt;1 will decrease the noise in PV)</span>
+<span class="n">usePV</span>    <span class="o">=</span> <span class="bp">True</span>             <span class="c1"># make a PVSlice?</span>
+<span class="n">usePPP</span>   <span class="o">=</span> <span class="bp">True</span>             <span class="c1"># create and use PeakPointPlot?</span>
+<span class="n">useMOM</span>   <span class="o">=</span> <span class="bp">True</span>             <span class="c1"># if no lines are found, do a MOM0,1,2 anyways ?</span>
+<span class="n">minOI</span>    <span class="o">=</span> <span class="mi">0</span>                <span class="c1"># If at least minOI linecubes present, use them in an OverlapIntegral; 0 turns off OI</span>
+<span class="n">pvSmooth</span> <span class="o">=</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">]</span>          <span class="c1"># smooth the PVslice ?   Pos or Pos,Vel pixel numbers</span>
+<span class="n">maxlines</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>               <span class="c1"># limit the # linecubes? (set to 0 if you want to exit after LineID_AT)</span>
+<span class="n">linebdp</span>  <span class="o">=</span> <span class="p">[</span><span class="bp">True</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">]</span>    <span class="c1">#  use of [CSP,CST,PVC] for LineID?</span>
+<span class="n">contbdp</span>  <span class="o">=</span> <span class="p">[</span><span class="bp">True</span><span class="p">,</span> <span class="bp">True</span><span class="p">]</span>           <span class="c1">#  use of [CSP,CST] for LineSegment</span>
+<span class="n">cspbdp</span>   <span class="o">=</span> <span class="p">[</span><span class="bp">True</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">True</span><span class="p">]</span>     <span class="c1">#  use of [CST,CSM, SL] for initial CubeSpectrum</span>
+<span class="n">lineUID</span>  <span class="o">=</span> <span class="bp">False</span>                  <span class="c1"># if True, this would run LineID(identifylines=False) [old relic]</span>
+<span class="n">lineSEG</span>  <span class="o">=</span> <span class="bp">True</span>                   <span class="c1"># if True, it also runs LineSegment (aiding in automated ContinuumSub)</span>
+<span class="n">linepar</span>  <span class="o">=</span> <span class="p">()</span>                     <span class="c1"># if set, (numsigma,minchan,maxgap); both LineSegment and LineID</span>
+<span class="n">iterate</span>  <span class="o">=</span> <span class="bp">True</span>                   <span class="c1"># iterate to find narrower higher S/N peaks</span>
+<span class="n">online</span>   <span class="o">=</span> <span class="bp">False</span>                  <span class="c1"># use splatalogue online?</span>
+<span class="n">reflist</span>  <span class="o">=</span> <span class="s1">&#39;etc/co_lines.list&#39;</span>    <span class="c1"># pick one from $ADMIT/etc</span>
+<span class="n">llsmooth</span> <span class="o">=</span> <span class="p">[]</span>                     <span class="c1"># if set, apply this smoothing to the inputs for LineSegment and LineId</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="admit1-py">
+<h2>admit1.py<a class="headerlink" href="#admit1-py" title="Permalink to this headline">¶</a></h2>
+<p>Here is a different descriptive explanation about how guide you through
+the darkness of running admit1,
+with comments for future expansion of this script.  Again,the parameters
+listed are the APAR parameters, which are close to (but not necessarely
+identical to) the AT keywords.</p>
+<p>A FITS cube (<strong>file=</strong>) is selected for ingestion into the ADMIT
+flow. This needs to be a noise flat data cube.  If you get a primary
+beam corrected cube (where the noise increases near the edges of the
+field), it will need to be multiplied by the primary beam, in order to
+get noise flat images.  This is a current limitation of ADMIT, it
+works best if the image has more-or-less constant RMS accross the
+field, although we do allow it to very per channel.  The <strong>pb=</strong>
+keyword is meant to pass a primary beam into the flow, you can leave
+it blank if you don&#8217;t need it.</p>
+<p>An optional continuum map (<strong>cont=</strong>) can be added to the flow. This
+will be used to find one or more continuum sources, which can then be used
+as probes for a spectrum, but more on that below.</p>
+<p>At the ingest stage, there are a few procedures worth mentioning:</p>
+<ol class="arabic simple">
+<li>A subregion can be given using <strong>inbox=</strong>. This can be very useful if you
+are certain the source is limited spatially and/or spectrally. This can
+save a huge amount of processing.</li>
+<li>If no box was given, you can also specify taking out a number of edge
+channels using <strong>inedge=</strong>.</li>
+<li>Smoothing can be applied to the cube using <strong>insmooth=</strong>. Although there
+is a separate <strong>Smooth_AT</strong> available to do this as a separate step in the
+flow, this will take up extra disk space.  <em>need to confirm if flux is
+conserved in this step</em></li>
+</ol>
+<p>The cube can now be smoothed, potentially to help in the line detection.
+Once the line detection has succeeded, you can opt to continue with
+the original higher resolution cube. You trigger a smoothing operation
+with <strong>smooth=</strong>.</p>
+<p>Although  <strong>Ingest_AT</strong> will report some global stastics of the cube
+(a min,max,RMS), these are not what we call robust statistics (an attempt
+to ignore the signal and compute the statistics on the remainder).</p>
+<p>Thus the first step after the data has been ingested (and smoothed) is a
+thorough analysis of the statistics. This is currently done on a plane
+by plane basis, since they can differ. Different methods to reject the
+signal and attempt to get a robust statistics is available wiht the
+<strong>robust=</strong> keyword.</p>
+<p>If the RMS(channel) plot shows suspicious <em>&#8220;lines&#8221;</em> where lines are also
+present, this could be the result of:</p>
+<ol class="arabic simple">
+<li>Missing short spacings where there is source structure in a line. You
+would also expect to see the <em>minval</em> to show that line structure</li>
+<li>Extended emission where even the robust noise detection failed. You can try
+different methods or <strong>robust=</strong>, in particular the half-fit should be less
+sensitive.</li>
+<li>Continuum emission had not been (properly) subtracted.</li>
+</ol>
+<p>More on <strong>CubeSum</strong>, <strong>CubeSpectrum</strong> now. Then go into <strong>LineSegment_AT</strong></p>
+<p>After the continuum has been subtracted based on the LineSegment&#8217;s, a good strategy
+to check on its correctness would be to take the new continuum free cube, and extract
+a new CubeSum of the line based on the segments, as well as a sum of all the
+emission that was not deemed part of the lines (<strong>x-test_line.csm</strong>),
+to check if no remaining
+line or continuum emission was left. It should be a pure noise map,
+and we need a cubestats and histogram for this. Should find the noise
+to be <em>sigma/sqrt(nchan)</em>. This map is <strong>x-test_cont.csm</strong>.</p>
+<p>We now have new CST and CSP and perhaps a PVC. They can be fed into
+<strong>LineID_AT</strong> for line identification.</p>
+</div>
+<div class="section" id="runa2-and-admit2-py">
+<h2>runa2 and admit2.py<a class="headerlink" href="#runa2-and-admit2-py" title="Permalink to this headline">¶</a></h2>
+<p>This is a special version of <em>admit1</em> for just continuum maps. The flow will only
+call CubeStats_AT and SFind2D_AT and present a list of found sources and fluxes.
+The <strong>&#8211;cont</strong> option in <em>admit1</em> can be used to pass a continuum map and use
+the brightest continuum source position as probe for CubeSpectrum_AT in that flow.</p>
+</div>
+<div class="section" id="runa4-and-admit4-py">
+<h2>runa4 and admit4.py<a class="headerlink" href="#runa4-and-admit4-py" title="Permalink to this headline">¶</a></h2>
+<p>The <strong>runa4</strong> script is a simple front-end for <strong>admit4.py</strong>, which allows you to take an ASCII spectrum
+(frequency in column 1, in GHz, spectrum value in column 2, arbitrary units).  For example,
+from the Unix command line</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>$ runa4 test0.admit/testCubeSpectrum.tab
+</pre></div>
+</div>
+<p>would import this table into a CubeSpectrum_BDP and rerun the LineSegment_AT and LineId_AT tasks and allow you
+to experiment with LineID_AT. Parameters can be placed in <em>admit4.apar</em> or
+<em>testCubeSpectrum.tab.apar</em> in this specific case.</p>
+<div class="section" id="admit4-apar-parameters">
+<h3>admit4 apar parameters<a class="headerlink" href="#admit4-apar-parameters" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">vlsr</span>     <span class="o">=</span> <span class="mf">0.0</span>              <span class="c1"># LineID_AT(vlsr=)</span>
+</pre></div>
+</div>
+<p>Set the VLSR (remember to use the VLSK frame of reference for ALMA data) for LineID</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">loglevel</span> <span class="o">=</span> <span class="mi">10</span>               <span class="c1"># 10=DEBUG, 15=TIMING 20=INFO 30=WARNING 40=ERROR 50=FATAL</span>
+</pre></div>
+</div>
+<p>The default ADMIT loglevel is 20, and some verbose feedback from the work done in LineSegment
+and LineID needs loglevel=10.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">lineUID</span>  <span class="o">=</span> <span class="bp">False</span>            <span class="c1"># LineID_AT(identifylines=True)</span>
+</pre></div>
+</div>
+<p>This would limit the LineID run to only identifying line segments, and it&#8217;s output should be
+identical to LineSegment. By default lines will be identified.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">linepar</span>  <span class="o">=</span> <span class="p">()</span>               <span class="c1"># LineID_AT(numsigma=,minchan=,maxgap=) and LineSegment_AT(...)</span>
+</pre></div>
+</div>
+<p>A convenience</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">llsmooth</span> <span class="o">=</span> <span class="p">[]</span>               <span class="c1"># LineID_AT(smooth=) and LineSegment_AT(...)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">iterate</span>  <span class="o">=</span> <span class="bp">True</span>             <span class="c1"># LineID_AT(iterate=)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">csub</span>     <span class="o">=</span> <span class="bp">None</span>             <span class="c1"># LineID_AT(csub=) and LineSegment_AT(...)</span>
+</pre></div>
+</div>
+<p>Since only one spectrum is read, only the CubeSpectrum csub parameter (normally a list) has to be set
+as an integer here.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">online</span>   <span class="o">=</span> <span class="bp">False</span>            <span class="c1"># LineID_AT(online=)</span>
+</pre></div>
+</div>
+<p>By default the CASA internal slsearch() is used to query a smaller version of Splatalogue, but
+with online=True the web interface can be used, at the cost of some latency.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">reflist</span>  <span class="o">=</span> <span class="s1">&#39;etc/co_lines.list&#39;</span>    <span class="c1"># LineID(references=)</span>
+</pre></div>
+</div>
+<p>Pick a references list, a table of names/frequencies (in GHz), to be overplotted on the LineID plots
+for comparison. Some example references list files are in <em>$ADMIT/etc/*_lines.list</em>)</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">ADMIT tricks and advanced script usage</a><ul>
+<li><a class="reference internal" href="#input-fits-files-listfitsa">Input FITS files: listfitsa</a></li>
+<li><a class="reference internal" href="#output-fits-files-image2fits">Output FITS files: image2fits</a></li>
+<li><a class="reference internal" href="#running-admit-recipes">Running ADMIT recipes</a></li>
+<li><a class="reference internal" href="#export-admit-projects">Export ADMIT projects</a></li>
+<li><a class="reference internal" href="#native-file-browser">Native File Browser</a></li>
+<li><a class="reference internal" href="#line-fitting">Line Fitting</a></li>
+<li><a class="reference internal" href="#doppler-recession">Doppler Recession</a></li>
+<li><a class="reference internal" href="#apar-files">apar files</a></li>
+<li><a class="reference internal" href="#runa1-and-admit1-py">runa1 and admit1.py</a><ul>
+<li><a class="reference internal" href="#admit1-apar-parameters">admit1 apar parameters</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#admit1-py">admit1.py</a></li>
+<li><a class="reference internal" href="#runa2-and-admit2-py">runa2 and admit2.py</a></li>
+<li><a class="reference internal" href="#runa4-and-admit4-py">runa4 and admit4.py</a><ul>
+<li><a class="reference internal" href="#admit4-apar-parameters">admit4 apar parameters</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="casapython.html"
+                        title="previous chapter">Usage of python in CASA</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/tricks.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="casapython.html" title="Usage of python in CASA"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">ADMIT 1.0.6 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

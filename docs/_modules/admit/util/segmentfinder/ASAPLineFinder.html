@@ -1,0 +1,467 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.util.segmentfinder.ASAPLineFinder &mdash; ADMIT 0.7.2 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '0.7.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="ADMIT 0.7.2 documentation" href="../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">ADMIT 0.7.2 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.util.segmentfinder.ASAPLineFinder</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; .. _asapsegment:</span>
+
+<span class="sd">    ASAP Segment Finder</span>
+<span class="sd">    -------------------</span>
+
+<span class="sd">    This module defines the class for spectral line segment detection.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1">#*******************************************************************************</span>
+<span class="c1"># ALMA - Atacama Large Millimeter Array</span>
+<span class="c1"># Copyright (c) ATC - Astronomy Technology Center - Royal Observatory Edinburgh, 2011</span>
+<span class="c1"># (in the framework of the ALMA collaboration).</span>
+<span class="c1"># All rights reserved.</span>
+<span class="c1">#</span>
+<span class="c1"># This library is free software; you can redistribute it and/or</span>
+<span class="c1"># modify it under the terms of the GNU Lesser General Public</span>
+<span class="c1"># License as published by the Free Software Foundation; either</span>
+<span class="c1"># version 2.1 of the License, or (at your option) any later version.</span>
+<span class="c1">#</span>
+<span class="c1"># This library is distributed in the hope that it will be useful, </span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU</span>
+<span class="c1"># Lesser General Public License for more details.</span>
+<span class="c1">#</span>
+<span class="c1"># You should have received a copy of the GNU Lesser General Public</span>
+<span class="c1"># License along with this library; if not, write to the Free Software</span>
+<span class="c1"># Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA</span>
+<span class="c1">#*******************************************************************************</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">numpy.ma</span> <span class="kn">as</span> <span class="nn">ma</span>
+
+<span class="c1"># Fake linefinder for Sphinx.</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">asap</span>
+    <span class="kn">from</span> <span class="nn">taskinit</span> <span class="kn">import</span> <span class="n">tb</span>
+    <span class="kn">from</span> <span class="nn">asap.asaplinefind</span> <span class="kn">import</span> <span class="n">linefinder</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s2">&quot;WARNING: No ASAP; ASAPLineFinder cannot function.&quot;</span>
+<div class="viewcode-block" id="linefinder"><a class="viewcode-back" href="../../../../module/admit.util.segmentfinder/ASAPLineFinder.html#admit.util.segmentfinder.ASAPLineFinder.linefinder">[docs]</a>    <span class="k">class</span> <span class="nc">linefinder</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">pass</span></div>
+<div class="viewcode-block" id="tb"><a class="viewcode-back" href="../../../../module/admit.util.segmentfinder/ASAPLineFinder.html#admit.util.segmentfinder.ASAPLineFinder.tb">[docs]</a>    <span class="k">class</span> <span class="nc">tb</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">pass</span>
+<div class="viewcode-block" id="tb.create"><a class="viewcode-back" href="../../../../module/admit.util.segmentfinder/ASAPLineFinder.html#admit.util.segmentfinder.ASAPLineFinder.tb.create">[docs]</a>        <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">return</span></div></div>
+
+
+<div class="viewcode-block" id="ASAPLineFinder"><a class="viewcode-back" href="../../../../module/admit.util.segmentfinder/ASAPLineFinder.html#admit.util.segmentfinder.ASAPLineFinder.ASAPLineFinder">[docs]</a><span class="k">class</span> <span class="nc">ASAPLineFinder</span><span class="p">(</span><span class="n">linefinder</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; The AdmitLineFinder class inherits from the asap linefinder class.</span>
+<span class="sd">        It takes a spectrum (list, CubeSpectrum_BDP, or CubeStats_BDP) and turns</span>
+<span class="sd">        it into a scantable. The scantable is then search for spectral lines, </span>
+<span class="sd">        with the given parameters.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        name : string</span>
+<span class="sd">            Name of the temporary scantable file.</span>
+<span class="sd">            Default: &quot;&quot;</span>
+
+<span class="sd">        spec : various</span>
+<span class="sd">            Input spectrum, can be a list, CubeSpectrum_BDP, or CubeStats_BDP.</span>
+<span class="sd">            Default: None</span>
+
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        nchan : int</span>
+<span class="sd">            Number of spectral channels</span>
+
+<span class="sd">        name : string</span>
+<span class="sd">            Name of the temporary scantable</span>
+
+<span class="sd">        spectrum : list</span>
+<span class="sd">            Spectrum to be analyzed</span>
+
+<span class="sd">        lines_merged : list</span>
+<span class="sd">            Merged list of overlapping lines.</span>
+
+<span class="sd">        tb : casa table</span>
+<span class="sd">            Casa table that is converted to a scantable.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">keyval</span><span class="p">):</span>
+        <span class="n">linefinder</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;hlinefinder.tmp.asap&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spec</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vals</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;threshold&quot;</span><span class="p">,</span> <span class="s2">&quot;min_nchan&quot;</span><span class="p">,</span> <span class="s2">&quot;avg_limit&quot;</span><span class="p">,</span> <span class="s2">&quot;box_size&quot;</span><span class="p">,</span> <span class="s2">&quot;noise_box&quot;</span><span class="p">,</span>
+                     <span class="s2">&quot;noise_stat&quot;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;spec&quot;</span><span class="p">]:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">keyval</span><span class="p">[</span><span class="n">v</span><span class="p">])</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nchan</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nchan</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scantab</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spectrum</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">freq</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lines_merged</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tb</span> <span class="o">=</span> <span class="n">tb</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tb</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
+
+        <span class="c1"># create dummy scantable</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_spectrum</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_options</span><span class="p">(</span><span class="n">keyval</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Destructor</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">tb</span>
+
+<div class="viewcode-block" id="ASAPLineFinder.init"><a class="viewcode-back" href="../../../../module/admit.util.segmentfinder/ASAPLineFinder.html#admit.util.segmentfinder.ASAPLineFinder.ASAPLineFinder.init">[docs]</a>    <span class="k">def</span> <span class="nf">init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Create dummy scantable to work with linefinder.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Notes</span>
+<span class="sd">            -----</span>
+<span class="sd">            Should not be directly called.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># remove old table if it exists</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">rm -rf </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+        <span class="c1"># set ip a scantable</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">asap</span><span class="o">.</span><span class="n">_asap</span><span class="o">.</span><span class="n">Scantable</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">_save</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">del</span> <span class="n">s</span>
+        <span class="c1"># set up a casa table</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tb</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">nomodify</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tb</span><span class="o">.</span><span class="n">addrows</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nchan</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tb</span><span class="o">.</span><span class="n">putcell</span><span class="p">(</span><span class="s1">&#39;SPECTRA&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nchan</span><span class="p">,</span> <span class="nb">float</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tb</span><span class="o">.</span><span class="n">putcell</span><span class="p">(</span><span class="s1">&#39;FLAGTRA&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nchan</span><span class="p">,</span> <span class="nb">int</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tb</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="c1"># make sure dummy scantable is loaded on memory</span>
+        <span class="n">storageorg</span> <span class="o">=</span> <span class="n">asap</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;scantable.storage&#39;</span><span class="p">]</span>
+        <span class="n">asap</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;scantable.storage&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;memory&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scantab</span> <span class="o">=</span> <span class="n">asap</span><span class="o">.</span><span class="n">scantable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">rm -rf </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+        <span class="n">asap</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;scantable.storage&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">storageorg</span></div>
+
+<div class="viewcode-block" id="ASAPLineFinder.set_spectrum"><a class="viewcode-back" href="../../../../module/admit.util.segmentfinder/ASAPLineFinder.html#admit.util.segmentfinder.ASAPLineFinder.ASAPLineFinder.set_spectrum">[docs]</a>    <span class="k">def</span> <span class="nf">set_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Set the spectrum you want to search for lines. If the input spectrum</span>
+<span class="sd">            was passed to the constructor there is no need to call this routine.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">spectrum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mask</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="c1">#elif inspect.isclass(spec) and issubclass(spec, BDPB):</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">spectrum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mask</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">,</span> <span class="n">ma</span><span class="o">.</span><span class="n">array</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">spectrum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">mask</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># initialize some things</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nchan</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1">#print &#39;call init() again&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nchan</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spectrum</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">scantab</span><span class="o">.</span><span class="n">_setspectrum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spectrum</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">nchan</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spectrum</span><span class="p">):</span>
+            <span class="c1">#print &#39;nchan differ, call init() again&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nchan</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spectrum</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">scantab</span><span class="o">.</span><span class="n">_setspectrum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spectrum</span><span class="p">)</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">finder</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">finder</span> <span class="o">=</span> <span class="n">asap</span><span class="o">.</span><span class="n">_asap</span><span class="o">.</span><span class="n">linefinder</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_options</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1">#print &#39;set spectrum&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">scantab</span><span class="o">.</span><span class="n">_setspectrum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spectrum</span><span class="p">)</span>
+        <span class="c1"># set the scantable</span>
+        <span class="n">linefinder</span><span class="o">.</span><span class="n">set_scan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">scantab</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ASAPLineFinder.merge_lines"><a class="viewcode-back" href="../../../../module/admit.util.segmentfinder/ASAPLineFinder.html#admit.util.segmentfinder.ASAPLineFinder.ASAPLineFinder.merge_lines">[docs]</a>    <span class="k">def</span> <span class="nf">merge_lines</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lines</span><span class="p">,</span> <span class="n">frac</span><span class="o">=</span><span class="mf">0.25</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Merge lines if those are close enough.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            lines: list</span>
+<span class="sd">                line list detected by linefinder algorithm</span>
+
+<span class="sd">            frac: float</span>
+<span class="sd">                Criterion for merge as a fraction of line width for narrower line.</span>
+<span class="sd">                Default: 0.25</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            The new number of lines</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">nlines</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+
+        <span class="c1">#print &#39;nlines = &#39;, nlines</span>
+        <span class="k">if</span> <span class="n">nlines</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">nlines</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">lines</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">lines_merged</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">merge</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">nlines</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">width</span> <span class="o">=</span> <span class="nb">min</span><span class="p">((</span><span class="n">lines</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">lines</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">i</span><span class="p">]),</span> 
+                        <span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="n">lines</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">2</span><span class="p">]))</span>
+            <span class="n">sep</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">lines</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">sep</span> <span class="o">&lt;</span> <span class="n">width</span> <span class="o">*</span> <span class="n">frac</span><span class="p">:</span>
+                <span class="n">merge</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">merge</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+        <span class="c1">#print &#39;merge = &#39;, merge</span>
+        <span class="k">if</span> <span class="n">merge</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lines_merged</span> <span class="o">=</span> <span class="n">lines</span>
+            <span class="k">return</span> <span class="n">nlines</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lines_merged</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">merge</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="n">merge</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+                    <span class="k">continue</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">lines_merged</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">lines_merged</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">2</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lines_merged</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">nlines</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lines_merged</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ASAPLineFinder.get_merged_ranges"><a class="viewcode-back" href="../../../../module/admit.util.segmentfinder/ASAPLineFinder.html#admit.util.segmentfinder.ASAPLineFinder.ASAPLineFinder.get_merged_ranges">[docs]</a>    <span class="k">def</span> <span class="nf">get_merged_ranges</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Get a list of merged line ranges.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            List of merged lines</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">lines_merged</span></div>
+
+<div class="viewcode-block" id="ASAPLineFinder.set_options"><a class="viewcode-back" href="../../../../module/admit.util.segmentfinder/ASAPLineFinder.html#admit.util.segmentfinder.ASAPLineFinder.ASAPLineFinder.set_options">[docs]</a>    <span class="k">def</span> <span class="nf">set_options</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">keyval</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Set the options for the linefinding algorithm.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            threshold : float</span>
+<span class="sd">                A single channel S/N ratio above which the channel is considered </span>
+<span class="sd">                to be a detection. Default is sqrt(3), which together with </span>
+<span class="sd">                min_nchan=3 gives a 3-sigma criterion.</span>
+<span class="sd">                Default: sqrt(3)</span>
+
+<span class="sd">            min_chan : int</span>
+<span class="sd">                A minimal number of consequtive channels, which should satisfy</span>
+<span class="sd">                the threshold criterion to be a detection.</span>
+<span class="sd">                Default: 3</span>
+
+<span class="sd">            avg_limit : int</span>
+<span class="sd">                A number of consequtive channels not greater than this parameter</span>
+<span class="sd">                can be averaged to search for broad lines.</span>
+<span class="sd">                Default: 8</span>
+
+<span class="sd">            box_size : float</span>
+<span class="sd">                A running mean box size specified as a fraction of the total</span>
+<span class="sd">                spectrum length.</span>
+<span class="sd">                Default: 0.2</span>
+
+<span class="sd">            noise_box : string/float</span>
+<span class="sd">                Area of the spectrum used to estimate noise stats. Both string</span>
+<span class="sd">                values and numbers are allowed. Allowed string values:</span>
+<span class="sd">                &#39;all&#39; use all the spectrum, </span>
+<span class="sd">                &#39;box&#39; noise box is the same as running mean/median box</span>
+<span class="sd">                Numeric values are defined as a fraction from the spectrum size.</span>
+<span class="sd">                Values should be positive. (noise_box == box_size has the same </span>
+<span class="sd">                effect as noise_box = &#39;box&#39;).</span>
+<span class="sd">                Default: &#39;all&#39;</span>
+
+<span class="sd">            noise_stat : string</span>
+<span class="sd">                Statistics used to estimate noise, allowed values:</span>
+<span class="sd">                &#39;mean80&#39; use the 80% of the lowest deviations in the noise box, </span>
+<span class="sd">                &#39;median&#39; median of deviations in the noise box</span>
+<span class="sd">                Default: &#39;mean80&#39;</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">vals</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">items</span><span class="p">[</span><span class="n">v</span><span class="p">]</span> <span class="o">=</span> <span class="n">keyval</span><span class="p">[</span><span class="n">v</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;threshold&quot;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span> <span class="o">=</span> <span class="n">keyval</span><span class="p">[</span><span class="n">v</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="n">linefinder</span><span class="o">.</span><span class="n">set_options</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">items</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ASAPLineFinder.makepairs"><a class="viewcode-back" href="../../../../module/admit.util.segmentfinder/ASAPLineFinder.html#admit.util.segmentfinder.ASAPLineFinder.ASAPLineFinder.makepairs">[docs]</a>    <span class="k">def</span> <span class="nf">makepairs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inp</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to turn a list into a list of pairs</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            inp : list</span>
+<span class="sd">                The list to convert</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            List of pairs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">inp</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Input list must have even number of inputs&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">inp</span><span class="p">),</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">inp</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">inp</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]])</span>
+        <span class="k">return</span> <span class="n">data</span></div>
+
+<div class="viewcode-block" id="ASAPLineFinder.find"><a class="viewcode-back" href="../../../../module/admit.util.segmentfinder/ASAPLineFinder.html#admit.util.segmentfinder.ASAPLineFinder.ASAPLineFinder.find">[docs]</a>    <span class="k">def</span> <span class="nf">find</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">keyval</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to do the actual searching</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            merge : Boolean</span>
+<span class="sd">                Whether or not to merge overlapping lines</span>
+<span class="sd">                Deafult: False</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">                tuple containing the frequency ranges, channel ranges, and rms, and mean (forced 0.0)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mask</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">merge</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;mask&quot;</span><span class="p">,</span> <span class="s2">&quot;merge&quot;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">vals</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">keyval</span><span class="p">[</span><span class="n">v</span><span class="p">])</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="n">spec</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spectrum</span><span class="p">)</span>
+        <span class="c1">#print &quot;SP &quot;, len(spec)</span>
+        <span class="n">nlines</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_lines</span><span class="p">(</span><span class="n">mask</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mask</span><span class="p">)</span>
+        <span class="c1">#print &quot;LINES &quot;, nlines</span>
+        <span class="k">if</span> <span class="n">nlines</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">freq</span> <span class="o">==</span> <span class="p">[]:</span>
+                <span class="k">return</span> <span class="p">[],</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">100000.0</span><span class="p">,</span> <span class="mf">0.0</span>
+            <span class="k">return</span> <span class="p">[],</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">100000.0</span><span class="p">,</span> <span class="mf">0.0</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_ranges</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">merge</span><span class="p">:</span>
+            <span class="n">temp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">merge_lines</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
+        <span class="n">ranges</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">makepairs</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
+        <span class="c1"># remove line channels from the spectrum</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ranges</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="k">del</span> <span class="n">spec</span><span class="p">[</span><span class="n">ranges</span><span class="p">[</span><span class="n">r</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span><span class="n">ranges</span><span class="p">[</span><span class="n">r</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">newspec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+        <span class="n">rms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">newspec</span><span class="p">)))</span>
+        <span class="k">return</span> <span class="n">ranges</span><span class="p">,</span> <span class="n">rms</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="p">,</span> <span class="n">rms</span><span class="p">,</span> <span class="mf">0.0</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">ADMIT 0.7.2 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
+    </div>
+  </body>
+</html>

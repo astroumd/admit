@@ -1,0 +1,649 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.util.AdmitLogging &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.util.AdmitLogging</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; .. _admitloggingapi:</span>
+
+<span class="sd">   **logging** --- Message logging functionality.</span>
+<span class="sd">   ----------------------------------------------</span>
+
+<span class="sd">   This module implements the ADMIT logging infrastructure.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">inspect</span> <span class="k">import</span> <span class="n">stack</span><span class="p">,</span> <span class="n">getargvalues</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+
+
+<div class="viewcode-block" id="AdmitLogging"><a class="viewcode-back" href="../../../module/admit.util/AdmitLogging.html#admit.util.AdmitLogging.AdmitLogging">[docs]</a><span class="k">class</span> <span class="nc">AdmitLogging</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; This is effectively a static class for the logging in ADMIT.</span>
+<span class="sd">        It relies on the Python logging module and has the same logging</span>
+<span class="sd">        calls as that module but also offers header and subheader methods</span>
+<span class="sd">        which allow for annotation in the log.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        None</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#  if you add some new items here, be sure to add the associated string in</span>
+    <span class="c1">#  Admit.py where e.g.  logging.addLevelName(logging.TIMING,&quot;TIMING&quot;)</span>
+    <span class="n">TIMING</span>     <span class="o">=</span> <span class="mi">15</span>                  <span class="c1"># new one for ADMIT</span>
+    <span class="n">REGRESSION</span> <span class="o">=</span> <span class="mi">21</span>                  <span class="c1"># new one for ADMIT</span>
+    <span class="n">CRITICAL</span>   <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">CRITICAL</span>    <span class="c1"># 50</span>
+    <span class="n">ERROR</span>      <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span>       <span class="c1"># 40</span>
+    <span class="n">WARNING</span>    <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span>     <span class="c1"># 30</span>
+    <span class="n">INFO</span>       <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">INFO</span>        <span class="c1"># 20</span>
+    <span class="n">DEBUG</span>      <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span>       <span class="c1"># 10</span>
+    <span class="n">loggers</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>             <span class="c1"># set of the names of all registered loggers</span>
+    <span class="n">EFFECTIVELOGLEVEL</span> <span class="o">=</span> <span class="mi">20</span>      <span class="c1"># all loggers must have the same level</span>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AdmitLogging.init"><a class="viewcode-back" href="../../../module/admit.util/AdmitLogging.html#admit.util.AdmitLogging.AdmitLogging.init">[docs]</a>    <span class="k">def</span> <span class="nf">init</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">logfile</span><span class="p">,</span> <span class="n">level</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to initialize a new named logger</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            name : str</span>
+<span class="sd">                Unique name of the logger</span>
+
+<span class="sd">            logfile : str</span>
+<span class="sd">                Full path to the log file to generate</span>
+
+<span class="sd">            level : int</span>
+<span class="sd">                The initial logging level to set. All messages</span>
+<span class="sd">                at or above this level will be emitted.</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># if the logger is already registered then just return</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">AdmitLogging</span><span class="o">.</span><span class="n">loggers</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="c1"># create a new named logger, set up the handlers, log levels</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">AdmitLogging</span><span class="o">.</span><span class="n">EFFECTIVELOGLEVEL</span> <span class="o">=</span> <span class="n">level</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
+        <span class="n">fmt</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%(levelname)s</span><span class="s2"> : </span><span class="si">%(message)s</span><span class="s2">&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">fhandler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="n">logfile</span><span class="p">)</span>
+            <span class="n">fhandler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="n">fmt</span><span class="p">))</span>
+            <span class="n">fhandler</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">fhandler</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">msg</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="s2">&quot;WARNING&quot;</span>
+            <span class="nb">print</span> <span class="s2">&quot;WARNING   Cannot write to log file: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="nb">print</span> <span class="s2">&quot;WARNING   File logging disabled, logging will only appear on screen.&quot;</span>
+            <span class="nb">print</span> <span class="s2">&quot;WARNING&quot;</span>
+        <span class="n">handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
+        <span class="n">handler</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
+        <span class="n">handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="n">fmt</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
+        <span class="c1"># add the logger name to the set</span>
+        <span class="n">AdmitLogging</span><span class="o">.</span><span class="n">loggers</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AdmitLogging.warning"><a class="viewcode-back" href="../../../module/admit.util/AdmitLogging.html#admit.util.AdmitLogging.AdmitLogging.warning">[docs]</a>    <span class="k">def</span> <span class="nf">warning</span><span class="p">(</span><span class="n">message</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to emit a warning level message to the log(s)</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            message : str</span>
+<span class="sd">                The message to sed to the log</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># get the appropriate logger</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="n">AdmitLogging</span><span class="o">.</span><span class="n">findLogger</span><span class="p">()</span>
+        <span class="n">caller_frame</span> <span class="o">=</span> <span class="n">stack</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">fl</span> <span class="o">=</span> <span class="n">caller_frame</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">f_globals</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;__file__&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="c1"># pare down the file name so that it is just .py not .pyc</span>
+        <span class="k">if</span> <span class="n">fl</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;yc&quot;</span><span class="p">):</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="n">fl</span><span class="p">[</span><span class="n">fl</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot; : &quot;</span> <span class="o">+</span> <span class="n">message</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="n">fl</span><span class="p">[</span><span class="n">fl</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="s2">&quot; : &quot;</span> <span class="o">+</span> <span class="n">message</span>
+        <span class="c1"># if there is no logger then just print to the screen</span>
+        <span class="k">if</span> <span class="n">logger</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="s2">&quot;WARNING : &quot;</span> <span class="o">+</span> <span class="n">msg</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AdmitLogging.info"><a class="viewcode-back" href="../../../module/admit.util/AdmitLogging.html#admit.util.AdmitLogging.AdmitLogging.info">[docs]</a>    <span class="k">def</span> <span class="nf">info</span><span class="p">(</span><span class="n">message</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to emit an info level message to the log(s)</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            message : str</span>
+<span class="sd">                The message to sed to the log</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># get the appropriate logger</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="n">AdmitLogging</span><span class="o">.</span><span class="n">findLogger</span><span class="p">()</span>
+        <span class="n">caller_frame</span> <span class="o">=</span> <span class="n">stack</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">fl</span> <span class="o">=</span> <span class="n">caller_frame</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">f_globals</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;__file__&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="c1"># pare down the file name so that it is just .py not .pyc</span>
+        <span class="k">if</span> <span class="n">fl</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;yc&quot;</span><span class="p">):</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="n">fl</span><span class="p">[</span><span class="n">fl</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot; : &quot;</span> <span class="o">+</span> <span class="n">message</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="n">fl</span><span class="p">[</span><span class="n">fl</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="s2">&quot; : &quot;</span> <span class="o">+</span> <span class="n">message</span>
+        <span class="c1"># if there is no logger then just print to the screen</span>
+        <span class="k">if</span> <span class="n">logger</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="s2">&quot;INFO : &quot;</span> <span class="o">+</span> <span class="n">msg</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
+
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AdmitLogging.error"><a class="viewcode-back" href="../../../module/admit.util/AdmitLogging.html#admit.util.AdmitLogging.AdmitLogging.error">[docs]</a>    <span class="k">def</span> <span class="nf">error</span><span class="p">(</span><span class="n">message</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to emit an error level message to the log(s)</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            message : str</span>
+<span class="sd">                The message to sed to the log</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># get the appropriate logger</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="n">AdmitLogging</span><span class="o">.</span><span class="n">findLogger</span><span class="p">()</span>
+        <span class="n">caller_frame</span> <span class="o">=</span> <span class="n">stack</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">fl</span> <span class="o">=</span> <span class="n">caller_frame</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">f_globals</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;__file__&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="c1"># pare down the file name so that it is just .py not .pyc</span>
+        <span class="k">if</span> <span class="n">fl</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;yc&quot;</span><span class="p">):</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="n">fl</span><span class="p">[</span><span class="n">fl</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot; : &quot;</span> <span class="o">+</span> <span class="n">message</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="n">fl</span><span class="p">[</span><span class="n">fl</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="s2">&quot; : &quot;</span> <span class="o">+</span> <span class="n">message</span>
+        <span class="c1"># if there is no logger then just print to the screen</span>
+        <span class="k">if</span> <span class="n">logger</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="s2">&quot;ERROR : &quot;</span> <span class="o">+</span> <span class="n">msg</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AdmitLogging.critical"><a class="viewcode-back" href="../../../module/admit.util/AdmitLogging.html#admit.util.AdmitLogging.AdmitLogging.critical">[docs]</a>    <span class="k">def</span> <span class="nf">critical</span><span class="p">(</span><span class="n">message</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to emit a critial level message to the log(s)</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            message : str</span>
+<span class="sd">                The message to sed to the log</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># get the appropriate logger</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="n">AdmitLogging</span><span class="o">.</span><span class="n">findLogger</span><span class="p">()</span>
+        <span class="n">caller_frame</span> <span class="o">=</span> <span class="n">stack</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">fl</span> <span class="o">=</span> <span class="n">caller_frame</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">f_globals</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;__file__&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="c1"># pare down the file name so that it is just .py not .pyc</span>
+        <span class="k">if</span> <span class="n">fl</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;yc&quot;</span><span class="p">):</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="n">fl</span><span class="p">[</span><span class="n">fl</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot; : &quot;</span> <span class="o">+</span> <span class="n">message</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="n">fl</span><span class="p">[</span><span class="n">fl</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="s2">&quot; : &quot;</span> <span class="o">+</span> <span class="n">message</span>
+        <span class="c1"># if there is no logger then just print to the screen</span>
+        <span class="k">if</span> <span class="n">logger</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="s2">&quot;CRITICAL : &quot;</span> <span class="o">+</span> <span class="n">msg</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AdmitLogging.debug"><a class="viewcode-back" href="../../../module/admit.util/AdmitLogging.html#admit.util.AdmitLogging.AdmitLogging.debug">[docs]</a>    <span class="k">def</span> <span class="nf">debug</span><span class="p">(</span><span class="n">message</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to emit a debug level message to the log(s)</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            message : str</span>
+<span class="sd">                The message to sed to the log</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># get the appropriate logger</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="n">AdmitLogging</span><span class="o">.</span><span class="n">findLogger</span><span class="p">()</span>
+        <span class="n">caller_frame</span> <span class="o">=</span> <span class="n">stack</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">fl</span> <span class="o">=</span> <span class="n">caller_frame</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">f_globals</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;__file__&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="c1"># pare down the file name so that it is just .py not .pyc</span>
+        <span class="k">if</span> <span class="n">fl</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;yc&quot;</span><span class="p">):</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="n">fl</span><span class="p">[</span><span class="n">fl</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot; : &quot;</span> <span class="o">+</span> <span class="n">message</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="n">fl</span><span class="p">[</span><span class="n">fl</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="s2">&quot; : &quot;</span> <span class="o">+</span> <span class="n">message</span>
+        <span class="c1"># if there is no logger then just print to the screen</span>
+        <span class="k">if</span> <span class="n">logger</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="s2">&quot;DEBUG : &quot;</span> <span class="o">+</span> <span class="n">msg</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AdmitLogging.log"><a class="viewcode-back" href="../../../module/admit.util/AdmitLogging.html#admit.util.AdmitLogging.AdmitLogging.log">[docs]</a>    <span class="k">def</span> <span class="nf">log</span><span class="p">(</span><span class="n">level</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to emit a log message to the log(s) at the given level</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            level : int</span>
+<span class="sd">                The logging level to send the message at</span>
+
+<span class="sd">            message : str</span>
+<span class="sd">                The message to sed to the log</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># get the appropriate logger</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="n">AdmitLogging</span><span class="o">.</span><span class="n">findLogger</span><span class="p">()</span>
+        <span class="n">caller_frame</span> <span class="o">=</span> <span class="n">stack</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">fl</span> <span class="o">=</span> <span class="n">caller_frame</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">f_globals</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;__file__&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="c1"># pare down the file name so that it is just .py not .pyc</span>
+        <span class="k">if</span> <span class="n">fl</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;yc&quot;</span><span class="p">):</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="n">fl</span><span class="p">[</span><span class="n">fl</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot; : &quot;</span> <span class="o">+</span> <span class="n">message</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="n">fl</span><span class="p">[</span><span class="n">fl</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="s2">&quot; : &quot;</span> <span class="o">+</span> <span class="n">message</span>
+        <span class="c1"># if there is no logger then just print to the screen</span>
+        <span class="k">if</span> <span class="n">logger</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="s2">&quot;LOG : &quot;</span> <span class="o">+</span> <span class="n">msg</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">level</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AdmitLogging.timing"><a class="viewcode-back" href="../../../module/admit.util/AdmitLogging.html#admit.util.AdmitLogging.AdmitLogging.timing">[docs]</a>    <span class="k">def</span> <span class="nf">timing</span><span class="p">(</span><span class="n">message</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to emit a timing message to the log(s)</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            message : str</span>
+<span class="sd">                The message to send to the log</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># get the appropriate logger</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="n">AdmitLogging</span><span class="o">.</span><span class="n">findLogger</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">logger</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">AdmitLogging</span><span class="o">.</span><span class="n">TIMING</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AdmitLogging.regression"><a class="viewcode-back" href="../../../module/admit.util/AdmitLogging.html#admit.util.AdmitLogging.AdmitLogging.regression">[docs]</a>    <span class="k">def</span> <span class="nf">regression</span><span class="p">(</span><span class="n">message</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to emit a regression message to the log(s)</span>
+
+<span class="sd">            It is suggested to start the message with a magic word followed</span>
+<span class="sd">            by a colon, so top level scripts can reliably parse them. It is</span>
+<span class="sd">            typically not needed to add verbosely what these numbers are,</span>
+<span class="sd">            just the numbers are fine, the associated label defines them</span>
+<span class="sd">            elsewhere. An example of use:</span>
+
+<span class="sd">            logging.regression(&#39;CUBEFLUX: %g %g&#39; % (flux1,flux2))</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            message : str</span>
+<span class="sd">                The message to send to the log</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># get the appropriate logger</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="n">AdmitLogging</span><span class="o">.</span><span class="n">findLogger</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">logger</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">AdmitLogging</span><span class="o">.</span><span class="n">REGRESSION</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AdmitLogging.findLogger"><a class="viewcode-back" href="../../../module/admit.util/AdmitLogging.html#admit.util.AdmitLogging.AdmitLogging.findLogger">[docs]</a>    <span class="k">def</span> <span class="nf">findLogger</span><span class="p">():</span>
+        <span class="sd">&quot;&quot;&quot; Method to get the appropriate logger. This is done by inspecting</span>
+<span class="sd">            the stack, looking for either Admit.py or AT.py, both of which</span>
+<span class="sd">            have the name of their loggers.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            Instance of the logger (or None)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">aclass</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">stack</span><span class="p">():</span>
+            <span class="c1"># look for either AT.py or Admit.py in the stack</span>
+            <span class="k">if</span> <span class="s2">&quot;Admit.py&quot;</span> <span class="ow">in</span> <span class="n">i</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">or</span> <span class="s2">&quot;AT.py&quot;</span> <span class="ow">in</span> <span class="n">i</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="c1"># when found, get the class instance</span>
+                <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">getargvalues</span><span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">locals</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="s1">&#39;self&#39;</span> <span class="o">==</span> <span class="n">k</span><span class="p">:</span>
+                        <span class="n">aclass</span> <span class="o">=</span> <span class="n">getargvalues</span><span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">locals</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+                        <span class="k">break</span>
+        <span class="c1"># if there is none found, or the found name is not registered</span>
+        <span class="k">if</span> <span class="n">aclass</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">aclass</span><span class="p">,</span><span class="s2">&quot;_loggername&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">aclass</span><span class="o">.</span><span class="n">_loggername</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">AdmitLogging</span><span class="o">.</span><span class="n">loggers</span><span class="p">:</span>
+            <span class="c1"># if there is only 1 registered logger then go with that one</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">AdmitLogging</span><span class="o">.</span><span class="n">loggers</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">AdmitLogging</span><span class="o">.</span><span class="n">loggers</span><span class="p">)))</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">aclass</span><span class="o">.</span><span class="n">_loggername</span><span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AdmitLogging.heading"><a class="viewcode-back" href="../../../module/admit.util/AdmitLogging.html#admit.util.AdmitLogging.AdmitLogging.heading">[docs]</a>    <span class="k">def</span> <span class="nf">heading</span><span class="p">(</span><span class="n">message</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to emit a header message to the log(s). Header messages</span>
+<span class="sd">            are encapsulated in empty lines for emphasis</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            message : str</span>
+<span class="sd">                The message to sed to the log</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># get the appropriate logger</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="n">AdmitLogging</span><span class="o">.</span><span class="n">findLogger</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">logger</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;   &quot;</span> <span class="o">+</span> <span class="n">message</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AdmitLogging.subheading"><a class="viewcode-back" href="../../../module/admit.util/AdmitLogging.html#admit.util.AdmitLogging.AdmitLogging.subheading">[docs]</a>    <span class="k">def</span> <span class="nf">subheading</span><span class="p">(</span><span class="n">message</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to emit a subheader message to the log(s). Subheader messages</span>
+<span class="sd">            are encapsulated in an empty line for emphasis</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            message : str</span>
+<span class="sd">                The message to sed to the log</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># get the appropriate logger</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="n">AdmitLogging</span><span class="o">.</span><span class="n">findLogger</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">logger</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;   &quot;</span> <span class="o">+</span> <span class="n">message</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AdmitLogging.reportKeywords"><a class="viewcode-back" href="../../../module/admit.util/AdmitLogging.html#admit.util.AdmitLogging.AdmitLogging.reportKeywords">[docs]</a>    <span class="k">def</span> <span class="nf">reportKeywords</span><span class="p">(</span><span class="n">kw</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to emit logging messages that report the current state of the</span>
+<span class="sd">            AT keywords.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            kw : dict</span>
+<span class="sd">                A dictionary containing the AT _keys dictionary</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># get the appropriate logger</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="n">AdmitLogging</span><span class="o">.</span><span class="n">findLogger</span><span class="p">()</span>        
+        <span class="k">if</span> <span class="n">logger</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;  Run using the following settings:&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">kw</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;    </span><span class="si">%s</span><span class="s2"> :  </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AdmitLogging.addLevelName"><a class="viewcode-back" href="../../../module/admit.util/AdmitLogging.html#admit.util.AdmitLogging.AdmitLogging.addLevelName">[docs]</a>    <span class="k">def</span> <span class="nf">addLevelName</span><span class="p">(</span><span class="n">level</span><span class="p">,</span><span class="n">levelName</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to add a new level to the logging schema</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            level : int</span>
+<span class="sd">                The level number to add</span>
+
+<span class="sd">            levelName : str</span>
+<span class="sd">                The name to use for the level</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">addLevelName</span><span class="p">(</span><span class="n">level</span><span class="p">,</span><span class="n">levelName</span><span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AdmitLogging.basicConfig"><a class="viewcode-back" href="../../../module/admit.util/AdmitLogging.html#admit.util.AdmitLogging.AdmitLogging.basicConfig">[docs]</a>    <span class="k">def</span> <span class="nf">basicConfig</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to initialize the basic logging module</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            various</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># get the appropriate logger</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="n">AdmitLogging</span><span class="o">.</span><span class="n">findLogger</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">logger</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AdmitLogging.StreamHandler"><a class="viewcode-back" href="../../../module/admit.util/AdmitLogging.html#admit.util.AdmitLogging.AdmitLogging.StreamHandler">[docs]</a>    <span class="k">def</span> <span class="nf">StreamHandler</span><span class="p">(</span><span class="n">stream</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to get a streamhandler object</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            stream : stream</span>
+<span class="sd">                The output stream to attache to the stream handler</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            Handler object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">(</span><span class="n">stream</span><span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AdmitLogging.addHandler"><a class="viewcode-back" href="../../../module/admit.util/AdmitLogging.html#admit.util.AdmitLogging.AdmitLogging.addHandler">[docs]</a>    <span class="k">def</span> <span class="nf">addHandler</span><span class="p">(</span><span class="n">handler</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to add a handler to the logger</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            handler : handle to a handler</span>
+<span class="sd">                The handler to add</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># get the appropriate logger</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="n">AdmitLogging</span><span class="o">.</span><span class="n">findLogger</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">logger</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AdmitLogging.Formatter"><a class="viewcode-back" href="../../../module/admit.util/AdmitLogging.html#admit.util.AdmitLogging.AdmitLogging.Formatter">[docs]</a>    <span class="k">def</span> <span class="nf">Formatter</span><span class="p">(</span><span class="n">fmt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">datefmt</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to set the format of the logging messages</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            fmt : str</span>
+<span class="sd">                The format of the messages</span>
+
+<span class="sd">            datefmt : str</span>
+<span class="sd">                The format for any dates in the log</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            Handle to the format object</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="n">fmt</span><span class="p">,</span> <span class="n">datefmt</span><span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AdmitLogging.getEffectiveLevel"><a class="viewcode-back" href="../../../module/admit.util/AdmitLogging.html#admit.util.AdmitLogging.AdmitLogging.getEffectiveLevel">[docs]</a>    <span class="k">def</span> <span class="nf">getEffectiveLevel</span><span class="p">():</span>
+        <span class="sd">&quot;&quot;&quot; Method to get the current minimum logging level</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            int continaing the current minimum logging level</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">AdmitLogging</span><span class="o">.</span><span class="n">EFFECTIVELOGLEVEL</span></div>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AdmitLogging.setLevel"><a class="viewcode-back" href="../../../module/admit.util/AdmitLogging.html#admit.util.AdmitLogging.AdmitLogging.setLevel">[docs]</a>    <span class="k">def</span> <span class="nf">setLevel</span><span class="p">(</span><span class="n">level</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to set the current minimum level that will be logged</span>
+<span class="sd">            all messages below this level are ignored.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            level : int</span>
+<span class="sd">                The numeric level number to set</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># ensure that all registered loggers have the same level</span>
+        <span class="n">AdmitLogging</span><span class="o">.</span><span class="n">EFFECTIVELOGLEVEL</span> <span class="o">=</span> <span class="n">level</span>
+        <span class="k">for</span> <span class="n">log</span> <span class="ow">in</span> <span class="n">AdmitLogging</span><span class="o">.</span><span class="n">loggers</span><span class="p">:</span>
+            <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">log</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">level</span><span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AdmitLogging.shutdown"><a class="viewcode-back" href="../../../module/admit.util/AdmitLogging.html#admit.util.AdmitLogging.AdmitLogging.shutdown">[docs]</a>    <span class="k">def</span> <span class="nf">shutdown</span><span class="p">():</span>
+        <span class="sd">&quot;&quot;&quot; Method to shuitdown the logging system</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">shutdown</span><span class="p">()</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

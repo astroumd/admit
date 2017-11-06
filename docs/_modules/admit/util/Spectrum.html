@@ -1,0 +1,1050 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.util.Spectrum &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.util.Spectrum</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; .. _Spectrum-api:</span>
+
+<span class="sd">    **Spectrum** --- Spectral line data container.</span>
+<span class="sd">    ----------------------------------------------</span>
+
+<span class="sd">    This module defines the Spectrum class.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># system imports</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy.ma</span> <span class="k">as</span> <span class="nn">ma</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">math</span>
+
+<span class="c1"># ADMIT imports</span>
+<span class="kn">from</span> <span class="nn">admit.util.AdmitLogging</span> <span class="k">import</span> <span class="n">AdmitLogging</span> <span class="k">as</span> <span class="n">logging</span>
+<span class="kn">import</span> <span class="nn">utils</span>
+
+<div class="viewcode-block" id="Spectrum"><a class="viewcode-back" href="../../../module/admit.util/Spectrum.html#admit.util.Spectrum.Spectrum">[docs]</a><span class="k">class</span> <span class="nc">Spectrum</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Class for holding a spectrum. It holds entries for the spectrum,</span>
+<span class="sd">        frequency axis, channel axis, vlsr, and rest_frequency. A mask</span>
+<span class="sd">        is also available to mask bad data points. The mask is common to</span>
+<span class="sd">        all axes.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        spec : array like</span>
+<span class="sd">            The spectrum.</span>
+
+<span class="sd">        freq : array like</span>
+<span class="sd">            The frequency axis, one entry per spectral point.</span>
+
+<span class="sd">        chans : array like</span>
+<span class="sd">            The channel axis, one entry per spectral point.</span>
+
+<span class="sd">        contin : array like or float</span>
+<span class="sd">            The continuum for each channel, or for all channels if it is an</span>
+<span class="sd">            int.</span>
+
+<span class="sd">        noise : float</span>
+<span class="sd">            The rms noise of the spectrum.</span>
+
+<span class="sd">        mask : array like or bool</span>
+<span class="sd">            The mask for the spectrum, one entry per spectral point</span>
+<span class="sd">            or a single boolean value, Defaults to all good.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spec</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">chans</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">contin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">noise</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="p">[</span><span class="kc">False</span><span class="p">]):</span>
+        <span class="n">domask</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_freq</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_chans</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_spec</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_contin</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_noise</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_delta</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">spec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
+            <span class="n">domask</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="n">freq</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_freq</span><span class="p">(</span><span class="n">freq</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">noise</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_noise</span> <span class="o">=</span> <span class="n">noise</span>
+
+        <span class="k">if</span> <span class="n">chans</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_chans</span><span class="p">(</span><span class="n">chans</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">contin</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_contin</span><span class="p">(</span><span class="n">contin</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">domask</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_mask</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">integritycheck</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_spec</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Spectrum.spec"><a class="viewcode-back" href="../../../module/admit.util/Spectrum.html#admit.util.Spectrum.Spectrum.spec">[docs]</a>    <span class="k">def</span> <span class="nf">spec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">csub</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">masked</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to get the spectrum, the mask is optionally returned</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            csub : bool</span>
+<span class="sd">                If True return the spectrum with the continuum subtracted,</span>
+<span class="sd">                False will return the pure spectrum</span>
+<span class="sd">                Default: True</span>
+
+<span class="sd">            masked : bool</span>
+<span class="sd">                If True then return the spectrum as a masked array with</span>
+<span class="sd">                the current mask applied. False will return a numpy array</span>
+<span class="sd">                with no masking done.</span>
+<span class="sd">                Default: True</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            Array like object containing the spectrum</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_spec</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">csub</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_contin</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_contin</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">-=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_contin</span>
+        <span class="k">if</span> <span class="n">masked</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_mask</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span></div>
+
+<div class="viewcode-block" id="Spectrum.freq"><a class="viewcode-back" href="../../../module/admit.util/Spectrum.html#admit.util.Spectrum.Spectrum.freq">[docs]</a>    <span class="k">def</span> <span class="nf">freq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">masked</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to get the frequency axis, the mask is optionally returned</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            masked : bool</span>
+<span class="sd">                If True then return the frequency axis as a masked array with</span>
+<span class="sd">                the current mask applied. False will return a numpy array</span>
+<span class="sd">                with no masking done.</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            Array like object containing the frequency axis</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">masked</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_freq</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_mask</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_freq</span></div>
+
+<div class="viewcode-block" id="Spectrum.contin"><a class="viewcode-back" href="../../../module/admit.util/Spectrum.html#admit.util.Spectrum.Spectrum.contin">[docs]</a>    <span class="k">def</span> <span class="nf">contin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">masked</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to get the continuum, the mask is optionally returned</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            masked : bool</span>
+<span class="sd">                If True then return the continuum as a masked array with</span>
+<span class="sd">                the current mask applied. False will return a numpy array</span>
+<span class="sd">                with no masking done.</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            Array like object containing the continuum</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">masked</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_contin</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_mask</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_contin</span></div>
+
+<div class="viewcode-block" id="Spectrum.noise"><a class="viewcode-back" href="../../../module/admit.util/Spectrum.html#admit.util.Spectrum.Spectrum.noise">[docs]</a>    <span class="k">def</span> <span class="nf">noise</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to return the noise of the spectrum.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            Float of the rms noise.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_noise</span></div>
+
+<div class="viewcode-block" id="Spectrum.rms"><a class="viewcode-back" href="../../../module/admit.util/Spectrum.html#admit.util.Spectrum.Spectrum.rms">[docs]</a>    <span class="k">def</span> <span class="nf">rms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;If the noise has been set, return the noise, otherwise</span>
+<span class="sd">           compute and return the root-mean-square value of the spectrum.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_noise</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+           <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">())))</span>
+        <span class="k">else</span><span class="p">:</span>
+           <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_noise</span></div>
+
+<div class="viewcode-block" id="Spectrum.delta"><a class="viewcode-back" href="../../../module/admit.util/Spectrum.html#admit.util.Spectrum.Spectrum.delta">[docs]</a>    <span class="k">def</span> <span class="nf">delta</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delta</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">calcdelta</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delta</span></div>
+
+<div class="viewcode-block" id="Spectrum.getfreq"><a class="viewcode-back" href="../../../module/admit.util/Spectrum.html#admit.util.Spectrum.Spectrum.getfreq">[docs]</a>    <span class="k">def</span> <span class="nf">getfreq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chan</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to get the frequency of the given channel, the channel can</span>
+<span class="sd">            contain a fraction of a channel (e.g. 1.45)</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            chan : float</span>
+<span class="sd">                The channel to convert</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            Float of the frequency corresponding to the channel</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">chan</span> <span class="o">&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_chans</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_freq</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_chans</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_chans</span><span class="p">)]]</span>
+        <span class="k">if</span> <span class="n">chan</span> <span class="o">&lt;</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_chans</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_freq</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_chans</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_chans</span><span class="p">)]]</span>
+        <span class="n">ichan</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">chan</span><span class="p">)</span>
+        <span class="n">ch</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_chans</span> <span class="o">==</span> <span class="n">ichan</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">f1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_freq</span><span class="p">[</span><span class="n">ch</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_chans</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_chans</span><span class="p">))[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">ch</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">f2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_freq</span><span class="p">[</span><span class="n">ch</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">f2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_freq</span><span class="p">[</span><span class="n">ch</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">frac</span> <span class="o">=</span> <span class="n">chan</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">ichan</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">f1</span> <span class="o">+</span> <span class="n">frac</span> <span class="o">*</span> <span class="p">(</span><span class="n">f2</span> <span class="o">-</span> <span class="n">f1</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Spectrum.getchanindex"><a class="viewcode-back" href="../../../module/admit.util/Spectrum.html#admit.util.Spectrum.Spectrum.getchanindex">[docs]</a>    <span class="k">def</span> <span class="nf">getchanindex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chan</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">ma</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_chans</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">chan</span> <span class="o">&gt;=</span> <span class="n">ma</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_chans</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">ma</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_chans</span> <span class="o">==</span> <span class="nb">int</span><span class="p">(</span><span class="n">chan</span><span class="p">))[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span></div>
+
+<div class="viewcode-block" id="Spectrum.getchan"><a class="viewcode-back" href="../../../module/admit.util/Spectrum.html#admit.util.Spectrum.Spectrum.getchan">[docs]</a>    <span class="k">def</span> <span class="nf">getchan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frq</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to get the channel number given the frequency</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            frq : float</span>
+<span class="sd">                The frequency whose channel number is to be found</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            int containing the channel number, will be 0 or len(self.x)-1 if</span>
+<span class="sd">            the frequency is outside of the frequency range in the class</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">frq</span> <span class="o">&lt;=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_freq</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_chans</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_freq</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_freq</span><span class="p">))[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]])</span>
+        <span class="k">if</span> <span class="n">frq</span> <span class="o">&gt;=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_freq</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_chans</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_freq</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_freq</span><span class="p">))[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]])</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_freq</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_freq</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">frq</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_freq</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="ow">or</span> \
+               <span class="bp">self</span><span class="o">.</span><span class="n">_freq</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">frq</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_freq</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_chans</span><span class="p">[</span><span class="n">i</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="Spectrum.chans"><a class="viewcode-back" href="../../../module/admit.util/Spectrum.html#admit.util.Spectrum.Spectrum.chans">[docs]</a>    <span class="k">def</span> <span class="nf">chans</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">masked</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to get the channel axis, the mask is optionally returned</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            masked : bool</span>
+<span class="sd">                If True then return the channel axis as a masked array with</span>
+<span class="sd">                the current mask applied. False will return a numpy array</span>
+<span class="sd">                with no masking done.</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            Array like object containing the channel axis</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">masked</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_chans</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_mask</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chans</span></div>
+
+<div class="viewcode-block" id="Spectrum.mask"><a class="viewcode-back" href="../../../module/admit.util/Spectrum.html#admit.util.Spectrum.Spectrum.mask">[docs]</a>    <span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to return the mask as a numpy array</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Array like object containing the mask</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span></div>
+
+<div class="viewcode-block" id="Spectrum.mask_equal"><a class="viewcode-back" href="../../../module/admit.util/Spectrum.html#admit.util.Spectrum.Spectrum.mask_equal">[docs]</a>    <span class="k">def</span> <span class="nf">mask_equal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s2">&quot;spec&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to mask data equal to the given value.</span>
+<span class="sd">            Any axis can be used  (&quot;spec&quot;, &quot;freq&quot;, &quot;chans&quot;) as</span>
+<span class="sd">            the basis for the masking.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            value : float or int</span>
+<span class="sd">                The value equal to which all data of the given axis</span>
+<span class="sd">                will be masked.</span>
+
+<span class="sd">            axis : str</span>
+<span class="sd">                The axis which is used to determine the flags.</span>
+<span class="sd">                Default: &quot;spec&quot;</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">integritycheck</span><span class="p">():</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;  Masking operation not performed.&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="n">axis</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mask</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Spectrum.mask_lt"><a class="viewcode-back" href="../../../module/admit.util/Spectrum.html#admit.util.Spectrum.Spectrum.mask_lt">[docs]</a>    <span class="k">def</span> <span class="nf">mask_lt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">limit</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s2">&quot;spec&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to mask any data less than the given value.</span>
+<span class="sd">            Any axis can be used (&quot;spec&quot;, &quot;freq&quot;, &quot;chans&quot;) as</span>
+<span class="sd">            the basis for the masking.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            limit : float or int</span>
+<span class="sd">                The value below which all data of the given axis</span>
+<span class="sd">                will be masked.</span>
+
+<span class="sd">            axis : str</span>
+<span class="sd">                The axis which is used to determine the flags.</span>
+<span class="sd">                Default: &quot;spec&quot;</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">integritycheck</span><span class="p">():</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;  Masking operation not performed.&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="n">axis</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">limit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mask</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Spectrum.mask_gt"><a class="viewcode-back" href="../../../module/admit.util/Spectrum.html#admit.util.Spectrum.Spectrum.mask_gt">[docs]</a>    <span class="k">def</span> <span class="nf">mask_gt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">limit</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s2">&quot;spec&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to mask any data greater than the given value.</span>
+<span class="sd">            Any axis can be used (&quot;spec&quot;, &quot;freq&quot;, &quot;chans&quot;) as</span>
+<span class="sd">            the basis for the masking.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            limit : float or int</span>
+<span class="sd">                The value above which all data of the given axis</span>
+<span class="sd">                will be masked.</span>
+
+<span class="sd">            axis : str</span>
+<span class="sd">                The axis which is used to determine the flags.</span>
+<span class="sd">                Default: &quot;spec&quot;</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">integritycheck</span><span class="p">():</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;  Masking operation not performed.&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="n">axis</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">limit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mask</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Spectrum.mask_le"><a class="viewcode-back" href="../../../module/admit.util/Spectrum.html#admit.util.Spectrum.Spectrum.mask_le">[docs]</a>    <span class="k">def</span> <span class="nf">mask_le</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">limit</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s2">&quot;spec&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to mask any data less than or erqual to the given value.</span>
+<span class="sd">            Any axis can be used (&quot;spec&quot;, &quot;freq&quot;, &quot;chans&quot;) as</span>
+<span class="sd">            the basis for the masking.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            limit : float or int</span>
+<span class="sd">                The value which all data, of the given axis,</span>
+<span class="sd">                less than or equal to, will be masked.</span>
+
+<span class="sd">            axis : str</span>
+<span class="sd">                The axis which is used to determine the flags.</span>
+<span class="sd">                Default: &quot;spec&quot;</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">integritycheck</span><span class="p">():</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;  Masking operation not performed.&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="n">axis</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">limit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mask</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Spectrum.mask_ge"><a class="viewcode-back" href="../../../module/admit.util/Spectrum.html#admit.util.Spectrum.Spectrum.mask_ge">[docs]</a>    <span class="k">def</span> <span class="nf">mask_ge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">limit</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s2">&quot;spec&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to mask any data less than or equal to the given value.</span>
+<span class="sd">            Any axis can be used (&quot;spec&quot;, &quot;freq&quot;, &quot;chans&quot;) as</span>
+<span class="sd">            the basis for the masking.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            limit : float or int</span>
+<span class="sd">                The value which all data, of the given axis,</span>
+<span class="sd">                greater than or equal to, will be masked.</span>
+
+<span class="sd">            axis : str</span>
+<span class="sd">                The axis which is used to determine the flags.</span>
+<span class="sd">                Default: &quot;spec&quot;</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">integritycheck</span><span class="p">():</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;  Masking operation not performed.&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="n">axis</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">limit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mask</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Spectrum.mask_between"><a class="viewcode-back" href="../../../module/admit.util/Spectrum.html#admit.util.Spectrum.Spectrum.mask_between">[docs]</a>    <span class="k">def</span> <span class="nf">mask_between</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">limit1</span><span class="p">,</span> <span class="n">limit2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s2">&quot;spec&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to mask any data bewteen the the given values.</span>
+<span class="sd">            Any axis can be used (&quot;spec&quot;, &quot;freq&quot;, &quot;chans&quot;) as</span>
+<span class="sd">            the basis for the masking.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            limit1 : float or int</span>
+<span class="sd">                The value above which all data of the given axis</span>
+<span class="sd">                will be masked.</span>
+
+<span class="sd">            limit2 : float or int</span>
+<span class="sd">                The value below which all data of the given axis</span>
+<span class="sd">                will be masked.</span>
+
+<span class="sd">            axis : str</span>
+<span class="sd">                The axis which is used to determine the flags.</span>
+<span class="sd">                Default: &quot;spec&quot;</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">integritycheck</span><span class="p">():</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;  Masking operation not performed.&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="n">mask1</span> <span class="o">=</span> <span class="n">limit1</span> <span class="o">&lt;</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="n">axis</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">mask2</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="n">axis</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">limit2</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">mask1</span><span class="p">,</span> <span class="n">mask2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mask</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Spectrum.mask_outside"><a class="viewcode-back" href="../../../module/admit.util/Spectrum.html#admit.util.Spectrum.Spectrum.mask_outside">[docs]</a>    <span class="k">def</span> <span class="nf">mask_outside</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">limit1</span><span class="p">,</span> <span class="n">limit2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s2">&quot;spec&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to mask any data less than or greater than the given values.</span>
+<span class="sd">            Any axis can be used (&quot;spec&quot;, &quot;freq&quot;, &quot;chans&quot;) as</span>
+<span class="sd">            the basis for the masking.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            limit1 : float or int</span>
+<span class="sd">                The value below which all data of the given axis</span>
+<span class="sd">                will be masked.</span>
+
+<span class="sd">            limit2 : float or int</span>
+<span class="sd">                The value above which all data of the given axis</span>
+<span class="sd">                will be masked.</span>
+
+<span class="sd">            axis : str</span>
+<span class="sd">                The axis which is used to determine the flags.</span>
+<span class="sd">                Default: &quot;spec&quot;</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">integritycheck</span><span class="p">():</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;  Masking operation not performed.&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="n">mask1</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="n">axis</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">limit1</span>
+        <span class="n">mask2</span> <span class="o">=</span> <span class="n">limit2</span> <span class="o">&lt;</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="n">axis</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">mask1</span><span class="p">,</span> <span class="n">mask2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mask</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Spectrum.set_noise"><a class="viewcode-back" href="../../../module/admit.util/Spectrum.html#admit.util.Spectrum.Spectrum.set_noise">[docs]</a>    <span class="k">def</span> <span class="nf">set_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">noise</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to set the noise value for the spectrum.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            noise : float</span>
+<span class="sd">                The noise of the spectrum</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_noise</span> <span class="o">=</span> <span class="n">noise</span></div>
+
+<div class="viewcode-block" id="Spectrum.set_mask"><a class="viewcode-back" href="../../../module/admit.util/Spectrum.html#admit.util.Spectrum.Spectrum.set_mask">[docs]</a>    <span class="k">def</span> <span class="nf">set_mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mask</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to set the mask item</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            mask : array like or bool</span>
+<span class="sd">                The mask to use, must be equal in dimmension to</span>
+<span class="sd">                the spectral axis, or a single boolean value which</span>
+<span class="sd">                is applied to all data.</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tempmask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_spec</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">raise</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">mask</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_spec</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">mask</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_spec</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">raise</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">mask</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_spec</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">integritycheck</span><span class="p">():</span>
+            <span class="k">return</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;  Mask not applied&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span> <span class="o">=</span> <span class="n">tempmask</span></div>
+
+<div class="viewcode-block" id="Spectrum.set_spec"><a class="viewcode-back" href="../../../module/admit.util/Spectrum.html#admit.util.Spectrum.Spectrum.set_spec">[docs]</a>    <span class="k">def</span> <span class="nf">set_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spec</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to set the spectrum, an optionally the mask.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            spec : array like</span>
+<span class="sd">                The spectrum to set</span>
+
+<span class="sd">            mask : array like or single bool</span>
+<span class="sd">                The mask to apply to the spectrum. Default: None (no mask)</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_spec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set_mask</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set_mask</span><span class="p">([</span><span class="kc">False</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_spec</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">data</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">mask</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">mask</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">bool_</span><span class="p">):</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">spec</span><span class="o">.</span><span class="n">mask</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">data</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">mask</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_spec</span> <span class="o">=</span> <span class="n">spec</span>
+            <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set_mask</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set_mask</span><span class="p">([</span><span class="kc">False</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span></div>
+
+<div class="viewcode-block" id="Spectrum.set_freq"><a class="viewcode-back" href="../../../module/admit.util/Spectrum.html#admit.util.Spectrum.Spectrum.set_freq">[docs]</a>    <span class="k">def</span> <span class="nf">set_freq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">freq</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to set the frequency axis.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            freq : array like</span>
+<span class="sd">                The frequency axis to use</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_freq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">freq</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span> <span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_freq</span> <span class="o">=</span> <span class="n">freq</span><span class="o">.</span><span class="n">data</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_freq</span> <span class="o">=</span> <span class="n">freq</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">calcdelta</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Spectrum.set_contin"><a class="viewcode-back" href="../../../module/admit.util/Spectrum.html#admit.util.Spectrum.Spectrum.set_contin">[docs]</a>    <span class="k">def</span> <span class="nf">set_contin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">contin</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to set the continuum.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            freq : array like</span>
+<span class="sd">                The continuum to use</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">contin</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_contin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">contin</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">contin</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">contin</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">contin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">contin</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_spec</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">contin</span><span class="p">,</span> <span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_contin</span> <span class="o">=</span> <span class="n">contin</span><span class="o">.</span><span class="n">data</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">contin</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_contin</span> <span class="o">=</span> <span class="n">contin</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span></div>
+
+<div class="viewcode-block" id="Spectrum.set_chans"><a class="viewcode-back" href="../../../module/admit.util/Spectrum.html#admit.util.Spectrum.Spectrum.set_chans">[docs]</a>    <span class="k">def</span> <span class="nf">set_chans</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chans</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to set the channel axis.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            chans : array like</span>
+<span class="sd">                The channel axis to use</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">chans</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_chans</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">chans</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">chans</span><span class="p">,</span> <span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_chans</span> <span class="o">=</span> <span class="n">chans</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">chans</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_chans</span> <span class="o">=</span> <span class="n">chans</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span></div>
+
+<div class="viewcode-block" id="Spectrum.calcdelta"><a class="viewcode-back" href="../../../module/admit.util/Spectrum.html#admit.util.Spectrum.Spectrum.calcdelta">[docs]</a>    <span class="k">def</span> <span class="nf">calcdelta</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_freq</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;no freq given&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_freq</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span><span class="p">[</span><span class="n">f</span><span class="p">]</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span><span class="p">[</span><span class="n">f</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_delta</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_freq</span><span class="p">[</span><span class="n">f</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_freq</span><span class="p">[</span><span class="n">f</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
+                <span class="k">return</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;calcdelta&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Spectrum.centerfreq"><a class="viewcode-back" href="../../../module/admit.util/Spectrum.html#admit.util.Spectrum.Spectrum.centerfreq">[docs]</a>    <span class="k">def</span> <span class="nf">centerfreq</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">cen</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_freq</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">cen</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span><span class="p">[</span><span class="n">cen</span> <span class="o">+</span> <span class="n">i</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_freq</span><span class="p">[</span><span class="n">cen</span> <span class="o">+</span> <span class="n">i</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span><span class="p">[</span><span class="n">cen</span> <span class="o">-</span> <span class="n">i</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_freq</span><span class="p">[</span><span class="n">cen</span> <span class="o">-</span> <span class="n">i</span><span class="p">]</span>
+        <span class="k">raise</span></div>
+        
+
+<div class="viewcode-block" id="Spectrum.fix_invalid"><a class="viewcode-back" href="../../../module/admit.util/Spectrum.html#admit.util.Spectrum.Spectrum.fix_invalid">[docs]</a>    <span class="k">def</span> <span class="nf">fix_invalid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mask_value</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to replace invalid spectral data with a specific value</span>
+<span class="sd">            and mask it. Invalid values are: NaN, Inf, -Inf</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            mask_value : float</span>
+<span class="sd">                The value to replace the invalid data with.</span>
+<span class="sd">                Default: 0.0</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">integritycheck</span><span class="p">():</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;  Masking operation not performed.&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_spec</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mask</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">mask</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_spec</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">mask_value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mask</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">mask</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Spectrum.mask_invalid"><a class="viewcode-back" href="../../../module/admit.util/Spectrum.html#admit.util.Spectrum.Spectrum.mask_invalid">[docs]</a>    <span class="k">def</span> <span class="nf">mask_invalid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to mask all invalid spectral data.</span>
+<span class="sd">            Invalid values are: NaN, Inf, -Inf</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">integritycheck</span><span class="p">():</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;  Masking operation not performed.&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_spec</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mask</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">mask</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Spectrum.integritycheck"><a class="viewcode-back" href="../../../module/admit.util/Spectrum.html#admit.util.Spectrum.Spectrum.integritycheck">[docs]</a>    <span class="k">def</span> <span class="nf">integritycheck</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to check that all axes are the same length. Axes</span>
+<span class="sd">            that have no data are ignored.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            Bool, True if all match, False if there is an inconsistency</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_spec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ls</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_spec</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ls</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_freq</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">lf</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_freq</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">lf</span> <span class="o">=</span> <span class="n">ls</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chans</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">lc</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_chans</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">lc</span> <span class="o">=</span> <span class="n">ls</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">lm</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mask</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">lm</span> <span class="o">=</span> <span class="n">ls</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_contin</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">lco</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_contin</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">lco</span> <span class="o">=</span> <span class="n">ls</span>
+        <span class="k">if</span> <span class="n">ls</span> <span class="o">==</span> <span class="n">lf</span> <span class="o">==</span> <span class="n">lc</span> <span class="o">==</span> <span class="n">lm</span> <span class="o">==</span> <span class="n">lco</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Inconsistent axes: spectrum: </span><span class="si">%i</span><span class="s2">, freq: </span><span class="si">%i</span><span class="s2">, chans: </span><span class="si">%i</span><span class="s2">, mask: </span><span class="si">%i</span><span class="s2">, contin: </span><span class="si">%i</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ls</span><span class="p">,</span> <span class="n">lf</span><span class="p">,</span> <span class="n">lc</span><span class="p">,</span> <span class="n">lm</span><span class="p">,</span> <span class="n">lco</span><span class="p">))</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+    <span class="k">def</span> <span class="nf">_sanitizechanrange</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">chanrange</span><span class="p">,</span><span class="n">chupper</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">chanrange</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+           <span class="n">chanrange</span> <span class="o">=</span> <span class="p">[</span> <span class="mi">0</span><span class="p">,</span> <span class="n">chupper</span> <span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+           <span class="k">if</span> <span class="n">chanrange</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">chanrange</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">chupper</span> <span class="ow">or</span> <span class="n">chanrange</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">chanrange</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">chupper</span><span class="p">:</span>
+              <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Bad input channel range </span><span class="si">%s</span><span class="s2">. Available range is [0,</span><span class="si">%d</span><span class="s2">]&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">chanrange</span><span class="p">,</span><span class="n">chupper</span><span class="p">)</span>
+              <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">msg</span>
+        <span class="k">return</span> <span class="n">chanrange</span>
+
+<div class="viewcode-block" id="Spectrum.momenti"><a class="viewcode-back" href="../../../module/admit.util/Spectrum.html#admit.util.Spectrum.Spectrum.momenti">[docs]</a>    <span class="k">def</span> <span class="nf">momenti</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">chanrange</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">p</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Intensity-weighted moment</span>
+<span class="sd">           Note this moment does poorly for very narrow line segments where</span>
+<span class="sd">           some channels may be negative.&quot;</span>
+
+<span class="sd">           Parameters</span>
+<span class="sd">           ----------</span>
+<span class="sd">           chanrange: range of channels over which to compute moment</span>
+<span class="sd">                      [startchan, endchan]</span>
+<span class="sd">           p:         the moment to compute (the power of the frequency in the sum)</span>
+<span class="sd"> </span>
+<span class="sd">           Returns:</span>
+<span class="sd">             The computed moment</span>
+<span class="sd">         &quot;&quot;&quot;</span>
+        <span class="c1"># get the masked array</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">()</span>
+        <span class="n">chupper</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span>
+        <span class="n">chanrange</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sanitizechanrange</span><span class="p">(</span><span class="n">chanrange</span><span class="p">,</span><span class="n">chupper</span><span class="p">)</span>
+        <span class="n">sum_s</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="n">chanrange</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span><span class="n">chanrange</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">sum_sf</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">mean</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">p</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+           <span class="n">mean</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">moment</span><span class="p">(</span><span class="n">chanrange</span><span class="p">,</span><span class="n">p</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">chanrange</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">chanrange</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+           <span class="n">sum_sf</span> <span class="o">+=</span> <span class="n">s</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_freq</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="n">mean</span><span class="p">),</span><span class="n">p</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sum_sf</span><span class="o">/</span><span class="n">sum_s</span></div>
+
+<div class="viewcode-block" id="Spectrum.momenta"><a class="viewcode-back" href="../../../module/admit.util/Spectrum.html#admit.util.Spectrum.Spectrum.momenta">[docs]</a>    <span class="k">def</span> <span class="nf">momenta</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">chanrange</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">p</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;abs(intensity)-weighted moment</span>
+<span class="sd">           Does somewhat better than signed intensity-weighted moment.</span>
+
+<span class="sd">           Parameters</span>
+<span class="sd">           ----------</span>
+<span class="sd">           chanrange: range of channels over which to compute moment</span>
+<span class="sd">                      [startchan, endchan]</span>
+<span class="sd">           p:         the moment to compute (the power of the frequency in the sum)</span>
+<span class="sd"> </span>
+<span class="sd">           Returns:</span>
+<span class="sd">             The computed moment</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># get the masked array</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">()</span>
+        <span class="n">chupper</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span>
+        <span class="n">chanrange</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sanitizechanrange</span><span class="p">(</span><span class="n">chanrange</span><span class="p">,</span><span class="n">chupper</span><span class="p">)</span>
+        <span class="n">sum_s</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">ma</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="n">chanrange</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span><span class="n">chanrange</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="n">sum_sf</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">mean</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">p</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+           <span class="n">mean</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">moment</span><span class="p">(</span><span class="n">chanrange</span><span class="p">,</span><span class="n">p</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">chanrange</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">chanrange</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+           <span class="n">sum_sf</span> <span class="o">+=</span> <span class="n">ma</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_freq</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="n">mean</span><span class="p">),</span><span class="n">p</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sum_sf</span><span class="o">/</span><span class="n">sum_s</span></div>
+
+<div class="viewcode-block" id="Spectrum.moment"><a class="viewcode-back" href="../../../module/admit.util/Spectrum.html#admit.util.Spectrum.Spectrum.moment">[docs]</a>    <span class="k">def</span> <span class="nf">moment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">chanrange</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">p</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute the power-weighted moment of a spectrum</span>
+<span class="sd">           If a mask exists, this function operates on the masked spectrum.</span>
+
+<span class="sd">               f_mean = Sum(spec[i]**2*(f[i]-mom{p-1})^p])/Sum(spec[i]**2)</span>
+
+<span class="sd">           where spec[i] is the intensity at channel i (spec[i]**2 is he power) </span>
+<span class="sd">           and f[i] is the frequency at channel i, p is the moment power,</span>
+<span class="sd">           and mom{p-1} is the p-1-th moment [for p &gt;1].</span>
+
+<span class="sd">           Parameters</span>
+<span class="sd">           ----------</span>
+<span class="sd">           chanrange: range of channels over which to compute moment</span>
+<span class="sd">                      [startchan, endchan]</span>
+<span class="sd">           p:         the moment to compute (the power of the frequency in the sum)</span>
+<span class="sd"> </span>
+<span class="sd">           Returns:</span>
+<span class="sd">             The computed moment</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># get the masked array</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">()</span>
+        <span class="n">chupper</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span>
+        <span class="n">chanrange</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sanitizechanrange</span><span class="p">(</span><span class="n">chanrange</span><span class="p">,</span><span class="n">chupper</span><span class="p">)</span>
+        <span class="n">sum_s</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="n">chanrange</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span><span class="n">chanrange</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">s</span><span class="p">[</span><span class="n">chanrange</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span><span class="n">chanrange</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">sum_sf</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">mean</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">p</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+           <span class="n">mean</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">moment</span><span class="p">(</span><span class="n">chanrange</span><span class="p">,</span><span class="n">p</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">chanrange</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">chanrange</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+           <span class="n">sum_sf</span> <span class="o">+=</span> <span class="n">s</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">s</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_freq</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="n">mean</span><span class="p">),</span><span class="n">p</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sum_sf</span><span class="o">/</span><span class="n">sum_s</span></div>
+ 
+<div class="viewcode-block" id="Spectrum.meanfrequency"><a class="viewcode-back" href="../../../module/admit.util/Spectrum.html#admit.util.Spectrum.Spectrum.meanfrequency">[docs]</a>    <span class="k">def</span> <span class="nf">meanfrequency</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">chanrange</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute the power-weighted mean frequency of this spectrum, </span>
+<span class="sd">           aka the first moment.</span>
+<span class="sd">           If a channel range is given, the mean frequency is computed</span>
+<span class="sd">           over that channel range, otherwise over the entire spectrum.</span>
+<span class="sd">           If a mask exists, this function operates on the masked spectrum.</span>
+
+<span class="sd">           Parameters</span>
+<span class="sd">           ----------</span>
+<span class="sd">           chanrange: range of channels over which to compute frequency</span>
+<span class="sd">                      [startchan, endchan]</span>
+
+<span class="sd">           Returns</span>
+<span class="sd">           -------</span>
+<span class="sd">           Power-weighted mean frequency as computed by</span>
+
+<span class="sd">               f_mean = Sum(spec[i]**2*f[i]])/Sum(spec[i]**2)</span>
+
+<span class="sd">           where spec[i] is the intensity at channel i and f[i] is</span>
+<span class="sd">           the frequency at channel i.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">moment</span><span class="p">(</span><span class="n">chanrange</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Spectrum.meanvelocity"><a class="viewcode-back" href="../../../module/admit.util/Spectrum.html#admit.util.Spectrum.Spectrum.meanvelocity">[docs]</a>    <span class="k">def</span> <span class="nf">meanvelocity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">chanrange</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute the power-weighted mean velocity of this spectrum. </span>
+<span class="sd">           derived from the mean frequency and channel width:</span>
+
+<span class="sd">             mean_v = C * delta()/meanfrequency(chanrange)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">mf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">meanfrequency</span><span class="p">(</span><span class="n">chanrange</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">moment</span><span class="p">(</span><span class="n">chanrange</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">utils</span><span class="o">.</span><span class="n">freqtovel</span><span class="p">(</span><span class="n">mf</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">delta</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="Spectrum.freqdispersion"><a class="viewcode-back" href="../../../module/admit.util/Spectrum.html#admit.util.Spectrum.Spectrum.freqdispersion">[docs]</a>    <span class="k">def</span> <span class="nf">freqdispersion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">chanrange</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute the frequency dispersion of the spectrum in the given</span>
+<span class="sd">           channel range.</span>
+<span class="sd">           If a mask exists, this function operates on the masked spectrum.</span>
+<span class="sd">   </span>
+<span class="sd">           Parameters</span>
+<span class="sd">           ----------</span>
+<span class="sd">           chanrange: range of channels over which to compute dispersion</span>
+<span class="sd">                      [startchan, endchan]</span>
+<span class="sd">   </span>
+<span class="sd">           Returns</span>
+<span class="sd">           -------</span>
+<span class="sd">           Power-weighted frequency dispersion df as computed by</span>
+<span class="sd">   </span>
+<span class="sd">               df = sqrt(mom2)</span>
+<span class="sd">   </span>
+<span class="sd">           where mom2 is the 2nd moment as computed by the moment() method.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#MWP: I don&#39;t understand why I need an extra factor of sqrt(2) here</span>
+        <span class="c1"># when using power spectrum weighting in moment()!</span>
+        <span class="k">return</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">moment</span><span class="p">(</span><span class="n">chanrange</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="Spectrum.veldispersion"><a class="viewcode-back" href="../../../module/admit.util/Spectrum.html#admit.util.Spectrum.Spectrum.veldispersion">[docs]</a>    <span class="k">def</span> <span class="nf">veldispersion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">chanrange</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute the velocity dispersion (km/s) of the spectrum in the given</span>
+<span class="sd">           channel range.</span>
+<span class="sd">           If a mask exists, this function operates on the masked spectrum.</span>
+<span class="sd">  </span>
+<span class="sd">           Parameters</span>
+<span class="sd">           ----------</span>
+<span class="sd">           chanrange: range of channels over which to compute dispersion</span>
+<span class="sd">                      [startchan, endchan]</span>
+<span class="sd">  </span>
+<span class="sd">           Returns</span>
+<span class="sd">           -------</span>
+<span class="sd">           Power-weighted velocity dv as computed by</span>
+
+<span class="sd">  </span>
+<span class="sd">             dv = C * df/mf</span>
+<span class="sd">  </span>
+<span class="sd">           where df is the frequency dispersion computered by</span>
+<span class="sd">           the frequencydispersion() method,</span>
+<span class="sd">           mf is the mean frequency from the meanfrequency() method, </span>
+<span class="sd">           and C is the speed of light.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">mf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">meanfrequency</span><span class="p">(</span><span class="n">chanrange</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">utils</span><span class="o">.</span><span class="n">freqtovel</span><span class="p">(</span><span class="n">mf</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">freqdispersion</span><span class="p">(</span><span class="n">chanrange</span><span class="p">))</span></div>
+  
+<div class="viewcode-block" id="Spectrum.fwhm"><a class="viewcode-back" href="../../../module/admit.util/Spectrum.html#admit.util.Spectrum.Spectrum.fwhm">[docs]</a>    <span class="k">def</span> <span class="nf">fwhm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">chanrange</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute the full-width at half-maximum velocity (km/s).</span>
+<span class="sd">           If a mask exists, this function operates on the masked spectrum.</span>
+<span class="sd">  </span>
+<span class="sd">           Parameters</span>
+<span class="sd">           ----------</span>
+<span class="sd">           chanrange: range of channels over which to compute dispersion</span>
+<span class="sd">                      [startchan, endchan]</span>
+<span class="sd">  </span>
+<span class="sd">           Returns</span>
+<span class="sd">           -------</span>
+<span class="sd">           fwhm computed by</span>
+<span class="sd">  </span>
+<span class="sd">               fwhm = dv * sqrt(8*ln(2))</span>
+<span class="sd">  </span>
+<span class="sd">           where dv is the velocity dispersion computered by</span>
+<span class="sd">           the veldispersion() method.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">veldispersion</span><span class="p">(</span><span class="n">chanrange</span><span class="p">)</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">8</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Spectrum.peak"><a class="viewcode-back" href="../../../module/admit.util/Spectrum.html#admit.util.Spectrum.Spectrum.peak">[docs]</a>    <span class="k">def</span> <span class="nf">peak</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">chanrange</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the peak intensity in the given channel range</span>
+<span class="sd">           If a mask exists, this function operates on the masked spectrum.</span>
+
+<span class="sd">           Parameters</span>
+<span class="sd">           ----------</span>
+<span class="sd">           chanrange: range of channels over which to compute dispersion</span>
+<span class="sd">                      [startchan, endchan]</span>
+
+<span class="sd">           Returns</span>
+<span class="sd">           ----------</span>
+<span class="sd">           Maximum of the absolute value of the spectrum in the channel range</span>
+<span class="sd">                     max(abs(spectrum[startchan:endchan]))</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">()</span>
+        <span class="n">chupper</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span>
+        <span class="n">chanrange</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sanitizechanrange</span><span class="p">(</span><span class="n">chanrange</span><span class="p">,</span><span class="n">chupper</span><span class="p">)</span>
+
+        <span class="c1"># Handle one-channel ranges.</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">chanrange</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">chanrange</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+           <span class="k">return</span> <span class="n">s</span><span class="p">[</span><span class="n">chanrange</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+
+        <span class="k">return</span> <span class="n">ma</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">ma</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="n">chanrange</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span><span class="n">chanrange</span><span class="p">[</span><span class="mi">1</span><span class="p">]]))</span></div>
+
+<div class="viewcode-block" id="Spectrum.invert"><a class="viewcode-back" href="../../../module/admit.util/Spectrum.html#admit.util.Spectrum.Spectrum.invert">[docs]</a>    <span class="k">def</span> <span class="nf">invert</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Multiply this spectrum and continuum by -1 </span>
+
+<span class="sd">           Parameters</span>
+<span class="sd">           ----------</span>
+<span class="sd">           None</span>
+
+<span class="sd">           Returns</span>
+<span class="sd">           ----------</span>
+<span class="sd">           None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_spec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_spec</span> <span class="o">*=</span> <span class="o">-</span><span class="mf">1.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_contin</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_contin</span> <span class="o">*=</span> <span class="o">-</span><span class="mf">1.</span></div></div>
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

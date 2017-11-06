@@ -1,0 +1,384 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>AdmitHTTP — Data browser services module. &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../index.html" />
+    <link rel="up" title="Python Scripting Interface (API)" href="../../api.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" accesskey="U">Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-admit.util.AdmitHTTP"></span><div class="section" id="admithttp-data-browser-services-module">
+<h1><strong>AdmitHTTP</strong> &#8212; Data browser services module.<a class="headerlink" href="#admithttp-data-browser-services-module" title="Permalink to this headline">¶</a></h1>
+<p>This module defines the classes needed to serve ADMIT data
+to the data browser on a localhost port.   These classes are
+subclasses of those provided in the Python library BaseHTTPServer
+module.</p>
+<dl class="class">
+<dt id="admit.util.AdmitHTTP.AdmitHTTPServer">
+<em class="property">class </em><code class="descclassname">admit.util.AdmitHTTP.</code><code class="descname">AdmitHTTPServer</code><span class="sig-paren">(</span><em>server_address</em>, <em>docroot</em>, <em>postcallback</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/AdmitHTTP.html#AdmitHTTPServer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.AdmitHTTP.AdmitHTTPServer" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>This class is identical to BaseHTTPServer.HTTPServer except</dt>
+<dd><ol class="first last arabic simple">
+<li>It defines a fixed document root instead of using the current
+working directory.</li>
+<li>The handler class is fixed to be AdmitHTTPRequestHandler.</li>
+</ol>
+</dd>
+</dl>
+<p>This is accomplished by overriding the constructor and
+BaseServer.finish_request().</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>server_address</strong> : tuple</p>
+<blockquote>
+<div><p>The address on which the server is listening.  This is a tuple
+containing a string giving the address, and an integer port
+number: (&#8216;127.0.0.1&#8217;, 80), for example.</p>
+</div></blockquote>
+<p><strong>docroot</strong> : string</p>
+<blockquote>
+<div><p>The document root directory for the local data web server.  Requests
+will be served out of this directory. ** todo: possibly make
+this always localhost**</p>
+</div></blockquote>
+<p><strong>postcallback</strong> : function</p>
+<blockquote class="last">
+<div><p>The external function to call when handling a POST.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="11%" />
+<col width="89%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>_documentRoot</td>
+<td>(string) The document root directory for the web server.  Requests will be served out of this directory.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">close_request</span></code>(request)</td>
+<td>Called to clean up an individual request.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">fileno</span></code>()</td>
+<td>Return socket file number.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.AdmitHTTP.AdmitHTTPServer.finish_request" title="admit.util.AdmitHTTP.AdmitHTTPServer.finish_request"><code class="xref py py-obj docutils literal"><span class="pre">finish_request</span></code></a>(request,&nbsp;client_address)</td>
+<td>Finish one http request by instantiating RequestHandlerClass.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">get_request</span></code>()</td>
+<td>Get the request and client address from the socket.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">handle_error</span></code>(request,&nbsp;client_address)</td>
+<td>Handle an error gracefully.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">handle_request</span></code>()</td>
+<td>Handle one request, possibly blocking.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">handle_timeout</span></code>()</td>
+<td>Called if no new request arrives within self.timeout.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">process_request</span></code>(request,&nbsp;client_address)</td>
+<td>Call finish_request.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">serve_forever</span></code>([poll_interval])</td>
+<td>Handle one request at a time until shutdown.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">server_activate</span></code>()</td>
+<td>Called by constructor to activate the server.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">server_bind</span></code>()</td>
+<td>Override server_bind to store the server name.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">server_close</span></code>()</td>
+<td>Called to clean-up the server.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">shutdown</span></code>()</td>
+<td>Stops the serve_forever loop.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">shutdown_request</span></code>(request)</td>
+<td>Called to shutdown and close an individual request.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">verify_request</span></code>(request,&nbsp;client_address)</td>
+<td>Verify the request.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="admit.util.AdmitHTTP.AdmitHTTPServer.finish_request">
+<code class="descname">finish_request</code><span class="sig-paren">(</span><em>request</em>, <em>client_address</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/AdmitHTTP.html#AdmitHTTPServer.finish_request"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.AdmitHTTP.AdmitHTTPServer.finish_request" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finish one http request by instantiating RequestHandlerClass.
+Construction of the handler class calls the methods to process
+the request.
+<em>overrides:</em> <a class="reference external" href="https://docs.python.org/2/library/socketserver.html#SocketServer.BaseServer.finish_request">BaseServer.finish_request</a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="admit.util.AdmitHTTP.AdmitHTTPRequestHandler">
+<em class="property">class </em><code class="descclassname">admit.util.AdmitHTTP.</code><code class="descname">AdmitHTTPRequestHandler</code><span class="sig-paren">(</span><em>request</em>, <em>client_address</em>, <em>docroot</em>, <em>postcallback</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/AdmitHTTP.html#AdmitHTTPRequestHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.AdmitHTTP.AdmitHTTPRequestHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>And HTTP request handler that allows a fixed document root.
+Python&#8217;s SimpleHTTPRequestHandler always uses the current
+working directory which is stored globally. Therefore,
+SimpleHTTPRequestHandler cannot be used to spawn off
+http servers in separate threads because they will
+overwrite each other&#8217;s working directories.</p>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="41%" />
+<col width="59%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>timeout</td>
+<td>&nbsp;</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">MessageClass</span></code></td>
+<td>alias of <code class="xref py py-class docutils literal"><span class="pre">Message</span></code></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">address_string</span></code>()</td>
+<td>Return the client address formatted for logging.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">copyfile</span></code>(source,&nbsp;outputfile)</td>
+<td>Copy all data between two file objects.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">date_time_string</span></code>([timestamp])</td>
+<td>Return the current date and time formatted for a message header.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">do_GET</span></code>()</td>
+<td>Serve a GET request.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">do_HEAD</span></code>()</td>
+<td>Serve a HEAD request.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.AdmitHTTP.AdmitHTTPRequestHandler.do_OPTIONS" title="admit.util.AdmitHTTP.AdmitHTTPRequestHandler.do_OPTIONS"><code class="xref py py-obj docutils literal"><span class="pre">do_OPTIONS</span></code></a>()</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.AdmitHTTP.AdmitHTTPRequestHandler.do_POST" title="admit.util.AdmitHTTP.AdmitHTTPRequestHandler.do_POST"><code class="xref py py-obj docutils literal"><span class="pre">do_POST</span></code></a>()</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">end_headers</span></code>()</td>
+<td>Send the blank line ending the MIME headers.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">finish</span></code>()</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">guess_type</span></code>(path)</td>
+<td>Guess the type of a file.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">handle</span></code>()</td>
+<td>Handle multiple requests if necessary.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.AdmitHTTP.AdmitHTTPRequestHandler.handle_error" title="admit.util.AdmitHTTP.AdmitHTTPRequestHandler.handle_error"><code class="xref py py-obj docutils literal"><span class="pre">handle_error</span></code></a>(request,&nbsp;client_address)</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">handle_one_request</span></code>()</td>
+<td>Handle a single HTTP request.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.AdmitHTTP.AdmitHTTPRequestHandler.isFirefox" title="admit.util.AdmitHTTP.AdmitHTTPRequestHandler.isFirefox"><code class="xref py py-obj docutils literal"><span class="pre">isFirefox</span></code></a>()</td>
+<td>Attempt to detect the Firefox browser.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.AdmitHTTP.AdmitHTTPRequestHandler.is_broken_pipe_error" title="admit.util.AdmitHTTP.AdmitHTTPRequestHandler.is_broken_pipe_error"><code class="xref py py-obj docutils literal"><span class="pre">is_broken_pipe_error</span></code></a>()</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">list_directory</span></code>(path)</td>
+<td>Helper to produce a directory listing (absent index.html).</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">log_date_time_string</span></code>()</td>
+<td>Return the current time formatted for logging.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">log_error</span></code>(format,&nbsp;\*args)</td>
+<td>Log an error.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.AdmitHTTP.AdmitHTTPRequestHandler.log_message" title="admit.util.AdmitHTTP.AdmitHTTPRequestHandler.log_message"><code class="xref py py-obj docutils literal"><span class="pre">log_message</span></code></a>(format,&nbsp;\*args)</td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">log_request</span></code>([code,&nbsp;size])</td>
+<td>Log an accepted request.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">parse_request</span></code>()</td>
+<td>Parse a request (internal).</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">send_error</span></code>(code[,&nbsp;message])</td>
+<td>Send and log an error reply.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">send_head</span></code>()</td>
+<td>Common code for GET and HEAD commands.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">send_header</span></code>(keyword,&nbsp;value)</td>
+<td>Send a MIME header.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">send_response</span></code>(code[,&nbsp;message])</td>
+<td>Send the response header and log the response code.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">setup</span></code>()</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.AdmitHTTP.AdmitHTTPRequestHandler.translate_path" title="admit.util.AdmitHTTP.AdmitHTTPRequestHandler.translate_path"><code class="xref py py-obj docutils literal"><span class="pre">translate_path</span></code></a>(path)</td>
+<td>Translate a /-separated PATH to the local filename syntax.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">version_string</span></code>()</td>
+<td>Return the server software version string.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="admit.util.AdmitHTTP.AdmitHTTPRequestHandler.do_OPTIONS">
+<code class="descname">do_OPTIONS</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/AdmitHTTP.html#AdmitHTTPRequestHandler.do_OPTIONS"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.AdmitHTTP.AdmitHTTPRequestHandler.do_OPTIONS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="admit.util.AdmitHTTP.AdmitHTTPRequestHandler.do_POST">
+<code class="descname">do_POST</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/AdmitHTTP.html#AdmitHTTPRequestHandler.do_POST"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.AdmitHTTP.AdmitHTTPRequestHandler.do_POST" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="admit.util.AdmitHTTP.AdmitHTTPRequestHandler.handle_error">
+<code class="descname">handle_error</code><span class="sig-paren">(</span><em>request</em>, <em>client_address</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/AdmitHTTP.html#AdmitHTTPRequestHandler.handle_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.AdmitHTTP.AdmitHTTPRequestHandler.handle_error" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="admit.util.AdmitHTTP.AdmitHTTPRequestHandler.isFirefox">
+<code class="descname">isFirefox</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/AdmitHTTP.html#AdmitHTTPRequestHandler.isFirefox"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.AdmitHTTP.AdmitHTTPRequestHandler.isFirefox" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attempt to detect the Firefox browser. This is because Firefox does
+funny things and we have to workaround it.
+Return True if the user-agent header contains the string &#8216;firefox&#8217;  
+(case insensitive)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.AdmitHTTP.AdmitHTTPRequestHandler.is_broken_pipe_error">
+<code class="descname">is_broken_pipe_error</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/AdmitHTTP.html#AdmitHTTPRequestHandler.is_broken_pipe_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.AdmitHTTP.AdmitHTTPRequestHandler.is_broken_pipe_error" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="admit.util.AdmitHTTP.AdmitHTTPRequestHandler.log_message">
+<code class="descname">log_message</code><span class="sig-paren">(</span><em>format</em>, <em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/AdmitHTTP.html#AdmitHTTPRequestHandler.log_message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.AdmitHTTP.AdmitHTTPRequestHandler.log_message" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="admit.util.AdmitHTTP.AdmitHTTPRequestHandler.translate_path">
+<code class="descname">translate_path</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/AdmitHTTP.html#AdmitHTTPRequestHandler.translate_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.AdmitHTTP.AdmitHTTPRequestHandler.translate_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Translate a /-separated PATH to the local filename syntax.
+Components that mean special things to the local file system
+(e.g. drive or directory names) are ignored.
+This method is identical to SimpleHTTPRequestHandler.translate_path()
+except it uses the locally stored document root instead of the current
+working directory.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/module/admit.util/AdmitHTTP.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" >Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,277 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>PeakDetect — Peak detection of peaks and valleys. &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../index.html" />
+    <link rel="up" title="Python Scripting Interface (API)" href="../../api.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" accesskey="U">Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-admit.util.peakfinder.PeakDetect"></span><div class="section" id="peakdetect-peak-detection-of-peaks-and-valleys">
+<span id="peakdetect"></span><h1>PeakDetect &#8212; Peak detection of peaks and valleys.<a class="headerlink" href="#peakdetect-peak-detection-of-peaks-and-valleys" title="Permalink to this headline">¶</a></h1>
+<p>This module defines a peak detection utility that looks for local 
+maxima and minima.  It is based on code by Marcos Duarte,
+<a class="reference external" href="https://github.com/demotu/BMC">https://github.com/demotu/BMC</a>.</p>
+<dl class="class">
+<dt id="admit.util.peakfinder.PeakDetect.PeakDetect">
+<em class="property">class </em><code class="descclassname">admit.util.peakfinder.PeakDetect.</code><code class="descname">PeakDetect</code><span class="sig-paren">(</span><em>spec</em>, <em>x=None</em>, <em>**kwarg</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/peakfinder/PeakDetect.html#PeakDetect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.peakfinder.PeakDetect.PeakDetect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Detect peaks in data based on their amplitude and other features.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>spec</strong> : 1D array_like</p>
+<blockquote>
+<div><p>The input spectra to search for peaks.</p>
+</div></blockquote>
+<p><strong>x</strong> : 1D array_like</p>
+<blockquote>
+<div><p>The x co-ordinates for the spectrum (optional).
+Default: None.</p>
+</div></blockquote>
+<p><strong>kwarg</strong> : Dict</p>
+<blockquote class="last">
+<div><p>Any additional arguments, see the Attributes list for a complete
+listing.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">admit.util.peakfinder.PeakDetect</span> <span class="kn">import</span> <span class="n">PeakDetect</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">x</span><span class="p">[</span><span class="mi">60</span><span class="p">:</span><span class="mi">81</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+<span class="c1"># detect all peaks</span>
+<span class="n">pd</span> <span class="o">=</span> <span class="n">PeakDetect</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="n">ind</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">find</span><span class="p">()</span>
+<span class="k">print</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="mi">5</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">200</span><span class="p">))</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">200</span><span class="p">)</span><span class="o">/</span><span class="mi">5</span>
+<span class="c1"># set minimum peak height = 0 and minimum peak distance = 20</span>
+<span class="n">pd</span> <span class="o">=</span> <span class="n">PeakDetect</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">min_sep</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">thresh</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">ind</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">find</span><span class="p">()</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+<span class="c1"># set minimum peak distance = 2</span>
+<span class="n">pd</span> <span class="o">=</span> <span class="n">PeakDetect</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">min_sep</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">ind</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">find</span><span class="p">()</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+<span class="c1"># detect both edges</span>
+<span class="n">pd</span> <span class="o">=</span> <span class="n">PeakDetect</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">edge</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">)</span>
+<span class="n">ind</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">find</span><span class="p">()</span>
+</pre></div>
+</div>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="4%" />
+<col width="96%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>spec</td>
+<td>(1D array_like) The input spectra to search for peaks.</td>
+</tr>
+<tr class="row-even"><td>x</td>
+<td>(1D array_like) The x co-ordinates for the spectrum (optional) Default: None.</td>
+</tr>
+<tr class="row-odd"><td>thresh</td>
+<td>(float) Detect peaks that are greater than minimum peak height. Default: 0.0.</td>
+</tr>
+<tr class="row-even"><td>min_sep</td>
+<td>(int) Detect peaks that are at least separated by minimum peak distance, in number of channels. Default : 5.</td>
+</tr>
+<tr class="row-odd"><td>edge</td>
+<td>(str) One of &#8216;rising&#8217;, &#8216;falling&#8217;, or &#8216;both&#8217;, optional. For a flat peak, keep only the rising edge (&#8216;rising&#8217;), only the falling edge (&#8216;falling&#8217;), both edges (&#8216;both&#8217;). Default : &#8216;rising&#8217;.</td>
+</tr>
+<tr class="row-even"><td>kpsh</td>
+<td>(bool) Keep peaks with same height even if they are closer than <cite>min_sep</cite>, optional. Default: False.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.peakfinder.PeakDetect.PeakDetect.detect_peaks" title="admit.util.peakfinder.PeakDetect.PeakDetect.detect_peaks"><code class="xref py py-obj docutils literal"><span class="pre">detect_peaks</span></code></a>(spec[,&nbsp;valley])</td>
+<td>Detects peaks.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.peakfinder.PeakDetect.PeakDetect.find" title="admit.util.peakfinder.PeakDetect.PeakDetect.find"><code class="xref py py-obj docutils literal"><span class="pre">find</span></code></a>()</td>
+<td>Method to locate peaks in an input spectrum</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="admit.util.peakfinder.PeakDetect.PeakDetect.detect_peaks">
+<code class="descname">detect_peaks</code><span class="sig-paren">(</span><em>spec</em>, <em>valley=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/peakfinder/PeakDetect.html#PeakDetect.detect_peaks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.peakfinder.PeakDetect.PeakDetect.detect_peaks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Detects peaks.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>spec</strong> : 1D array</p>
+<blockquote>
+<div><p>The specrum to analyze.</p>
+</div></blockquote>
+<p><strong>valley</strong> : bool</p>
+<blockquote>
+<div><p>Whether to search for peaks (positive) or valleys (negative).
+Default: False</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">1D array_like</p>
+<blockquote class="last">
+<div><p>indeces of the peaks in <cite>spec</cite>.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>The detection of valleys instead of peaks is performed internally by simply
+negating the data: <cite>ind_valleys = detect_peaks(-x)</cite></p>
+<p>The function can handle NaN&#8217;s</p>
+<p>See this IPython Notebook <a class="reference internal" href="#r5" id="id1">[R5]</a>.</p>
+<p class="rubric">References</p>
+<table class="docutils citation" frame="void" id="r5" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label">[R5]</td><td><em>(<a class="fn-backref" href="#id1">1</a>, <a class="fn-backref" href="#id2">2</a>)</em> <a class="reference external" href="http://nbviewer.ipython.org/github/demotu/BMC/blob/master/notebooks/DetectPeaks.ipynb">http://nbviewer.ipython.org/github/demotu/BMC/blob/master/notebooks/DetectPeaks.ipynb</a></td></tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="admit.util.peakfinder.PeakDetect.PeakDetect.edge">
+<code class="descname">edge</code><em class="property"> = 'rising'</em><a class="headerlink" href="#admit.util.peakfinder.PeakDetect.PeakDetect.edge" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="admit.util.peakfinder.PeakDetect.PeakDetect.find">
+<code class="descname">find</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/peakfinder/PeakDetect.html#PeakDetect.find"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.peakfinder.PeakDetect.PeakDetect.find" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to locate peaks in an input spectrum</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Numpy array containing the located peaks</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="admit.util.peakfinder.PeakDetect.PeakDetect.kpsh">
+<code class="descname">kpsh</code><em class="property"> = False</em><a class="headerlink" href="#admit.util.peakfinder.PeakDetect.PeakDetect.kpsh" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="admit.util.peakfinder.PeakDetect.PeakDetect.min_sep">
+<code class="descname">min_sep</code><em class="property"> = 5</em><a class="headerlink" href="#admit.util.peakfinder.PeakDetect.PeakDetect.min_sep" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="admit.util.peakfinder.PeakDetect.PeakDetect.thresh">
+<code class="descname">thresh</code><em class="property"> = 0.0</em><a class="headerlink" href="#admit.util.peakfinder.PeakDetect.PeakDetect.thresh" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/module/admit.util.peakfinder/PeakDetect.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" >Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

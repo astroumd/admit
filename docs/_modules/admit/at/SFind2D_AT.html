@@ -1,0 +1,541 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.at.SFind2D_AT &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.at.SFind2D_AT</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; .. _SFind2D-at-api:</span>
+
+<span class="sd">   **SFind2D_AT** --- Finds sources in a 2D map.</span>
+<span class="sd">   ---------------------------------------------</span>
+
+<span class="sd">   This module defines the SFind2D_AT class.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">admit.AT</span> <span class="k">import</span> <span class="n">AT</span>
+<span class="kn">from</span> <span class="nn">admit.Summary</span> <span class="k">import</span> <span class="n">SummaryEntry</span>
+<span class="kn">from</span> <span class="nn">admit.util</span> <span class="k">import</span> <span class="n">APlot</span>
+<span class="kn">import</span> <span class="nn">admit.util.bdp_types</span> <span class="k">as</span> <span class="nn">bt</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.SourceList_BDP</span> <span class="k">import</span> <span class="n">SourceList_BDP</span>
+<span class="kn">import</span> <span class="nn">admit.util.casautil</span> <span class="k">as</span> <span class="nn">casautil</span>
+<span class="kn">import</span> <span class="nn">admit.util.Image</span> <span class="k">as</span> <span class="nn">Image</span>
+<span class="kn">import</span> <span class="nn">admit.util.Line</span> <span class="k">as</span> <span class="nn">Line</span>
+<span class="kn">import</span> <span class="nn">admit.util.ImPlot</span> <span class="k">as</span> <span class="nn">ImPlot</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.Image_BDP</span> <span class="k">import</span> <span class="n">Image_BDP</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.CubeStats_BDP</span> <span class="k">import</span> <span class="n">CubeStats_BDP</span>
+<span class="kn">import</span> <span class="nn">admit.util.utils</span> <span class="k">as</span> <span class="nn">utils</span>
+<span class="kn">from</span> <span class="nn">admit.util.AdmitLogging</span> <span class="k">import</span> <span class="n">AdmitLogging</span> <span class="k">as</span> <span class="n">logging</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy.ma</span> <span class="k">as</span> <span class="nn">ma</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
+
+<span class="kn">import</span> <span class="nn">types</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">casa</span>
+    <span class="kn">import</span> <span class="nn">taskinit</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="nb">print</span> <span class="s2">&quot;WARNING: No CASA; SFind2D task cannot function.&quot;</span>
+
+<div class="viewcode-block" id="SFind2D_AT"><a class="viewcode-back" href="../../../module/admit.at/SFind2D_AT.html#admit.at.SFind2D_AT.SFind2D_AT">[docs]</a><span class="k">class</span> <span class="nc">SFind2D_AT</span><span class="p">(</span><span class="n">AT</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Find sources in a 2-D map -- Sources are found based on peak flux density</span>
+<span class="sd">    (Jy/beam) and fitted with a Gaussian to determine source parameters. The</span>
+<span class="sd">    AT uses the CASA findsources task. The key words allow the cutoff level</span>
+<span class="sd">    for source discovery to be limited either by N times the RMS noise or by</span>
+<span class="sd">    a dynamic range. The latter is important when a strong source in the image</span>
+<span class="sd">    increases noise local to that source. SFind2d_AT can be used on continuum</span>
+<span class="sd">    maps, moment maps, or other 2-D images. It is likely to give poor fits</span>
+<span class="sd">    for sources that extend over many beams.</span>
+
+
+<span class="sd">    **Keywords**</span>
+
+<span class="sd">        **sigma**: float</span>
+<span class="sd">            The noise level to be used for calculating the cutoff value. </span>
+<span class="sd">            Negative value: the RMS is obtained from the CubeStats_BDP, if provided;</span>
+<span class="sd">            otherwise it is calculated via call to imstat using the region parameter.</span>
+<span class="sd">            Positive value: override **CubeStats**, the user provided value is utilized.</span>
+<span class="sd">            Default: -1.0.</span>
+
+<span class="sd">        **numsigma**: float</span>
+<span class="sd">            The lower cutoff level for source finder in terms of **sigma**.</span>
+<span class="sd">            Default: 6.0.</span>
+
+<span class="sd">        **robust**: list</span>
+<span class="sd">            A compound list keyword describing how robust statistics is used. By default</span>
+<span class="sd">            all data are used, with CASA&#39;s &quot;medabsdevmed&quot; (MAD) statistic as the robust noise</span>
+<span class="sd">            estimator. For normal (gaussian) noise, RMS = 1.4826 * MAD.</span>
+
+<span class="sd">            For more flexible noise statistics see **CASA::imstat** for a detailed background,</span>
+<span class="sd">            but the current valid algorithms and their optional additional arguments are:</span>
+
+<span class="sd">               &#39;classic&#39;,clmethod{&#39;auto&#39;,&#39;tiled&#39;,&#39;framework&#39;}</span>
+
+<span class="sd">               &#39;chauvenet&#39;,zscore[-1],maxiter[-1]</span>
+
+<span class="sd">               &#39;fit-half&#39;,center{&#39;mean&#39;,&#39;median&#39;,&#39;zero&#39;},lside{True,False}</span>
+
+<span class="sd">               &#39;hinges-fences&#39;,fence[-1]</span>
+
+<span class="sd">            Examples:    </span>
+
+<span class="sd">                robust=[&#39;classic&#39;,&#39;auto&#39;]</span>
+
+<span class="sd">                robust=[&#39;fit-half&#39;,&#39;zero&#39;]</span>
+
+<span class="sd">                robust=[&#39;hin&#39;,1.5]</span>
+
+<span class="sd">    </span>
+<span class="sd">            Used only if **sigma** is negative and there is no CubeStats_BDP given.</span>
+
+<span class="sd">        **snmax**: float</span>
+<span class="sd">            Maximum dynamic range between strongest source in map and **sigma** computed or provided.</span>
+<span class="sd">            Used to calculate a new **sigma** if the previously computed **sigma** implies a larger</span>
+<span class="sd">            dynamic range [(map max)/&quot;sigma&quot;] than requested here. </span>
+<span class="sd">            Negative  -- use the (nsgima * sigma) value for limiting flux density</span>
+<span class="sd">            Default: 35</span>
+
+<span class="sd">            Example:</span>
+
+<span class="sd">               snmax= 35.0  </span>
+
+<span class="sd">            Limits search to 1/35th brightness of max source in map -- good default</span>
+<span class="sd">            for pipeline ALMA images which have not been selfcaled.</span>
+
+<span class="sd">        **nmax**: int</span>
+<span class="sd">            Maximum sources that will be searched for in the map.</span>
+<span class="sd">            Default: 30</span>
+
+<span class="sd">        **region**: string</span>
+<span class="sd">            Region to search for sources. Format is CASA region specification.</span>
+<span class="sd">            Default: entire image.</span>
+
+<span class="sd">            Example:</span>
+
+<span class="sd">               region=&#39;box[[10pix,10pix],[200pix,200pix]]&#39;</span>
+
+<span class="sd">               region=&#39;circle[[19h58m52.7s,+40d42m06.04s ],30.0arcsec]&#39;</span>
+
+<span class="sd">        **zoom**: int</span>
+<span class="sd">          Image zoom ratio applied to the source map plot. This does not</span>
+<span class="sd">          affect the base (CASA) image itself. Default: 1.</span>
+
+<span class="sd">    **Input BDPs**</span>
+
+<span class="sd">        **SpwCube_BDP**: count: 1</span>
+<span class="sd">            Input 2-D map, typically from `Moment_AT &lt;Moment_AT.html&gt;`_.</span>
+<span class="sd">            Needs to be a noise-flat map. `Ingest_AT &lt;Ingest_AT.html&gt;`_</span>
+<span class="sd">            has the option for creating a noise-flat map from a primary beam</span>
+<span class="sd">            corrected map and a primary beam.</span>
+
+<span class="sd">        **CubeStats_BDP**: count: 1 (optional)</span>
+<span class="sd">            Output from `CubeStats_AT &lt;CubeStats_AT.html&gt;`_ executed on the</span>
+<span class="sd">            input image cube.  Optional, see description of **sigma** keyword.</span>
+
+<span class="sd">    **Output BDPs**</span>
+
+<span class="sd">        **SourceList_BDP**: count: 1</span>
+<span class="sd">            An image and table with source information, ordered by peak flux</span>
+<span class="sd">            density. Can be input to `CubeStats_AT &lt;CubeStats_AT.html&gt;`_</span>
+<span class="sd">            to produce spectra at each source position.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">        keyval : dictionary, optional</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">        _version : string</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">keyval</span><span class="p">):</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;numsigma&quot;</span> <span class="p">:</span> <span class="mf">6.0</span><span class="p">,</span>          <span class="c1"># default to 5 sigma</span>
+                <span class="s2">&quot;sigma&quot;</span>    <span class="p">:</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span>         <span class="c1"># default to grab sigma from CubeStats BDP</span>
+                <span class="s2">&quot;region&quot;</span>   <span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>           <span class="c1"># default to entire map</span>
+                <span class="s2">&quot;robust&quot;</span>   <span class="p">:</span> <span class="p">[</span><span class="s1">&#39;hin&#39;</span><span class="p">,</span><span class="mf">1.5</span><span class="p">],</span>  <span class="c1"># default to classic MAD</span>
+                <span class="s2">&quot;snmax&quot;</span>    <span class="p">:</span> <span class="mf">35.0</span><span class="p">,</span>         <span class="c1"># default to limit dynamic range to 100</span>
+                <span class="s2">&quot;nmax&quot;</span>     <span class="p">:</span> <span class="mi">30</span><span class="p">,</span>           <span class="c1"># default to limit max number of sources to 30</span>
+                <span class="s2">&quot;zoom&quot;</span>     <span class="p">:</span> <span class="mi">1</span><span class="p">,</span>            <span class="c1"># default map plot zoom ratio</span>
+               <span class="p">}</span>
+
+        <span class="n">AT</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">keys</span><span class="p">,</span><span class="n">keyval</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_version</span> <span class="o">=</span> <span class="s2">&quot;1.1.0&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_bdp_in</span><span class="p">([(</span><span class="n">Image_BDP</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="n">bt</span><span class="o">.</span><span class="n">OPTIONAL</span><span class="p">),</span>
+                         <span class="p">(</span><span class="n">CubeStats_BDP</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">bt</span><span class="o">.</span><span class="n">OPTIONAL</span><span class="p">)])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_bdp_out</span><span class="p">([(</span><span class="n">SourceList_BDP</span><span class="p">,</span> <span class="mi">1</span><span class="p">)])</span>
+
+<div class="viewcode-block" id="SFind2D_AT.summary"><a class="viewcode-back" href="../../../module/admit.at/SFind2D_AT.html#admit.at.SFind2D_AT.SFind2D_AT.summary">[docs]</a>    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the summary dictionary from the AT, for merging</span>
+<span class="sd">           into the ADMIT Summary object.</span>
+
+<span class="sd">           SFind2D_AT adds the following to ADMIT summary:</span>
+
+<span class="sd">           .. table::</span>
+<span class="sd">              :class: borderless</span>
+
+<span class="sd">              +----------+----------+-----------------------------------+</span>
+<span class="sd">              |   Key    | type     |    Description                    |</span>
+<span class="sd">              +==========+==========+===================================+</span>
+<span class="sd">              | sources  | table    |   table of source parameters      |</span>
+<span class="sd">              +----------+----------+-----------------------------------+</span>
+
+<span class="sd">           </span>
+<span class="sd">           Parameters</span>
+<span class="sd">           ----------</span>
+<span class="sd">           None</span>
+
+<span class="sd">           Returns</span>
+<span class="sd">           -------</span>
+<span class="sd">           dict</span>
+<span class="sd">               Dictionary of SummaryEntry</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;_summary&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{}</span></div>
+
+<div class="viewcode-block" id="SFind2D_AT.run"><a class="viewcode-back" href="../../../module/admit.at/SFind2D_AT.html#admit.at.SFind2D_AT.SFind2D_AT.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; The run method creates the BDP</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">Dtime</span><span class="p">(</span><span class="s2">&quot;SFind2D&quot;</span><span class="p">)</span>               <span class="c1"># tagging time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c1"># get key words that user input</span>
+        <span class="n">nsigma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;numsigma&quot;</span><span class="p">)</span>
+        <span class="n">sigma</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;sigma&quot;</span><span class="p">)</span>
+        <span class="n">region</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;region&quot;</span><span class="p">)</span>
+        <span class="n">robust</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;robust&quot;</span><span class="p">)</span>
+        <span class="n">snmax</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;snmax&quot;</span><span class="p">)</span>
+        <span class="n">nmax</span>   <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;nmax&quot;</span><span class="p">)</span>
+        <span class="n">ds9</span> <span class="o">=</span> <span class="kc">True</span>                                     <span class="c1"># writes a &quot;ds9.reg&quot; file</span>
+        <span class="n">mpl</span> <span class="o">=</span> <span class="kc">True</span>                                     <span class="c1"># aplot.map1() plot</span>
+        <span class="n">dynlog</span> <span class="o">=</span> <span class="mf">20.0</span>                                  <span class="c1"># above this value of dyn range finder chart is log I-scaled</span>
+        <span class="n">bpatch</span> <span class="o">=</span> <span class="kc">True</span>                                  <span class="c1"># patch units to Jy/beam for ia.findsources()</span>
+        
+        <span class="c1"># get the input casa image from bdp[0]</span>
+        <span class="n">bdpin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">infile</span> <span class="o">=</span> <span class="n">bdpin</span><span class="o">.</span><span class="n">getimagefile</span><span class="p">(</span><span class="n">bt</span><span class="o">.</span><span class="n">CASA</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">mpl</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flipud</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">rot90</span><span class="p">(</span><span class="n">casautil</span><span class="o">.</span><span class="n">getdata</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">infile</span><span class="p">))</span><span class="o">.</span><span class="n">data</span><span class="p">))</span>
+
+        <span class="c1"># check if there is a 2nd image (which will be a PB)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">)):</span>
+            <span class="nb">print</span> <span class="s1">&#39;BDP&#39;</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">bdpin_pb</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>            
+            <span class="n">bdpin_cst</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="nb">print</span> <span class="s2">&quot;Need to process PB&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">bdpin_pb</span>  <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">bdpin_cst</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="nb">print</span> <span class="s2">&quot;No PB given&quot;</span>
+            
+
+        <span class="c1"># get the output bdp basename</span>
+        <span class="n">slbase</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mkext</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span><span class="s1">&#39;sl&#39;</span><span class="p">)</span>
+
+        <span class="c1"># make sure it&#39;s a 2D map</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">casautil</span><span class="o">.</span><span class="n">mapdim</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">infile</span><span class="p">),</span><span class="mi">2</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span><span class="s2">&quot;Input map dimension not 2: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">infile</span>
+
+        <span class="c1"># arguments for imstat call if required</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;imagename&quot;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">infile</span><span class="p">)}</span>
+        <span class="k">if</span> <span class="n">region</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="n">args</span><span class="p">[</span><span class="s2">&quot;region&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">region</span>
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;start&quot;</span><span class="p">)</span>
+
+        <span class="c1"># The following code sets the sigma level for searching for sources using</span>
+        <span class="c1"># the sigma and snmax keyword as appropriate</span>
+        <span class="c1"># if no CubeStats BDP was given and no sigma was specified:</span>
+        <span class="c1"># find a noise level via casa.imstat()</span>
+        <span class="c1"># if a CubeStat_BDP is given get it from there.</span>
+        <span class="k">if</span> <span class="n">bdpin_cst</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># get statistics from input image with imstat because no CubeStat_BDP</span>
+            <span class="n">stat</span>  <span class="o">=</span> <span class="n">casa</span><span class="o">.</span><span class="n">imstat</span><span class="p">(</span><span class="o">**</span><span class="n">args</span><span class="p">)</span>
+            <span class="n">dmin</span>  <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">stat</span><span class="p">[</span><span class="s2">&quot;min&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>                 <span class="c1"># these would be wrong if robust were used already</span>
+            <span class="n">dmax</span>  <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">stat</span><span class="p">[</span><span class="s2">&quot;max&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">args</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">casautil</span><span class="o">.</span><span class="n">parse_robust</span><span class="p">(</span><span class="n">robust</span><span class="p">))</span>    <span class="c1"># only now add robust keywords for the sigma</span>
+            <span class="n">stat</span>  <span class="o">=</span> <span class="n">casa</span><span class="o">.</span><span class="n">imstat</span><span class="p">(</span><span class="o">**</span><span class="n">args</span><span class="p">)</span>            
+            <span class="k">if</span> <span class="n">sigma</span> <span class="o">&lt;=</span> <span class="mf">0.0</span> <span class="p">:</span>
+                <span class="n">sigma</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">stat</span><span class="p">[</span><span class="s2">&quot;sigma&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;imstat&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># get statistics from CubeStat_BDP </span>
+            <span class="n">sigma</span> <span class="o">=</span> <span class="n">bdpin_cst</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;sigma&quot;</span><span class="p">)</span>
+            <span class="n">dmin</span>  <span class="o">=</span> <span class="n">bdpin_cst</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;minval&quot;</span><span class="p">)</span>
+            <span class="n">dmax</span>  <span class="o">=</span> <span class="n">bdpin_cst</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;maxval&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;sigma&quot;</span><span class="p">,</span><span class="n">sigma</span><span class="p">)</span>
+        <span class="c1"># calculate cutoff based either on RMS or dynamic range limitation</span>
+        <span class="n">drange</span> <span class="o">=</span> <span class="n">dmax</span><span class="o">/</span><span class="p">(</span><span class="n">nsigma</span><span class="o">*</span><span class="n">sigma</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">snmax</span> <span class="o">&lt;</span> <span class="mf">0.0</span> <span class="p">:</span>
+            <span class="n">snmax</span> <span class="o">=</span> <span class="n">drange</span>
+        <span class="k">if</span> <span class="n">drange</span> <span class="o">&gt;</span> <span class="n">snmax</span> <span class="p">:</span>
+            <span class="n">cutoff</span> <span class="o">=</span> <span class="mf">1.0</span><span class="o">/</span><span class="n">snmax</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cutoff</span> <span class="o">=</span> <span class="mf">1.0</span><span class="o">/</span><span class="n">drange</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;sigma, dmin, dmax, snmax, cutoff </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sigma</span><span class="p">,</span> <span class="n">dmin</span><span class="p">,</span> <span class="n">dmax</span><span class="p">,</span> <span class="n">snmax</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">))</span>
+        <span class="c1"># define arguments for call to findsources</span>
+        <span class="n">args2</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;cutoff&quot;</span> <span class="p">:</span> <span class="n">cutoff</span><span class="p">}</span>
+        <span class="n">args2</span><span class="p">[</span><span class="s2">&quot;nmax&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">nmax</span>
+        <span class="k">if</span> <span class="n">region</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span> <span class="p">:</span>
+            <span class="n">args2</span><span class="p">[</span><span class="s2">&quot;region&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">region</span>
+        <span class="c1">#args2[&quot;mask&quot;] = &quot;&quot;</span>
+        <span class="n">args2</span><span class="p">[</span><span class="s2">&quot;point&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">args2</span><span class="p">[</span><span class="s2">&quot;width&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">5</span>
+        <span class="n">args2</span><span class="p">[</span><span class="s2">&quot;negfind&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1"># set-up for SourceList_BDP</span>
+        <span class="n">slbdp</span> <span class="o">=</span> <span class="n">SourceList_BDP</span><span class="p">(</span><span class="n">slbase</span><span class="p">)</span>
+
+        <span class="c1"># connect to casa image and call casa ia.findsources tool</span>
+        <span class="n">ia</span> <span class="o">=</span> <span class="n">taskinit</span><span class="o">.</span><span class="n">iatool</span><span class="p">()</span>
+        <span class="n">ia</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">infile</span><span class="p">))</span>
+
+        <span class="c1"># findsources() cannot deal with  &#39;Jy/beam.km/s&#39; ???</span>
+        <span class="c1"># so for the duration of findsources() we patch it</span>
+        <span class="n">bunit</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">brightnessunit</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">bpatch</span> <span class="ow">and</span> <span class="n">bunit</span> <span class="o">!=</span> <span class="s1">&#39;Jy/beam&#39;</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Temporarely patching your </span><span class="si">%s</span><span class="s2"> units to Jy/beam for ia.findsources()&quot;</span> <span class="o">%</span> <span class="n">bunit</span><span class="p">)</span> 
+            <span class="n">ia</span><span class="o">.</span><span class="n">setbrightnessunit</span><span class="p">(</span><span class="s1">&#39;Jy/beam&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">bpatch</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">atab</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">findsources</span><span class="p">(</span><span class="o">**</span><span class="n">args2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">bpatch</span><span class="p">:</span>
+            <span class="n">ia</span><span class="o">.</span><span class="n">setbrightnessunit</span><span class="p">(</span><span class="n">bunit</span><span class="p">)</span>
+        
+        <span class="n">taskargs</span> <span class="o">=</span> <span class="s2">&quot;nsigma=</span><span class="si">%4.1f</span><span class="s2"> sigma=</span><span class="si">%g</span><span class="s2"> region=</span><span class="si">%s</span><span class="s2"> robust=</span><span class="si">%s</span><span class="s2"> snmax=</span><span class="si">%5.1f</span><span class="s2"> nmax=</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nsigma</span><span class="p">,</span><span class="n">sigma</span><span class="p">,</span><span class="nb">str</span><span class="p">(</span><span class="n">region</span><span class="p">),</span><span class="nb">str</span><span class="p">(</span><span class="n">robust</span><span class="p">),</span><span class="n">snmax</span><span class="p">,</span><span class="n">nmax</span><span class="p">)</span>
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;findsources&quot;</span><span class="p">)</span>
+        <span class="n">nsources</span> <span class="o">=</span> <span class="n">atab</span><span class="p">[</span><span class="s2">&quot;nelements&quot;</span><span class="p">]</span> 
+        <span class="n">xtab</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">ytab</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">logscale</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">sumflux</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">if</span> <span class="n">nsources</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># @TODO: Why are Xpix, YPix not stored in the table?</span>
+            <span class="c1">#        -&gt; PJT: I left them out since they are connected to an image which may not be available here</span>
+            <span class="c1">#                but we should store the frequency of the observation here for later bandmerging</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">atab</span><span class="p">[</span><span class="s1">&#39;component0&#39;</span><span class="p">][</span><span class="s1">&#39;shape&#39;</span><span class="p">]))</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Right Ascen.  Declination   X(pix)   Y(pix)      Peak       Flux    Major   Minor    PA    SNR&quot;</span><span class="p">)</span>
+            <span class="n">funits</span> <span class="o">=</span> <span class="n">atab</span><span class="p">[</span><span class="s1">&#39;component0&#39;</span><span class="p">][</span><span class="s1">&#39;flux&#39;</span><span class="p">][</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">atab</span><span class="p">[</span><span class="s1">&#39;component0&#39;</span><span class="p">][</span><span class="s1">&#39;shape&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="s1">&#39;majoraxis&#39;</span><span class="p">):</span>
+                <span class="n">sunits</span> <span class="o">=</span> <span class="n">atab</span><span class="p">[</span><span class="s1">&#39;component0&#39;</span><span class="p">][</span><span class="s1">&#39;shape&#39;</span><span class="p">][</span><span class="s1">&#39;majoraxis&#39;</span><span class="p">][</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span>
+                <span class="n">aunits</span> <span class="o">=</span> <span class="n">atab</span><span class="p">[</span><span class="s1">&#39;component0&#39;</span><span class="p">][</span><span class="s1">&#39;shape&#39;</span><span class="p">][</span><span class="s1">&#39;positionangle&#39;</span><span class="p">][</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">sunits</span> <span class="o">=</span> <span class="s2">&quot;n/a&quot;</span>
+                <span class="n">aunits</span> <span class="o">=</span> <span class="s2">&quot;n/a&quot;</span>
+            <span class="n">punits</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">summary</span><span class="p">()[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;                                               </span><span class="si">%s</span><span class="s2">       </span><span class="si">%s</span><span class="s2">    </span><span class="si">%s</span><span class="s2">   </span><span class="si">%s</span><span class="s2">   </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">punits</span><span class="p">,</span><span class="n">funits</span><span class="p">,</span><span class="n">sunits</span><span class="p">,</span><span class="n">sunits</span><span class="p">,</span><span class="n">aunits</span><span class="p">))</span>
+            <span class="c1">#</span>
+            <span class="c1"># @todo future improvement is to look at image coordinates and control output appropriately</span>
+            <span class="c1">#</span>
+            <span class="k">if</span> <span class="n">ds9</span><span class="p">:</span>
+                <span class="c1"># @todo variable name</span>
+                <span class="n">regname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mkext</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span><span class="s1">&#39;ds9.reg&#39;</span><span class="p">)</span>
+                <span class="n">fp9</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">regname</span><span class="p">),</span><span class="s2">&quot;w!&quot;</span><span class="p">)</span>
+            <span class="n">sn0</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nsources</span><span class="p">):</span>
+                <span class="n">c</span> <span class="o">=</span> <span class="s2">&quot;component</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">i</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">r</span> <span class="o">=</span> <span class="n">atab</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="s1">&#39;shape&#39;</span><span class="p">][</span><span class="s1">&#39;direction&#39;</span><span class="p">][</span><span class="s1">&#39;m0&#39;</span><span class="p">][</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+                <span class="n">d</span> <span class="o">=</span> <span class="n">atab</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="s1">&#39;shape&#39;</span><span class="p">][</span><span class="s1">&#39;direction&#39;</span><span class="p">][</span><span class="s1">&#39;m1&#39;</span><span class="p">][</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+                <span class="n">pixel</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">topixel</span><span class="p">([</span><span class="n">r</span><span class="p">,</span><span class="n">d</span><span class="p">])</span>
+                <span class="n">xpos</span> <span class="o">=</span> <span class="n">pixel</span><span class="p">[</span><span class="s1">&#39;numeric&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">ypos</span> <span class="o">=</span> <span class="n">pixel</span><span class="p">[</span><span class="s1">&#39;numeric&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">rd</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">toworld</span><span class="p">([</span><span class="n">xpos</span><span class="p">,</span><span class="n">ypos</span><span class="p">],</span><span class="s1">&#39;s&#39;</span><span class="p">)</span>
+                <span class="n">ra</span> <span class="o">=</span> <span class="n">rd</span><span class="p">[</span><span class="s1">&#39;string&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][:</span><span class="mi">12</span><span class="p">]</span>
+                <span class="n">dec</span> <span class="o">=</span> <span class="n">rd</span><span class="p">[</span><span class="s1">&#39;string&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">][:</span><span class="mi">12</span><span class="p">]</span>
+                <span class="n">flux</span> <span class="o">=</span> <span class="n">atab</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="s1">&#39;flux&#39;</span><span class="p">][</span><span class="s1">&#39;value&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">sumflux</span> <span class="o">=</span> <span class="n">sumflux</span> <span class="o">+</span> <span class="n">flux</span>
+                <span class="k">if</span> <span class="n">atab</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="s1">&#39;shape&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="s1">&#39;majoraxis&#39;</span><span class="p">):</span>
+                    <span class="n">smajor</span> <span class="o">=</span> <span class="n">atab</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="s1">&#39;shape&#39;</span><span class="p">][</span><span class="s1">&#39;majoraxis&#39;</span><span class="p">][</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+                    <span class="n">sminor</span> <span class="o">=</span> <span class="n">atab</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="s1">&#39;shape&#39;</span><span class="p">][</span><span class="s1">&#39;minoraxis&#39;</span><span class="p">][</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+                    <span class="n">sangle</span> <span class="o">=</span> <span class="n">atab</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="s1">&#39;shape&#39;</span><span class="p">][</span><span class="s1">&#39;positionangle&#39;</span><span class="p">][</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">smajor</span> <span class="o">=</span> <span class="mf">0.0</span>
+                    <span class="n">sminor</span> <span class="o">=</span> <span class="mf">0.0</span>
+                    <span class="n">sangle</span> <span class="o">=</span> <span class="mf">0.0</span>
+                <span class="n">peakstr</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">pixelvalue</span><span class="p">([</span><span class="n">xpos</span><span class="p">,</span><span class="n">ypos</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">peakstr</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Problem with source </span><span class="si">%d</span><span class="s2"> @ </span><span class="si">%d</span><span class="s2">,</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">xpos</span><span class="p">,</span><span class="n">ypos</span><span class="p">))</span>
+                    <span class="k">continue</span>
+                <span class="n">peakf</span> <span class="o">=</span> <span class="n">peakstr</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">][</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+                <span class="n">snr</span> <span class="o">=</span> <span class="n">peakf</span><span class="o">/</span><span class="n">sigma</span>
+                <span class="k">if</span> <span class="n">snr</span> <span class="o">&gt;</span> <span class="n">dynlog</span><span class="p">:</span>
+                    <span class="n">logscale</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">if</span> <span class="n">snr</span> <span class="o">&gt;</span> <span class="n">sn0</span><span class="p">:</span>
+                    <span class="n">sn0</span> <span class="o">=</span> <span class="n">snr</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%8.2f</span><span class="s2"> </span><span class="si">%8.2f</span><span class="s2"> </span><span class="si">%10.3g</span><span class="s2"> </span><span class="si">%10.3g</span><span class="s2"> </span><span class="si">%7.3f</span><span class="s2"> </span><span class="si">%7.3f</span><span class="s2"> </span><span class="si">%6.1f</span><span class="s2"> </span><span class="si">%6.1f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ra</span><span class="p">,</span><span class="n">dec</span><span class="p">,</span><span class="n">xpos</span><span class="p">,</span><span class="n">ypos</span><span class="p">,</span><span class="n">peakf</span><span class="p">,</span><span class="n">flux</span><span class="p">,</span><span class="n">smajor</span><span class="p">,</span><span class="n">sminor</span><span class="p">,</span><span class="n">sangle</span><span class="p">,</span><span class="n">snr</span><span class="p">))</span>
+                
+                <span class="n">xtab</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">xpos</span><span class="p">)</span>
+                <span class="n">ytab</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ypos</span><span class="p">)</span>
+                <span class="n">slbdp</span><span class="o">.</span><span class="n">addRow</span><span class="p">([</span><span class="n">name</span><span class="p">,</span><span class="n">ra</span><span class="p">,</span><span class="n">dec</span><span class="p">,</span><span class="n">flux</span><span class="p">,</span><span class="n">peakf</span><span class="p">,</span><span class="n">smajor</span><span class="p">,</span><span class="n">sminor</span><span class="p">,</span><span class="n">sangle</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">ds9</span><span class="p">:</span>
+                    <span class="n">ras</span> <span class="o">=</span> <span class="n">ra</span>
+                    <span class="n">des</span> <span class="o">=</span> <span class="n">dec</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span><span class="s1">&#39;:&#39;</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+                    <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;ellipse(</span><span class="si">%s</span><span class="s1">,</span><span class="si">%s</span><span class="s1">,</span><span class="si">%g</span><span class="s1">&quot;,</span><span class="si">%g</span><span class="s1">&quot;,</span><span class="si">%g</span><span class="s1">) # text={</span><span class="si">%s</span><span class="s1">}&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ras</span><span class="p">,</span><span class="n">des</span><span class="p">,</span><span class="n">smajor</span><span class="p">,</span><span class="n">sminor</span><span class="p">,</span><span class="n">sangle</span><span class="o">+</span><span class="mf">90.0</span><span class="p">,</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+                    <span class="n">fp9</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">msg</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">ds9</span><span class="p">:</span>
+                <span class="n">fp9</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Wrote ds9.reg&quot;</span><span class="p">)</span>
+            <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;table&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">regression</span><span class="p">(</span><span class="s2">&quot;CONTFLUX: </span><span class="si">%d</span><span class="s2"> </span><span class="si">%g</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nsources</span><span class="p">,</span><span class="n">sumflux</span><span class="p">))</span>
+        
+
+        <span class="n">summary</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
+        <span class="n">beammaj</span> <span class="o">=</span> <span class="n">summary</span><span class="p">[</span><span class="s1">&#39;restoringbeam&#39;</span><span class="p">][</span><span class="s1">&#39;major&#39;</span><span class="p">][</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+        <span class="n">beammin</span> <span class="o">=</span> <span class="n">summary</span><span class="p">[</span><span class="s1">&#39;restoringbeam&#39;</span><span class="p">][</span><span class="s1">&#39;minor&#39;</span><span class="p">][</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+        <span class="n">beamunit</span> <span class="o">=</span> <span class="n">summary</span><span class="p">[</span><span class="s1">&#39;restoringbeam&#39;</span><span class="p">][</span><span class="s1">&#39;minor&#39;</span><span class="p">][</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span>
+        <span class="n">beamang</span> <span class="o">=</span> <span class="n">summary</span><span class="p">[</span><span class="s1">&#39;restoringbeam&#39;</span><span class="p">][</span><span class="s1">&#39;positionangle&#39;</span><span class="p">][</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+        <span class="n">angunit</span> <span class="o">=</span> <span class="n">summary</span><span class="p">[</span><span class="s1">&#39;restoringbeam&#39;</span><span class="p">][</span><span class="s1">&#39;positionangle&#39;</span><span class="p">][</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span>
+        <span class="c1"># @todo add to table comments?</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot; Fitted Gaussian size; NOT deconvolved source size.&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot; Restoring Beam: Major axis: </span><span class="si">%10.3g</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> , Minor axis: </span><span class="si">%10.3g</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> , PA: </span><span class="si">%5.1f</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">beammaj</span><span class="p">,</span> <span class="n">beamunit</span><span class="p">,</span> <span class="n">beammin</span><span class="p">,</span> <span class="n">beamunit</span><span class="p">,</span> <span class="n">beamang</span><span class="p">,</span> <span class="n">angunit</span><span class="p">))</span>
+        <span class="c1"># form into a xml table</span>
+        
+        <span class="c1"># output is a table_bdp</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addoutput</span><span class="p">(</span><span class="n">slbdp</span><span class="p">)</span>
+
+        <span class="c1"># instantiate a plotter for all plots made herein</span>
+        <span class="n">myplot</span> <span class="o">=</span> <span class="n">APlot</span><span class="p">(</span><span class="n">ptype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_plot_type</span><span class="p">,</span><span class="n">pmode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_plot_mode</span><span class="p">,</span><span class="n">abspath</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">())</span>
+
+        <span class="c1"># make output png with circles marking sources found</span>
+        <span class="k">if</span> <span class="n">mpl</span><span class="p">:</span>
+            <span class="n">circles</span><span class="o">=</span><span class="p">[]</span>
+            <span class="n">nx</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>             <span class="c1"># data[] array was already flipud(rot90)&#39;d</span>
+            <span class="n">ny</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>             <span class="c1"># </span>
+            <span class="k">for</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">xtab</span><span class="p">,</span><span class="n">ytab</span><span class="p">):</span>
+                <span class="n">circles</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+            <span class="c1"># @todo variable name</span>
+            <span class="k">if</span> <span class="n">logscale</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;LogScaling applied&quot;</span><span class="p">)</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">/</span><span class="n">sigma</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">data</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">data</span><span class="p">),</span><span class="o">+</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">data</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">nsources</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;SFind2D: 0 sources above S/N=</span><span class="si">%.1f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nsigma</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">nsources</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;SFind2D: 1 source (S/N=</span><span class="si">%.1f</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sn0</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;SFind2D: </span><span class="si">%d</span><span class="s2"> sources (S/N=</span><span class="si">%.1f</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">nsources</span><span class="p">,</span><span class="n">sn0</span><span class="p">)</span>
+            <span class="n">myplot</span><span class="o">.</span><span class="n">map1</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">title</span><span class="p">,</span><span class="n">slbase</span><span class="p">,</span><span class="n">thumbnail</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">circles</span><span class="o">=</span><span class="n">circles</span><span class="p">,</span>
+                        <span class="n">zoom</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;zoom&quot;</span><span class="p">))</span>
+
+        <span class="c1">#---------------------------------------------------------</span>
+        <span class="c1"># Get the figure and thumbmail names and create a caption</span>
+        <span class="c1">#---------------------------------------------------------</span>
+        <span class="n">imname</span> <span class="o">=</span> <span class="n">myplot</span><span class="o">.</span><span class="n">getFigure</span><span class="p">(</span><span class="n">figno</span><span class="o">=</span><span class="n">myplot</span><span class="o">.</span><span class="n">figno</span><span class="p">,</span><span class="n">relative</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">thumbnailname</span> <span class="o">=</span> <span class="n">myplot</span><span class="o">.</span><span class="n">getThumbnail</span><span class="p">(</span><span class="n">figno</span><span class="o">=</span><span class="n">myplot</span><span class="o">.</span><span class="n">figno</span><span class="p">,</span><span class="n">relative</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">caption</span> <span class="o">=</span> <span class="s2">&quot;Image of input map with sources found by SFind2D overlayed in green.&quot;</span>
+        <span class="n">slbdp</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Table of source locations and sizes (not deconvolved)&quot;</span>
+ 
+        <span class="c1">#---------------------------------------------------------</span>
+        <span class="c1"># Add finder image to the BDP</span>
+        <span class="c1">#---------------------------------------------------------</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span><span class="n">images</span><span class="o">=</span><span class="p">{</span><span class="n">bt</span><span class="o">.</span><span class="n">PNG</span><span class="p">:</span> <span class="n">imname</span><span class="p">},</span> 
+                      <span class="n">thumbnail</span><span class="o">=</span><span class="n">thumbnailname</span><span class="p">,</span> 
+                      <span class="n">thumbnailtype</span><span class="o">=</span><span class="n">bt</span><span class="o">.</span><span class="n">PNG</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="n">caption</span><span class="p">)</span>
+        <span class="n">slbdp</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">addimage</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="s2">&quot;finderimage&quot;</span><span class="p">)</span>
+
+        <span class="c1">#-------------------------------------------------------------</span>
+        <span class="c1"># Create the summary entry for the table and image</span>
+        <span class="c1">#-------------------------------------------------------------</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="s2">&quot;sources&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SummaryEntry</span><span class="p">([</span><span class="n">slbdp</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">serialize</span><span class="p">(),</span>
+                                                 <span class="n">slbdp</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">serialize</span><span class="p">()],</span>
+                                                <span class="s2">&quot;SFind2D_AT&quot;</span><span class="p">,</span> 
+                                                <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">(</span><span class="kc">True</span><span class="p">),</span> <span class="n">taskargs</span><span class="p">)</span>
+        
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;done&quot;</span><span class="p">)</span>
+        <span class="n">dt</span><span class="o">.</span><span class="n">end</span><span class="p">()</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

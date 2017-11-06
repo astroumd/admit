@@ -1,0 +1,702 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>logging — Message logging functionality. &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../index.html" />
+    <link rel="up" title="Python Scripting Interface (API)" href="../../api.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" accesskey="U">Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-admit.util.AdmitLogging"></span><div class="section" id="logging-message-logging-functionality">
+<span id="admitloggingapi"></span><h1><strong>logging</strong> &#8212; Message logging functionality.<a class="headerlink" href="#logging-message-logging-functionality" title="Permalink to this headline">¶</a></h1>
+<p>This module implements the ADMIT logging infrastructure.</p>
+<dl class="class">
+<dt id="admit.util.AdmitLogging.AdmitLogging">
+<em class="property">class </em><code class="descclassname">admit.util.AdmitLogging.</code><code class="descname">AdmitLogging</code><a class="reference internal" href="../../_modules/admit/util/AdmitLogging.html#AdmitLogging"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.AdmitLogging.AdmitLogging" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is effectively a static class for the logging in ADMIT.
+It relies on the Python logging module and has the same logging
+calls as that module but also offers header and subheader methods
+which allow for annotation in the log.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="29%" />
+<col width="71%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>None</td>
+<td>&nbsp;</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.AdmitLogging.AdmitLogging.Formatter" title="admit.util.AdmitLogging.AdmitLogging.Formatter"><code class="xref py py-obj docutils literal"><span class="pre">Formatter</span></code></a>([fmt,&nbsp;datefmt])</td>
+<td>Method to set the format of the logging messages</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.AdmitLogging.AdmitLogging.StreamHandler" title="admit.util.AdmitLogging.AdmitLogging.StreamHandler"><code class="xref py py-obj docutils literal"><span class="pre">StreamHandler</span></code></a>([stream])</td>
+<td>Method to get a streamhandler object</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.AdmitLogging.AdmitLogging.addHandler" title="admit.util.AdmitLogging.AdmitLogging.addHandler"><code class="xref py py-obj docutils literal"><span class="pre">addHandler</span></code></a>(handler)</td>
+<td>Method to add a handler to the logger</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.AdmitLogging.AdmitLogging.addLevelName" title="admit.util.AdmitLogging.AdmitLogging.addLevelName"><code class="xref py py-obj docutils literal"><span class="pre">addLevelName</span></code></a>(level,&nbsp;levelName)</td>
+<td>Method to add a new level to the logging schema</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.AdmitLogging.AdmitLogging.basicConfig" title="admit.util.AdmitLogging.AdmitLogging.basicConfig"><code class="xref py py-obj docutils literal"><span class="pre">basicConfig</span></code></a>(\*\*kwargs)</td>
+<td>Method to initialize the basic logging module</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.AdmitLogging.AdmitLogging.critical" title="admit.util.AdmitLogging.AdmitLogging.critical"><code class="xref py py-obj docutils literal"><span class="pre">critical</span></code></a>(message)</td>
+<td>Method to emit a critial level message to the log(s)</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.AdmitLogging.AdmitLogging.debug" title="admit.util.AdmitLogging.AdmitLogging.debug"><code class="xref py py-obj docutils literal"><span class="pre">debug</span></code></a>(message)</td>
+<td>Method to emit a debug level message to the log(s)</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.AdmitLogging.AdmitLogging.error" title="admit.util.AdmitLogging.AdmitLogging.error"><code class="xref py py-obj docutils literal"><span class="pre">error</span></code></a>(message)</td>
+<td>Method to emit an error level message to the log(s)</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.AdmitLogging.AdmitLogging.findLogger" title="admit.util.AdmitLogging.AdmitLogging.findLogger"><code class="xref py py-obj docutils literal"><span class="pre">findLogger</span></code></a>()</td>
+<td>Method to get the appropriate logger.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.AdmitLogging.AdmitLogging.getEffectiveLevel" title="admit.util.AdmitLogging.AdmitLogging.getEffectiveLevel"><code class="xref py py-obj docutils literal"><span class="pre">getEffectiveLevel</span></code></a>()</td>
+<td>Method to get the current minimum logging level</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.AdmitLogging.AdmitLogging.heading" title="admit.util.AdmitLogging.AdmitLogging.heading"><code class="xref py py-obj docutils literal"><span class="pre">heading</span></code></a>(message)</td>
+<td>Method to emit a header message to the log(s).</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.AdmitLogging.AdmitLogging.info" title="admit.util.AdmitLogging.AdmitLogging.info"><code class="xref py py-obj docutils literal"><span class="pre">info</span></code></a>(message)</td>
+<td>Method to emit an info level message to the log(s)</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.AdmitLogging.AdmitLogging.init" title="admit.util.AdmitLogging.AdmitLogging.init"><code class="xref py py-obj docutils literal"><span class="pre">init</span></code></a>(name,&nbsp;logfile,&nbsp;level)</td>
+<td>Method to initialize a new named logger</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.AdmitLogging.AdmitLogging.log" title="admit.util.AdmitLogging.AdmitLogging.log"><code class="xref py py-obj docutils literal"><span class="pre">log</span></code></a>(level,&nbsp;message)</td>
+<td>Method to emit a log message to the log(s) at the given level</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.AdmitLogging.AdmitLogging.regression" title="admit.util.AdmitLogging.AdmitLogging.regression"><code class="xref py py-obj docutils literal"><span class="pre">regression</span></code></a>(message)</td>
+<td>Method to emit a regression message to the log(s)</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.AdmitLogging.AdmitLogging.reportKeywords" title="admit.util.AdmitLogging.AdmitLogging.reportKeywords"><code class="xref py py-obj docutils literal"><span class="pre">reportKeywords</span></code></a>(kw)</td>
+<td>Method to emit logging messages that report the current state of the AT keywords.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.AdmitLogging.AdmitLogging.setLevel" title="admit.util.AdmitLogging.AdmitLogging.setLevel"><code class="xref py py-obj docutils literal"><span class="pre">setLevel</span></code></a>(level)</td>
+<td>Method to set the current minimum level that will be logged all messages below this level are ignored.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.AdmitLogging.AdmitLogging.shutdown" title="admit.util.AdmitLogging.AdmitLogging.shutdown"><code class="xref py py-obj docutils literal"><span class="pre">shutdown</span></code></a>()</td>
+<td>Method to shuitdown the logging system</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.AdmitLogging.AdmitLogging.subheading" title="admit.util.AdmitLogging.AdmitLogging.subheading"><code class="xref py py-obj docutils literal"><span class="pre">subheading</span></code></a>(message)</td>
+<td>Method to emit a subheader message to the log(s).</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.AdmitLogging.AdmitLogging.timing" title="admit.util.AdmitLogging.AdmitLogging.timing"><code class="xref py py-obj docutils literal"><span class="pre">timing</span></code></a>(message)</td>
+<td>Method to emit a timing message to the log(s)</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.AdmitLogging.AdmitLogging.warning" title="admit.util.AdmitLogging.AdmitLogging.warning"><code class="xref py py-obj docutils literal"><span class="pre">warning</span></code></a>(message)</td>
+<td>Method to emit a warning level message to the log(s)</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="admit.util.AdmitLogging.AdmitLogging.CRITICAL">
+<code class="descname">CRITICAL</code><em class="property"> = 50</em><a class="headerlink" href="#admit.util.AdmitLogging.AdmitLogging.CRITICAL" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="admit.util.AdmitLogging.AdmitLogging.DEBUG">
+<code class="descname">DEBUG</code><em class="property"> = 10</em><a class="headerlink" href="#admit.util.AdmitLogging.AdmitLogging.DEBUG" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="admit.util.AdmitLogging.AdmitLogging.EFFECTIVELOGLEVEL">
+<code class="descname">EFFECTIVELOGLEVEL</code><em class="property"> = 20</em><a class="headerlink" href="#admit.util.AdmitLogging.AdmitLogging.EFFECTIVELOGLEVEL" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="admit.util.AdmitLogging.AdmitLogging.ERROR">
+<code class="descname">ERROR</code><em class="property"> = 40</em><a class="headerlink" href="#admit.util.AdmitLogging.AdmitLogging.ERROR" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="admit.util.AdmitLogging.AdmitLogging.Formatter">
+<em class="property">static </em><code class="descname">Formatter</code><span class="sig-paren">(</span><em>fmt=None</em>, <em>datefmt=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/AdmitLogging.html#AdmitLogging.Formatter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.AdmitLogging.AdmitLogging.Formatter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to set the format of the logging messages</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>fmt</strong> : str</p>
+<blockquote>
+<div><p>The format of the messages</p>
+</div></blockquote>
+<p><strong>datefmt</strong> : str</p>
+<blockquote>
+<div><p>The format for any dates in the log</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Handle to the format object</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="admit.util.AdmitLogging.AdmitLogging.INFO">
+<code class="descname">INFO</code><em class="property"> = 20</em><a class="headerlink" href="#admit.util.AdmitLogging.AdmitLogging.INFO" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="admit.util.AdmitLogging.AdmitLogging.REGRESSION">
+<code class="descname">REGRESSION</code><em class="property"> = 21</em><a class="headerlink" href="#admit.util.AdmitLogging.AdmitLogging.REGRESSION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="admit.util.AdmitLogging.AdmitLogging.StreamHandler">
+<em class="property">static </em><code class="descname">StreamHandler</code><span class="sig-paren">(</span><em>stream=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/AdmitLogging.html#AdmitLogging.StreamHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.AdmitLogging.AdmitLogging.StreamHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get a streamhandler object</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>stream</strong> : stream</p>
+<blockquote>
+<div><p>The output stream to attache to the stream handler</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Handler object</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="admit.util.AdmitLogging.AdmitLogging.TIMING">
+<code class="descname">TIMING</code><em class="property"> = 15</em><a class="headerlink" href="#admit.util.AdmitLogging.AdmitLogging.TIMING" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="admit.util.AdmitLogging.AdmitLogging.WARNING">
+<code class="descname">WARNING</code><em class="property"> = 30</em><a class="headerlink" href="#admit.util.AdmitLogging.AdmitLogging.WARNING" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="admit.util.AdmitLogging.AdmitLogging.addHandler">
+<em class="property">static </em><code class="descname">addHandler</code><span class="sig-paren">(</span><em>handler</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/AdmitLogging.html#AdmitLogging.addHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.AdmitLogging.AdmitLogging.addHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to add a handler to the logger</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>handler</strong> : handle to a handler</p>
+<blockquote>
+<div><p>The handler to add</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="admit.util.AdmitLogging.AdmitLogging.addLevelName">
+<em class="property">static </em><code class="descname">addLevelName</code><span class="sig-paren">(</span><em>level</em>, <em>levelName</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/AdmitLogging.html#AdmitLogging.addLevelName"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.AdmitLogging.AdmitLogging.addLevelName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to add a new level to the logging schema</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>level</strong> : int</p>
+<blockquote>
+<div><p>The level number to add</p>
+</div></blockquote>
+<p><strong>levelName</strong> : str</p>
+<blockquote>
+<div><p>The name to use for the level</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="admit.util.AdmitLogging.AdmitLogging.basicConfig">
+<em class="property">static </em><code class="descname">basicConfig</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/AdmitLogging.html#AdmitLogging.basicConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.AdmitLogging.AdmitLogging.basicConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to initialize the basic logging module</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>various</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="admit.util.AdmitLogging.AdmitLogging.critical">
+<em class="property">static </em><code class="descname">critical</code><span class="sig-paren">(</span><em>message</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/AdmitLogging.html#AdmitLogging.critical"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.AdmitLogging.AdmitLogging.critical" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to emit a critial level message to the log(s)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>message</strong> : str</p>
+<blockquote>
+<div><p>The message to sed to the log</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="admit.util.AdmitLogging.AdmitLogging.debug">
+<em class="property">static </em><code class="descname">debug</code><span class="sig-paren">(</span><em>message</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/AdmitLogging.html#AdmitLogging.debug"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.AdmitLogging.AdmitLogging.debug" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to emit a debug level message to the log(s)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>message</strong> : str</p>
+<blockquote>
+<div><p>The message to sed to the log</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="admit.util.AdmitLogging.AdmitLogging.error">
+<em class="property">static </em><code class="descname">error</code><span class="sig-paren">(</span><em>message</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/AdmitLogging.html#AdmitLogging.error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.AdmitLogging.AdmitLogging.error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to emit an error level message to the log(s)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>message</strong> : str</p>
+<blockquote>
+<div><p>The message to sed to the log</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="admit.util.AdmitLogging.AdmitLogging.findLogger">
+<em class="property">static </em><code class="descname">findLogger</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/AdmitLogging.html#AdmitLogging.findLogger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.AdmitLogging.AdmitLogging.findLogger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get the appropriate logger. This is done by inspecting
+the stack, looking for either Admit.py or AT.py, both of which
+have the name of their loggers.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Instance of the logger (or None)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="admit.util.AdmitLogging.AdmitLogging.getEffectiveLevel">
+<em class="property">static </em><code class="descname">getEffectiveLevel</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/AdmitLogging.html#AdmitLogging.getEffectiveLevel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.AdmitLogging.AdmitLogging.getEffectiveLevel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get the current minimum logging level</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">int continaing the current minimum logging level</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="admit.util.AdmitLogging.AdmitLogging.heading">
+<em class="property">static </em><code class="descname">heading</code><span class="sig-paren">(</span><em>message</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/AdmitLogging.html#AdmitLogging.heading"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.AdmitLogging.AdmitLogging.heading" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to emit a header message to the log(s). Header messages
+are encapsulated in empty lines for emphasis</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>message</strong> : str</p>
+<blockquote>
+<div><p>The message to sed to the log</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="admit.util.AdmitLogging.AdmitLogging.info">
+<em class="property">static </em><code class="descname">info</code><span class="sig-paren">(</span><em>message</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/AdmitLogging.html#AdmitLogging.info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.AdmitLogging.AdmitLogging.info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to emit an info level message to the log(s)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>message</strong> : str</p>
+<blockquote>
+<div><p>The message to sed to the log</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="admit.util.AdmitLogging.AdmitLogging.init">
+<em class="property">static </em><code class="descname">init</code><span class="sig-paren">(</span><em>name</em>, <em>logfile</em>, <em>level</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/AdmitLogging.html#AdmitLogging.init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.AdmitLogging.AdmitLogging.init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to initialize a new named logger</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>name</strong> : str</p>
+<blockquote>
+<div><p>Unique name of the logger</p>
+</div></blockquote>
+<p><strong>logfile</strong> : str</p>
+<blockquote>
+<div><p>Full path to the log file to generate</p>
+</div></blockquote>
+<p><strong>level</strong> : int</p>
+<blockquote>
+<div><p>The initial logging level to set. All messages
+at or above this level will be emitted.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="admit.util.AdmitLogging.AdmitLogging.log">
+<em class="property">static </em><code class="descname">log</code><span class="sig-paren">(</span><em>level</em>, <em>message</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/AdmitLogging.html#AdmitLogging.log"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.AdmitLogging.AdmitLogging.log" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to emit a log message to the log(s) at the given level</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>level</strong> : int</p>
+<blockquote>
+<div><p>The logging level to send the message at</p>
+</div></blockquote>
+<p><strong>message</strong> : str</p>
+<blockquote>
+<div><p>The message to sed to the log</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="admit.util.AdmitLogging.AdmitLogging.loggers">
+<code class="descname">loggers</code><em class="property"> = set([])</em><a class="headerlink" href="#admit.util.AdmitLogging.AdmitLogging.loggers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="admit.util.AdmitLogging.AdmitLogging.regression">
+<em class="property">static </em><code class="descname">regression</code><span class="sig-paren">(</span><em>message</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/AdmitLogging.html#AdmitLogging.regression"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.AdmitLogging.AdmitLogging.regression" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to emit a regression message to the log(s)</p>
+<p>It is suggested to start the message with a magic word followed
+by a colon, so top level scripts can reliably parse them. It is
+typically not needed to add verbosely what these numbers are,
+just the numbers are fine, the associated label defines them
+elsewhere. An example of use:</p>
+<p>logging.regression(&#8216;CUBEFLUX: %g %g&#8217; % (flux1,flux2))</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>message</strong> : str</p>
+<blockquote>
+<div><p>The message to send to the log</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="admit.util.AdmitLogging.AdmitLogging.reportKeywords">
+<em class="property">static </em><code class="descname">reportKeywords</code><span class="sig-paren">(</span><em>kw</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/AdmitLogging.html#AdmitLogging.reportKeywords"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.AdmitLogging.AdmitLogging.reportKeywords" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to emit logging messages that report the current state of the
+AT keywords.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>kw</strong> : dict</p>
+<blockquote>
+<div><p>A dictionary containing the AT _keys dictionary</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="admit.util.AdmitLogging.AdmitLogging.setLevel">
+<em class="property">static </em><code class="descname">setLevel</code><span class="sig-paren">(</span><em>level</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/AdmitLogging.html#AdmitLogging.setLevel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.AdmitLogging.AdmitLogging.setLevel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to set the current minimum level that will be logged
+all messages below this level are ignored.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>level</strong> : int</p>
+<blockquote>
+<div><p>The numeric level number to set</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="admit.util.AdmitLogging.AdmitLogging.shutdown">
+<em class="property">static </em><code class="descname">shutdown</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/AdmitLogging.html#AdmitLogging.shutdown"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.AdmitLogging.AdmitLogging.shutdown" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to shuitdown the logging system</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="admit.util.AdmitLogging.AdmitLogging.subheading">
+<em class="property">static </em><code class="descname">subheading</code><span class="sig-paren">(</span><em>message</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/AdmitLogging.html#AdmitLogging.subheading"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.AdmitLogging.AdmitLogging.subheading" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to emit a subheader message to the log(s). Subheader messages
+are encapsulated in an empty line for emphasis</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>message</strong> : str</p>
+<blockquote>
+<div><p>The message to sed to the log</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="admit.util.AdmitLogging.AdmitLogging.timing">
+<em class="property">static </em><code class="descname">timing</code><span class="sig-paren">(</span><em>message</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/AdmitLogging.html#AdmitLogging.timing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.AdmitLogging.AdmitLogging.timing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to emit a timing message to the log(s)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>message</strong> : str</p>
+<blockquote>
+<div><p>The message to send to the log</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="admit.util.AdmitLogging.AdmitLogging.warning">
+<em class="property">static </em><code class="descname">warning</code><span class="sig-paren">(</span><em>message</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/AdmitLogging.html#AdmitLogging.warning"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.AdmitLogging.AdmitLogging.warning" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to emit a warning level message to the log(s)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>message</strong> : str</p>
+<blockquote>
+<div><p>The message to sed to the log</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/module/admit.util/AdmitLogging.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" >Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

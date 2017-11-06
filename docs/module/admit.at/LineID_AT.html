@@ -1,0 +1,1817 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>LineID_AT — Identifies molecular lines in spectra. &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../index.html" />
+    <link rel="up" title="Python Scripting Interface (API)" href="../../api.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" accesskey="U">Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-admit.at.LineID_AT"></span><div class="section" id="lineid-at-identifies-molecular-lines-in-spectra">
+<span id="line-at-api"></span><h1><strong>LineID_AT</strong> &#8212; Identifies molecular lines in spectra.<a class="headerlink" href="#lineid-at-identifies-molecular-lines-in-spectra" title="Permalink to this headline">¶</a></h1>
+<p>This module defines the LineID_AT class.</p>
+<dl class="class">
+<dt id="admit.at.LineID_AT.LineID_AT">
+<em class="property">class </em><code class="descclassname">admit.at.LineID_AT.</code><code class="descname">LineID_AT</code><span class="sig-paren">(</span><em>**keyval</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/LineID_AT.html#LineID_AT"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.LineID_AT.LineID_AT" title="Permalink to this definition">¶</a></dt>
+<dd><p>Task for detecting and identifying spectral lines from input spectra. All
+input spectra are assumed to be from the same data set.</p>
+<p>See also <a class="reference internal" href="../../design.html#lineid-at-design"><span class="std std-ref">LineID_AT</span></a> for design documentation.</p>
+<p>The produced LineList_BDP contains a list of all spectral lines,
+possible identifications, and channel ranges, found in the input spectra.
+Additionally a spectral plot with overlayed lines is produced for each input
+spectrum.</p>
+<p>The line identification algorithm first looks for segments of spectral
+line emission. Spectral peaks are then searched for within these regions.
+Once spectral peaks are located, patterns are searched for (specifically
+patterns of rotation, expansion, and collapse). Each peak is then matched
+to ADMIT&#8217;s <em>Tier 1</em> list, which contains the more common molecules and transitions.
+If no match is found then the CASA
+task <em>slsearch</em> or the <em>splatalogue</em> database is used to generate a potential
+line list based on the peak&#8217;s frequency and line width. This list is narrowed down
+to a single identification by comparing the transition energies,
+constituent atoms, and line strength.</p>
+<p>If slsearch finds no results then the line is labeled as unidentified.</p>
+<dl class="docutils">
+<dt><strong>Keywords</strong></dt>
+<dd><dl class="first last docutils">
+<dt><strong>vlsr</strong>: float</dt>
+<dd>VLSR of the source (km/s). Default: -999999.99.</dd>
+<dt><strong>numsigma</strong>: float</dt>
+<dd>Minimum intensity, in terms of the rms noise of the individual sepctra, to consider a
+given channel to not be noise. In the case of CubeStats, where the units of the spectra
+are sigma, this refers to the rms noise of the sigma spectra (noise of the noise).
+Default: 5.0.</dd>
+<dt><strong>minchan</strong>: int</dt>
+<dd>Minimum number of consecutive channels above numsigma to consider them
+part of a line. Default: 4.</dd>
+<dt><strong>maxgap</strong>: int</dt>
+<dd>The maximum gap to allow between clusters of channels to consider
+them to be separate lines. Default: 3.</dd>
+<dt><strong>identifylines</strong>: boolean</dt>
+<dd>If True then attempt to identify any detected spectral lines. If False, then just locate
+regions of line emission and stop. False is useful if the rest frequency/vlsr are not
+known.
+Default: True.</dd>
+<dt><strong>allowexotics</strong>: bool</dt>
+<dd>If True then do not limit the molecules that can be detected. If False, do not allow
+transitions from molecules with &#8220;exotic&#8221; atoms to be included in lists. In
+this case an exotic atom is one that is uncommon, but possible to be
+detected in the right environment. The current list of &#8220;exotic&#8221; atoms is:
+&#8220;Al&#8221;, &#8220;Cl&#8221;, &#8220;Mg&#8221;, &#8220;Mn&#8221;, &#8220;F&#8221;, &#8220;Li&#8221;, &#8220;Na&#8221;, &#8220;K&#8221;, and &#8220;Ti&#8221;.
+Default: False.</dd>
+<dt><strong>recomblevel</strong>: string</dt>
+<dd><p class="first">What level of recombination line searching is requested. Three
+levels are available</p>
+<ul class="simple">
+<li><cite>off</cite>      no recombination lines are allowed in the results.</li>
+<li><cite>shallow</cite>  only H and He, alpha and beta lines are allowed in the results.</li>
+<li><cite>deep</cite>     any recombination line is allowed in the results.</li>
+</ul>
+<p class="last">Default: &#8220;shallow&#8221;.</p>
+</dd>
+<dt><strong>segment</strong>: string</dt>
+<dd>The name of the segment finder algorithm to use; choices are: ASAP
+and ADMIT. (see <a class="reference internal" href="../admit.util.segmentfinder/ASAPSegmentFinder.html#asapsegment"><span class="std std-ref">ASAPSegmentFinder &#8212; Finds segments of emission within a spectrum.</span></a> and <a class="reference internal" href="../admit.util.segmentfinder/ADMITSegmentFinder.html#admitsegment"><span class="std std-ref">ADMITSegmentFinder &#8212; Finds segments of emission within a spectrum.</span></a> for
+details of each)
+Default: &#8220;ADMIT&#8221;.</dd>
+<dt><strong>online</strong>: bool</dt>
+<dd>If True then use the online splatalogue interface for searching for transitions. If
+False the use the internal CASA slsearch. You must have an internet connection to use
+the splatalogue interface.
+Default: False.</dd>
+<dt><strong>smooth</strong>: list</dt>
+<dd>Use this parameter to smooth the input spectrum.  Format is a list containing the name of the
+smoothing algorithm followed by the parameters for
+the algorithm, given in the order they are defined in the documentation.
+The algorithms are: boxcar, gaussian, hanning, savgol, triangle, and welch.
+All but savgol take a single integer parameter for the width. See <a class="reference internal" href="../admit.util.filter/Filter1D.html#filter1d"><span class="std std-ref">Filter1D &#8212; 1-dimensional spectral filtering.</span></a> for
+details on the individual algorithms and their keywords.
+To do no smoothing, set the value to []. Example: [&#8220;boxcar&#8221;, 7] will do
+a boxcar smooth with a width of 7.
+Default: [].</dd>
+<dt><strong>recalcnoise</strong>: bool</dt>
+<dd>A boolean to indicate whether the noise should be recalculated after smoothing. True
+indicates that the noise should be recalculated, False indicates that the noise of the
+unsmoothed spectrum should be used.
+Default: False.</dd>
+<dt><strong>method</strong>: dictionary</dt>
+<dd>A dictionary containing the peak finding algorithm(s) to use as the
+keys (string) and dictionary containing the keyword/value arguments
+for the algorithm as the value. Available methods are: PeakUtils,
+FindPeaksCWT, and PeakFinder (see <a class="reference internal" href="../admit.util.peakfinder/PeakUtils.html#peakutils"><span class="std std-ref">PeakUtils &#8212; A peak finding algorithm.</span></a>, <a class="reference internal" href="../admit.util.peakfinder/FindPeaksCWT.html#findpeaks"><span class="std std-ref">FindPeaksCWT &#8212; Peak finding with continuous wavelet transforms.</span></a>,
+and <a class="reference internal" href="../admit.util.peakfinder/PeakFinder.html#peakfinder"><span class="std std-ref">PeakFinder &#8212; Peak finding with derivatives.</span></a> for the specifics of each). If more than one
+algorithm is given then each will be used in turn.
+Default: {&#8220;PeakFinder&#8221; : {&#8220;thres&#8221;    : 0.0,
+&#8220;min_sep&#8221;   : self.minchan,
+&#8220;min_width&#8221; : self.minchan}.</dd>
+<dt><strong>pattern</strong>: str</dt>
+<dd><p class="first">String indicating if pattern detection is done. Patterns are defined as sets of peaks
+which have the same separation which is caused by cloud rotation, expansion, etc. A
+detailed explanation is given in the design documentation. Pattern detection works well
+so long as there are not too many lines in the spectra. The code can determine whether
+this criteria has been met. Available modes are:</p>
+<ul class="simple">
+<li>&#8216;ON&#8217;   Force pattern find to be on no matter what</li>
+<li>&#8216;AUTO&#8217; Run pattern detection as long as there are not too many lines</li>
+<li>&#8216;OFF&#8217;  No pattern detection</li>
+</ul>
+<p class="last">Default: &#8220;AUTO&#8221;.</p>
+</dd>
+<dt><strong>mode</strong>: string</dt>
+<dd><p class="first">If more than one peak finding algorithms is given in <strong>method</strong>, how
+should the results be interpreted. Available modes are:</p>
+<ul>
+<li><dl class="first docutils">
+<dt><cite>ONE</cite> Consider a peak to be valid if it was found by any of the</dt>
+<dd><p class="first last">given methods</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><cite>TWO</cite> Consider a peak to be valid if it was found by at least two</dt>
+<dd><p class="first last">of the methods. (if only 1 method is specified then this
+choice is ignored)</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><cite>ALL</cite> Consider a peak to be valid if it was detected by all given</dt>
+<dd><p class="first last">methods.(if only 1 method is specified then this choice is ignored)</p>
+</dd>
+</dl>
+</li>
+</ul>
+<p class="last">Default: &#8220;ONE&#8221;.</p>
+</dd>
+<dt><strong>tier1width</strong>: float</dt>
+<dd>The width over which to search for Tier 1 lines in km/s. Any lines
+detected within this distance of a Tier 1 line will be identified
+as that line. Defaults to 300.0 for sources with a VLSR of 150 km/s
+and above, and 40.0 for sources with a VLSR below 150 km/s.</dd>
+<dt><strong>csub</strong>: list</dt>
+<dd>The polynomial order to use for fitting the continuum of CubeStats
+and CubeSpec based spectra. All CubeStats based spectra must be
+continuum subtracted in order to obtain proper fits (peak, fwhm),
+but continuum subtraction for CubeSpectrum based spectra is optional.
+The first argument in the list is the order of polynomial to use for
+the CubeStats based spectrum and the second is the order of fit to
+use for CubeSpec based spectra.
+Default: [1, None]  (1st order for CubeStat and no fitting for
+Cubespec based spectra).</dd>
+<dt><strong>references</strong>: str</dt>
+<dd>The filename of a references list for optional overplotting in the
+LineID plots. This is an ASCII file containing two columns:
+one column of frequencies (a float), and one column of a reference
+(line, a string). You can specify file references relative to
+<cite>$ADMIT</cite>, e.g., references=&#8221;etc/ngc253_lines.list&#8221;
+this is preferred to keep scripts portable, but an absolute filename
+is perfectly legal.
+Default: &#8220;&#8221;.</dd>
+<dt><strong>iterate</strong>: bool</dt>
+<dd>If True then iterate for both the segment finder and the peak finder
+to make them both sensitive to wide and strong narrow lines.
+Default: True.</dd>
+<dt><strong>force</strong>: list of tuples or LineData objects</dt>
+<dd><p class="first">Force a given channel interval to be a specific line identification.
+If force is given, LineID_AT will not try to find any lines in the
+specified channel range, but rather take your input as correct.
+Format:
+[(frequency, UID, formula, name, transition, velocity, startchan, endchan)]
+Examples:
+[(115.2712, &#8216;CO&#8217;, &#8216;CO(1-0)&#8217;, &#8216;carbon monoxide&#8217;, &#8216;J=1-0&#8217;, 123.456, 23, 87)]</p>
+<dl class="docutils">
+<dt>[(342.998, &#8216;Fred&#8217;, &#8216;Flintsone&#8217;, &#8216;unknown&#8217;, &#8216;unknown&#8217;, 0, 64, 128),</dt>
+<dd>(238.012, &#8216;My Favorite Molecule&#8217;, &#8216;N/A&#8217;, &#8216;N/A&#8217;, &#8216;N/A&#8217;, 0, 4, 39)]</dd>
+<dt>[LineData(frequency=115.271, name=&#8217;Carbon Monoxide&#8217;, formula=&#8217;CO&#8217;,</dt>
+<dd>uid=&#8217;CO_115.271&#8217;, transition=&#8216;1-0&#8217;, velocity=225.3,
+chans=[25, 119])]</dd>
+</dl>
+<p class="last">Note uid is what is the label used in the plots that LineID_AT creates.
+LineData objects can be used instead of a tuple, as the contents of the tuple
+is converted to a LineData object internally anyway.
+Default: [].</p>
+</dd>
+<dt><strong>reject</strong>: list of tuples</dt>
+<dd><p class="first">Reject a specific line identification.  Format: [(name, frequency)],
+e.g., [(&#8220;carbon monoxide&#8221;, 115.2712), (&#8220;carbon monosulfide&#8221;, 97.981)].
+Name is case insensitive. Frequency should be given to enough
+precision that it uniquely identifies a line (a comparison is made at the
+1 part in 10^6 for matching).
+If frequency is None, all lines from the given molecule
+will be rejected, i.e. [(&#8220;carbon monoxide&#8221;, None)] rejects all
+CO transitions, including isotopomers: 12CO, 13CO, C18O etc.</p>
+<p class="last">Default: [].</p>
+</dd>
+</dl>
+</dd>
+<dt><strong>Input BDPs</strong></dt>
+<dd><p class="first">At least one of the following BDPs must be specified.</p>
+<dl class="last docutils">
+<dt><strong>CubeSpectrum_BDP</strong>: count: 1 (optional)</dt>
+<dd>Input spectrum, may contain several spectra. Typically the output
+of a <a class="reference external" href="CubeSpectrum_AT.html">CubeSpectrum_AT</a> or
+<a class="reference external" href="GenerateSpectrum_AT.html">GenerateSpectrum_AT</a>.</dd>
+<dt><strong>CubeStats_BDP</strong>: count: 1 (optional)</dt>
+<dd>Alternative input spectrum, as from a
+<a class="reference external" href="CubeStats_AT.html">CubeStats_AT</a>.</dd>
+<dt><strong>PVCorr_BDP</strong>: count: 1 (optional)</dt>
+<dd>Spectrum based on the output of <a class="reference external" href="PVCorr_AT.html">PVCorr_AT</a>.</dd>
+</dl>
+</dd>
+</dl>
+<p><strong>Output BDPs</strong></p>
+<blockquote>
+<div><dl class="docutils">
+<dt><strong>LineList_BDP</strong>: count: 1</dt>
+<dd>List of spectral lines.</dd>
+</dl>
+</div></blockquote>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">addinput</span></code>(item[,&nbsp;slot])</td>
+<td>Add a BDP input to an AT.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">addinputbdp</span></code>(item[,&nbsp;slot,&nbsp;insert])</td>
+<td>Add a BDP to the _bdp_in list.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">addoutput</span></code>(item[,&nbsp;slot])</td>
+<td>Add a BDP output product to an AT.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">addoutputbdp</span></code>(item[,&nbsp;slot,&nbsp;insert])</td>
+<td>Add a BDP to the _bdp_out list.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">baseDir</span></code>([path])</td>
+<td>Get/set project base directory.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">bestMatch</span></code>(at1,&nbsp;at2)</td>
+<td>Determines the better match of two tasks to the current one.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.at.LineID_AT.LineID_AT.checkcount" title="admit.at.LineID_AT.LineID_AT.checkcount"><code class="xref py py-obj docutils literal"><span class="pre">checkcount</span></code></a>(counts)</td>
+<td>Method to determine if there are too many peaks for the pattern finder to be of use.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">checkfiles</span></code>()</td>
+<td>Check if the files from all the BDP_out&#8217;s in an AT exist.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.at.LineID_AT.LineID_AT.checkfit" title="admit.at.LineID_AT.LineID_AT.checkfit"><code class="xref py py-obj docutils literal"><span class="pre">checkfit</span></code></a>(peaks,&nbsp;peak,&nbsp;params,&nbsp;freq,&nbsp;segment)</td>
+<td>Method to determine if the given Gaussian fit paramters exceed 1.5 times the intensity of the peak channel, and are contained within the encompassing segment.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.at.LineID_AT.LineID_AT.checkforcechans" title="admit.at.LineID_AT.LineID_AT.checkforcechans"><code class="xref py py-obj docutils literal"><span class="pre">checkforcechans</span></code></a>(peaks,&nbsp;chs)</td>
+<td>Method to check that no non-force segments overlap with force segments</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.at.LineID_AT.LineID_AT.checkforcefreqs" title="admit.at.LineID_AT.LineID_AT.checkforcefreqs"><code class="xref py py-obj docutils literal"><span class="pre">checkforcefreqs</span></code></a>(frq)</td>
+<td>Method to check that detected segments do not overlap with any force segments in</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.at.LineID_AT.LineID_AT.checkforcesegs" title="admit.at.LineID_AT.LineID_AT.checkforcesegs"><code class="xref py py-obj docutils literal"><span class="pre">checkforcesegs</span></code></a>(segs)</td>
+<td>Method to check that detected segments do not overlap with any force segments in</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.at.LineID_AT.LineID_AT.checkreject" title="admit.at.LineID_AT.LineID_AT.checkreject"><code class="xref py py-obj docutils literal"><span class="pre">checkreject</span></code></a>(lines)</td>
+<td>Method to check possible lines against the list of rejected lines.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.at.LineID_AT.LineID_AT.checktier1chans" title="admit.at.LineID_AT.LineID_AT.checktier1chans"><code class="xref py py-obj docutils literal"><span class="pre">checktier1chans</span></code></a>(peaks,&nbsp;chs)</td>
+<td>Method to check that no non-tier1 segments overlap with tier1 segments in the same spectrum.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">checktype</span></code>(item)</td>
+<td>Check the type of an object to see if it is a BDP.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">clearinput</span></code>()</td>
+<td>Clear the input BDP list.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">clearoutput</span></code>([delete])</td>
+<td>Clear the output BDP list.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">copy</span></code>()</td>
+<td>Creates an independent duplicate of the task.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.at.LineID_AT.LineID_AT.counthfclines" title="admit.at.LineID_AT.LineID_AT.counthfclines"><code class="xref py py-obj docutils literal"><span class="pre">counthfclines</span></code></a>(chfc,&nbsp;shfc,&nbsp;peak,&nbsp;wiggle,&nbsp;...)</td>
+<td>Method to count the number of hyperfine lines that match a given offset.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">delete</span></code>()</td>
+<td>Method to delete the AT and underlying BDPs.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">delinput</span></code>(slot)</td>
+<td>Delete a specific BDP in the _bdp_in list.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">deloutput</span></code>(slot)</td>
+<td>Delete a specific BDP in the _bdp_out list.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">dir</span></code>([filename])</td>
+<td>Absolute directory reference of the ADMIT project.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">dryrun</span></code>()</td>
+<td>Method to do a dry run of the AT, generally just checks input values for errors.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">enabled</span></code>([state])</td>
+<td>Returns current task enabled setting, with optional reset.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">execute</span></code>([args])</td>
+<td>Executes the task.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.at.LineID_AT.LineID_AT.findpatterns" title="admit.at.LineID_AT.LineID_AT.findpatterns"><code class="xref py py-obj docutils literal"><span class="pre">findpatterns</span></code></a>(spec,&nbsp;points,&nbsp;segments)</td>
+<td>Method to search for patterns in the peaks.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">freeAlias</span></code>(aliases[,&nbsp;alias])</td>
+<td>Deletes alias reservation, if present.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.at.LineID_AT.LineID_AT.generatepossibles" title="admit.at.LineID_AT.LineID_AT.generatepossibles"><code class="xref py py-obj docutils literal"><span class="pre">generatepossibles</span></code></a>(frq)</td>
+<td>Method to generate a list of possible molecular identifications given a frequency range.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">get</span></code>(attrib)</td>
+<td>Method to get the given attributes value</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">getProject</span></code>()</td>
+<td>Retrieves project ID associated with the task.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">getVersion</span></code>()</td>
+<td>Return the version string.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.at.LineID_AT.LineID_AT.getchannels" title="admit.at.LineID_AT.LineID_AT.getchannels"><code class="xref py py-obj docutils literal"><span class="pre">getchannels</span></code></a>(peaks,&nbsp;noise[,&nbsp;sid,&nbsp;cid,&nbsp;asfreq])</td>
+<td>Method to determine the channel ranges for thr given spectral line.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">getdtd</span></code>(fl)</td>
+<td>Method to write out the dtd data.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">geteffectivelevel</span></code>()</td>
+<td>Method to get the effective logging level of the logging subsystem</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">getkey</span></code>(key)</td>
+<td>Retrieval value for a key.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">getloggername</span></code>()</td>
+<td>Method to get the name of the logger for this AT instance</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">getlogginglevel</span></code>()</td>
+<td>Method to get the current logging level of the AT</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.at.LineID_AT.LineID_AT.getpeaks" title="admit.at.LineID_AT.LineID_AT.getpeaks"><code class="xref py py-obj docutils literal"><span class="pre">getpeaks</span></code></a>(method,&nbsp;args,&nbsp;spec,&nbsp;segments[,&nbsp;iterate])</td>
+<td>Method to get the peaks from the input spectrum.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.at.LineID_AT.LineID_AT.gettier1" title="admit.at.LineID_AT.LineID_AT.gettier1"><code class="xref py py-obj docutils literal"><span class="pre">gettier1</span></code></a>()</td>
+<td>Method to get the Tier 1 transitions that may be in the window.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.at.LineID_AT.LineID_AT.gettier1line" title="admit.at.LineID_AT.LineID_AT.gettier1line"><code class="xref py py-obj docutils literal"><span class="pre">gettier1line</span></code></a>(chans)</td>
+<td>Method to return a line from the detected tier1 list.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">haskey</span></code>(key)</td>
+<td>Query if a key exists for an AT.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">html</span></code>(inheader)</td>
+<td>Method to represent the current AT in HTML format.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">id</span></code>([strip])</td>
+<td>Returns task ID number.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.at.LineID_AT.LineID_AT.identify" title="admit.at.LineID_AT.LineID_AT.identify"><code class="xref py py-obj docutils literal"><span class="pre">identify</span></code></a>(peaks,&nbsp;noise,&nbsp;tier1,&nbsp;hfs[,&nbsp;...])</td>
+<td>Method to identify lines, given their peak locations.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.at.LineID_AT.LineID_AT.integritycheck" title="admit.at.LineID_AT.LineID_AT.integritycheck"><code class="xref py py-obj docutils literal"><span class="pre">integritycheck</span></code></a>()</td>
+<td>Method to make sure all data have the same frequency axis.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">isAutoAlias</span></code>([withEmpty,&nbsp;compat])</td>
+<td>Whether the task alias appears to be auto-generated.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">isequal</span></code>(at)</td>
+<td>Method to determine if two ATs are the same.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">isstale</span></code>()</td>
+<td>Returns whether the AT is out of date.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">len2</span></code>()</td>
+<td>Returns the length of _bdp_in and _bdp_out in a tuple.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">link</span></code>()</td>
+<td>Increments the task link count.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">markChanged</span></code>()</td>
+<td>Mark an AT that it&#8217;s state was changed, so it would need to be rerun.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">markUpToDate</span></code>()</td>
+<td>Resets _stale to indicate that the AT does not need to be run.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">merge</span></code>(at[,&nbsp;aliases])</td>
+<td>Merges attributes from another task.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">mkdir</span></code>(dirname)</td>
+<td>Make a directory in the ADMIT hierarchy.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">mkext</span></code>(filename,&nbsp;ext[,&nbsp;alias])</td>
+<td>Return a new filename with a new extension with optional ADMIT alias.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.at.LineID_AT.LineID_AT.narrowpossibles" title="admit.at.LineID_AT.LineID_AT.narrowpossibles"><code class="xref py py-obj docutils literal"><span class="pre">narrowpossibles</span></code></a>(possible)</td>
+<td>Method to take the possible identifications of a spectral line and narrow it down to one possibility.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">newId</span></code>(tid)</td>
+<td>Assigns the task a new ID number.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.at.LineID_AT.LineID_AT.removepeaks" title="admit.at.LineID_AT.LineID_AT.removepeaks"><code class="xref py py-obj docutils literal"><span class="pre">removepeaks</span></code></a>(pks,&nbsp;segments)</td>
+<td>Method to remove peak points from a list if they are not inside of</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">reset</span></code>(a)</td>
+<td>Performs an <em>in-place</em> shallow copy.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.at.LineID_AT.LineID_AT.run" title="admit.at.LineID_AT.LineID_AT.run"><code class="xref py py-obj docutils literal"><span class="pre">run</span></code></a>()</td>
+<td>The run method, locates lines, attempts to identify them, and</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">running</span></code>([state])</td>
+<td>Returns current task execution flag, with optional reset.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>()</td>
+<td>Save (write) any BDPs connected to this AT.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set</span></code>(item,&nbsp;val)</td>
+<td>Method to set protected attributes, rather than direct access</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">setAlias</span></code>(aliases[,&nbsp;alias,&nbsp;auto])</td>
+<td>Sets and registers the task alias, guaranteed unique among  registered aliases.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">setProject</span></code>(pid)</td>
+<td>Adds a project ID to task ID.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">set_bdp_in</span></code>([bdpin])</td>
+<td>Validate the _valid_bdp_in list and digest it into the appropriate attributes.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_bdp_out</span></code>([bout])</td>
+<td>Validate the _valid_bdp_out list and digest it into the appropriate attributes.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">seteffectivelevel</span></code>(level)</td>
+<td>Method to set the effective logging level of the logging subsystem</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">setkey</span></code>([name,&nbsp;value,&nbsp;isinit])</td>
+<td>Set keyword value.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">setloggername</span></code>(name)</td>
+<td>Method to set the name of the logger for this AT instance</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">setlogginglevel</span></code>(level)</td>
+<td>Method to set the logging level</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">show</span></code>()</td>
+<td>Return the AT type.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">statusicons</span></code>()</td>
+<td>return some html icons representing the enabled/stale status of this task</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.at.LineID_AT.LineID_AT.summary" title="admit.at.LineID_AT.LineID_AT.summary"><code class="xref py py-obj docutils literal"><span class="pre">summary</span></code></a>()</td>
+<td>Returns the summary dictionary from the AT, for merging into the ADMIT Summary object.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.at.LineID_AT.LineID_AT.taghfclines" title="admit.at.LineID_AT.LineID_AT.taghfclines"><code class="xref py py-obj docutils literal"><span class="pre">taghfclines</span></code></a>(chfc,&nbsp;shfc,&nbsp;peak,&nbsp;wiggle,&nbsp;...)</td>
+<td>Method to identify hyperfine components in a given spectrum.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">unlink</span></code>()</td>
+<td>Decrements the task link count.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">userdata</span></code>()</td>
+<td>Returns the user dictionary from the AT, for merging into the ADMIT userdata object.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">validateinput</span></code>([describe])</td>
+<td>Method to validate the _bdp_in&#8217;s against a dictionary of expected types.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">validatekeys</span></code>()</td>
+<td>Method to error check all input keys.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">write</span></code>(node)</td>
+<td>Method to write the AT to disk.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="admit.at.LineID_AT.LineID_AT.checkcount">
+<code class="descname">checkcount</code><span class="sig-paren">(</span><em>counts</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/LineID_AT.html#LineID_AT.checkcount"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.LineID_AT.LineID_AT.checkcount" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to determine if there are too many peaks for the pattern finder to be of use. If
+there are too many points then false patterns can be found. The threshold has been
+experimentally determined to be a second order poynolmial based on the number of
+of channels. See the design documentation for specifics and details.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>counts</strong> : dict</p>
+<blockquote>
+<div><p>Dictionary containing the peaks for each input spectrum.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Bool, True if there are too many peaks for the pattern finder to be of use, False</p>
+<p class="last">otherwise.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.at.LineID_AT.LineID_AT.checkfit">
+<code class="descname">checkfit</code><span class="sig-paren">(</span><em>peaks</em>, <em>peak</em>, <em>params</em>, <em>freq</em>, <em>segment</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/LineID_AT.html#LineID_AT.checkfit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.LineID_AT.LineID_AT.checkfit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to determine if the given Gaussian fit paramters exceed 1.5 times the intensity
+of the peak channel, and are contained within the encompassing segment. Adjustments are
+are made if necessary.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>peaks</strong> : Peaks instance</p>
+<blockquote>
+<div><p>The Peaks instance used to supply the spectrum and segments</p>
+</div></blockquote>
+<p><strong>peak</strong> : float</p>
+<blockquote>
+<div><p>The peak intensity within the segment</p>
+</div></blockquote>
+<p><strong>params</strong> : array like</p>
+<blockquote>
+<div><p>The list of Gaussian parameters from a fit (peak, center (offset from freq), FWHM)</p>
+</div></blockquote>
+<p><strong>freq</strong> : float</p>
+<blockquote>
+<div><p>The central frequency of the fit.</p>
+</div></blockquote>
+<p><strong>segment</strong> : list</p>
+<blockquote>
+<div><p>Segment containing the peak</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Tuple containing the corrected fit parameters</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.at.LineID_AT.LineID_AT.checkforcechans">
+<code class="descname">checkforcechans</code><span class="sig-paren">(</span><em>peaks</em>, <em>chs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/LineID_AT.html#LineID_AT.checkforcechans"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.LineID_AT.LineID_AT.checkforcechans" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to check that no non-force segments overlap with force segments</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>peaks</strong> : Peaks instance</p>
+<blockquote>
+<div><p>Instance of the Peaks class containing all of the line peaks</p>
+</div></blockquote>
+<p><strong>chs</strong> : list</p>
+<blockquote>
+<div><p>List containing a pair of entries for the beginning and ending
+channel numbers for the segment.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">List, containing a pair of entries, the start and end channels for the</p>
+<p class="last">segment, modified so that it does not overlap any tier1 segments.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.at.LineID_AT.LineID_AT.checkforcefreqs">
+<code class="descname">checkforcefreqs</code><span class="sig-paren">(</span><em>frq</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/LineID_AT.html#LineID_AT.checkforcefreqs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.LineID_AT.LineID_AT.checkforcefreqs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to check that detected segments do not overlap with any force segments in
+frequency space</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>segs</strong> : list</p>
+<blockquote>
+<div><p>List of the segments (in channel space) to check</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">List of segments that do not overlap with force segments</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.at.LineID_AT.LineID_AT.checkforcesegs">
+<code class="descname">checkforcesegs</code><span class="sig-paren">(</span><em>segs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/LineID_AT.html#LineID_AT.checkforcesegs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.LineID_AT.LineID_AT.checkforcesegs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to check that detected segments do not overlap with any force segments in
+channel space</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>segs</strong> : list</p>
+<blockquote>
+<div><p>List of the segments (in channel space) to check</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">List of Segments objects that do not overlap with force segments</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.at.LineID_AT.LineID_AT.checkreject">
+<code class="descname">checkreject</code><span class="sig-paren">(</span><em>lines</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/LineID_AT.html#LineID_AT.checkreject"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.LineID_AT.LineID_AT.checkreject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to check possible lines against the list of rejected lines. Returns
+an edited version of the input data, removing those that match the reject list.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>lines</strong> : list or dict</p>
+<blockquote>
+<div><p>The line identifications to check for rejects.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Data in the same form as input, with rejected lines removed</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.at.LineID_AT.LineID_AT.checktier1chans">
+<code class="descname">checktier1chans</code><span class="sig-paren">(</span><em>peaks</em>, <em>chs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/LineID_AT.html#LineID_AT.checktier1chans"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.LineID_AT.LineID_AT.checktier1chans" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to check that no non-tier1 segments overlap with tier1 segments
+in the same spectrum.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>peaks</strong> : Peaks instance</p>
+<blockquote>
+<div><p>Instance of the Peaks class containing all of the line peaks</p>
+</div></blockquote>
+<p><strong>chs</strong> : list</p>
+<blockquote>
+<div><p>List containing a pair of entries for the beginning and ending
+channel numbers for the segment.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">List, containing a pair of entries, the start and end channels for the</p>
+<p class="last">segment, modified so that it does not overlap any tier1 segments.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.at.LineID_AT.LineID_AT.counthfclines">
+<code class="descname">counthfclines</code><span class="sig-paren">(</span><em>chfc</em>, <em>shfc</em>, <em>peak</em>, <em>wiggle</em>, <em>offset</em>, <em>hflines</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/LineID_AT.html#LineID_AT.counthfclines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.LineID_AT.LineID_AT.counthfclines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to count the number of hyperfine lines that match a given offset.
+The offsets are determined by the wings of a cluster. This returns
+the number of hyperfine components that match emission features.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>chfc</strong> : dict</p>
+<blockquote>
+<div><p>Dictionary containing the channel ranges and other line attributes
+of clusters</p>
+</div></blockquote>
+<p><strong>shfc</strong> : dict</p>
+<blockquote>
+<div><p>Dictionary containing the channel ranges and other line attributes
+of single lines</p>
+</div></blockquote>
+<p><strong>peak</strong> : Peaks instance</p>
+<blockquote>
+<div><p>Peaks instance used to calculate channel ranges</p>
+</div></blockquote>
+<p><strong>wiggle</strong> : float</p>
+<blockquote>
+<div><p>The amount of wiggle room to allow for a match in channel space</p>
+</div></blockquote>
+<p><strong>offset</strong> : float</p>
+<blockquote>
+<div><p>The offset to use for the calculations</p>
+</div></blockquote>
+<p><strong>hflines</strong> : list</p>
+<blockquote>
+<div><p>List of all possible hyperfine components</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Int, the number of matches</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.at.LineID_AT.LineID_AT.findpatterns">
+<code class="descname">findpatterns</code><span class="sig-paren">(</span><em>spec</em>, <em>points</em>, <em>segments</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/LineID_AT.html#LineID_AT.findpatterns"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.LineID_AT.LineID_AT.findpatterns" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to search for patterns in the peaks. Specifically it is
+looking for pairs of peaks that are the same distance apart (within
+the tolerance). These can be an indicator of rotation/infall/etc.
+Only two patterns are allowed to overlap. See the design documentation
+for specifics</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>spec</strong> : array like</p>
+<blockquote>
+<div><p>The spectrum that is currently being worked on.</p>
+</div></blockquote>
+<p><strong>points</strong> : numpy array</p>
+<blockquote>
+<div><p>Listing of peak points</p>
+</div></blockquote>
+<p><strong>segments</strong> : list</p>
+<blockquote>
+<div><p>List of the segments for the current spectrum</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A Peaks class containing the spectra, segments, peaks and patterns</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.at.LineID_AT.LineID_AT.generatepossibles">
+<code class="descname">generatepossibles</code><span class="sig-paren">(</span><em>frq</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/LineID_AT.html#LineID_AT.generatepossibles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.LineID_AT.LineID_AT.generatepossibles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to generate a list of possible molecular identifications
+given a frequency range. The methold calls slsearch and converts
+the output into a list.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>frq</strong> : list, length 2</p>
+<blockquote>
+<div><p>The frequency range to search, it is just passed to slsearch,
+and no error checking is done.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A list containing the possible identifications. Each item in the</p>
+<p>list is a list itself containing the chemical formula, chemical</p>
+<p>name, rest frequency, transition quantum numbers, line strength,</p>
+<p class="last">lower state energy, and upper state energy, in this order.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.at.LineID_AT.LineID_AT.getchannels">
+<code class="descname">getchannels</code><span class="sig-paren">(</span><em>peaks</em>, <em>noise</em>, <em>sid=-1</em>, <em>cid=-1</em>, <em>asfreq=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/LineID_AT.html#LineID_AT.getchannels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.LineID_AT.LineID_AT.getchannels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to determine the channel ranges for thr given spectral line.
+First uses the segment to get the maximum extent of the line, then
+compares the channel range to all other peaks and makes adjustments
+so that the channel range does not incorporate mote than one peak.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>peaks</strong> : Peaks instance</p>
+<blockquote>
+<div><p>The peaks instance which lists all peaks in the spectrum</p>
+</div></blockquote>
+<p><strong>noise</strong> : float</p>
+<blockquote>
+<div><p>The noise level of the spectrum</p>
+</div></blockquote>
+<p><strong>sid</strong> : int</p>
+<blockquote>
+<div><p>Center channel of the spectrum to find the channel ranges for.
+Default: -1</p>
+</div></blockquote>
+<p><strong>cid</strong> : int</p>
+<blockquote>
+<div><p>Center channel of the cluster to find the channel ranges for.
+Default: -1</p>
+</div></blockquote>
+<p><strong>asfreq</strong> : bool</p>
+<blockquote>
+<div><p>Whether to return the end poitns in frequency units (True) or
+channel numbers (False).
+Defult : False (channel numbers)</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">List containing both the start and end channels for the given peak</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>Both sid and cid are mutually exclusive.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.at.LineID_AT.LineID_AT.getpeaks">
+<code class="descname">getpeaks</code><span class="sig-paren">(</span><em>method</em>, <em>args</em>, <em>spec</em>, <em>segments</em>, <em>iterate=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/LineID_AT.html#LineID_AT.getpeaks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.LineID_AT.LineID_AT.getpeaks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get the peaks from the input spectrum. It calls the requested
+peak finder and can iterate over the inputs to find both wider weaker lines as
+well as stronger narrower ones. The iteration is done by conserving the product of
+numsigma * minchan. The first run keeps both values as they were input, subsequent
+runs decrease the minchan by 1 and increase numsigma so that the product is conserved.
+This is repeated as long as minchan &gt; 1. The results of the iterations are merged together
+and a single list of peaks is returned.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>method</strong> : str</p>
+<blockquote>
+<div><p>The peak finding method to use</p>
+</div></blockquote>
+<p><strong>args</strong> : dict</p>
+<blockquote>
+<div><p>The arguments to send to the peak finder</p>
+</div></blockquote>
+<p><strong>spec</strong> : array like</p>
+<blockquote>
+<div><p>The input spectrum which is searched for peaks</p>
+</div></blockquote>
+<p><strong>segments</strong> : list</p>
+<blockquote>
+<div><p>A list of the previously detected segments</p>
+</div></blockquote>
+<p><strong>iterate</strong> : bool</p>
+<blockquote>
+<div><p>If True then iterate over the minchan ans threshold to detect narrow strong lines.
+Default : False</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">List of the peak points in channel space</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.at.LineID_AT.LineID_AT.gettier1">
+<code class="descname">gettier1</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/LineID_AT.html#LineID_AT.gettier1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.LineID_AT.LineID_AT.gettier1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get the Tier 1 transitions that may be in the window.
+These transitions are stored in a small sqlite3 database inside of
+Admit. The molecules in the database are:</p>
+<p>CO      all transitions</p>
+<p>13CO    all transitions</p>
+<p>C18O    all transitions</p>
+<p>C17O    all transitions</p>
+<p>HCO+    all transitions</p>
+<p>H13CO+  all transitions</p>
+<p>DCO+    all transitions</p>
+<p>HDO     all transitions</p>
+<p>CCH     all transitions</p>
+<p>CN      excluding weakest lines</p>
+<p>13CN    excluding weakest lines</p>
+<p>HCN     all transitions</p>
+<p>DCN     all transitions</p>
+<p>H13CN   all transitions</p>
+<p>HN13C   all transitions</p>
+<p>HNC     all transitions</p>
+<p>N2H+    all transitions</p>
+<p>H2CO    excluding weakest lines</p>
+<p>CS      all transitions</p>
+<p>SiO     all transitions</p>
+<p>SO      all transitions</p>
+<p>HC3N    excluding weakest lines</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>None</strong></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">tuple of dictionaries</p>
+<blockquote class="last">
+<div><p>The first contains a list of single transitions and the
+strongest component of any lines with hyperfine splitting, the
+second contains a listing of all possible hyperfine components,
+lined with the main components in the first list.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.at.LineID_AT.LineID_AT.gettier1line">
+<code class="descname">gettier1line</code><span class="sig-paren">(</span><em>chans</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/LineID_AT.html#LineID_AT.gettier1line"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.LineID_AT.LineID_AT.gettier1line" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to return a line from the detected tier1 list. The line is found
+by looking for an entry which is between the end points of the input segment.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>chans</strong> : list</p>
+<blockquote>
+<div><p>Two element list of the start and end channels to search over</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A listing of any tier1 line which overlaps with the segment.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.at.LineID_AT.LineID_AT.identify">
+<code class="descname">identify</code><span class="sig-paren">(</span><em>peaks</em>, <em>noise</em>, <em>tier1</em>, <em>hfs</em>, <em>isstats=False</em>, <em>ispvcorr=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/LineID_AT.html#LineID_AT.identify"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.LineID_AT.LineID_AT.identify" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to identify lines, given their peak locations. This is a
+complex method that works as follows:</p>
+<ul class="simple">
+<li>search for any Tier 1 lines in the spectrum<ul>
+<li>start with any detected patterns</li>
+<li>then search for individual lines</li>
+<li>any peak detected within &#8216;tier1width&#8217; of the expected rest
+frequency of the Tier 1 line will be marked as being from that
+transition (defaults to 300 km/s for a source vlsr &gt; 150 and 40 km/s
+for a source vlsr &lt;= 150 km/s)</li>
+<li>if an identified line has hyperfine components, search for them
+before proceeding to the next transition in the Tier 1 list</li>
+</ul>
+</li>
+<li>search for any remaining transitions in the spectrum<ul>
+<li>start with any detected patterns</li>
+<li>then search any remaining single peaks</li>
+</ul>
+</li>
+<li>when working with detected (really suspected) patterns both the
+emission/absorption peaks and the central frequency are searched
+for, since the pattern may not be due to rotation, but may be
+due to emission from multiple related transitions (internal molecular
+rotation)</li>
+<li>any detected lines in a given spectrum will be compared to detected peaks
+of any other spectra. Specifically this helps to identify transitions
+due to source rotation where the CubeStats spectrum see all of the emission
+(both red and blue shifted peaks), but a CubeSpectrum may ony see the red peak,
+this red only peak will be correctly identified because it matches part of the
+pattern from the CubeStats input.</li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>peaks</strong> : Peaks instance</p>
+<blockquote>
+<div><p>A class containing both the sinlge peaks and those which may be
+grouped by a common offset</p>
+</div></blockquote>
+<p><strong>noise</strong> : float</p>
+<blockquote>
+<div><p>The rms noise of the root spectrum</p>
+</div></blockquote>
+<p><strong>tier1</strong> : dict</p>
+<blockquote>
+<div><p>Dictionary containing any Tier 1 lines located in the band, rest
+frequency is the key, transition data are the values</p>
+</div></blockquote>
+<p><strong>hfs</strong> : dict</p>
+<blockquote>
+<div><p>Dictionary of hyperfine components that correspond to any lines
+in tier1.</p>
+</div></blockquote>
+<p><strong>isstats</strong> : bool</p>
+<blockquote>
+<div><p>Whether or not a CubeStats based spectrum is being processed.
+Default : False</p>
+</div></blockquote>
+<p><strong>ispvcorr</strong> : bool</p>
+<blockquote>
+<div><p>Whether or not a PVCorr based spectrum is being processed.
+Specifically this disables the use of velocity offsets.
+Default: False</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">List of the line identifications</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.at.LineID_AT.LineID_AT.integritycheck">
+<code class="descname">integritycheck</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/LineID_AT.html#LineID_AT.integritycheck"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.LineID_AT.LineID_AT.integritycheck" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to make sure all data have the same frequency axis. This is necessary since
+this AT works in both channel and frequency space, thus it must be ensured that the
+frequency of channel 1 is the same for all input spectra. This method will throw an
+exception if a mismatch is found, as further analysis might be compromised. The
+comparison of the frequencies is done at the 1 part in 10^6 level in case they are
+recorded at differing precisions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.at.LineID_AT.LineID_AT.narrowpossibles">
+<code class="descname">narrowpossibles</code><span class="sig-paren">(</span><em>possible</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/LineID_AT.html#LineID_AT.narrowpossibles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.LineID_AT.LineID_AT.narrowpossibles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to take the possible identifications of a spectral line and
+narrow it down to one possibility. This is done by comparing the
+upper state energies of the transitions, masses, and isotope counts.
+NEED DETAILS</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>possibles</strong> : list</p>
+<blockquote>
+<div><p>A list containing all of the possible identifications for the
+line</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The listing of the most likely identification</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.at.LineID_AT.LineID_AT.removepeaks">
+<code class="descname">removepeaks</code><span class="sig-paren">(</span><em>pks</em>, <em>segments</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/LineID_AT.html#LineID_AT.removepeaks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.LineID_AT.LineID_AT.removepeaks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to remove peak points from a list if they are not inside of
+a segment and merge those that are close to each other</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>pks</strong> : list</p>
+<blockquote>
+<div><p>List of peak points, any units</p>
+</div></blockquote>
+<p><strong>segments</strong> : list</p>
+<blockquote>
+<div><p>List of segment end points (two for each segment), must have
+same units as pks</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">List of peak points that are inside of the segments</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.at.LineID_AT.LineID_AT.run">
+<code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/LineID_AT.html#LineID_AT.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.LineID_AT.LineID_AT.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>The run method, locates lines, attempts to identify them, and
+creates the BDP</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.at.LineID_AT.LineID_AT.summary">
+<code class="descname">summary</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/LineID_AT.html#LineID_AT.summary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.LineID_AT.LineID_AT.summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the summary dictionary from the AT, for merging
+into the ADMIT Summary object.</p>
+<p>LineID_AT adds the following to ADMIT summary:</p>
+<table border="1" class="borderless docutils">
+<colgroup>
+<col width="15%" />
+<col width="13%" />
+<col width="73%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Key</th>
+<th class="head">type</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>linelist</td>
+<td>table</td>
+<td>table of parameters of discovered lines</td>
+</tr>
+<tr class="row-odd"><td>spectra</td>
+<td>list</td>
+<td>the spectral plot of signal, noise, and S/N</td>
+</tr>
+</tbody>
+</table>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>None</strong></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">dict</p>
+<blockquote class="last">
+<div><p>Dictionary of SummaryEntry</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.at.LineID_AT.LineID_AT.taghfclines">
+<code class="descname">taghfclines</code><span class="sig-paren">(</span><em>chfc</em>, <em>shfc</em>, <em>peak</em>, <em>wiggle</em>, <em>offset</em>, <em>hflines</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/LineID_AT.html#LineID_AT.taghfclines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.LineID_AT.LineID_AT.taghfclines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to identify hyperfine components in a given spectrum. If components
+are blended then the strongest line (based on transition line strength)
+is added to the transitions and all others are added to the blended lines.
+All are connected by the blend number.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>chfc</strong> : dict</p>
+<blockquote>
+<div><p>Dictionary containing the channel ranges and other line attributes
+of clusters</p>
+</div></blockquote>
+<p><strong>shfc</strong> : dict</p>
+<blockquote>
+<div><p>Dictionary containing the channel ranges and other line attributes
+of single lines</p>
+</div></blockquote>
+<p><strong>peak</strong> : Peaks instance</p>
+<blockquote>
+<div><p>Peaks instance used to calculate channel ranges</p>
+</div></blockquote>
+<p><strong>wiggle</strong> : float</p>
+<blockquote>
+<div><p>The amount of wiggle room to allow for a match in channel space</p>
+</div></blockquote>
+<p><strong>offset</strong> : float</p>
+<blockquote>
+<div><p>The offset to use for the calculations</p>
+</div></blockquote>
+<p><strong>hflines</strong> : list</p>
+<blockquote>
+<div><p>List of all possible hyperfine components</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Tuple containing the identification(s) and blend(s)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="admit.at.LineID_AT.Peaks">
+<em class="property">class </em><code class="descclassname">admit.at.LineID_AT.</code><code class="descname">Peaks</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/LineID_AT.html#Peaks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.LineID_AT.Peaks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Lightweight class for working with the peaks found by one or more peak
+finding algorithms.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>kwargs</strong> : dict</p>
+<blockquote class="last">
+<div><p>A dictionary of keyword/value pairs of the parameters. Can contain
+any attribute. See Attributes below for a full listing of possible
+keywords and value types.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="8%" />
+<col width="92%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>centers</td>
+<td>(dict)</td>
+</tr>
+<tr class="row-even"><td>fcenters</td>
+<td>(dict)</td>
+</tr>
+<tr class="row-odd"><td>singles</td>
+<td>(list)</td>
+</tr>
+<tr class="row-even"><td>fsingles</td>
+<td>(list)</td>
+</tr>
+<tr class="row-odd"><td>pairs</td>
+<td>(dict)</td>
+</tr>
+<tr class="row-even"><td>x</td>
+<td>(list) Listing of the x axis (frequency) for the given peaks</td>
+</tr>
+<tr class="row-odd"><td>y</td>
+<td>(list) Listing of the y axis (intensity) for the given peaks</td>
+</tr>
+<tr class="row-even"><td>offsets</td>
+<td>(set) Listing of all possible offset values, shared among all instances of Peaks.</td>
+</tr>
+<tr class="row-odd"><td>offsetdone</td>
+<td>(boolean) Whether or not the offsets have been converted to frequency. Internal use only should not be set manually.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#admit.at.LineID_AT.Peaks.centerfreq" title="admit.at.LineID_AT.Peaks.centerfreq"><code class="xref py py-obj docutils literal"><span class="pre">centerfreq</span></code></a>()</td>
+<td>Method to get the center frequency of the spectrum</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.at.LineID_AT.Peaks.converttofreq" title="admit.at.LineID_AT.Peaks.converttofreq"><code class="xref py py-obj docutils literal"><span class="pre">converttofreq</span></code></a>()</td>
+<td>Method to convert the peak and pattern locations from channel to</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.at.LineID_AT.Peaks.flatten" title="admit.at.LineID_AT.Peaks.flatten"><code class="xref py py-obj docutils literal"><span class="pre">flatten</span></code></a>(tol)</td>
+<td>Method to collapse pair peaks that are close together into single</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.at.LineID_AT.Peaks.getchan" title="admit.at.LineID_AT.Peaks.getchan"><code class="xref py py-obj docutils literal"><span class="pre">getchan</span></code></a>(frq)</td>
+<td>Method to get the channel number given the frequency</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.at.LineID_AT.Peaks.getchans" title="admit.at.LineID_AT.Peaks.getchans"><code class="xref py py-obj docutils literal"><span class="pre">getchans</span></code></a>([masked])</td>
+<td>Method to get the entire channel axis</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.at.LineID_AT.Peaks.getfreq" title="admit.at.LineID_AT.Peaks.getfreq"><code class="xref py py-obj docutils literal"><span class="pre">getfreq</span></code></a>(chan)</td>
+<td>Method to get the frequency of the given channel, the channel can contain a fraction of a channel (e.g.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.at.LineID_AT.Peaks.getfreqs" title="admit.at.LineID_AT.Peaks.getfreqs"><code class="xref py py-obj docutils literal"><span class="pre">getfreqs</span></code></a>([masked])</td>
+<td>Method to get the entire frequency axis</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.at.LineID_AT.Peaks.getfsegment" title="admit.at.LineID_AT.Peaks.getfsegment"><code class="xref py py-obj docutils literal"><span class="pre">getfsegment</span></code></a>(freq)</td>
+<td>Method to return the segment which contains the given frequency.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.at.LineID_AT.Peaks.getsegment" title="admit.at.LineID_AT.Peaks.getsegment"><code class="xref py py-obj docutils literal"><span class="pre">getsegment</span></code></a>(chan)</td>
+<td>Method to get the segment that contains the given channel</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.at.LineID_AT.Peaks.getspecs" title="admit.at.LineID_AT.Peaks.getspecs"><code class="xref py py-obj docutils literal"><span class="pre">getspecs</span></code></a>([masked])</td>
+<td>Method to get the entire spectral axis</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.at.LineID_AT.Peaks.limitwidth" title="admit.at.LineID_AT.Peaks.limitwidth"><code class="xref py py-obj docutils literal"><span class="pre">limitwidth</span></code></a>(center,&nbsp;width)</td>
+<td>Method to ensure that the given peak and line width fit within its segment</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.at.LineID_AT.Peaks.pairsort" title="admit.at.LineID_AT.Peaks.pairsort"><code class="xref py py-obj docutils literal"><span class="pre">pairsort</span></code></a>(pairs)</td>
+<td>Method to sort a list of pairs into ascending order</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.at.LineID_AT.Peaks.patternsort" title="admit.at.LineID_AT.Peaks.patternsort"><code class="xref py py-obj docutils literal"><span class="pre">patternsort</span></code></a>(pattern)</td>
+<td>Method to sort a detected patterns into sorted lists</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.at.LineID_AT.Peaks.removeidentified" title="admit.at.LineID_AT.Peaks.removeidentified"><code class="xref py py-obj docutils literal"><span class="pre">removeidentified</span></code></a>(data,&nbsp;tol)</td>
+<td>Method to remove already identified peaks.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.at.LineID_AT.Peaks.reset" title="admit.at.LineID_AT.Peaks.reset"><code class="xref py py-obj docutils literal"><span class="pre">reset</span></code></a>()</td>
+<td>Method to reset the Peaks static member variables so that LineID can be re-run without polluting the results with items from previous runs.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.at.LineID_AT.Peaks.sort" title="admit.at.LineID_AT.Peaks.sort"><code class="xref py py-obj docutils literal"><span class="pre">sort</span></code></a>()</td>
+<td>Method to sort through all pairs and organize them into dictionary</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.at.LineID_AT.Peaks.validatelinesegments" title="admit.at.LineID_AT.Peaks.validatelinesegments"><code class="xref py py-obj docutils literal"><span class="pre">validatelinesegments</span></code></a>()</td>
+<td>Method to ensure that all line channel ranges do not go past the bounds of the original segments.</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="admit.at.LineID_AT.Peaks.blends">
+<code class="descname">blends</code><a class="headerlink" href="#admit.at.LineID_AT.Peaks.blends" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="admit.at.LineID_AT.Peaks.centerfreq">
+<code class="descname">centerfreq</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/LineID_AT.html#Peaks.centerfreq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.LineID_AT.Peaks.centerfreq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get the center frequency of the spectrum</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Float containing the center frequency of the spectrum</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="admit.at.LineID_AT.Peaks.centers">
+<code class="descname">centers</code><a class="headerlink" href="#admit.at.LineID_AT.Peaks.centers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="admit.at.LineID_AT.Peaks.converttofreq">
+<code class="descname">converttofreq</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/LineID_AT.html#Peaks.converttofreq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.LineID_AT.Peaks.converttofreq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to convert the peak and pattern locations from channel to
+frequency indexing</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="admit.at.LineID_AT.Peaks.counts">
+<code class="descname">counts</code><a class="headerlink" href="#admit.at.LineID_AT.Peaks.counts" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="admit.at.LineID_AT.Peaks.fcenters">
+<code class="descname">fcenters</code><a class="headerlink" href="#admit.at.LineID_AT.Peaks.fcenters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="admit.at.LineID_AT.Peaks.flatten">
+<code class="descname">flatten</code><span class="sig-paren">(</span><em>tol</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/LineID_AT.html#Peaks.flatten"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.LineID_AT.Peaks.flatten" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to collapse pair peaks that are close together into single
+pair</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>tol</strong> : float</p>
+<blockquote>
+<div><p>The tolerance (minimum distance between points)</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">List containing the consolidated points</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="admit.at.LineID_AT.Peaks.fsegments">
+<code class="descname">fsegments</code><a class="headerlink" href="#admit.at.LineID_AT.Peaks.fsegments" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="admit.at.LineID_AT.Peaks.fsingles">
+<code class="descname">fsingles</code><a class="headerlink" href="#admit.at.LineID_AT.Peaks.fsingles" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="admit.at.LineID_AT.Peaks.getchan">
+<code class="descname">getchan</code><span class="sig-paren">(</span><em>frq</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/LineID_AT.html#Peaks.getchan"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.LineID_AT.Peaks.getchan" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get the channel number given the frequency</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>frq</strong> : float</p>
+<blockquote>
+<div><p>The frequency whose channel number is to be found</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">int containing the channel number, will be 0 or len(self.x)-1 if</p>
+<p class="last">the frequency is outside of the frequency range in the class</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.at.LineID_AT.Peaks.getchans">
+<code class="descname">getchans</code><span class="sig-paren">(</span><em>masked=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/LineID_AT.html#Peaks.getchans"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.LineID_AT.Peaks.getchans" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get the entire channel axis</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>masked</strong> : bool</p>
+<blockquote>
+<div><p>If True return a masked array with &#8220;bad&#8221; channels masked,
+else return a numpy array</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">array like containing the channel axis</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.at.LineID_AT.Peaks.getfreq">
+<code class="descname">getfreq</code><span class="sig-paren">(</span><em>chan</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/LineID_AT.html#Peaks.getfreq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.LineID_AT.Peaks.getfreq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get the frequency of the given channel, the channel can
+contain a fraction of a channel (e.g. 1.45)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>chan</strong> : float</p>
+<blockquote>
+<div><p>The channel to convert</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Float of the frequency corresponding to the channel</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.at.LineID_AT.Peaks.getfreqs">
+<code class="descname">getfreqs</code><span class="sig-paren">(</span><em>masked=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/LineID_AT.html#Peaks.getfreqs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.LineID_AT.Peaks.getfreqs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get the entire frequency axis</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>masked</strong> : bool</p>
+<blockquote>
+<div><p>If True return a masked array with &#8220;bad&#8221; channels masked,
+else return a numpy array</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">array like containing the frequency axis</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.at.LineID_AT.Peaks.getfsegment">
+<code class="descname">getfsegment</code><span class="sig-paren">(</span><em>freq</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/LineID_AT.html#Peaks.getfsegment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.LineID_AT.Peaks.getfsegment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to return the segment which contains the given frequency.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>freq</strong> : float</p>
+<blockquote>
+<div><p>The frequency for which the segment is requested</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">List containing the segment end points, or [None, None] if the frequency is not in a</p>
+<p class="last">segment.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.at.LineID_AT.Peaks.getsegment">
+<code class="descname">getsegment</code><span class="sig-paren">(</span><em>chan</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/LineID_AT.html#Peaks.getsegment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.LineID_AT.Peaks.getsegment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get the segment that contains the given channel</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>chan</strong> : int</p>
+<blockquote>
+<div><p>The channel number to find the segment for</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Two element List containing the starting and ending channels</p>
+<p class="last">for the segment containing the given channel</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.at.LineID_AT.Peaks.getspecs">
+<code class="descname">getspecs</code><span class="sig-paren">(</span><em>masked=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/LineID_AT.html#Peaks.getspecs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.LineID_AT.Peaks.getspecs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get the entire spectral axis</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>masked</strong> : bool</p>
+<blockquote>
+<div><p>If True return a masked array with &#8220;bad&#8221; channels masked,
+else return a numpy array</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">array like containing the spectral axis</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.at.LineID_AT.Peaks.limitwidth">
+<code class="descname">limitwidth</code><span class="sig-paren">(</span><em>center</em>, <em>width</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/LineID_AT.html#Peaks.limitwidth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.LineID_AT.Peaks.limitwidth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to ensure that the given peak and line width fit within its segment</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>center</strong> : float</p>
+<blockquote>
+<div><p>The center frequency in GHz</p>
+</div></blockquote>
+<p><strong>width</strong> : float</p>
+<blockquote>
+<div><p>The half width of the line in GHz</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Two element List containing the start and end frequencies, limited by the</p>
+<p class="last">segment boundaries</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="admit.at.LineID_AT.Peaks.linelist">
+<code class="descname">linelist</code><a class="headerlink" href="#admit.at.LineID_AT.Peaks.linelist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="admit.at.LineID_AT.Peaks.offsetdone">
+<code class="descname">offsetdone</code><em class="property"> = False</em><a class="headerlink" href="#admit.at.LineID_AT.Peaks.offsetdone" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="admit.at.LineID_AT.Peaks.offsets">
+<code class="descname">offsets</code><em class="property"> = set([])</em><a class="headerlink" href="#admit.at.LineID_AT.Peaks.offsets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="admit.at.LineID_AT.Peaks.pairs">
+<code class="descname">pairs</code><a class="headerlink" href="#admit.at.LineID_AT.Peaks.pairs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="admit.at.LineID_AT.Peaks.pairsort">
+<code class="descname">pairsort</code><span class="sig-paren">(</span><em>pairs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/LineID_AT.html#Peaks.pairsort"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.LineID_AT.Peaks.pairsort" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to sort a list of pairs into ascending order</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>pairs</strong> : list</p>
+<blockquote>
+<div><p>List of pairs (as lists) to be sorted</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A list of the sorted pairs</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.at.LineID_AT.Peaks.patternsort">
+<code class="descname">patternsort</code><span class="sig-paren">(</span><em>pattern</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/LineID_AT.html#Peaks.patternsort"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.LineID_AT.Peaks.patternsort" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to sort a detected patterns into sorted lists</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>pattern</strong> : dict</p>
+<blockquote>
+<div><p>Dictionary of the patterns to sort</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Dictionary of sorted patterns</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.at.LineID_AT.Peaks.removeidentified">
+<code class="descname">removeidentified</code><span class="sig-paren">(</span><em>data</em>, <em>tol</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/LineID_AT.html#Peaks.removeidentified"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.LineID_AT.Peaks.removeidentified" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to remove already identified peaks.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>data</strong> : Peaks instance</p>
+<blockquote>
+<div><p>A Peaks instance to use as the base for removal</p>
+</div></blockquote>
+<p><strong>tol</strong> : float</p>
+<blockquote>
+<div><p>The tolerance to allow (in GHz) for comparable lines</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="admit.at.LineID_AT.Peaks.reset">
+<em class="property">static </em><code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/LineID_AT.html#Peaks.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.LineID_AT.Peaks.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to reset the Peaks static member variables so that LineID
+can be re-run without polluting the results with items from previous
+runs.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="admit.at.LineID_AT.Peaks.segments">
+<code class="descname">segments</code><a class="headerlink" href="#admit.at.LineID_AT.Peaks.segments" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="admit.at.LineID_AT.Peaks.singles">
+<code class="descname">singles</code><a class="headerlink" href="#admit.at.LineID_AT.Peaks.singles" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="admit.at.LineID_AT.Peaks.sort">
+<code class="descname">sort</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/LineID_AT.html#Peaks.sort"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.LineID_AT.Peaks.sort" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to sort through all pairs and organize them into dictionary
+entries indexed by their common separation</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="admit.at.LineID_AT.Peaks.spec">
+<code class="descname">spec</code><a class="headerlink" href="#admit.at.LineID_AT.Peaks.spec" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="admit.at.LineID_AT.Peaks.validatelinesegments">
+<code class="descname">validatelinesegments</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/LineID_AT.html#Peaks.validatelinesegments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.LineID_AT.Peaks.validatelinesegments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to ensure that all line channel ranges do not go past the
+bounds of the original segments.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/module/admit.at/LineID_AT.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" >Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,409 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Regrid_AT — Regrids multiple cubes to a common resolution. &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../index.html" />
+    <link rel="up" title="Python Scripting Interface (API)" href="../../api.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" accesskey="U">Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-admit.at.Regrid_AT"></span><div class="section" id="regrid-at-regrids-multiple-cubes-to-a-common-resolution">
+<span id="regrid-at-api"></span><h1><strong>Regrid_AT</strong> &#8212; Regrids multiple cubes to a common resolution.<a class="headerlink" href="#regrid-at-regrids-multiple-cubes-to-a-common-resolution" title="Permalink to this headline">¶</a></h1>
+<p>This module defines the Regrid_AT class.</p>
+<dl class="class">
+<dt id="admit.at.Regrid_AT.Regrid_AT">
+<em class="property">class </em><code class="descclassname">admit.at.Regrid_AT.</code><code class="descname">Regrid_AT</code><span class="sig-paren">(</span><em>**keyval</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/Regrid_AT.html#Regrid_AT"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.Regrid_AT.Regrid_AT" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a regridded version of multiple datacubes. Capable of 
+regridding in both spatial and spectral dimensions. Default 
+behavior is to take a set of N cubes and (a) regrid the pixel size 
+to the minimum pixel size of all the images and (b) to remap the images
+so that they all fit on the minimum-area square patch of sky that
+encloses each image. User may specify an alterative pixel size. User
+may also specify spectral regridding. If spectral regridding is desired,
+the default behavior is to regrid so a common set of frequencies with 
+mininum/maximum frequency those of the collection of cubes and channel width
+the minimum channel width in the collection of cubes. Alternatively, 
+user may specify a desired channel width in Hz.</p>
+<p>See also <a class="reference internal" href="../../design.html#regrid-at-design"><span class="std std-ref">Regrid_AT</span></a> for the design document.</p>
+<dl class="docutils">
+<dt><strong>Keywords</strong></dt>
+<dd><dl class="first last docutils">
+<dt><strong>do_spatial_regrid</strong>: bool</dt>
+<dd>Whether or not to do spatial regridding. The default is to do 
+spatial regridding. If set to true (or left default), the pix_scale 
+keyword will be used to determine the appropriate pixel size 
+to regrid the images to.</dd>
+<dt><strong>pix_scale</strong>: double</dt>
+<dd>The pixel size on which to regrid all the images. If negative, then 
+the default is the minimum pixel scale for all images. Unit is arcsec.
+<strong>Default</strong>: -1.0.</dd>
+<dt><strong>do_freq_regrid</strong>: bool</dt>
+<dd>Whether or not to do frequency regridding. The default is to only do 
+spatial regridding. If set to true, the chan_width keyword will be used
+to determine the appropriate channel width to regrid the images to.</dd>
+<dt><strong>chan_width</strong>: double</dt>
+<dd>The channel width with which to regrid the images. If negative, then 
+the default is the minimum such channel width. Unit is Hz.
+<strong>Default</strong>: -1.0.</dd>
+</dl>
+</dd>
+</dl>
+<p><strong>Input BDPs</strong></p>
+<blockquote>
+<div><dl class="docutils">
+<dt><strong>SpwCube_BDP</strong>: count: <cite>varies</cite> (minimum 2)</dt>
+<dd>Input cubes, as from
+<a class="reference external" href="Ingest_AT.html">Ingest_AT</a>,
+<a class="reference external" href="ContinuumSub_AT.html">ContinuumSub_AT</a> or
+<a class="reference external" href="LineCube_AT.html">LineCube_AT</a>.</dd>
+</dl>
+</div></blockquote>
+<p><strong>Output BDPs</strong></p>
+<blockquote>
+<div><dl class="docutils">
+<dt><strong>SpwCube_BDP</strong>: count: <cite>varies</cite> (equal to input count)</dt>
+<dd>Regridded cubes.</dd>
+</dl>
+</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>keyval</strong> : dict, optional</p>
+<blockquote class="last">
+<div><p>Dictionary of keyword:value pairs.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>_version</td>
+<td>(string) Version ID string.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">addinput</span></code>(item[,&nbsp;slot])</td>
+<td>Add a BDP input to an AT.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">addinputbdp</span></code>(item[,&nbsp;slot,&nbsp;insert])</td>
+<td>Add a BDP to the _bdp_in list.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">addoutput</span></code>(item[,&nbsp;slot])</td>
+<td>Add a BDP output product to an AT.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">addoutputbdp</span></code>(item[,&nbsp;slot,&nbsp;insert])</td>
+<td>Add a BDP to the _bdp_out list.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">baseDir</span></code>([path])</td>
+<td>Get/set project base directory.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">bestMatch</span></code>(at1,&nbsp;at2)</td>
+<td>Determines the better match of two tasks to the current one.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">checkfiles</span></code>()</td>
+<td>Check if the files from all the BDP_out&#8217;s in an AT exist.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">checktype</span></code>(item)</td>
+<td>Check the type of an object to see if it is a BDP.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">clearinput</span></code>()</td>
+<td>Clear the input BDP list.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">clearoutput</span></code>([delete])</td>
+<td>Clear the output BDP list.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">copy</span></code>()</td>
+<td>Creates an independent duplicate of the task.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">delete</span></code>()</td>
+<td>Method to delete the AT and underlying BDPs.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">delinput</span></code>(slot)</td>
+<td>Delete a specific BDP in the _bdp_in list.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">deloutput</span></code>(slot)</td>
+<td>Delete a specific BDP in the _bdp_out list.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">dir</span></code>([filename])</td>
+<td>Absolute directory reference of the ADMIT project.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">dryrun</span></code>()</td>
+<td>Method to do a dry run of the AT, generally just checks input values for errors.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">enabled</span></code>([state])</td>
+<td>Returns current task enabled setting, with optional reset.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">execute</span></code>([args])</td>
+<td>Executes the task.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">freeAlias</span></code>(aliases[,&nbsp;alias])</td>
+<td>Deletes alias reservation, if present.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">get</span></code>(attrib)</td>
+<td>Method to get the given attributes value</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">getProject</span></code>()</td>
+<td>Retrieves project ID associated with the task.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">getVersion</span></code>()</td>
+<td>Return the version string.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">getdtd</span></code>(fl)</td>
+<td>Method to write out the dtd data.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">geteffectivelevel</span></code>()</td>
+<td>Method to get the effective logging level of the logging subsystem</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">getkey</span></code>(key)</td>
+<td>Retrieval value for a key.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">getloggername</span></code>()</td>
+<td>Method to get the name of the logger for this AT instance</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">getlogginglevel</span></code>()</td>
+<td>Method to get the current logging level of the AT</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">haskey</span></code>(key)</td>
+<td>Query if a key exists for an AT.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">html</span></code>(inheader)</td>
+<td>Method to represent the current AT in HTML format.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">id</span></code>([strip])</td>
+<td>Returns task ID number.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">isAutoAlias</span></code>([withEmpty,&nbsp;compat])</td>
+<td>Whether the task alias appears to be auto-generated.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">isequal</span></code>(at)</td>
+<td>Method to determine if two ATs are the same.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">isstale</span></code>()</td>
+<td>Returns whether the AT is out of date.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">len2</span></code>()</td>
+<td>Returns the length of _bdp_in and _bdp_out in a tuple.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">link</span></code>()</td>
+<td>Increments the task link count.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">markChanged</span></code>()</td>
+<td>Mark an AT that it&#8217;s state was changed, so it would need to be rerun.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">markUpToDate</span></code>()</td>
+<td>Resets _stale to indicate that the AT does not need to be run.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">merge</span></code>(at[,&nbsp;aliases])</td>
+<td>Merges attributes from another task.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">mkdir</span></code>(dirname)</td>
+<td>Make a directory in the ADMIT hierarchy.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">mkext</span></code>(filename,&nbsp;ext[,&nbsp;alias])</td>
+<td>Return a new filename with a new extension with optional ADMIT alias.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">newId</span></code>(tid)</td>
+<td>Assigns the task a new ID number.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">reset</span></code>(a)</td>
+<td>Performs an <em>in-place</em> shallow copy.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.at.Regrid_AT.Regrid_AT.run" title="admit.at.Regrid_AT.Regrid_AT.run"><code class="xref py py-obj docutils literal"><span class="pre">run</span></code></a>()</td>
+<td>The run method creates the BDP</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">running</span></code>([state])</td>
+<td>Returns current task execution flag, with optional reset.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>()</td>
+<td>Save (write) any BDPs connected to this AT.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set</span></code>(item,&nbsp;val)</td>
+<td>Method to set protected attributes, rather than direct access</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">setAlias</span></code>(aliases[,&nbsp;alias,&nbsp;auto])</td>
+<td>Sets and registers the task alias, guaranteed unique among  registered aliases.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">setProject</span></code>(pid)</td>
+<td>Adds a project ID to task ID.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">set_bdp_in</span></code>([bdpin])</td>
+<td>Validate the _valid_bdp_in list and digest it into the appropriate attributes.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_bdp_out</span></code>([bout])</td>
+<td>Validate the _valid_bdp_out list and digest it into the appropriate attributes.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">seteffectivelevel</span></code>(level)</td>
+<td>Method to set the effective logging level of the logging subsystem</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">setkey</span></code>([name,&nbsp;value,&nbsp;isinit])</td>
+<td>Set keyword value.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">setloggername</span></code>(name)</td>
+<td>Method to set the name of the logger for this AT instance</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">setlogginglevel</span></code>(level)</td>
+<td>Method to set the logging level</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">show</span></code>()</td>
+<td>Return the AT type.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">statusicons</span></code>()</td>
+<td>return some html icons representing the enabled/stale status of this task</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.at.Regrid_AT.Regrid_AT.summary" title="admit.at.Regrid_AT.Regrid_AT.summary"><code class="xref py py-obj docutils literal"><span class="pre">summary</span></code></a>()</td>
+<td>Returns the summary dictionary from the AT, for merging    into the ADMIT Summary object.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">unlink</span></code>()</td>
+<td>Decrements the task link count.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">userdata</span></code>()</td>
+<td>Returns the user dictionary from the AT, for merging into the ADMIT userdata object.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">validateinput</span></code>([describe])</td>
+<td>Method to validate the _bdp_in&#8217;s against a dictionary of expected types.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">validatekeys</span></code>()</td>
+<td>Method to error check all input keys.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">write</span></code>(node)</td>
+<td>Method to write the AT to disk.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="admit.at.Regrid_AT.Regrid_AT.run">
+<code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/Regrid_AT.html#Regrid_AT.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.Regrid_AT.Regrid_AT.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>The run method creates the BDP</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.at.Regrid_AT.Regrid_AT.summary">
+<code class="descname">summary</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/Regrid_AT.html#Regrid_AT.summary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.Regrid_AT.Regrid_AT.summary" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Returns the summary dictionary from the AT, for merging</dt>
+<dd>into the ADMIT Summary object.</dd>
+</dl>
+<p>Regrid_AT adds the following to ADMIT summary:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="n">Key</span>      <span class="nb">type</span>        <span class="n">Description</span>
+<span class="o">--------</span>  <span class="o">------</span>       <span class="o">-----------</span>
+<span class="n">regrid</span>    <span class="nb">list</span>        <span class="n">Info</span> <span class="n">about</span> <span class="n">smoothing</span> <span class="n">done</span> 
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/module/admit.at/Regrid_AT.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" >Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

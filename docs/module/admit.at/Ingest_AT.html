@@ -1,0 +1,489 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Ingest_AT — Ingests a (FITS) data cube. &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../index.html" />
+    <link rel="up" title="Python Scripting Interface (API)" href="../../api.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" accesskey="U">Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-admit.at.Ingest_AT"></span><div class="section" id="ingest-at-ingests-a-fits-data-cube">
+<span id="ingest-at-api"></span><h1><strong>Ingest_AT</strong> &#8212; Ingests a (FITS) data cube.<a class="headerlink" href="#ingest-at-ingests-a-fits-data-cube" title="Permalink to this headline">¶</a></h1>
+<p>This module defines the Ingest_AT class.</p>
+<dl class="class">
+<dt id="admit.at.Ingest_AT.Ingest_AT">
+<em class="property">class </em><code class="descclassname">admit.at.Ingest_AT.</code><code class="descname">Ingest_AT</code><span class="sig-paren">(</span><em>**keyval</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/Ingest_AT.html#Ingest_AT"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.Ingest_AT.Ingest_AT" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ingest an image (cube) into ADMIT, normally to bootstrap a flow.</p>
+<p>See also <a class="reference internal" href="../../design.html#ingest-at-design"><span class="std std-ref">Ingest_AT</span></a> for the design document.</p>
+<p>Ingest an image cube (usually FITS, but a CASA image or MIRIAD
+image are also natively supported by CASA) into CASA.  Expect I/O
+penalties if you use FITS or MIRIAD because CASA images are tiled.</p>
+<p>A number of selections and corrections to the cube can be made, as
+specified by the keywords. Notably, a sub-cube can be taken out of
+the cube by trimming off spatial and spectral edges, a primary beam
+correction can be made as well.</p>
+<p>Internally ADMIT will store images as 4D CASA images, with any missing
+3rd or 4th axis created redundantly (FREQ as axis 3, and POL as axis 4)</p>
+<p><strong>Keywords</strong></p>
+<blockquote>
+<div><dl class="docutils">
+<dt><strong>file</strong>: string</dt>
+<dd><p class="first">Input filename.</p>
+<p>Usually &#8216;basename.fits&#8217; where &#8216;basename&#8217; can be long, and can
+involve a directory hierarchy.  The admit directory will be
+&#8216;basename.admit&#8217;, which will include the whole directory path
+if one was given.</p>
+<p>A symbolic link within ADMIT will then be used to resolve
+this as a local file.</p>
+<p>An absolute address is advised to be used if your working directory
+can change in a flow.</p>
+<p>If a CASA image is given, a symlink is used when no modifications
+(e.g. box=) are used, but this will cause uncertain integrity of the
+input BDP, as other clients could be modifying it.  A MIRIAD image
+can also be given, but I/O (like with FITS) will be slower.</p>
+<p class="last">[no default]</p>
+</dd>
+<dt><strong>basename</strong>: string</dt>
+<dd><p class="first">New short basename (like an alias) of the output file.</p>
+<p class="last">This is meant to override a possibly long basename in the input
+file. The <strong>alias</strong> keyword in the baseclass can still be used
+to create <strong>basename-alias</strong> type filenames.
+Warning: if you use a dash in your basename, there is a good risk
+this will be confused with the alias separator in the basename
+in a flow, as these are &#8220;basename-alias.extension&#8221;.
+Default: empty string, basename inherited from the input file name.</p>
+</dd>
+<dt><strong>pb</strong>:  string</dt>
+<dd>If given, this is the filename of the Primary Beam by which the
+input file needs to be multiplied to get a noise flat image for
+processing the ADMIT flow.
+The ALMA pipeline product of the Primary Beam should be in
+&#8216;longname.pb.fits&#8217; where the flux flat cube is
+&#8216;longname.pbcor.fits&#8217;  Note: PB correction is slow.
+Default:  empty string, no PB correction is done.</dd>
+<dt><strong>usepb</strong>: boolean</dt>
+<dd>If True, the PB is actually used in an assumed flux flat input file to
+create a noise flat input BDP.  If False, it is assumed the user has
+given a noise flat file, and the PB can be used downstream to compute
+proper PB corrected fluxes.  Note that the PB is always stored as an 2D image,
+not as a cube.
+Default: True</dd>
+<dt><strong>box</strong>:  blc,tlc (a list of 2, 4 or 6 integers)</dt>
+<dd>Select a box region from the cube.
+For example box=[xmin,ymin,xmax,ymax], which takes all channels, or
+[xmin,ymin,zmin,xmax,ymax,zmax], which also selects a range in channels.
+You can also select just some channels, with box=[zmin,zmax].
+As always, pixels and channels are 0 based in CASA.
+Arbitrary CASA regions are not implemented here, we only support
+a box/edge selection.</dd>
+<dt><strong>edge</strong>:  Z_start,Z_end (a list of 1 or 2 integers)</dt>
+<dd>You can use edge= to remove edge channels, e.g. if box= was not specified,
+or when only an XY box was given. If box contains 2 or 6 numbers, any edge
+specification would be ignored. If one number is given, the edge rejection
+is the same at the upper and lower end. Default: not used.</dd>
+<dt><strong>smooth</strong>: [nx,ny,[nz]] (a list of 2 or 3 integers)</dt>
+<dd>You can convolve your cube spatially, and optionally spectrally as well,
+by supplying the number of pixels by which it is convolved. Spatially the
+FWHM is used. 
+If nz is 1, a Hanning smooth is applied, else a boxcar of size nz is used.
+See also <a class="reference internal" href="Smooth_AT.html#smooth-at-api"><span class="std std-ref">Smooth_AT &#8212; Creates a smoothed version of a cube.</span></a>, where a common beam can be computed or supplied.
+A future version should contain a decimation option.
+By default no smoothing is applied.</dd>
+<dt><strong>mask</strong>: boolean</dt>
+<dd>If True, a mask needs to be created where the
+cube has 0&#8217;s. This option is automatically bypassed if the input
+CASA image had a mask. 
+[False]</dd>
+<dt><strong>vlsr</strong>: float (km/s)</dt>
+<dd>VLSR of the source (km/s).  If not set, the frequency at the center of the
+band is compared with the rest frequency from the header, which we call VLSRc.
+If the input file is not FITS, or header items are missing if the input
+file is CASA or MIRIAD already, unexpected things may happen.
+This VLSR (or VLSRc) is added to the ADMIT summary, which will be used
+downstream in the flow by other AT&#8217;s (e.g. LineID)
+Default: -999999.99 (not set).</dd>
+<dt><strong>restfreq</strong>: float (GHz)</dt>
+<dd>An alternative method providing the source VLSR would be to specify the true
+restfreq (f0) where the fits header has a &#8216;fake&#8217; restfreq (f). This technique
+is sometimes used by the PI to avoid complex high-z doppler calculations and
+supply the redshifted line directly.
+In this case VLSR = c * (1-f/f0), in the radio definition, with z in the optical
+convention of course. We call this VLSRf.
+NOTE: clarify/check if the &#8220;1+z&#8221; velocity scale of the high-z object is correct.
+Default: -1.0 (method not used). Units must be GHz!</dd>
+</dl>
+</div></blockquote>
+<dl class="docutils">
+<dt><strong>Input BDPs</strong></dt>
+<dd>None. The input is specific via the file= keyword.</dd>
+</dl>
+<p><strong>Output BDPs</strong></p>
+<blockquote>
+<div><dl class="docutils">
+<dt><strong>SpwCube</strong>: count: 1</dt>
+<dd>The output spectral window cube. The convention is that the name of the BDP
+inherits from the basename of the input fits cube,and adding an extension
+&#8220;im&#8221;. Each AT has a hidden keyword called alias=, use this keyword if
+you want to modify the cube name to &#8220;alias.im&#8221;, and hence the BDP to
+&#8220;alias.im.bdp&#8221;.   Note this is an exception from the usual rule, where
+alias= is used to create a dashed-prefix to an extension, e.g. &#8220;x.alias-y&#8221;.</dd>
+<dt><strong>Image_BDP</strong>: 1</dt>
+<dd>Output PB Map. If the input PB is a cube, the central channel (being representative
+for the avarage PB across the spectrum window) is used.
+New extension will be &#8221;.pb&#8221;</dd>
+</dl>
+</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>keyval</strong> : dictionary, optional</p>
+<blockquote class="last">
+<div><p>Keyword-value pairs, directly passed to the contructor for ease of
+assignment.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="6%" />
+<col width="94%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>_version</td>
+<td>(string) Version ID for some future TBD use.  Also should not be documented here, as underscore attributes are for internal usage only.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">addinput</span></code>(item[,&nbsp;slot])</td>
+<td>Add a BDP input to an AT.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">addinputbdp</span></code>(item[,&nbsp;slot,&nbsp;insert])</td>
+<td>Add a BDP to the _bdp_in list.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">addoutput</span></code>(item[,&nbsp;slot])</td>
+<td>Add a BDP output product to an AT.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">addoutputbdp</span></code>(item[,&nbsp;slot,&nbsp;insert])</td>
+<td>Add a BDP to the _bdp_out list.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">baseDir</span></code>([path])</td>
+<td>Get/set project base directory.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">bestMatch</span></code>(at1,&nbsp;at2)</td>
+<td>Determines the better match of two tasks to the current one.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">checkfiles</span></code>()</td>
+<td>Check if the files from all the BDP_out&#8217;s in an AT exist.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">checktype</span></code>(item)</td>
+<td>Check the type of an object to see if it is a BDP.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">clearinput</span></code>()</td>
+<td>Clear the input BDP list.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">clearoutput</span></code>([delete])</td>
+<td>Clear the output BDP list.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">copy</span></code>()</td>
+<td>Creates an independent duplicate of the task.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">delete</span></code>()</td>
+<td>Method to delete the AT and underlying BDPs.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">delinput</span></code>(slot)</td>
+<td>Delete a specific BDP in the _bdp_in list.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">deloutput</span></code>(slot)</td>
+<td>Delete a specific BDP in the _bdp_out list.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">dir</span></code>([filename])</td>
+<td>Absolute directory reference of the ADMIT project.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">dryrun</span></code>()</td>
+<td>Method to do a dry run of the AT, generally just checks input values for errors.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">enabled</span></code>([state])</td>
+<td>Returns current task enabled setting, with optional reset.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">execute</span></code>([args])</td>
+<td>Executes the task.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">freeAlias</span></code>(aliases[,&nbsp;alias])</td>
+<td>Deletes alias reservation, if present.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">get</span></code>(attrib)</td>
+<td>Method to get the given attributes value</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">getProject</span></code>()</td>
+<td>Retrieves project ID associated with the task.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">getVersion</span></code>()</td>
+<td>Return the version string.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">getdtd</span></code>(fl)</td>
+<td>Method to write out the dtd data.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">geteffectivelevel</span></code>()</td>
+<td>Method to get the effective logging level of the logging subsystem</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">getkey</span></code>(key)</td>
+<td>Retrieval value for a key.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">getloggername</span></code>()</td>
+<td>Method to get the name of the logger for this AT instance</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">getlogginglevel</span></code>()</td>
+<td>Method to get the current logging level of the AT</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">haskey</span></code>(key)</td>
+<td>Query if a key exists for an AT.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">html</span></code>(inheader)</td>
+<td>Method to represent the current AT in HTML format.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">id</span></code>([strip])</td>
+<td>Returns task ID number.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">isAutoAlias</span></code>([withEmpty,&nbsp;compat])</td>
+<td>Whether the task alias appears to be auto-generated.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">isequal</span></code>(at)</td>
+<td>Method to determine if two ATs are the same.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">isstale</span></code>()</td>
+<td>Returns whether the AT is out of date.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">len2</span></code>()</td>
+<td>Returns the length of _bdp_in and _bdp_out in a tuple.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">link</span></code>()</td>
+<td>Increments the task link count.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">markChanged</span></code>()</td>
+<td>Mark an AT that it&#8217;s state was changed, so it would need to be rerun.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">markUpToDate</span></code>()</td>
+<td>Resets _stale to indicate that the AT does not need to be run.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">merge</span></code>(at[,&nbsp;aliases])</td>
+<td>Merges attributes from another task.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">mkdir</span></code>(dirname)</td>
+<td>Make a directory in the ADMIT hierarchy.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">mkext</span></code>(filename,&nbsp;ext[,&nbsp;alias])</td>
+<td>Return a new filename with a new extension with optional ADMIT alias.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">newId</span></code>(tid)</td>
+<td>Assigns the task a new ID number.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">reset</span></code>(a)</td>
+<td>Performs an <em>in-place</em> shallow copy.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.at.Ingest_AT.Ingest_AT.run" title="admit.at.Ingest_AT.Ingest_AT.run"><code class="xref py py-obj docutils literal"><span class="pre">run</span></code></a>()</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">running</span></code>([state])</td>
+<td>Returns current task execution flag, with optional reset.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">save</span></code>()</td>
+<td>Save (write) any BDPs connected to this AT.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set</span></code>(item,&nbsp;val)</td>
+<td>Method to set protected attributes, rather than direct access</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">setAlias</span></code>(aliases[,&nbsp;alias,&nbsp;auto])</td>
+<td>Sets and registers the task alias, guaranteed unique among  registered aliases.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">setProject</span></code>(pid)</td>
+<td>Adds a project ID to task ID.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">set_bdp_in</span></code>([bdpin])</td>
+<td>Validate the _valid_bdp_in list and digest it into the appropriate attributes.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">set_bdp_out</span></code>([bout])</td>
+<td>Validate the _valid_bdp_out list and digest it into the appropriate attributes.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">seteffectivelevel</span></code>(level)</td>
+<td>Method to set the effective logging level of the logging subsystem</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">setkey</span></code>([name,&nbsp;value,&nbsp;isinit])</td>
+<td>Set keyword value.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">setloggername</span></code>(name)</td>
+<td>Method to set the name of the logger for this AT instance</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">setlogginglevel</span></code>(level)</td>
+<td>Method to set the logging level</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">show</span></code>()</td>
+<td>Return the AT type.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">statusicons</span></code>()</td>
+<td>return some html icons representing the enabled/stale status of this task</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.at.Ingest_AT.Ingest_AT.summary" title="admit.at.Ingest_AT.Ingest_AT.summary"><code class="xref py py-obj docutils literal"><span class="pre">summary</span></code></a>()</td>
+<td>Returns the summary dictionary from the AT, for merging    into the ADMIT Summary object.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">unlink</span></code>()</td>
+<td>Decrements the task link count.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">userdata</span></code>()</td>
+<td>Returns the user dictionary from the AT, for merging into the ADMIT userdata object.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">validateinput</span></code>([describe])</td>
+<td>Method to validate the _bdp_in&#8217;s against a dictionary of expected types.</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">validatekeys</span></code>()</td>
+<td>Method to error check all input keys.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">write</span></code>(node)</td>
+<td>Method to write the AT to disk.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="admit.at.Ingest_AT.Ingest_AT.run">
+<code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/Ingest_AT.html#Ingest_AT.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.Ingest_AT.Ingest_AT.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="admit.at.Ingest_AT.Ingest_AT.summary">
+<code class="descname">summary</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/at/Ingest_AT.html#Ingest_AT.summary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.at.Ingest_AT.Ingest_AT.summary" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Returns the summary dictionary from the AT, for merging</dt>
+<dd>into the ADMIT Summary object.</dd>
+</dl>
+<p>Ingest_AT adds the following to ADMIT summary:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="n">Key</span>      <span class="nb">type</span>        <span class="n">Description</span>
+<span class="o">--------</span>  <span class="o">------</span>       <span class="o">-----------</span>
+<span class="n">fitsname</span>  <span class="n">string</span>      <span class="n">Pathless</span> <span class="n">filename</span> <span class="n">of</span> <span class="n">FITS</span> <span class="n">cube</span>
+<span class="n">casaname</span>  <span class="n">string</span>      <span class="n">Pathless</span> <span class="n">filename</span> <span class="n">of</span> <span class="n">CASA</span> <span class="n">cube</span>
+<span class="nb">object</span>    <span class="n">string</span>      <span class="n">Object</span> <span class="p">(</span><span class="ow">or</span> <span class="n">field</span><span class="p">)</span> <span class="n">name</span>
+<span class="n">naxis</span>     <span class="n">integer</span>     <span class="n">Number</span> <span class="n">of</span> <span class="n">axes</span>
+<span class="n">naxisn</span>    <span class="n">integer</span>     <span class="n">size</span> <span class="n">of</span> <span class="n">axis</span> <span class="n">n</span> <span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">1</span> <span class="n">to</span> <span class="n">naxis0</span><span class="p">)</span>
+<span class="n">crpix1</span>    <span class="nb">float</span>       <span class="n">Reference</span> <span class="n">pixel</span> <span class="n">axis</span> <span class="mi">1</span> <span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">1</span> <span class="n">to</span> <span class="n">naxis</span><span class="p">)</span>
+<span class="n">crvaln</span>    <span class="nb">float</span>       <span class="n">axis</span> <span class="n">value</span> <span class="n">at</span> <span class="n">CRPIX1</span> <span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">1</span> <span class="n">to</span> <span class="n">naxis</span><span class="p">)</span>
+<span class="n">ctypen</span>    <span class="n">string</span>      <span class="n">axis</span> <span class="nb">type</span> <span class="mi">1</span> <span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">1</span> <span class="n">to</span> <span class="n">naxis0</span>
+<span class="n">cdeltn</span>    <span class="nb">float</span>       <span class="n">axis</span> <span class="n">increment</span> <span class="mi">1</span> <span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">1</span> <span class="n">to</span> <span class="n">naxis</span><span class="p">)</span>
+<span class="n">cunitn</span>    <span class="n">string</span>      <span class="n">axis</span> <span class="n">unit</span> <span class="mi">1</span> <span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">1</span> <span class="n">to</span> <span class="n">naxis</span><span class="p">)</span>
+<span class="n">equinox</span>   <span class="n">string</span>      <span class="n">equinox</span>
+<span class="n">restfreq</span>  <span class="nb">float</span>       <span class="n">rest</span> <span class="n">frequency</span><span class="p">,</span> <span class="n">Hz</span>
+<span class="n">bmaj</span>      <span class="nb">float</span>       <span class="n">beam</span> <span class="n">major</span> <span class="n">axis</span><span class="p">,</span> <span class="n">radians</span>
+<span class="n">bmin</span>      <span class="nb">float</span>       <span class="n">beam</span> <span class="n">minor</span> <span class="n">axis</span><span class="p">,</span> <span class="n">radians</span>
+<span class="n">bpa</span>       <span class="nb">float</span>       <span class="n">beam</span> <span class="n">position</span> <span class="n">angle</span><span class="p">,</span> <span class="n">deg</span>
+<span class="n">bunit</span>     <span class="n">string</span>      <span class="n">units</span> <span class="n">of</span> <span class="n">pixel</span> <span class="n">values</span>
+<span class="n">telescop</span>  <span class="n">string</span>      <span class="n">telescope</span> <span class="n">name</span>
+<span class="n">observer</span>  <span class="n">string</span>      <span class="n">observer</span> <span class="n">name</span>
+<span class="n">date</span><span class="o">-</span><span class="n">obs</span>  <span class="n">string</span>      <span class="n">date</span> <span class="n">of</span> <span class="n">observation</span>
+<span class="n">datamax</span>   <span class="nb">float</span>       <span class="n">maximum</span> <span class="n">data</span> <span class="n">value</span>
+<span class="n">datamin</span>   <span class="nb">float</span>       <span class="n">minimum</span> <span class="n">data</span> <span class="n">value</span>
+<span class="n">badpixel</span>  <span class="nb">float</span>       <span class="n">fraction</span> <span class="n">of</span> <span class="n">invalid</span> <span class="n">pixels</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">cube</span> <span class="p">(</span><span class="n">a</span> <span class="n">number</span> <span class="n">between</span> <span class="mi">0</span> <span class="ow">and</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">vlsr</span>      <span class="nb">float</span>       <span class="n">Object</span> <span class="n">line</span><span class="o">-</span><span class="n">of</span><span class="o">-</span><span class="n">sight</span> <span class="n">velocity</span> <span class="p">(</span><span class="n">km</span><span class="o">/</span><span class="n">s</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/module/admit.at/Ingest_AT.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" >Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

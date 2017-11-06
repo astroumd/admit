@@ -1,0 +1,195 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.at.File_AT &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.at.File_AT</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; .. _File-at-api:</span>
+
+<span class="sd">   **File_AT** --- Test task representing an arbitrary disk file.</span>
+<span class="sd">   --------------------------------------------------------------</span>
+<span class="sd">   </span>
+<span class="sd">   This module defines the File_AT class.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">os</span>
+
+<span class="kn">from</span> <span class="nn">admit.AT</span> <span class="k">import</span> <span class="n">AT</span>
+<span class="kn">import</span> <span class="nn">admit.util.bdp_types</span> <span class="k">as</span> <span class="nn">bt</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.File_BDP</span> <span class="k">import</span> <span class="n">File_BDP</span>
+<span class="kn">from</span> <span class="nn">admit.util.AdmitLogging</span> <span class="k">import</span> <span class="n">AdmitLogging</span> <span class="k">as</span> <span class="n">logging</span>
+
+<span class="c1"># reminder: need matching $ADMIT/doc/sphinx/module/admit.at/File_AT.rst</span>
+<span class="c1">#           .. automodule:: admit.at.File_AT</span>
+
+<div class="viewcode-block" id="File_AT"><a class="viewcode-back" href="../../../module/admit.at/File_AT.html#admit.at.File_AT.File_AT">[docs]</a><span class="k">class</span> <span class="nc">File_AT</span><span class="p">(</span><span class="n">AT</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Hold a file reference.</span>
+
+<span class="sd">    See also :ref:`File-AT-Design` for the design document.</span>
+
+<span class="sd">    The resulting File_BDP holds a reference to a file, useful for</span>
+<span class="sd">    bootstrapping your flow if you don&#39;t strictly need something</span>
+<span class="sd">    complex such as Ingest_AT.  Used primarily by the Flow*_AT family</span>
+<span class="sd">    for testing.</span>
+
+<span class="sd">    Other realistic examples, besides Ingest_AT, are</span>
+<span class="sd">    BDPIngest_AT and GenerateSpectrum_AT.py.</span>
+
+<span class="sd">    **Keywords**</span>
+
+<span class="sd">      **file**: string</span>
+<span class="sd">            The name of the file. See below for controlling parameters</span>
+<span class="sd">            if the file needs to exist or if it can be created.</span>
+<span class="sd">            File has to be a file within the admit project, absolute</span>
+<span class="sd">            paths are not allowed.</span>
+<span class="sd">            No default.</span>
+<span class="sd">    </span>
+<span class="sd">      **touch**: bool</span>
+<span class="sd">            If True, the &quot;touch&quot; system command is</span>
+<span class="sd">            used on the file, which will then either create a zero</span>
+<span class="sd">            length file, or else update the timestamp of an existing</span>
+<span class="sd">            file. Probably only useful for testing.</span>
+<span class="sd">            **Default**: False.</span>
+
+<span class="sd">      **exist**: bool</span>
+<span class="sd">            If True,  the input file is checked for existence before it could</span>
+<span class="sd">            even be touched. An exception is thrown if the file does not exist</span>
+<span class="sd">            and should exist.</span>
+<span class="sd">            **Default**: True.</span>
+<span class="sd">    </span>
+<span class="sd">    **Input BDPs**</span>
+<span class="sd">      None</span>
+
+<span class="sd">    **Output BDPs**</span>
+
+<span class="sd">      **File_BDP**: count: 1 </span>
+
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    keyval : dictionary, optional</span>
+<span class="sd">      Keyword-value pairs, directly passed to the contructor for ease of</span>
+<span class="sd">      assignment.</span>
+
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">**</span><span class="n">keyval</span><span class="p">):</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;file&quot;</span>  <span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>  
+                <span class="s2">&quot;exist&quot;</span> <span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s2">&quot;touch&quot;</span> <span class="p">:</span> <span class="kc">False</span><span class="p">}</span>  
+        <span class="n">AT</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">keys</span><span class="p">,</span><span class="n">keyval</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_version</span> <span class="o">=</span> <span class="s2">&quot;1.0.0&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_bdp_in</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_bdp_out</span><span class="p">([(</span><span class="n">File_BDP</span><span class="p">,</span><span class="mi">1</span><span class="p">)])</span>
+
+<div class="viewcode-block" id="File_AT.run"><a class="viewcode-back" href="../../../module/admit.at/File_AT.html#admit.at.File_AT.File_AT.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; running the File_AT task</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="c1"># grab and check essential keywords</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s1">&#39;file&#39;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;file=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span><span class="s1">&#39;File_AT: no file= given&#39;</span>
+
+        <span class="n">exist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s1">&#39;exist&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">exist</span><span class="p">:</span>
+            <span class="c1">#</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;no checking now&quot;</span><span class="p">)</span>
+            <span class="c1"># self._bdp_in[0].checkfiles()</span>
+
+        <span class="c1"># create the BDP</span>
+        <span class="n">bdp1</span> <span class="o">=</span> <span class="n">File_BDP</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="n">bdp1</span><span class="o">.</span><span class="n">filename</span> <span class="o">=</span> <span class="n">filename</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addoutput</span><span class="p">(</span><span class="n">bdp1</span><span class="p">)</span>
+
+        <span class="c1"># touch the file if desired</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s1">&#39;touch&#39;</span><span class="p">):</span> <span class="n">bdp1</span><span class="o">.</span><span class="n">touch</span><span class="p">()</span></div></div>
+
+        <span class="c1"># all done.</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

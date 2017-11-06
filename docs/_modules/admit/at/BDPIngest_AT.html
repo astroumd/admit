@@ -1,0 +1,205 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.at.BDPIngest_AT &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.at.BDPIngest_AT</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; .. _BDPIngest-at-api:</span>
+
+<span class="sd">    **BDPIngest_AT** --- Ingests an arbitrary BDP disk file.</span>
+<span class="sd">    --------------------------------------------------------</span>
+
+<span class="sd">    This module defines the BDPIngest_AT class.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># ADMIT imports</span>
+<span class="kn">from</span> <span class="nn">admit.AT</span> <span class="k">import</span> <span class="n">AT</span>
+<span class="kn">from</span> <span class="nn">admit.bdp</span> <span class="k">import</span> <span class="n">BDP</span>
+<span class="kn">import</span> <span class="nn">admit.util.utils</span> <span class="k">as</span> <span class="nn">utils</span>
+<span class="kn">from</span> <span class="nn">admit.util.Table</span> <span class="k">import</span> <span class="n">Table</span>
+<span class="kn">from</span> <span class="nn">admit.Summary</span> <span class="k">import</span> <span class="n">SummaryEntry</span>
+
+
+<div class="viewcode-block" id="BDPIngest_AT"><a class="viewcode-back" href="../../../module/admit.at/BDPIngest_AT.html#admit.at.BDPIngest_AT.BDPIngest_AT">[docs]</a><span class="k">class</span> <span class="nc">BDPIngest_AT</span><span class="p">(</span><span class="n">AT</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; This AT takes a ``.bdp`` file and converts it into the appropriate BDP</span>
+<span class="sd">        type. This AT is useful for ingesting a raw BDP to start a new flow.</span>
+
+<span class="sd">        **Keywords**</span>
+
+<span class="sd">          **file**: str</span>
+<span class="sd">            The name of the bdp file to ingest.</span>
+<span class="sd">            No default.</span>
+
+<span class="sd">        **Input BDPs**</span>
+<span class="sd">          None</span>
+
+<span class="sd">        **Output BDPs**</span>
+<span class="sd">          **Various**: count: 1</span>
+<span class="sd">            Output BDP type will depend on the input file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">keyval</span><span class="p">):</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;file&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">}</span>
+        <span class="n">AT</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">keyval</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_version</span> <span class="o">=</span> <span class="s2">&quot;1.0.0&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_bdp_in</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_bdp_out</span><span class="p">([(</span><span class="n">BDP</span><span class="p">,</span> <span class="mi">1</span><span class="p">)])</span>
+
+<div class="viewcode-block" id="BDPIngest_AT.summary"><a class="viewcode-back" href="../../../module/admit.at/BDPIngest_AT.html#admit.at.BDPIngest_AT.BDPIngest_AT.summary">[docs]</a>    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the summary dictionary from the AT, for merging</span>
+<span class="sd">           into the ADMIT Summary object.</span>
+
+<span class="sd">           BDPIngest_AT adds the following to ADMIT summary:</span>
+
+<span class="sd">           .. table::</span>
+<span class="sd">              :class: borderless</span>
+
+<span class="sd">              +----------+----------+-----------------------------------+</span>
+<span class="sd">              |   Key    | type     |    Description                    |</span>
+<span class="sd">              +==========+==========+===================================+</span>
+<span class="sd">              | sources  | table    |   table of source parameters      |</span>
+<span class="sd">              +----------+----------+-----------------------------------+</span>
+
+<span class="sd">           </span>
+<span class="sd">           Parameters</span>
+<span class="sd">           ----------</span>
+<span class="sd">           None</span>
+
+<span class="sd">           Returns</span>
+<span class="sd">           -------</span>
+<span class="sd">           dict</span>
+<span class="sd">               Dictionary of SummaryEntry</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;_summary&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{}</span></div>
+
+<div class="viewcode-block" id="BDPIngest_AT.run"><a class="viewcode-back" href="../../../module/admit.at/BDPIngest_AT.html#admit.at.BDPIngest_AT.BDPIngest_AT.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to read in a .bdp file and convert it to a BDP object.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;file&quot;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Input file name is empty, one must be given.&quot;</span><span class="p">)</span>
+        <span class="n">bdp</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">getBDP</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;file&quot;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addoutput</span><span class="p">(</span><span class="n">bdp</span><span class="p">)</span>
+
+        <span class="c1"># Make a table of some basic BDP info for Summary.  </span>
+        <span class="c1"># Why in god&#39;s name do BDPs not store the name of the task that </span>
+        <span class="c1"># created them?!?!  The task ID attrbute is useless if the BDP came </span>
+        <span class="c1"># from another flow -- which is why this task was created in </span>
+        <span class="c1"># the first place!</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">bdp</span><span class="o">.</span><span class="n">project</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="n">table</span><span class="o">.</span><span class="n">addRow</span><span class="p">([</span><span class="s2">&quot;Project&quot;</span><span class="p">,</span><span class="n">bdp</span><span class="o">.</span><span class="n">project</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">bdp</span><span class="o">.</span><span class="n">sous</span><span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="n">table</span><span class="o">.</span><span class="n">addRow</span><span class="p">([</span><span class="s2">&quot;SOUS&quot;</span><span class="p">,</span><span class="n">bdp</span><span class="o">.</span><span class="n">sous</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">bdp</span><span class="o">.</span><span class="n">gous</span><span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="n">table</span><span class="o">.</span><span class="n">addRow</span><span class="p">([</span><span class="s2">&quot;GOUS&quot;</span><span class="p">,</span><span class="n">bdp</span><span class="o">.</span><span class="n">gous</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">bdp</span><span class="o">.</span><span class="n">mous</span><span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="n">table</span><span class="o">.</span><span class="n">addRow</span><span class="p">([</span><span class="s2">&quot;MOUS&quot;</span><span class="p">,</span><span class="n">bdp</span><span class="o">.</span><span class="n">mous</span><span class="p">])</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">addRow</span><span class="p">([</span><span class="s2">&quot;BDP Type&quot;</span><span class="p">,</span><span class="n">bdp</span><span class="o">.</span><span class="n">_type</span><span class="p">])</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">addRow</span><span class="p">([</span><span class="s2">&quot;Base directory&quot;</span><span class="p">,</span><span class="n">bdp</span><span class="o">.</span><span class="n">_baseDir</span><span class="p">])</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">addRow</span><span class="p">([</span><span class="s2">&quot;XML file&quot;</span><span class="p">,</span><span class="n">bdp</span><span class="o">.</span><span class="n">xmlFile</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">bdp</span><span class="o">.</span><span class="n">_date</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="n">table</span><span class="o">.</span><span class="n">addRow</span><span class="p">([</span><span class="s2">&quot;Time stamp&quot;</span><span class="p">,</span><span class="n">bdp</span><span class="o">.</span><span class="n">_date</span><span class="p">])</span>
+        <span class="n">files</span> <span class="o">=</span> <span class="n">bdp</span><span class="o">.</span><span class="n">getfiles</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+            <span class="n">table</span><span class="o">.</span><span class="n">addRow</span><span class="p">([</span><span class="s2">&quot;Associated File&quot;</span><span class="p">,</span><span class="n">f</span><span class="p">])</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;Information about the ingested BDP&quot;</span>
+        <span class="n">taskargs</span> <span class="o">=</span> <span class="s2">&quot;file=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s1">&#39;file&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="s2">&quot;bdpingest&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SummaryEntry</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">serialize</span><span class="p">(),</span><span class="s2">&quot;BDPIngest_AT&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">(</span><span class="kc">True</span><span class="p">),</span><span class="n">taskargs</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

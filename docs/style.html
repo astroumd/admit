@@ -1,0 +1,358 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Documentation Style Guide &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="index.html" />
+    <link rel="next" title="How To Write Your Own ADMIT Task" href="examples.html" />
+    <link rel="prev" title="Design Overview" href="design.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="examples.html" title="How To Write Your Own ADMIT Task"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="design.html" title="Design Overview"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">ADMIT 1.0.6 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="documentation-style-guide">
+<span id="documentation"></span><h1>Documentation Style Guide<a class="headerlink" href="#documentation-style-guide" title="Permalink to this headline">¶</a></h1>
+<p>In documenting ADMIT&#8217;s Python codebase, there are three specific items to
+consider:</p>
+<ol class="arabic simple">
+<li>the logical information to include when documenting classes and methods</li>
+<li>the physical formatting of the documentation source text</li>
+<li>the manner of presentation of the documentation to the user</li>
+</ol>
+<p>As <a class="reference external" href="http://www.python.org">Python</a> has a built-in docstring facility, most
+Python documentation packages center around how to structure and process them
+in a well-defined way.  Since docstrings are object attributes and hence
+readily accessible in any interactive Python session, this is a very natural
+and advantageous approach.</p>
+<p>Although <a class="reference external" href="http://www.doxygen.org">Doxygen</a> was very familiar to the ADMIT
+team and does support Python, it does <strong>not</strong> parse docstrings for its own
+markup, instead relying on special comment blocks (starting with <code class="docutils literal"><span class="pre">##</span></code>) in a
+manner similar to C/C++. Docstrings can still be used but are basically an
+independent documentation channel in this case, appearing as pre-formatted
+text blocks in the associated output.  For this reason Doxygen was not chosen
+to serve as our primary documentation tool.  For Python code development,
+however, doxygen <em>can</em> still be useful because of its source browser facility,
+which will automatically generate an indexed HTML tree of syntax-highlighted
+source code for a project. The ADMIT tree contains a <code class="docutils literal"><span class="pre">Doxyfile</span></code>
+configuration at the top level which will create this tree (in <code class="docutils literal"><span class="pre">doc/html</span></code>),
+including docstrings verbatim, when <code class="docutils literal"><span class="pre">doxygen</span></code> is run.</p>
+<p>To produce the official user documentation, ADMIT has adopted the
+<a class="reference external" href="https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt">NumPy/SciPy documentation conventions</a>.
+These appear not only to be the most widely known (and used) of the
+docstring-based systems, but ADMIT users are also close to their own user
+community. They address all three of the items mentioned above.</p>
+<p>This document is <em>not</em> a Python coding style guide; the <a class="reference external" href="https://google-styleguide.googlecode.com/svn/trunk/pyguide.html">Google Python Style
+Guide</a>
+presents one set of guidelines for the latter.</p>
+<div class="section" id="numpy-documentation">
+<h2>NumPy Documentation<a class="headerlink" href="#numpy-documentation" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p class="first">Docstrings are logically divided into sections such as brief and extended
+summaries, parameters and return values (for functions), attributes (for
+classes), etc. The most important sections (listed in order of appearance)
+are:</p>
+<dl class="docutils">
+<dt><strong>Short Summary</strong></dt>
+<dd><p class="first last">A brief description of the module, class, class method or function.</p>
+</dd>
+<dt><strong>Extended Summary</strong></dt>
+<dd><p class="first last">An expanded description of the functionality of the entity.</p>
+</dd>
+<dt><strong>Keywords</strong></dt>
+<dd><p class="first">A special section for ADMIT tasks describing supported task keywords,
+including type information and default value.  A distinct format is
+required compared to the following sections since <code class="docutils literal"><span class="pre">numpydoc</span></code> deletes
+unrecognized sections. An example is</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">**</span><span class="n">Keywords</span><span class="o">**</span>
+  <span class="o">**</span><span class="n">stale</span><span class="o">**</span> <span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">Whether</span> <span class="n">task</span> <span class="n">output</span> <span class="n">BDPs</span> <span class="n">are</span> <span class="n">out</span> <span class="n">of</span> <span class="n">date</span><span class="p">;</span> <span class="n">defaults</span> <span class="n">to</span> <span class="kc">True</span><span class="o">.</span>
+
+  <span class="o">**</span><span class="n">enabled</span><span class="o">**</span> <span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">Whether</span> <span class="n">task</span> <span class="n">execution</span> <span class="ow">is</span> <span class="n">enabled</span><span class="p">;</span> <span class="n">defaults</span> <span class="n">to</span> <span class="kc">True</span><span class="o">.</span>
+
+  <span class="o">...</span>
+</pre></div>
+</div>
+<table class="last docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Note:</th><td class="field-body">This section <strong>must</strong> immediately follow the extended summary.</td>
+</tr>
+</tbody>
+</table>
+</dd>
+<dt><strong>Parameters</strong></dt>
+<dd><p class="first last">Description of the function arguments/keywords, including type
+information. For classes, constructor arguments are described here
+with the class, not as part of the <code class="docutils literal"><span class="pre">__init__</span></code> method.  The <cite>self</cite>
+argument to class methods is <em>not</em> documented.</p>
+</dd>
+<dt><strong>Returns</strong></dt>
+<dd><p class="first last">For functions and class methods, a description of its return value(s),
+including type information. The format follows <strong>Parameters</strong> except that
+return values are unnamed.  If no explicit value is returned, the return
+value is <cite>None</cite> (i.e., do <em>not</em> omit the section).</p>
+</dd>
+<dt><strong>Attributes</strong></dt>
+<dd><p class="first last">For classes, a description of class (or instance) variables, in
+the same style as <strong>Parameters</strong>.</p>
+</dd>
+<dt><strong>See Also</strong></dt>
+<dd><p class="first last">Optional section providing references to related documentation.</p>
+</dd>
+<dt><strong>Notes</strong></dt>
+<dd><p class="first last">Optional section discussing background considerations or lower-level
+implementation details.  As such (and in contrast to the preceding
+sections), this material may be more oriented toward developers or power
+users than ordinary users.</p>
+</dd>
+<dt><strong>Examples</strong></dt>
+<dd><p class="first last">Optional section for examples, presented using the
+<a class="reference external" href="http://docs.python.org/library/doctest.html">doctest</a> format.</p>
+</dd>
+</dl>
+<p>Aside from the summary and keyword sections, all other sections are
+delimited by <a class="reference external" href="http://docutils.sourceforge.net/rst.html">reStructuredText</a>
+section titles.</p>
+</li>
+<li><p class="first">The <a class="reference external" href="http://docutils.sourceforge.net/rst.html">reStructuredText</a> markup language is used for text formatting. This
+markup is basically the de facto standard for formatting docstrings in
+Python. It&#8217;s a plain-text markup designed to be easily readable on a
+character terminal (preserving the docstring&#8217;s usability in interactive
+sessions), while allowing post-processors to produce reasonably attractive
+output in other formats (HTML, PDF, etc.). It includes directives for things
+such as:</p>
+<ul>
+<li><p class="first">sectioning</p>
+</li>
+<li><p class="first">lists (bulleted and enumerated)</p>
+</li>
+<li><p class="first">links (e.g., to <a class="reference external" href="http://www.python.org">Python</a>)</p>
+</li>
+<li><p class="first">font styles (<strong>bold</strong>, <em>italic</em>, <code class="docutils literal"><span class="pre">monospace</span></code>)</p>
+</li>
+<li><p class="first">preformatted text (e.g., code samples)</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="mi">123</span> <span class="o">+</span> <span class="mi">222</span>  <span class="c1"># Integer addition</span>
+<span class="go">345</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="mf">1.5</span> <span class="o">*</span> <span class="mi">4</span>    <span class="c1"># Floating-point multiplication</span>
+<span class="go">6.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="mi">2</span> <span class="o">**</span> <span class="mi">100</span>   <span class="c1"># 2 to the power 100</span>
+<span class="go">1267650600228229401496703205376</span>
+</pre></div>
+</div>
+</li>
+</ul>
+<p>Another <a class="reference external" href="http://openalea.gforge.inria.fr/doc/openalea/doc/_build/html/source/sphinx/rest_syntax.html">reST/Sphinx Cheatsheet</a>
+summarizes these and other items.</p>
+</li>
+<li><p class="first">The <a class="reference external" href="http://sphinx.pocoo.org/">Sphinx</a> package is used for post-processing.
+This is also the package used by the Python project itself to produce the
+<a class="reference external" href="http://docs.python.org/">official Python documentation</a>. It has many
+features and can produce attractive output, as demonstrated by the Sphinx
+website itself, created from reStructuredText files using the Sphinx tool.</p>
+<p>Sphinx is a Python application which works by importing project packages
+and modules in order to process the formatted docstrings contained therein.
+Therefore any import dependencies (e.g., CASA for ADMIT) must be satisfied
+for Sphinx as for any other user of the project.</p>
+</li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Note:</th><td class="field-body">Processing standard <a class="reference external" href="http://www.numpy.org/">NumPy</a> docstrings with Sphinx
+requires the <a class="reference external" href="http://python.org/pypi/numpydoc">numpydoc</a> extension module
+for the latter. (This doesn&#8217;t affect end-users who <em>consume</em> our
+documentation, only developers using Sphinx to generate it). The
+<a class="reference external" href="http://python.org/pypi/numpydoc">numpydoc</a> extension requires Sphinx v1.0.1 or later. RHEL/CentOS 6 uses
+v0.6.6 and hence the standard packages should be removed and replaced with
+the current version before building ADMIT documentation. RHEL/CentOS 7
+satisfies the minimum requirements. The <a class="reference external" href="http://python.org/pypi/numpydoc">numpydoc</a> module must be manually
+installed in either case.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr class="docutils" />
+<div class="section" id="admit-documentation-addenda">
+<h2>ADMIT Documentation Addenda<a class="headerlink" href="#admit-documentation-addenda" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference external" href="https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt">NumPy documentation guidelines</a>
+cover most Python components, including
+modules, classes, class methods, special class instances, constants and
+functions. Although <a class="reference external" href="http://docutils.sourceforge.net/rst.html">reStructuredText</a> includes many features, NumPy
+documentation employs a rather limited sub-set for its use. ADMIT developers
+are encouraged to do likewise, but in practice are free to use any of the more
+advanced features they find useful so long as it does not interfere with
+Sphinx output or unduly degrade readability of the plain ASCII docstring.</p>
+<p>ADMIT follows the convention that classes are defined within a module of the
+same name; e.g., <code class="docutils literal"><span class="pre">FlowManager</span></code> is defined in module <code class="docutils literal"><span class="pre">FlowManager.py</span></code>
+within the <code class="docutils literal"><span class="pre">admit</span></code> package and hence its canonical Python class name is
+<code class="docutils literal"><span class="pre">admit.FlowManager.FlowManager</span></code>. For better integration with Sphinx,
+docstrings for ADMIT <em>modules</em> (not classes) should use a section header for
+the brief description; these will become page titles in the generated output.
+This includes package descriptions (whose docstrings reside in the
+corresponding <code class="docutils literal"><span class="pre">__init__.py</span></code> file). For example, here is the docstring for
+the <a class="reference external" href="module/admit/FlowManager.html">FlowManager module</a>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;Flow Manager</span>
+<span class="sd">   ------------</span>
+
+<span class="sd">   Defines the FlowManager class.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+<p>Since the <a class="reference external" href="module/admit/FlowManager.html#admit.FlowManager.FlowManager">class documentation</a> for
+<code class="docutils literal"><span class="pre">FlowManager</span></code> already describes its function in complete detail, such
+information should not be repeated in the module description.</p>
+<p>In class docstrings, for text referencing internal class methods from outside
+said method, it is good style to use bold type to highlight the method name;
+e.g., &#8220;The use of <strong>foo()</strong> over <strong>bar()</strong> is preferred whenever possible...&#8221;
+With sufficient care, it is also possible to construct live hyperlink
+references to methods and other items using knowledge of the documentation
+directory tree structure described below, but this is delicate and will
+significantly impact ASCII docstring readability unless embedded URIs are
+used; for examples see the <a class="reference external" href="module/admit/FlowManager.html">FlowManager</a> <strong>Notes</strong> section and the <a class="reference external" href="module/admit.at/0-index.html">admit.at</a> package documentation.</p>
+<p>It is vital that all ADMIT docstrings represent valid <a class="reference external" href="http://docutils.sourceforge.net/rst.html">reStructuredText</a> input
+as the Sphinx documentation will fail to build otherwise.</p>
+</div>
+<div class="section" id="maintaining-admit-documentation">
+<h2>Maintaining ADMIT Documentation<a class="headerlink" href="#maintaining-admit-documentation" title="Permalink to this headline">¶</a></h2>
+<p>The ADMIT documentation source tree resides in the <code class="docutils literal"><span class="pre">$ADMIT/doc/sphinx</span></code>
+directory and contains a Makefile to build the documentation; a <code class="docutils literal"><span class="pre">make</span>
+<span class="pre">html</span></code> will generate the HTML version and place it in the <code class="docutils literal"><span class="pre">_build/html</span></code>
+sub-directory. This output is relocatable and can be copied to a public web
+address or included with download packages.</p>
+<p>The <a class="reference external" href="http://docutils.sourceforge.net/rst.html">reStructuredText</a> (.rst) documentation source files for ADMIT classes and
+modules&#8212;one for each component&#8212;must be placed in the appropriate
+sub-directory of the <code class="docutils literal"><span class="pre">doc/sphinx/module</span></code> directory, which itself contains
+one directory for each ADMIT package, named according to its canonical Python
+name. For example, for the <code class="docutils literal"><span class="pre">BDP.py</span></code> module, which resides within the
+<code class="docutils literal"><span class="pre">admit.bdp</span></code> package (physically, the <code class="docutils literal"><span class="pre">$ADMIT/admit/bdp</span></code> directory), the
+corresponding source file is <code class="docutils literal"><span class="pre">module/admit.bdp/BDP.rst</span></code>. Although these source
+files can contain arbitrary markup and information, for the most part they
+are simple Sphinx <em>autodoc</em> wrappers, such as this one for
+<code class="docutils literal"><span class="pre">module/admit/FlowManager.rst</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">..</span> <span class="n">automodule</span><span class="p">::</span> <span class="n">admit</span><span class="o">.</span><span class="n">FlowManager</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal"><span class="pre">automodule</span></code> directive instructs Sphinx to import the specified module,
+process all docstrings it finds within and automatically generate formatted
+documentation for the associated components. Additional text may be appended
+to these template files, but in general all relevant information should be
+placed in the docstrings themselves so that it is available in interactive
+sessions as well.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Documentation Style Guide</a><ul>
+<li><a class="reference internal" href="#numpy-documentation">NumPy Documentation</a></li>
+<li><a class="reference internal" href="#admit-documentation-addenda">ADMIT Documentation Addenda</a></li>
+<li><a class="reference internal" href="#maintaining-admit-documentation">Maintaining ADMIT Documentation</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="design.html"
+                        title="previous chapter">Design Overview</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="examples.html"
+                        title="next chapter">How To Write Your Own ADMIT Task</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/style.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="examples.html" title="How To Write Your Own ADMIT Task"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="design.html" title="Design Overview"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">ADMIT 1.0.6 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

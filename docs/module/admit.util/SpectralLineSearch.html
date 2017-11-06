@@ -1,0 +1,646 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>SpectralLineSearch — Interface to spectral line searching. &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../index.html" />
+    <link rel="up" title="Python Scripting Interface (API)" href="../../api.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" accesskey="U">Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-admit.util.SpectralLineSearch"></span><div class="section" id="spectrallinesearch-interface-to-spectral-line-searching">
+<span id="spectrallinesearch"></span><h1><strong>SpectralLineSearch</strong> &#8212; Interface to spectral line searching.<a class="headerlink" href="#spectrallinesearch-interface-to-spectral-line-searching" title="Permalink to this headline">¶</a></h1>
+<p>This module defines the SpectralLineSearch class.</p>
+<dl class="class">
+<dt id="admit.util.SpectralLineSearch.SpectralLineSearch">
+<em class="property">class </em><code class="descclassname">admit.util.SpectralLineSearch.</code><code class="descname">SpectralLineSearch</code><span class="sig-paren">(</span><em>online=True</em>, <em>tier1freq=[]</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/SpectralLineSearch.html#SpectralLineSearch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.SpectralLineSearch.SpectralLineSearch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class to act an as interface to the spectral line searching tools.
+It can search both the slsearch catalog and, if online, the
+splatalogue database.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>online</strong> : bool</p>
+<blockquote>
+<div><p>Whether to use the online splatalogue database. If no internet
+connection is detected, then it will fall back on slsearch.
+Default: True.</p>
+</div></blockquote>
+<p><strong>tier1freq</strong> : list</p>
+<blockquote class="last">
+<div><p>A list of tier1 frequency coverage, to eliminate any matches
+that fall in the range of a tier1 line.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="8%" />
+<col width="92%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>sls_kw</td>
+<td>(dict) Dictionary to hold the keyword/value pairs for slsearch.</td>
+</tr>
+<tr class="row-even"><td>sp_kw</td>
+<td>(dict) Dictionary to hold the keyword/value paris for splatalogue.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.SpectralLineSearch.SpectralLineSearch.check_online" title="admit.util.SpectralLineSearch.SpectralLineSearch.check_online"><code class="xref py py-obj docutils literal"><span class="pre">check_online</span></code></a>()</td>
+<td>Method to check whether we are online or not.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.SpectralLineSearch.SpectralLineSearch.checktier1overlap" title="admit.util.SpectralLineSearch.SpectralLineSearch.checktier1overlap"><code class="xref py py-obj docutils literal"><span class="pre">checktier1overlap</span></code></a>(freq)</td>
+<td>Method to check for an overlap with tier1 lines.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.SpectralLineSearch.SpectralLineSearch.search" title="admit.util.SpectralLineSearch.SpectralLineSearch.search"><code class="xref py py-obj docutils literal"><span class="pre">search</span></code></a>(minfreq,&nbsp;maxfreq,&nbsp;rrlevelstr[,&nbsp;...])</td>
+<td>Method to do the search and return the results.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.SpectralLineSearch.SpectralLineSearch.setkeywords" title="admit.util.SpectralLineSearch.SpectralLineSearch.setkeywords"><code class="xref py py-obj docutils literal"><span class="pre">setkeywords</span></code></a>(minfreq,&nbsp;maxfreq,&nbsp;rrlevelstr,&nbsp;...)</td>
+<td>Method to set the keywords for the search(es)</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.SpectralLineSearch.SpectralLineSearch.slsearch" title="admit.util.SpectralLineSearch.SpectralLineSearch.slsearch"><code class="xref py py-obj docutils literal"><span class="pre">slsearch</span></code></a>(rrlevelstr,&nbsp;allowExotics)</td>
+<td>Method to search through the slsearch database.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.SpectralLineSearch.SpectralLineSearch.splatalogue" title="admit.util.SpectralLineSearch.SpectralLineSearch.splatalogue"><code class="xref py py-obj docutils literal"><span class="pre">splatalogue</span></code></a>(minfreq,&nbsp;maxfreq,&nbsp;rrlevelstr,&nbsp;...)</td>
+<td>Method to search through the slsearch database.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="admit.util.SpectralLineSearch.SpectralLineSearch.check_online">
+<code class="descname">check_online</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/SpectralLineSearch.html#SpectralLineSearch.check_online"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.SpectralLineSearch.SpectralLineSearch.check_online" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to check whether we are online or not. Just does a simple http
+request to www.cv.nrao.edu, the host of splatalogue</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>None</strong></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Boolean saying whether we are online (True) or not (False)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.SpectralLineSearch.SpectralLineSearch.checktier1overlap">
+<code class="descname">checktier1overlap</code><span class="sig-paren">(</span><em>freq</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/SpectralLineSearch.html#SpectralLineSearch.checktier1overlap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.SpectralLineSearch.SpectralLineSearch.checktier1overlap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to check for an overlap with tier1 lines.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>freq</strong> : float</p>
+<blockquote>
+<div><p>The frequency to check if it is within an existing tier1
+frequency range</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Boolean, True if freq is within a tier1 range, False otherwise</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.SpectralLineSearch.SpectralLineSearch.search">
+<code class="descname">search</code><span class="sig-paren">(</span><em>minfreq</em>, <em>maxfreq</em>, <em>rrlevelstr</em>, <em>allowExotics=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/SpectralLineSearch.html#SpectralLineSearch.search"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.SpectralLineSearch.SpectralLineSearch.search" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to do the search and return the results. Regardless of the search
+method used the results will have the same format and units.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>minfreq</strong> : float</p>
+<blockquote>
+<div><p>The starting frequency for the search, in GHz.</p>
+</div></blockquote>
+<p><strong>maxfreq</strong> : float</p>
+<blockquote>
+<div><p>The ending frequency for the search, in GHz.</p>
+</div></blockquote>
+<p><strong>rrlevelstr</strong> : str</p>
+<blockquote>
+<div><p>A string representation of the depth of recombination lines to return</p>
+</div></blockquote>
+<p><strong>allowExotics</strong> : bool</p>
+<blockquote>
+<div><p>Whether or not to allow exotic atoms in the results (e.g. Ti).
+Default: False</p>
+</div></blockquote>
+<p><strong>kwargs</strong> : dict</p>
+<blockquote class="last">
+<div><p>Dictionary containing any keyword/value pairs for the search. Possibilities are:</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.SpectralLineSearch.SpectralLineSearch.setkeywords">
+<code class="descname">setkeywords</code><span class="sig-paren">(</span><em>minfreq</em>, <em>maxfreq</em>, <em>rrlevelstr</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/SpectralLineSearch.html#SpectralLineSearch.setkeywords"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.SpectralLineSearch.SpectralLineSearch.setkeywords" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to set the keywords for the search(es)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>minfreq</strong> : float</p>
+<blockquote>
+<div><p>The starting frequency of the search, in GHz.</p>
+</div></blockquote>
+<p><strong>maxfreq</strong> : float</p>
+<blockquote>
+<div><p>The ending frequency of the search, in GHz.</p>
+</div></blockquote>
+<p><strong>rrlevelstr</strong> : str</p>
+<blockquote>
+<div><p>A string representation of what recombination lines
+to allow in the results</p>
+</div></blockquote>
+<p><strong>kwargs</strong> : dict</p>
+<blockquote>
+<div><p>Dictionary of keyword/value pairs for search options.
+Possibilities are (no default values for most):</p>
+<dl class="docutils">
+<dt><strong>tablename</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str</span><dd><p class="first last">Output table name for slsearch.</p>
+</dd>
+<dt><strong>outfile</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str</span><dd><p class="first last">Output file name for slsearch.</p>
+</dd>
+<dt><strong>rrlonly</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">Only return recombination lines.
+(slsearch)</p>
+</dd>
+<dt><strong>verbose</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">Be verbose in slsearch.</p>
+</dd>
+<dt><strong>logfile</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str</span><dd><p class="first last">Send slsearch results to the given log file.</p>
+</dd>
+<dt><strong>append</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">Append to the slsearch log file.</p>
+</dd>
+<dt><strong>no_atmospheric</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">If True will exclude atmospheric lines from the results.
+Default: False
+(splatalogue)</p>
+</dd>
+<dt><strong>no_potential</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">If True will exclude potential species from the results.
+Default: False
+(splatalogue)</p>
+</dd>
+<dt><strong>no_probable</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">If True will exclude probable species from the results.
+Default: False
+(splatalogue)</p>
+</dd>
+<dt><strong>exclude</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">list</span><dd><p class="first last">Alternate method of excluding types, can contain any of
+&#8220;atmospheric&#8221;, &#8220;potential&#8221;, or &#8220;probable&#8221;</p>
+</dd>
+<dt><strong>include_only_nrao</strong> or <strong>only_NRAO_recommended</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">If True only NRAO recommended transitions will be returned.
+Default: False
+(splatalogue)</p>
+</dd>
+<dt><strong>displayLovas</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">If True include results from the Lovas Line List.
+Default: False
+(splatalogue)</p>
+</dd>
+<dt><strong>displaySLAIM</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">If True include results from the SLAIM molecular database.
+Default: False
+(splatalogue)</p>
+</dd>
+<dt><strong>displayJPL</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">If True include results from the JPL database.
+Default: False
+(splatalogue)</p>
+</dd>
+<dt><strong>displayCDMS</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">If True include results from the Cologne database.
+Default: False
+(splatalogue)</p>
+</dd>
+<dt><strong>displayToyaMA</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">If True include results from the ToyaMA database.
+Default: False
+(splatalogue)</p>
+</dd>
+<dt><strong>displayOSU</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">If True include results from the Ohio State database.
+Default: False
+(splatalogue)</p>
+</dd>
+<dt><strong>displayLisa</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">If True include results from the the 13 methyl formate database.
+Default: False
+(splatalogue)</p>
+</dd>
+<dt><strong>displayRFI</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">If True include RFI lines
+Default: False
+(splatalogue)</p>
+</dd>
+<dt><strong>line_lists</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">list</span><dd><p class="first last">Alternate method to specify which database to search. Can contain any
+of the following:
+&#8220;Lovas&#8221;, &#8220;SLAIM&#8221;, &#8220;JPL&#8221;, &#8220;CDMS&#8221;, &#8220;ToyaMA&#8221;, &#8220;OSU&#8221;, &#8220;Lisa&#8221;, &#8220;RFI&#8221;
+(splatalogue)</p>
+</dd>
+<dt><strong>ls1</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">If True then return the JPL line strength.
+Default: False
+(splatalogue)</p>
+</dd>
+<dt><strong>ls2</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">If True then return the Smu^2 line strength.
+Default: False
+(splatalogue)</p>
+</dd>
+<dt><strong>ls3</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">If True then return the S line strength.
+Default: False
+(splatalogue)</p>
+</dd>
+<dt><strong>ls4</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">If True then return the Eistein A.
+Default: False
+(splatalogue)</p>
+</dd>
+<dt><strong>ls5</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">If True then return the Lovas line strength.
+Default: False
+(splatalogue)</p>
+</dd>
+<dt><strong>line_strengths</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">list</span><dd><p class="first last">Alternate way of specifying the line strength(s) to return.
+Can be any of the following: &#8220;ls1&#8221;, &#8220;ls2&#8221;, &#8220;ls3&#8221;, &#8220;ls4&#8221;, &#8220;ls5&#8221;
+(splatalogue)</p>
+</dd>
+<dt><strong>el1</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">If True then return the lower state energy in cm^-1.
+Default: False
+(spltalogue)</p>
+</dd>
+<dt><strong>el2</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">If True then return the lower state energy in K.
+Default: False
+(splatalogue)</p>
+</dd>
+<dt><strong>el3</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">If True then return the upper state energy in cm^-1.
+Default: False
+(splatalogue)</p>
+</dd>
+<dt><strong>el4</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">If True then return the upper state energy in K.
+Default: False
+(splatalogue)</p>
+</dd>
+<dt><strong>energy_levels</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">list</span><dd><p class="first last">Alternate way of specifying the energy levels to return. Can contain
+any of the following: &#8220;el1&#8221;, &#8220;el2&#8221;, &#8220;el3&#8221;, &#8220;el4&#8221;
+(splatalogue)</p>
+</dd>
+<dt><strong>fel</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">If True exclude results where the frequency uncertainty
+is more than 50 MHz.
+Default: False
+(splatalogue)</p>
+</dd>
+<dt><strong>noHFS</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">If True then do not return hyperfine split lines, only the
+main component.
+Default: False
+(splatalogue)</p>
+</dd>
+<dt><strong>displayHFS</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">If True then return the hyperfine strengths of split lines.
+Default: False
+(splatalogue)</p>
+</dd>
+<dt><strong>show_unres_qn</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">If True then return the unresolved quantum numbers.
+Default: False
+(splatalogue)</p>
+</dd>
+<dt><strong>show_upper_degeneracy</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">If True then return the uper state degeneracy.
+Default: False
+(splatalogue)</p>
+</dd>
+<dt><strong>show_molecule_tag</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">If True then return the molecule tag.
+Default: False
+(splatalogue)</p>
+</dd>
+<dt><strong>show_lovas_labref</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">If True then return the Lovas lab reference.
+Default: False
+(splatalogue)</p>
+</dd>
+<dt><strong>show_lovas_obsref</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">If True then return the Lovas observational reference.
+Default: False
+(splatalogue)</p>
+</dd>
+<dt><strong>show_orderedfreq_only</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">If True then
+Default: False
+(splatalogue)</p>
+</dd>
+<dt><strong>show_nrao_recommended</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">If True then return the NRAO recommended frequency.
+(splatalogue)</p>
+</dd>
+<dt><strong>top20</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">list</span><dd><p class="first last">Include the results from the given top20 lists. Possibilities are:
+&#8216;comet&#8217;, &#8216;planet&#8217;, &#8216;ism_hotcore&#8217;, &#8216;ism_darkcloud&#8217;, &#8216;ism_diffusecloud&#8217;
+(splatalogue)</p>
+</dd>
+<dt><strong>comet</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">If True then return results most likely found in comets.
+(splatalogue)</p>
+</dd>
+<dt><strong>planet</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">If True then return results most likely found in planetary atmospheres.
+(splatalogue)</p>
+</dd>
+<dt><strong>ism_hotcore</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">If True then return results most liekly found in hot cores.
+(splatalogue)</p>
+</dd>
+<dt><strong>ism_darkcloud</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">If True then return results most likely found in dark clouds.
+(splatalogue)</p>
+</dd>
+<dt><strong>ism_diffusecloud</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">If True then return results most likely found in diffuse clouds.
+(splatalogue)</p>
+</dd>
+<dt><strong>band</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str</span><dd><p class="first last">Which band to use for frequency range, will override any specified
+frequency range.
+(splatalogue)</p>
+</dd>
+<dt><strong>species</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str</span><dd><p class="first last">Limit the results to the given molecule</p>
+</dd>
+<dt><strong>reconly</strong> or <strong>only_NRAO_recommended</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">bool</span><dd><p class="first last">Only return results with recommended NROA rest frequencies. This option
+can remove duplicate records arising from the multiple databases inside
+slsearch and splatalogue.
+Default: False</p>
+</dd>
+<dt><strong>chemnames</strong> or <strong>chemical_name</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str</span><dd><p class="first last">Limit the results to the given molecule.</p>
+</dd>
+<dt><strong>qns</strong> or <strong>transition</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str</span><dd><p class="first last">Limit the results to the specified quantum numbers.</p>
+</dd>
+<dt><strong>energy_type</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">str</span><dd><p class="first last">Energy units for both the el and eu keywords. Possibilities are
+&#8216;K&#8217; for Kelvin, and &#8216;cm&#8217; for inverse cm.</p>
+</dd>
+<dt><strong>el</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">list or float</span><dd><p class="first last">If a list then the range of lower state energies to search between,
+else it is treated as a lower limit. Note splatalogue only supports
+a lower limit, so upper limit is ignored, but passed to slsearch.</p>
+</dd>
+<dt><strong>eu</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">list or float</span><dd><p class="first last">If a list then the range of upper state energies to search between,
+else it is treated as a lower limit. Note splatalogue only supports
+a lower limit, so upper limit is ignored, but passed to slsearch.</p>
+</dd>
+<dt><strong>smu2</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">list or float</span><dd><p class="first last">If a list then the range of line strengths to search between, in D^2,
+else it is treated as a lower limit. Note splatalogue only supports
+a lower limit, so upper limit is ignored, but passed to slsearch.</p>
+</dd>
+<dt><strong>loga</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">list or float</span><dd><p class="first last">If a list then the range of line strengths to search between, in log
+of the Einstein A,
+else it is treated as a lower limit. Note splatalogue only supports
+a lower limit, so upper limit is ignored, but passed to slsearch.</p>
+</dd>
+<dt><strong>intensity</strong></dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">list or float</span><dd><p class="first last">If a list then the range of line strengths to search between, in JPL
+intensity units,
+else it is treated as a lower limit. Note splatalogue only supports
+a lower limit, so upper limit is ignored, but passed to slsearch.</p>
+</dd>
+</dl>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.SpectralLineSearch.SpectralLineSearch.slsearch">
+<code class="descname">slsearch</code><span class="sig-paren">(</span><em>rrlevelstr</em>, <em>allowExotics</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/SpectralLineSearch.html#SpectralLineSearch.slsearch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.SpectralLineSearch.SpectralLineSearch.slsearch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to search through the slsearch database. Search options must already
+have been set. Returns a formatted list of transitions, each item in the list
+is another list containing the following:</p>
+<ol class="arabic simple">
+<li>Chemical formula</li>
+<li>Name</li>
+<li>Rest frequency</li>
+<li>Unique identifier</li>
+<li>Lower state energy in K</li>
+<li>Upper state energy in K</li>
+<li>Linestrength in D^2</li>
+<li>Mass of molecule (rough)</li>
+<li>Transition quantum numbers</li>
+<li>Cleanly formatted chemical formula for display purposes</li>
+<li>Number of non-standard isotopes in the molecule</li>
+</ol>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>rrlevelstr</strong> : str</p>
+<blockquote>
+<div><p>String representation of how deep to search for recombination lines. Possibilities
+are:</p>
+<ul class="simple">
+<li><cite>off</cite>      no recombination lines are allowed in the results.</li>
+<li><cite>shallow</cite>  only H and He, alpha and beta lines are allowed in the results.</li>
+<li><cite>deep</cite>     any recombination line is allowed in the results.</li>
+</ul>
+</div></blockquote>
+<p><strong>allowExotics</strong> : bool</p>
+<blockquote>
+<div><p>Whether or not to allow exotic atoms in the molecules (e.g Ti)</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A list of LineData objects, with each containing the data for a single transition.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.SpectralLineSearch.SpectralLineSearch.splatalogue">
+<code class="descname">splatalogue</code><span class="sig-paren">(</span><em>minfreq</em>, <em>maxfreq</em>, <em>rrlevelstr</em>, <em>allowExotics</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/SpectralLineSearch.html#SpectralLineSearch.splatalogue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.SpectralLineSearch.SpectralLineSearch.splatalogue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to search through the slsearch database. Search options must already
+have been set. Returns a formatted list of transitions, each item in the list
+is another list containing the following:</p>
+<ol class="arabic simple">
+<li>Chemical formula</li>
+<li>Name</li>
+<li>Rest frequency</li>
+<li>Unique identifier</li>
+<li>Lower state energy in K</li>
+<li>Upper state energy in K</li>
+<li>Linestrength in D^2</li>
+<li>Mass of molecule (rough)</li>
+<li>Transition quantum numbers</li>
+<li>Cleanly formatted chemical formula for display purposes</li>
+<li>Number of non-standard isotopes in the molecule</li>
+</ol>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>rrlevelstr</strong> : str</p>
+<blockquote>
+<div><p>String representation of how deep to search for recombination lines. Possibilities
+are:</p>
+<ul class="simple">
+<li><cite>off</cite>      no recombination lines are allowed in the results.</li>
+<li><cite>shallow</cite>  only H and He, alpha and beta lines are allowed in the results.</li>
+<li><cite>deep</cite>     any recombination line is allowed in the results.</li>
+</ul>
+</div></blockquote>
+<p><strong>allowExotics</strong> : bool</p>
+<blockquote>
+<div><p>Whether or not to allow exotic atoms in the molecules (e.g Ti)</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A list of LineData objects, with each containing the data for a single transition.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/module/admit.util/SpectralLineSearch.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" >Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

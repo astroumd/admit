@@ -1,0 +1,562 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>PeakUtils — A peak finding algorithm. &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../index.html" />
+    <link rel="up" title="Python Scripting Interface (API)" href="../../api.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" accesskey="U">Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-admit.util.peakfinder.PeakUtils"></span><div class="section" id="peakutils-a-peak-finding-algorithm">
+<span id="peakutils"></span><h1>PeakUtils &#8212; A peak finding algorithm.<a class="headerlink" href="#peakutils-a-peak-finding-algorithm" title="Permalink to this headline">¶</a></h1>
+<p>A version of the PyPi PeakUtils, converted from Python3.4 to Python2.7.</p>
+<dl class="class">
+<dt id="admit.util.peakfinder.PeakUtils.PeakUtils">
+<em class="property">class </em><code class="descclassname">admit.util.peakfinder.PeakUtils.</code><code class="descname">PeakUtils</code><span class="sig-paren">(</span><em>spec</em>, <em>x=None</em>, <em>**kwarg</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/peakfinder/PeakUtils.html#PeakUtils"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.peakfinder.PeakUtils.PeakUtils" title="Permalink to this definition">¶</a></dt>
+<dd><p>PeakUtils peak finding algorithm</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>spec</strong> : List or numpy array</p>
+<blockquote>
+<div><p>The spectrum to be analyzed.</p>
+</div></blockquote>
+<p><strong>x</strong> : List or numpy array, optional</p>
+<blockquote>
+<div><p>The x co-ordinates for the spectrum.
+Default = None.</p>
+</div></blockquote>
+<p><strong>kwarg</strong> : Dict</p>
+<blockquote class="last">
+<div><p>Any additional arguments, see the Attributes list for a complete
+listing.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="5%" />
+<col width="95%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>spec</td>
+<td>(numpy array) The spectrum to be analyzed.</td>
+</tr>
+<tr class="row-even"><td>x</td>
+<td>(numpy array) The x co-ordinates of the spectrum.</td>
+</tr>
+<tr class="row-odd"><td>thres</td>
+<td>(float) Threshold for detecting a peak/valley. The absolute value of the intensity must be above this value. Default: 0.0.</td>
+</tr>
+<tr class="row-even"><td>min_dist</td>
+<td>(int) The minimum distance between peaks in channels. Deafult: 5.</td>
+</tr>
+<tr class="row-odd"><td>profile</td>
+<td>(str) The spectral line profile to use when refining the fits. Choices are &#8220;gaussian&#8221; and &#8220;lorentzian&#8221;. Default: &#8220;gaussian&#8221;.</td>
+</tr>
+<tr class="row-even"><td>width</td>
+<td>(int) The number of channels on either side of a peak to use when refining the fit. Default: 10.</td>
+</tr>
+<tr class="row-odd"><td>basedeg</td>
+<td>(int) Degree of the polynomial that will estimate the data baseline. Default: 3.</td>
+</tr>
+<tr class="row-even"><td>baseiter</td>
+<td>(int) The maximum number of iterations to perform when trying to fit the baseline. Default: 100.</td>
+</tr>
+<tr class="row-odd"><td>basetol</td>
+<td>(float) Tolerance to use when comparing the difference between the current fit coefficient and the ones from the last iteration. Default: 1e-3.</td>
+</tr>
+<tr class="row-even"><td>dobase</td>
+<td>(boolean) Whether or not to do baseline/continuum subtraction. Default: False.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.peakfinder.PeakUtils.PeakUtils.baseline" title="admit.util.peakfinder.PeakUtils.PeakUtils.baseline"><code class="xref py py-obj docutils literal"><span class="pre">baseline</span></code></a>([deg,&nbsp;max_it,&nbsp;tol])</td>
+<td>Computes the baseline of a given data.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.peakfinder.PeakUtils.PeakUtils.centroid" title="admit.util.peakfinder.PeakUtils.PeakUtils.centroid"><code class="xref py py-obj docutils literal"><span class="pre">centroid</span></code></a>([chans])</td>
+<td>Computes the centroid for the specified data.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.peakfinder.PeakUtils.PeakUtils.find" title="admit.util.peakfinder.PeakUtils.PeakUtils.find"><code class="xref py py-obj docutils literal"><span class="pre">find</span></code></a>()</td>
+<td>Method to find any peaks in the spectrum.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.peakfinder.PeakUtils.PeakUtils.gaussian" title="admit.util.peakfinder.PeakUtils.PeakUtils.gaussian"><code class="xref py py-obj docutils literal"><span class="pre">gaussian</span></code></a>(x,&nbsp;ampl,&nbsp;center,&nbsp;dev)</td>
+<td>Computes the Gaussian function.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.peakfinder.PeakUtils.PeakUtils.gaussian_fit" title="admit.util.peakfinder.PeakUtils.PeakUtils.gaussian_fit"><code class="xref py py-obj docutils literal"><span class="pre">gaussian_fit</span></code></a>([chans])</td>
+<td>Performs a Gaussian fitting of the specified data.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.peakfinder.PeakUtils.PeakUtils.indexes" title="admit.util.peakfinder.PeakUtils.PeakUtils.indexes"><code class="xref py py-obj docutils literal"><span class="pre">indexes</span></code></a>([thres,&nbsp;min_dist])</td>
+<td>Peak detection routine.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.peakfinder.PeakUtils.PeakUtils.interpolate" title="admit.util.peakfinder.PeakUtils.PeakUtils.interpolate"><code class="xref py py-obj docutils literal"><span class="pre">interpolate</span></code></a>([ind,&nbsp;width,&nbsp;func])</td>
+<td>Tries to enhance the resolution of the peak detection by using Gaussian fitting, centroid computation or an arbitrary function on the neighborhood of each previously detected peak index.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.peakfinder.PeakUtils.PeakUtils.laurentzian_fit" title="admit.util.peakfinder.PeakUtils.PeakUtils.laurentzian_fit"><code class="xref py py-obj docutils literal"><span class="pre">laurentzian_fit</span></code></a>([chans])</td>
+<td>Performs a Lorentzian fitting of the specified data.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.peakfinder.PeakUtils.PeakUtils.lorentzian" title="admit.util.peakfinder.PeakUtils.PeakUtils.lorentzian"><code class="xref py py-obj docutils literal"><span class="pre">lorentzian</span></code></a>(x,&nbsp;ampl,&nbsp;center,&nbsp;width)</td>
+<td>Computes the Lorentzian function.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.peakfinder.PeakUtils.PeakUtils.scale" title="admit.util.peakfinder.PeakUtils.PeakUtils.scale"><code class="xref py py-obj docutils literal"><span class="pre">scale</span></code></a>(x[,&nbsp;new_range,&nbsp;eps])</td>
+<td>Changes the scale of an array</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="admit.util.peakfinder.PeakUtils.PeakUtils.basedeg">
+<code class="descname">basedeg</code><em class="property"> = 3</em><a class="headerlink" href="#admit.util.peakfinder.PeakUtils.PeakUtils.basedeg" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="admit.util.peakfinder.PeakUtils.PeakUtils.baseiter">
+<code class="descname">baseiter</code><em class="property"> = 100</em><a class="headerlink" href="#admit.util.peakfinder.PeakUtils.PeakUtils.baseiter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="admit.util.peakfinder.PeakUtils.PeakUtils.baseline">
+<code class="descname">baseline</code><span class="sig-paren">(</span><em>deg=3</em>, <em>max_it=100</em>, <em>tol=0.001</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/peakfinder/PeakUtils.html#PeakUtils.baseline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.peakfinder.PeakUtils.PeakUtils.baseline" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the baseline of a given data.</p>
+<p>Iteratively performs a polynomial fitting in the data to detect its
+baseline. At every iteration, the fitting weights on the regions with
+peaks is reduced to identify the baseline only.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>deg</strong> : int</p>
+<blockquote>
+<div><p>Degree of the polynomial that will estimate the data baseline. A low
+degree may fail to detect all the baseline present, while a high
+degree may make the data too oscillatory, especially at the edges.</p>
+</div></blockquote>
+<p><strong>max_it</strong> : int</p>
+<blockquote>
+<div><p>Maximum number of iterations to perform.</p>
+</div></blockquote>
+<p><strong>tol</strong> : float</p>
+<blockquote>
+<div><p>Tolerance to use when comparing the difference between the current
+fit coefficient and the ones from the last iteration. The iteration
+procedure will stop when the difference between them is lower than
+<em>tol</em>.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">ndarray</p>
+<blockquote class="last">
+<div><p>Array with the baseline amplitude for every original point in <em>y</em></p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="admit.util.peakfinder.PeakUtils.PeakUtils.basetol">
+<code class="descname">basetol</code><em class="property"> = 0.001</em><a class="headerlink" href="#admit.util.peakfinder.PeakUtils.PeakUtils.basetol" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="admit.util.peakfinder.PeakUtils.PeakUtils.centroid">
+<code class="descname">centroid</code><span class="sig-paren">(</span><em>chans=[0, -1]</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/peakfinder/PeakUtils.html#PeakUtils.centroid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.peakfinder.PeakUtils.PeakUtils.centroid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the centroid for the specified data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>chans</strong> : list</p>
+<blockquote>
+<div><p>The indexes to start and end at.
+Default: [0,-1]</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">float</p>
+<blockquote class="last">
+<div><p>Centroid of the data.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="admit.util.peakfinder.PeakUtils.PeakUtils.dobase">
+<code class="descname">dobase</code><em class="property"> = False</em><a class="headerlink" href="#admit.util.peakfinder.PeakUtils.PeakUtils.dobase" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="admit.util.peakfinder.PeakUtils.PeakUtils.find">
+<code class="descname">find</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/peakfinder/PeakUtils.html#PeakUtils.find"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.peakfinder.PeakUtils.PeakUtils.find" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to find any peaks in the spectrum. A baseline will be subtracted first if requested.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>None</strong></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">numpy array of floats</p>
+<blockquote class="last">
+<div><p>containing the locations of the peaks</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.peakfinder.PeakUtils.PeakUtils.gaussian">
+<code class="descname">gaussian</code><span class="sig-paren">(</span><em>x</em>, <em>ampl</em>, <em>center</em>, <em>dev</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/peakfinder/PeakUtils.html#PeakUtils.gaussian"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.peakfinder.PeakUtils.PeakUtils.gaussian" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the Gaussian function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>x</strong> : float</p>
+<blockquote>
+<div><p>Point to evaluate the Gaussian for.</p>
+</div></blockquote>
+<p><strong>ampl</strong> : float</p>
+<blockquote>
+<div><p>Amplitude.</p>
+</div></blockquote>
+<p><strong>center</strong> : float</p>
+<blockquote>
+<div><p>Center.</p>
+</div></blockquote>
+<p><strong>dev</strong> : float</p>
+<blockquote>
+<div><p>Width.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">float</p>
+<blockquote class="last">
+<div><p>Value of the specified Gaussian at <em>x</em></p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.peakfinder.PeakUtils.PeakUtils.gaussian_fit">
+<code class="descname">gaussian_fit</code><span class="sig-paren">(</span><em>chans=[0, -1]</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/peakfinder/PeakUtils.html#PeakUtils.gaussian_fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.peakfinder.PeakUtils.PeakUtils.gaussian_fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs a Gaussian fitting of the specified data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>chans</strong> : list</p>
+<blockquote>
+<div><p>The indexes to start and end at.
+Default: [0,-1]</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">ndarray</p>
+<blockquote class="last">
+<div><p>Parameters of the Gaussian that fits the specified data</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.peakfinder.PeakUtils.PeakUtils.indexes">
+<code class="descname">indexes</code><span class="sig-paren">(</span><em>thres=0.0</em>, <em>min_dist=5</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/peakfinder/PeakUtils.html#PeakUtils.indexes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.peakfinder.PeakUtils.PeakUtils.indexes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Peak detection routine.</p>
+<p>Finds the peaks in <em>y</em> by taking its first order difference. By using
+<em>thres</em> and <em>min_dist</em> parameters, it is possible to reduce the number of
+detected peaks.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>thres</strong> : float</p>
+<blockquote>
+<div><p>Threshold for detecting a peak/valley. The absolute value of the intensity
+must be above this value. Default: 0.0</p>
+</div></blockquote>
+<p><strong>min_dist</strong> : int</p>
+<blockquote>
+<div><p>Minimum distance between each detected peak. The peak with the highest
+amplitude is preferred to satisfy this constraint.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">ndarray</p>
+<blockquote class="last">
+<div><p>Array containing the indexes of the peaks that were detected</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.peakfinder.PeakUtils.PeakUtils.interpolate">
+<code class="descname">interpolate</code><span class="sig-paren">(</span><em>ind=None</em>, <em>width=10</em>, <em>func='gaussian_fit'</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/peakfinder/PeakUtils.html#PeakUtils.interpolate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.peakfinder.PeakUtils.PeakUtils.interpolate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tries to enhance the resolution of the peak detection by using
+Gaussian fitting, centroid computation or an arbitrary function on the
+neighborhood of each previously detected peak index.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>ind</strong> : ndarray</p>
+<blockquote>
+<div><p>Indexes of the previously detected peaks. If None, indexes() will be
+called with the default parameters.</p>
+</div></blockquote>
+<p><strong>width</strong> : int</p>
+<blockquote>
+<div><p>Number of points (before and after) each peak index to pass to <em>func</em>
+in order to increase the resolution in <em>x</em>.</p>
+</div></blockquote>
+<p><strong>func</strong> : function(x,y)</p>
+<blockquote>
+<div><p>Function that will be called to detect an unique peak in the x,y data.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">ndarray :</p>
+<blockquote class="last">
+<div><p>Array with the adjusted peak positions (in <em>x</em>)</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.peakfinder.PeakUtils.PeakUtils.laurentzian_fit">
+<code class="descname">laurentzian_fit</code><span class="sig-paren">(</span><em>chans=[0, -1]</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/peakfinder/PeakUtils.html#PeakUtils.laurentzian_fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.peakfinder.PeakUtils.PeakUtils.laurentzian_fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs a Lorentzian fitting of the specified data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>chans</strong> : list</p>
+<blockquote>
+<div><p>The indexes to start and end at.
+Default: [0,-1]</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">ndarray</p>
+<blockquote class="last">
+<div><p>Parameters of the Lorentzian that fits the specified data</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.peakfinder.PeakUtils.PeakUtils.lorentzian">
+<code class="descname">lorentzian</code><span class="sig-paren">(</span><em>x</em>, <em>ampl</em>, <em>center</em>, <em>width</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/peakfinder/PeakUtils.html#PeakUtils.lorentzian"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.peakfinder.PeakUtils.PeakUtils.lorentzian" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the Lorentzian function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>x</strong> : float</p>
+<blockquote>
+<div><p>Point to evaluate the Gaussian for.</p>
+</div></blockquote>
+<p><strong>ampl</strong> : float</p>
+<blockquote>
+<div><p>Amplitude.</p>
+</div></blockquote>
+<p><strong>center</strong> : float</p>
+<blockquote>
+<div><p>Center.</p>
+</div></blockquote>
+<p><strong>width</strong> : float</p>
+<blockquote>
+<div><p>Width.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">float</p>
+<blockquote class="last">
+<div><p>Value of the specified Gaussian at <em>x</em></p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="admit.util.peakfinder.PeakUtils.PeakUtils.min_dist">
+<code class="descname">min_dist</code><em class="property"> = 1</em><a class="headerlink" href="#admit.util.peakfinder.PeakUtils.PeakUtils.min_dist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="admit.util.peakfinder.PeakUtils.PeakUtils.profile">
+<code class="descname">profile</code><em class="property"> = 'gaussian'</em><a class="headerlink" href="#admit.util.peakfinder.PeakUtils.PeakUtils.profile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="admit.util.peakfinder.PeakUtils.PeakUtils.scale">
+<code class="descname">scale</code><span class="sig-paren">(</span><em>x</em>, <em>new_range=(0.0</em>, <em>1.0)</em>, <em>eps=1e-09</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/peakfinder/PeakUtils.html#PeakUtils.scale"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.peakfinder.PeakUtils.PeakUtils.scale" title="Permalink to this definition">¶</a></dt>
+<dd><p>Changes the scale of an array</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>x</strong> : ndarray</p>
+<blockquote>
+<div><p>1D array to change the scale (remains unchanged)</p>
+</div></blockquote>
+<p><strong>new_range</strong> : tuple (float, float)</p>
+<blockquote>
+<div><p>Desired range of the array</p>
+</div></blockquote>
+<p><strong>eps: float</strong></p>
+<blockquote>
+<div><p>Numerical precision, to detect degenerate cases (for example, when
+every value of <em>x</em> is equal)</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">ndarray</p>
+<blockquote>
+<div><p>Scaled array</p>
+</div></blockquote>
+<p>tuple (float, float)</p>
+<blockquote class="last">
+<div><p>Previous data range, allowing a rescale to the old range</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="admit.util.peakfinder.PeakUtils.PeakUtils.thres">
+<code class="descname">thres</code><em class="property"> = 0.0</em><a class="headerlink" href="#admit.util.peakfinder.PeakUtils.PeakUtils.thres" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="admit.util.peakfinder.PeakUtils.PeakUtils.width">
+<code class="descname">width</code><em class="property"> = 10</em><a class="headerlink" href="#admit.util.peakfinder.PeakUtils.PeakUtils.width" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/module/admit.util.peakfinder/PeakUtils.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" >Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

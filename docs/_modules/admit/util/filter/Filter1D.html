@@ -1,0 +1,555 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.util.filter.Filter1D &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.util.filter.Filter1D</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; .. _filter1D:</span>
+
+<span class="sd">    Filter1D --- 1-dimensional spectral filtering.</span>
+<span class="sd">    ----------------------------------------------</span>
+
+<span class="sd">    This module defines the 1D filter methods.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
+
+
+<div class="viewcode-block" id="Filter1D"><a class="viewcode-back" href="../../../../module/admit.util.filter/Filter1D.html#admit.util.filter.Filter1D.Filter1D">[docs]</a><span class="k">class</span> <span class="nc">Filter1D</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; This class defines and runs 1D spectral filters. The currently available</span>
+<span class="sd">        filters are Gaussian, Hanning, Triangle, Welch, Boxcar, and Savitzky </span>
+<span class="sd">        Golay. The output spectrum will be of the same length as the input </span>
+<span class="sd">        spectrum, however some edge channels may be zeroed by some methods, </span>
+<span class="sd">        depending on the input paramters.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        spec : numpy array</span>
+<span class="sd">            1D numpy array of the input spectrum (just the amplitudes).</span>
+
+<span class="sd">        method : str</span>
+<span class="sd">            The smoothing filter to apply: boxcar, gaussian, welch, hanning, </span>
+<span class="sd">            triangle, or savgol. </span>
+<span class="sd">            No default. Minimum matching is enabled with a minimum of 3 </span>
+<span class="sd">            characters, i.e. box = boxcar.</span>
+
+<span class="sd">        keyval : various</span>
+<span class="sd">            Any keyword value pairs for the specific method chosen, see the </span>
+<span class="sd">            notes for specific keywords.</span>
+
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        spec : numpy array</span>
+<span class="sd">            The spectrum.</span>
+
+<span class="sd">        len : int</span>
+<span class="sd">            The length of the spectrum.</span>
+
+<span class="sd">        methods : list</span>
+<span class="sd">            A list of the available filters.</span>
+
+<span class="sd">        [method]_args : dict</span>
+<span class="sd">            A dictionary for each method giving its keywords and defaults </span>
+<span class="sd">            (e.g. boxcar_args).</span>
+
+<span class="sd">        method : str</span>
+<span class="sd">            The method being used.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        Details of the different filter keywords and defaults:</span>
+
+<span class="sd">        .. tabularcolumns:: |p{1.5cm}|p{2cm}|p{0.5cm}|p{8cm}|</span>
+
+<span class="sd">        +------------+---------------+------+----------------------------------------------+</span>
+<span class="sd">        | Filter     | Keyword       | Def. | Description                                  |</span>
+<span class="sd">        +============+===============+======+==============================================+</span>
+<span class="sd">        | &quot;boxcar&quot;   | &quot;width&quot;       | 3    | Number of channels to average together       |</span>
+<span class="sd">        +------------+---------------+------+----------------------------------------------+</span>
+<span class="sd">        | &quot;gaussian&quot; | &quot;width&quot;       | 7    | Number of channels to span with the gaussian |</span>
+<span class="sd">        +------------+---------------+------+----------------------------------------------+</span>
+<span class="sd">        | &quot;hanning&quot;  | &quot;width&quot;       | 5    | Number of channels to include in the cos     |</span>
+<span class="sd">        +------------+---------------+------+----------------------------------------------+</span>
+<span class="sd">        | &quot;triangle&quot; | &quot;width&quot;       | 5    | Number of channels to span with the triangle |</span>
+<span class="sd">        +------------+---------------+------+----------------------------------------------+</span>
+<span class="sd">        | &quot;welch&quot;    | &quot;width&quot;       | 5    | Number of channels to use in the function    |</span>
+<span class="sd">        +------------+---------------+------+----------------------------------------------+</span>
+<span class="sd">        | &quot;savgol&quot;   | &quot;window_size&quot; | 7    | Number of channels to use in the calculation |</span>
+<span class="sd">        +------------+---------------+------+----------------------------------------------+</span>
+<span class="sd">        |            | &quot;order&quot;       | 3    | Order of the poynomial fit (must be odd)     |</span>
+<span class="sd">        +------------+---------------+------+----------------------------------------------+</span>
+<span class="sd">        |            | &quot;deriv&quot;       | 0    | The number of the derivative to compute      |</span>
+<span class="sd">        |            |               |      | (0 = just smooth)                            |</span>
+<span class="sd">        +------------+---------------+------+----------------------------------------------+</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">boxcar_args</span> <span class="o">=</span>   <span class="n">OrderedDict</span><span class="p">([(</span><span class="s2">&quot;width&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">)])</span>
+    <span class="n">gaussian_args</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([(</span><span class="s2">&quot;width&quot;</span><span class="p">,</span> <span class="mi">7</span><span class="p">)])</span>
+    <span class="n">welch_args</span> <span class="o">=</span>    <span class="n">OrderedDict</span><span class="p">([(</span><span class="s2">&quot;width&quot;</span><span class="p">,</span> <span class="mi">5</span><span class="p">)])</span>
+    <span class="n">hanning_args</span> <span class="o">=</span>  <span class="n">OrderedDict</span><span class="p">([(</span><span class="s2">&quot;width&quot;</span><span class="p">,</span> <span class="mi">5</span><span class="p">)])</span>
+    <span class="n">triangle_args</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([(</span><span class="s2">&quot;width&quot;</span><span class="p">,</span> <span class="mi">5</span><span class="p">)])</span>
+    <span class="n">savgol_args</span> <span class="o">=</span>   <span class="n">OrderedDict</span><span class="p">([(</span><span class="s2">&quot;window_size&quot;</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span> 
+                                 <span class="p">(</span><span class="s2">&quot;order&quot;</span>      <span class="p">,</span> <span class="mi">3</span><span class="p">),</span> 
+                                 <span class="p">(</span><span class="s2">&quot;deriv&quot;</span>      <span class="p">,</span> <span class="mi">0</span><span class="p">),</span> 
+                                 <span class="p">(</span><span class="s2">&quot;rate&quot;</span>       <span class="p">,</span> <span class="mi">1</span><span class="p">)])</span>
+
+    <span class="n">methods</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;boxcar&quot;</span><span class="p">,</span> 
+               <span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> 
+               <span class="s2">&quot;welch&quot;</span><span class="p">,</span> 
+               <span class="s2">&quot;hanning&quot;</span><span class="p">,</span> 
+               <span class="s2">&quot;triangle&quot;</span><span class="p">,</span> 
+               <span class="s2">&quot;savgol&quot;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spec</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="o">**</span><span class="n">keyval</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Spectrum is not 1D but you are trying to use a 1D filter.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spec</span> <span class="o">=</span> <span class="n">spec</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">len</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c1"># keywords for the different algorithms</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">checkmethod</span><span class="p">(</span><span class="n">method</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">keyval</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">a</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span> <span class="o">+</span> <span class="s2">&quot;_args&quot;</span><span class="p">)[</span><span class="n">k</span><span class="p">]</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Unknown input </span><span class="si">%s</span><span class="s2"> for smoothing.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">))</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Cannot change the type of an attribute. </span><span class="si">%s</span><span class="s2"> must be a </span><span class="si">%s</span><span class="s2"> not a </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">a</span><span class="p">),</span> <span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">)))</span>
+            <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span> <span class="o">+</span> <span class="s2">&quot;_args&quot;</span><span class="p">)[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+
+<div class="viewcode-block" id="Filter1D.isodd"><a class="viewcode-back" href="../../../../module/admit.util.filter/Filter1D.html#admit.util.filter.Filter1D.Filter1D.isodd">[docs]</a>    <span class="k">def</span> <span class="nf">isodd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to determine if a number is odd</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            value : int</span>
+<span class="sd">                The number to check</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            bool, True if the number is odd, False if it is even</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">value</span><span class="o">%</span><span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span></div>
+
+<div class="viewcode-block" id="Filter1D.checkmethod"><a class="viewcode-back" href="../../../../module/admit.util.filter/Filter1D.html#admit.util.filter.Filter1D.Filter1D.checkmethod">[docs]</a>    <span class="k">def</span> <span class="nf">checkmethod</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to interpret the input method and determine the full method </span>
+<span class="sd">            name</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            method : str</span>
+<span class="sd">                The method to use, minimal matching is possible, with a minimum</span>
+<span class="sd">                of 3 characters (e.g. &quot;box&quot; will be interpreted to be &quot;boxcar&quot;)</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">method</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Minimum of 3 characters are needed for minimal matching of strings.&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">methods</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">method</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">m</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Unknown method </span><span class="si">%s</span><span class="s2"> given for smoothing. Available methods are: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">methods</span><span class="p">)))</span></div>
+
+<div class="viewcode-block" id="Filter1D.buffer"><a class="viewcode-back" href="../../../../module/admit.util.filter/Filter1D.html#admit.util.filter.Filter1D.Filter1D.buffer">[docs]</a>    <span class="k">def</span> <span class="nf">buffer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nchan</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to buffer/pad an array so that filters can work all the way</span>
+<span class="sd">            to the edge. Uses np.pad with mode=&#39;reflect&#39;</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            nchan : int</span>
+<span class="sd">                The number of channels to add to each end of the array</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            Numpy array containing the buffered input array</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">,</span> <span class="p">(</span><span class="n">nchan</span><span class="p">,</span> <span class="p">),</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;reflect&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Filter1D.boxcar"><a class="viewcode-back" href="../../../../module/admit.util.filter/Filter1D.html#admit.util.filter.Filter1D.Filter1D.boxcar">[docs]</a>    <span class="k">def</span> <span class="nf">boxcar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">width</span><span class="p">):</span>
+        <span class="sd">r&quot;&quot;&quot; Method to apply a boxcar filter to a spectrum. The filter for point</span>
+<span class="sd">            x[i] is defined as:</span>
+
+<span class="sd">            .. math::</span>
+
+<span class="sd">                x[i] = \frac{1}{N} \sum_{n=0}^{N} x[i + n - \frac{N - 1}{2}]</span>
+
+<span class="sd">            where N is the width of the filter.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            width : int</span>
+<span class="sd">                The width of the box to use in channels, must be odd</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            numpy array</span>
+<span class="sd">                The smoothed spectrum, (width - 1)/2 edge channels will be </span>
+<span class="sd">                zeroed</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">isodd</span><span class="p">(</span><span class="n">width</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Boxcar width must be an odd number.&quot;</span><span class="p">)</span>
+        <span class="n">side</span> <span class="o">=</span> <span class="p">(</span><span class="n">width</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="n">kernel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">]</span> <span class="o">*</span> <span class="n">width</span><span class="p">)</span>
+        <span class="n">kernel</span> <span class="o">/=</span> <span class="n">kernel</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">buffer</span><span class="p">(</span><span class="n">side</span><span class="p">),</span> <span class="n">kernel</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;valid&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Filter1D.gaussian"><a class="viewcode-back" href="../../../../module/admit.util.filter/Filter1D.html#admit.util.filter.Filter1D.Filter1D.gaussian">[docs]</a>    <span class="k">def</span> <span class="nf">gaussian</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">width</span><span class="p">):</span>
+        <span class="sd">r&quot;&quot;&quot; Method to apply a Gaussian filter to a spectrum. The filter for </span>
+<span class="sd">            point x[i] is defined as:</span>
+
+<span class="sd">            .. math::</span>
+
+<span class="sd">                x[i] = \sum_{n=0}^{N} x[i + n - \frac{N - 1}{2}] e^{-\frac{1}{2}\left(\frac{n-(N-1)/2}{\sigma(N-1)/2}\right)^2}</span>
+
+<span class="sd">            where N is the width of the filter.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            width : int</span>
+<span class="sd">                The number of channels to span with the gaussian for each </span>
+<span class="sd">                iteration, must be odd</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            numpy array</span>
+<span class="sd">                The smoothed spectrum, (width - 1)/2 edge channels will be zeroed</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">isodd</span><span class="p">(</span><span class="n">width</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Gaussian width must be an odd number.&quot;</span><span class="p">)</span>
+        <span class="n">side</span> <span class="o">=</span> <span class="p">(</span><span class="n">width</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="n">kernel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">width</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">width</span><span class="p">):</span>
+            <span class="n">kernel</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="nb">pow</span><span class="p">(((</span><span class="nb">float</span><span class="p">(</span><span class="n">j</span><span class="p">)</span> <span class="o">-</span> <span class="p">((</span><span class="nb">float</span><span class="p">(</span><span class="n">width</span><span class="p">)</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">/</span>
+                                 <span class="mf">2.0</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="mf">0.2</span> <span class="o">*</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">width</span><span class="p">)</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">)),</span> <span class="mi">2</span><span class="p">))</span>
+        <span class="n">kernel</span> <span class="o">/=</span> <span class="n">kernel</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">buffer</span><span class="p">(</span><span class="n">side</span><span class="p">),</span> <span class="n">kernel</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;valid&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Filter1D.welch"><a class="viewcode-back" href="../../../../module/admit.util.filter/Filter1D.html#admit.util.filter.Filter1D.Filter1D.welch">[docs]</a>    <span class="k">def</span> <span class="nf">welch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">width</span><span class="p">):</span>
+        <span class="sd">r&quot;&quot;&quot; Method to apply a Welch filter to a spectrum. The filter for point x[i]</span>
+<span class="sd">            is defined as:</span>
+
+<span class="sd">            .. math::</span>
+
+<span class="sd">                x[i] = \sum_{n=0}^{N} x[i + n - \frac{N - 1}{2}] \left(1 - \left(\frac{n - \frac{N-1}{2}}{\frac{N-1}{2}}\right)^2\right)</span>
+
+<span class="sd">            where N is the width of the filter.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            width : int</span>
+<span class="sd">                The number of channels to span with the function for each </span>
+<span class="sd">                iteration, must be odd</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            numpy array</span>
+<span class="sd">                The smoothed spectrum, (width - 1)/2 edge channels will be zeroed</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">isodd</span><span class="p">(</span><span class="n">width</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Welch width must be an odd number.&quot;</span><span class="p">)</span>
+        <span class="n">width</span> <span class="o">+=</span> <span class="mi">2</span>    <span class="c1"># must add 2 to get the proper width</span>
+        <span class="n">side</span> <span class="o">=</span> <span class="p">(</span><span class="n">width</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="n">kernel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">width</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">width</span><span class="p">):</span>
+            <span class="n">kernel</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">((</span><span class="n">j</span> <span class="o">-</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">width</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">))</span> <span class="o">/</span> 
+                         <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">width</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">),</span> <span class="mi">2</span><span class="p">))</span>
+        <span class="n">kernel</span> <span class="o">/=</span> <span class="n">kernel</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">buffer</span><span class="p">(</span><span class="n">side</span><span class="p">),</span> <span class="n">kernel</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;valid&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Filter1D.hanning"><a class="viewcode-back" href="../../../../module/admit.util.filter/Filter1D.html#admit.util.filter.Filter1D.Filter1D.hanning">[docs]</a>    <span class="k">def</span> <span class="nf">hanning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">width</span><span class="p">):</span>
+        <span class="sd">r&quot;&quot;&quot; Method to apply a Hanning filter to a spectrum. The filter for </span>
+<span class="sd">            point x[i] is defined as:</span>
+
+<span class="sd">            .. math::</span>
+
+<span class="sd">                x[i] = \sum_{n=0}^{N} x[i + n - \frac{N - 1}{2}] 0.5 \left(1 - \cos\left(\frac{2\pi n}{N-1}\right)\right)</span>
+
+<span class="sd">            where N is the width of the filter.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            width : int</span>
+<span class="sd">                The number of channels to span with the function for each </span>
+<span class="sd">                iteration, must be odd</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            numpy array</span>
+<span class="sd">                The smoothed spectrum, (width - 1)/2 edge channels will be zeroed</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">isodd</span><span class="p">(</span><span class="n">width</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Hanning width must be an odd number.&quot;</span><span class="p">)</span>
+
+        <span class="n">width</span> <span class="o">+=</span> <span class="mi">2</span>    <span class="c1"># must add 2 to get the proper width</span>
+        <span class="n">side</span> <span class="o">=</span> <span class="p">(</span><span class="n">width</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="n">kernel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">width</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">width</span><span class="p">):</span>
+            <span class="n">kernel</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">((</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">j</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">width</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)))</span>
+        <span class="n">kernel</span> <span class="o">/=</span> <span class="n">kernel</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">buffer</span><span class="p">(</span><span class="n">side</span><span class="p">),</span> <span class="n">kernel</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;valid&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Filter1D.triangle"><a class="viewcode-back" href="../../../../module/admit.util.filter/Filter1D.html#admit.util.filter.Filter1D.Filter1D.triangle">[docs]</a>    <span class="k">def</span> <span class="nf">triangle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">width</span><span class="p">):</span>
+        <span class="sd">r&quot;&quot;&quot; Method to apply a Triangular filter to a spectrum. The filter for </span>
+<span class="sd">            point x[i] is defined as:</span>
+
+<span class="sd">            .. math::</span>
+
+<span class="sd">                x[i] =  \sum_{n=0}^{N} x[i + n - \frac{N - 1}{2}] \left(1 - \left|\frac{n-\frac{N-1}{2}}{\frac{N}{2}}\right|\right)</span>
+
+<span class="sd">            where N is the width of the filter.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            width : int</span>
+<span class="sd">                The number of channels to span with the function for each </span>
+<span class="sd">                iteration, must be odd</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            numpy array</span>
+<span class="sd">                The smoothed spectrum, (width - 1)/2 edge channels will be zeroed</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">isodd</span><span class="p">(</span><span class="n">width</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Triangle width must be an odd number.&quot;</span><span class="p">)</span>
+        <span class="n">side</span> <span class="o">=</span> <span class="p">(</span><span class="n">width</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="n">kernel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">width</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">width</span><span class="p">):</span>
+            <span class="n">kernel</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="nb">abs</span><span class="p">((</span><span class="n">j</span> <span class="o">-</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">width</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">))</span> <span class="o">/</span> 
+                         <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">width</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">)))</span>
+        <span class="n">kernel</span> <span class="o">/=</span> <span class="n">kernel</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">buffer</span><span class="p">(</span><span class="n">side</span><span class="p">),</span> <span class="n">kernel</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;valid&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Filter1D.savgol"><a class="viewcode-back" href="../../../../module/admit.util.filter/Filter1D.html#admit.util.filter.Filter1D.Filter1D.savgol">[docs]</a>    <span class="k">def</span> <span class="nf">savgol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">window_size</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">rate</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Smooth (and optionally differentiate) data with a Savitzky-Golay filter.</span>
+<span class="sd">            The Savitzky-Golay filter removes high frequency noise from data.</span>
+<span class="sd">            It has the advantage of preserving the original shape and</span>
+<span class="sd">            features of the signal better than other types of filtering</span>
+<span class="sd">            approaches, such as moving averages techniques. Adapted from</span>
+<span class="sd">            http://wiki.scipy.org/Cookbook/SavitzkyGolay</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            window_size : int</span>
+<span class="sd">                the length of the window. Must be an odd integer number.</span>
+
+<span class="sd">            order : int</span>
+<span class="sd">                the order of the polynomial used in the filtering.</span>
+<span class="sd">                Must be less then `window_size` - 1.</span>
+
+<span class="sd">            deriv: int</span>
+<span class="sd">                the order of the derivative to compute (default = 0 means only </span>
+<span class="sd">                smoothing)</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            ndarray</span>
+<span class="sd">                the smoothed signal (or it&#39;s n-th derivative).</span>
+
+<span class="sd">            Notes</span>
+<span class="sd">            -----</span>
+
+<span class="sd">            The Savitzky-Golay is a type of low-pass filter, particularly</span>
+<span class="sd">            suited for smoothing noisy data. The main idea behind this</span>
+<span class="sd">            approach is to make for each point a least-square fit with a</span>
+<span class="sd">            polynomial of high order over a odd-sized window centered at</span>
+<span class="sd">            the point.</span>
+
+<span class="sd">            References</span>
+<span class="sd">            ----------</span>
+<span class="sd">            .. [1] A. Savitzky, M. J. E. Golay, Smoothing and Differentiation of</span>
+<span class="sd">               Data by Simplified Least Squares Procedures. Analytical</span>
+<span class="sd">               Chemistry, 1964, 36 (8), pp 1627-1639.</span>
+<span class="sd">            .. [2] Numerical Recipes 3rd Edition: The Art of Scientific Computing</span>
+<span class="sd">               W.H. Press, S.A. Teukolsky, W.T. Vetterling, B.P. Flannery</span>
+<span class="sd">               Cambridge University Press ISBN-13: 9780521880688</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">isodd</span><span class="p">(</span><span class="n">width</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Savgol window_size must be an odd number.&quot;</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">window_size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">(</span><span class="n">window_size</span><span class="p">))</span>
+            <span class="n">order</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">(</span><span class="n">order</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;window_size and order have to be of type int&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">window_size</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">!=</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">window_size</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;window_size size must be a positive odd number&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">window_size</span> <span class="o">&lt;</span> <span class="n">order</span> <span class="o">+</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;window_size is too small for the polynomials order&quot;</span><span class="p">)</span>
+        <span class="n">order_range</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">order</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">half_window</span> <span class="o">=</span> <span class="p">(</span><span class="n">window_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
+        <span class="c1"># precompute coefficients</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mat</span><span class="p">([[</span><span class="n">k</span> <span class="o">**</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">order_range</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="n">half_window</span><span class="p">,</span>
+                                                                 <span class="n">half_window</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)])</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">pinv</span><span class="p">(</span><span class="n">b</span><span class="p">)</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="n">deriv</span><span class="p">]</span> <span class="o">*</span> <span class="n">rate</span> <span class="o">**</span> <span class="n">deriv</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">factorial</span><span class="p">(</span><span class="n">deriv</span><span class="p">)</span>
+        <span class="c1"># pad the signal at the extremes with</span>
+        <span class="c1"># values taken from the signal itself</span>
+        <span class="n">firstvals</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">half_window</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">lastvals</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="o">-</span><span class="n">half_window</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">][::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">firstvals</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">lastvals</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">m</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">y</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;valid&#39;</span><span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="Filter1D.convertargs"><a class="viewcode-back" href="../../../../module/admit.util.filter/Filter1D.html#admit.util.filter.Filter1D.Filter1D.convertargs">[docs]</a>    <span class="k">def</span> <span class="nf">convertargs</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to convert a tuple of arguments into a dictionary of arguments for the specified</span>
+<span class="sd">            method. The first item of the tuple must be the method name. The remaining items are the</span>
+<span class="sd">            arguments to the method in the order the method lists. To see which arguments a method</span>
+<span class="sd">            takes call getargs(method) or getargs() to list the arguments for all methods.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            args : tuple</span>
+<span class="sd">                Tuple containing the method as the first item and any arguments for that method in</span>
+<span class="sd">                the order specified by the method.</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            Dictionary containing the converted arguments.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Smoothing method must be given.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">Filter1D</span><span class="o">.</span><span class="n">methods</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;The smoothing method </span><span class="si">%s</span><span class="s2"> is not known, it must be one of: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> 
+                            <span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">str</span><span class="p">(</span><span class="n">Filter1D</span><span class="o">.</span><span class="n">methods</span><span class="p">)))</span>
+        <span class="n">keyval</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">Filter1D</span><span class="p">,</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;_args&quot;</span><span class="p">))</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="n">keyval</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">arg</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">keyval</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">arg</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">keyval</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Filter1D.run"><a class="viewcode-back" href="../../../../module/admit.util.filter/Filter1D.html#admit.util.filter.Filter1D.Filter1D.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to run the selected filter on the data</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            The smoothed spectrum</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">method</span><span class="p">)(</span><span class="o">**</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">method</span> <span class="o">+</span> <span class="s2">&quot;_args&quot;</span><span class="p">))</span></div></div>
+
+<div class="viewcode-block" id="getargs"><a class="viewcode-back" href="../../../../module/admit.util.filter/Filter1D.html#admit.util.filter.Filter1D.getargs">[docs]</a><span class="k">def</span> <span class="nf">getargs</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Method to report the keywords and default values for smoothing algorithms</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        method : str</span>
+<span class="sd">            The name of the method to report the keywords and default values for. If no method is</span>
+<span class="sd">            given then all methods are reported on.</span>
+<span class="sd">            Default: None</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">print</span> <span class="s2">&quot;     arg           Default&quot;</span>
+        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">Filter1D</span><span class="o">.</span><span class="n">methods</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="n">m</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">Filter1D</span><span class="p">,</span> <span class="n">m</span> <span class="o">+</span> <span class="s2">&quot;_args&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+                <span class="nb">print</span> <span class="s2">&quot;    </span><span class="si">%s</span><span class="s2">   </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">14</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
+        <span class="k">return</span>
+    <span class="k">if</span> <span class="n">method</span> <span class="ow">in</span> <span class="n">Filter1D</span><span class="o">.</span><span class="n">methods</span><span class="p">:</span>
+        <span class="nb">print</span> <span class="s2">&quot;     arg           Default&quot;</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">Filter1D</span><span class="p">,</span> <span class="n">method</span> <span class="o">+</span> <span class="s2">&quot;_args&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="nb">print</span> <span class="s2">&quot;     </span><span class="si">%s</span><span class="s2">   </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="mi">14</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
+        <span class="k">return</span>
+    <span class="nb">print</span> <span class="s2">&quot;Method </span><span class="si">%s</span><span class="s2"> is not known. Available methods are: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="n">Filter1D</span><span class="o">.</span><span class="n">methods</span><span class="p">)</span></div>
+
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

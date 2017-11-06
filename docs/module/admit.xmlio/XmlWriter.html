@@ -1,0 +1,240 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>XmlWriter — Converts in-memory ADMIT objects to XML format. &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../index.html" />
+    <link rel="up" title="Python Scripting Interface (API)" href="../../api.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" accesskey="U">Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-admit.xmlio.XmlWriter"></span><div class="section" id="xmlwriter-converts-in-memory-admit-objects-to-xml-format">
+<span id="xml-writer-api"></span><h1>XmlWriter &#8212; Converts in-memory ADMIT objects to XML format.<a class="headerlink" href="#xmlwriter-converts-in-memory-admit-objects-to-xml-format" title="Permalink to this headline">¶</a></h1>
+<p>This module defines the main XML writer class for ADMIT.</p>
+<dl class="class">
+<dt id="admit.xmlio.XmlWriter.XmlWriter">
+<em class="property">class </em><code class="descclassname">admit.xmlio.XmlWriter.</code><code class="descname">XmlWriter</code><span class="sig-paren">(</span><em>clss</em>, <em>order</em>, <em>btype</em>, <em>root</em>, <em>keys=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/xmlio/XmlWriter.html#XmlWriter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.xmlio.XmlWriter.XmlWriter" title="Permalink to this definition">¶</a></dt>
+<dd><p>XML Writer class.</p>
+<p>Class for writing out xml instances of both ATs and BDPs.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>clss</strong> : various</p>
+<blockquote>
+<div><p>The class to be written out in XML.</p>
+</div></blockquote>
+<p><strong>order</strong> : list</p>
+<blockquote>
+<div><p>The order items are written in.</p>
+</div></blockquote>
+<p><strong>btype</strong> : dict</p>
+<blockquote>
+<div><p>Dictionary of the data type for each item.</p>
+</div></blockquote>
+<p><strong>root</strong> : elementtree node</p>
+<blockquote>
+<div><p>The root node to attach to.</p>
+</div></blockquote>
+<p><strong>keys</strong> : list</p>
+<blockquote class="last">
+<div><p>A list of the keywords for an AT.
+Default: None.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="29%" />
+<col width="71%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>None</td>
+<td>&nbsp;</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#admit.xmlio.XmlWriter.XmlWriter.write" title="admit.xmlio.XmlWriter.XmlWriter.write"><code class="xref py py-obj docutils literal"><span class="pre">write</span></code></a>(attr,&nbsp;item,&nbsp;btype,&nbsp;root,&nbsp;typ)</td>
+<td>Method to write out an individual item to XML</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.xmlio.XmlWriter.XmlWriter.writexml" title="admit.xmlio.XmlWriter.XmlWriter.writexml"><code class="xref py py-obj docutils literal"><span class="pre">writexml</span></code></a>(clss,&nbsp;order,&nbsp;btype,&nbsp;root,&nbsp;keys)</td>
+<td>Method to loop through all data members in the dtd and write them to XML</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="admit.xmlio.XmlWriter.XmlWriter.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>attr</em>, <em>item</em>, <em>btype</em>, <em>root</em>, <em>typ</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/xmlio/XmlWriter.html#XmlWriter.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.xmlio.XmlWriter.XmlWriter.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to write out an individual item to XML</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>attr</strong> : various</p>
+<blockquote>
+<div><p>The value of the item to write out</p>
+</div></blockquote>
+<p><strong>item</strong> : str</p>
+<blockquote>
+<div><p>The name of the item to write out</p>
+</div></blockquote>
+<p><strong>btype</strong> : dict</p>
+<blockquote>
+<div><p>Dictionary of the data types for each item</p>
+</div></blockquote>
+<p><strong>root</strong> : elementtree</p>
+<blockquote>
+<div><p>The root node to attach to</p>
+</div></blockquote>
+<p><strong>typ</strong> : str</p>
+<blockquote>
+<div><p>String containing the type of class being written out. Used only
+for error messages</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.xmlio.XmlWriter.XmlWriter.writexml">
+<code class="descname">writexml</code><span class="sig-paren">(</span><em>clss</em>, <em>order</em>, <em>btype</em>, <em>root</em>, <em>keys</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/xmlio/XmlWriter.html#XmlWriter.writexml"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.xmlio.XmlWriter.XmlWriter.writexml" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to loop through all data members in the dtd and write them to XML</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>clss</strong> : various</p>
+<blockquote>
+<div><p>The class to be written out in XML</p>
+</div></blockquote>
+<p><strong>order</strong> : list</p>
+<blockquote>
+<div><p>The order items are written in</p>
+</div></blockquote>
+<p><strong>btype</strong> : dict</p>
+<blockquote>
+<div><p>Dictionary of the data type for each item</p>
+</div></blockquote>
+<p><strong>root</strong> : elementtree node</p>
+<blockquote>
+<div><p>The root node to attach to</p>
+</div></blockquote>
+<p><strong>keys</strong> : list</p>
+<blockquote>
+<div><p>A list of the keywrods for an AT</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/module/admit.xmlio/XmlWriter.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" >Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

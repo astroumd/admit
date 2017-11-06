@@ -1,0 +1,565 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.at.CubeSpectrum_AT &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.at.CubeSpectrum_AT</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; .. _CubeSpectrum-at-api:</span>
+
+<span class="sd">   **CubeSpectrum_AT** --- Cuts one or more spectra through a cube.</span>
+<span class="sd">   ----------------------------------------------------------------</span>
+
+<span class="sd">   This module defines the CubeSpectrum_AT class.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">admit.AT</span> <span class="k">import</span> <span class="n">AT</span>
+<span class="kn">import</span> <span class="nn">admit.util.bdp_types</span> <span class="k">as</span> <span class="nn">bt</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.Image_BDP</span>        <span class="k">import</span> <span class="n">Image_BDP</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.SpwCube_BDP</span>      <span class="k">import</span> <span class="n">SpwCube_BDP</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.LineCube_BDP</span>     <span class="k">import</span> <span class="n">LineCube_BDP</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.Moment_BDP</span>       <span class="k">import</span> <span class="n">Moment_BDP</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.CubeSpectrum_BDP</span> <span class="k">import</span> <span class="n">CubeSpectrum_BDP</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.CubeStats_BDP</span>    <span class="k">import</span> <span class="n">CubeStats_BDP</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.SourceList_BDP</span>   <span class="k">import</span> <span class="n">SourceList_BDP</span>
+<span class="kn">from</span> <span class="nn">admit.Summary</span> <span class="k">import</span> <span class="n">SummaryEntry</span>
+
+<span class="kn">import</span> <span class="nn">admit.util.Table</span> <span class="k">as</span> <span class="nn">Table</span>
+<span class="kn">import</span> <span class="nn">admit.util.Image</span> <span class="k">as</span> <span class="nn">Image</span>
+<span class="kn">from</span> <span class="nn">admit.util</span> <span class="k">import</span> <span class="n">APlot</span>
+<span class="kn">import</span> <span class="nn">admit.util.utils</span> <span class="k">as</span> <span class="nn">utils</span>
+<span class="kn">from</span> <span class="nn">admit.util.AdmitLogging</span> <span class="k">import</span> <span class="n">AdmitLogging</span> <span class="k">as</span> <span class="n">logging</span>
+
+<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy.ma</span> <span class="k">as</span> <span class="nn">ma</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="k">try</span><span class="p">:</span>
+  <span class="kn">import</span> <span class="nn">taskinit</span>
+  <span class="kn">import</span> <span class="nn">casa</span>
+<span class="k">except</span><span class="p">:</span>
+  <span class="nb">print</span> <span class="s2">&quot;WARNING: No CASA; CubeSpectrum task cannot function.&quot;</span>
+
+<div class="viewcode-block" id="CubeSpectrum_AT"><a class="viewcode-back" href="../../../module/admit.at/CubeSpectrum_AT.html#admit.at.CubeSpectrum_AT.CubeSpectrum_AT">[docs]</a><span class="k">class</span> <span class="nc">CubeSpectrum_AT</span><span class="p">(</span><span class="n">AT</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Define one (or more) spectra through a cube.</span>
+
+<span class="sd">    Either a list of positions is given directly (via the **pos=** keyword) or a set</span>
+<span class="sd">    of BDP&#39;s can be given, each of which will accumulate its positions</span>
+<span class="sd">    to a list of points for which the spectra are computed, as detailed below.</span>
+
+<span class="sd">    See also :ref:`CubeSpectrum-AT-Design` for the design document.</span>
+
+<span class="sd">    **Keywords**</span>
+<span class="sd">      **pos**: list of int or string </span>
+<span class="sd">        List of ra-dec position pairs.</span>
+<span class="sd">        Each pair will produce a separate spectrum and plot. </span>
+<span class="sd">        Positions can be given as two integers, in which case they are interpeted</span>
+<span class="sd">        as (0 based) pixel coordinates, e.g. pos=[121,119],</span>
+<span class="sd">        or in CASA&#39;s ra/dec region format,</span>
+<span class="sd">        e.g. pos=[&#39;00h47m33.159s&#39;,&#39;-25d17m17.41s&#39;].  Different pairs do not</span>
+<span class="sd">        need to be of the same type, so you can mix int&#39;s and strings.</span>
+<span class="sd">        If no positions are given, a position will be derived from the</span>
+<span class="sd">        input BDPs. See below how this is done. This also means if an input BDP</span>
+<span class="sd">        is given, the keyword values are ignored.</span>
+<span class="sd">        If no input pos is given, and no optional BPD&#39;s, the center</span>
+<span class="sd">        of the map is used.</span>
+
+<span class="sd">      **sources** : list of int</span>
+<span class="sd">        A python list of source indices (0 being the first) from the</span>
+<span class="sd">        SourceList_BDP to be selected for a spectrum. A blank list, [],</span>
+<span class="sd">        selects all. Normally the SourceList is ordered by total flux.</span>
+<span class="sd">        Default : [0]</span>
+
+<span class="sd">      **xaxis**: string</span>
+<span class="sd">        Select the X axis plotting style:  channel number (the default),</span>
+<span class="sd">        frequency (in GHz), or velocity (for this the restfreq needs to be in the image header).</span>
+<span class="sd">        Currently ignored, channel is defaulted for SpwCube_BDP, and velocity for LineCube_BDP.</span>
+
+<span class="sd">    **Input BDPs**</span>
+
+<span class="sd">      **SpwCube_BDP** or **LineCube_BDP**: count: 1</span>
+<span class="sd">        One of more spectra are taken through this cube, as from an</span>
+<span class="sd">        `Ingest_AT &lt;Ingest_AT.html&gt;`_,</span>
+<span class="sd">        `ContinuumSub_AT &lt;ContinuumSub_AT.html&gt;`_ or</span>
+<span class="sd">        `LineCube_AT &lt;LineCube_AT.html&gt;`_.</span>
+
+<span class="sd">      **CubeStats_BDP**: count: 1 (optional)</span>
+<span class="sd">        If given, the cube maxpos from this table will be used for pos=[].</span>
+<span class="sd">        Normally the output of a `CubeStats_AT &lt;CubeStats_AT.html&gt;`_.</span>
+
+<span class="sd">      **Moment_BDP**: count: 1 (optional)</span>
+<span class="sd">        If given, the maxpos from this moment map will be used for pos=[].</span>
+<span class="sd">        Note : currently this is computed on the fly, as maps don&#39;t store</span>
+<span class="sd">        their maxpos. Typically the output of a</span>
+<span class="sd">        `CubeSum_AT &lt;CubeSum_AT.html&gt;`_ or `Moment_AT &lt;Moment_AT.html&gt;`_.</span>
+<span class="sd">    </span>
+<span class="sd">      **SourceList_BDP**: count: 1 (optional)</span>
+<span class="sd">        If given, the positions in this source list will be used. By default</span>
+<span class="sd">        only the strongest source (index 0) is selected. Typically the output</span>
+<span class="sd">        from `SFind2D_AT &lt;SFind2D_AT.html&gt;`_ on a continuum map is given here.</span>
+
+<span class="sd">    **Output BDPs**</span>
+
+<span class="sd">      **CubeSpectrum_BDP**: count: 1</span>
+<span class="sd">        Spectra through the cube. Stored as a single multi-plane table if more than one</span>
+<span class="sd">        point was used.</span>
+<span class="sd">        Output BDP name takes from the input Image by replacing the extension with **&quot;csp&quot;**.</span>
+<span class="sd">        See also :ref:`CubeSpectrum-bdp-api`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    keyval : dictionary, optional</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    _version : string</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1">### todo&#39;s</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        ***Missing Features***</span>
+
+<span class="sd">      In the design document a number of options were mentioned that have not been implemented, see</span>
+<span class="sd">      also  :ref:`CubeSpectrum-AT-Design` for that design document.</span>
+
+<span class="sd">        1) Only points can be selected, not regions. Or sizes around points.</span>
+<span class="sd">           NOTE the treatment of the bug in imval when &gt; 1 pixel was used.</span>
+
+<span class="sd">        2) No magic names for pos=.  The &quot;xpeak,ypeak&quot; is essentually when pos=[] left blank and</span>
+<span class="sd">           no other BDP are given, but there is no way to select the reference point &quot;xref,yref&quot;</span>
+
+<span class="sd">        3) Smoothing option is absent.  There are filters that can be applied in LineID_AT though.</span>
+<span class="sd">           See also Smooth_AT, where you cann create a smoother version of the input cube.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+
+    
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">**</span><span class="n">keyval</span><span class="p">):</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;pos&quot;</span>     <span class="p">:</span> <span class="p">[],</span>    <span class="c1"># one or more pairs of int&#39;s or ra/dec strings</span>
+                <span class="s2">&quot;sources&quot;</span> <span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span>   <span class="c1"># select which sources from a SourceList</span>
+                <span class="s2">&quot;xaxis&quot;</span>   <span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>    <span class="c1"># currently still ignored</span>
+        <span class="p">}</span>
+        <span class="n">AT</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">keys</span><span class="p">,</span><span class="n">keyval</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_version</span>       <span class="o">=</span> <span class="s2">&quot;1.1.0&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_bdp_in</span><span class="p">(</span> <span class="p">[(</span><span class="n">Image_BDP</span><span class="p">,</span>       <span class="mi">1</span><span class="p">,</span><span class="n">bt</span><span class="o">.</span><span class="n">REQUIRED</span><span class="p">),</span>     <span class="c1"># 0: cube: SpwCube or LineCube allowed</span>
+                          <span class="p">(</span><span class="n">CubeStats_BDP</span><span class="p">,</span>   <span class="mi">1</span><span class="p">,</span><span class="n">bt</span><span class="o">.</span><span class="n">OPTIONAL</span><span class="p">),</span>     <span class="c1"># 1: stats, uses maxpos</span>
+                          <span class="p">(</span><span class="n">Moment_BDP</span><span class="p">,</span>      <span class="mi">1</span><span class="p">,</span><span class="n">bt</span><span class="o">.</span><span class="n">OPTIONAL</span><span class="p">),</span>     <span class="c1"># 2: map, uses the max in this image as pos=</span>
+                          <span class="p">(</span><span class="n">SourceList_BDP</span><span class="p">,</span>  <span class="mi">1</span><span class="p">,</span><span class="n">bt</span><span class="o">.</span><span class="n">OPTIONAL</span><span class="p">)])</span>    <span class="c1"># 3: source list, for positions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_bdp_out</span><span class="p">([(</span><span class="n">CubeSpectrum_BDP</span><span class="p">,</span><span class="mi">1</span><span class="p">)])</span>
+
+<div class="viewcode-block" id="CubeSpectrum_AT.run"><a class="viewcode-back" href="../../../module/admit.at/CubeSpectrum_AT.html#admit.at.CubeSpectrum_AT.CubeSpectrum_AT.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Runs the task.</span>
+
+<span class="sd">           Parameters</span>
+<span class="sd">           ----------</span>
+<span class="sd">           None</span>
+
+<span class="sd">           Returns</span>
+<span class="sd">           -------</span>
+<span class="sd">           None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">Dtime</span><span class="p">(</span><span class="s2">&quot;CubeSpectrum&quot;</span><span class="p">)</span>
+
+        <span class="c1"># our BDP&#39;s</span>
+        <span class="c1"># b1  = input BDP</span>
+        <span class="c1"># b1s = optional input CubeSpectrum</span>
+        <span class="c1"># b1m = optional input Moment</span>
+        <span class="c1"># b1p = optional input SourceList for positions</span>
+        <span class="c1"># b2  = output BDP</span>
+
+        <span class="n">b1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>                                            <span class="c1"># check input SpwCube (or LineCube)</span>
+        <span class="n">fin</span> <span class="o">=</span> <span class="n">b1</span><span class="o">.</span><span class="n">getimagefile</span><span class="p">(</span><span class="n">bt</span><span class="o">.</span><span class="n">CASA</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">_type</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">LINECUBE_BDP</span><span class="p">:</span>
+            <span class="n">use_vel</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">use_vel</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="n">sources</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;sources&quot;</span><span class="p">)</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="p">[]</span>                     <span class="c1"># blank it first, then try and grab it from the optional bdp_in&#39;s</span>
+        <span class="n">cmean</span>  <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">csigma</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">smax</span>  <span class="o">=</span> <span class="p">[]</span>                   <span class="c1"># accumulate max in each spectrum for regression</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spec_description</span> <span class="o">=</span> <span class="p">[]</span>   <span class="c1"># for summary()</span>
+
+        <span class="c1"># get the tools</span>
+        <span class="n">ia</span> <span class="o">=</span> <span class="n">taskinit</span><span class="o">.</span><span class="n">iatool</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>                                      <span class="c1"># check if CubeStats_BDP</span>
+            <span class="c1">#print &quot;BDP[1] type: &quot;,self._bdp_in[1]._type</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">_type</span> <span class="o">!=</span> <span class="n">bt</span><span class="o">.</span><span class="n">CUBESTATS_BDP</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span><span class="s2">&quot;bdp_in[1] not a CubeStats_BDP, should never happen&quot;</span>
+            <span class="c1"># a table (cubestats)</span>
+            <span class="n">b1s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">pos</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">b1s</span><span class="o">.</span><span class="n">maxpos</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">pos</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">b1s</span><span class="o">.</span><span class="n">maxpos</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;CubeStats::maxpos,val=</span><span class="si">%s</span><span class="s1">,</span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">b1s</span><span class="o">.</span><span class="n">maxpos</span><span class="p">),</span><span class="n">b1s</span><span class="o">.</span><span class="n">maxval</span><span class="p">))</span>
+            <span class="n">cmean</span>  <span class="o">=</span> <span class="n">b1s</span><span class="o">.</span><span class="n">mean</span>
+            <span class="n">csigma</span> <span class="o">=</span> <span class="n">b1s</span><span class="o">.</span><span class="n">sigma</span>
+            <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;CubeStats-pos&quot;</span><span class="p">)</span>
+            
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>                                      <span class="c1"># check if Moment_BDP (probably from CubeSum)</span>
+            <span class="c1"># print &quot;BDP[2] type: &quot;,self._bdp_in[2]._type</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">_type</span> <span class="o">!=</span> <span class="n">bt</span><span class="o">.</span><span class="n">MOMENT_BDP</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span><span class="s2">&quot;bdp_in[2] not a Moment_BDP, should never happen&quot;</span>
+            <span class="n">b1m</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">fim</span> <span class="o">=</span> <span class="n">b1m</span><span class="o">.</span><span class="n">getimagefile</span><span class="p">(</span><span class="n">bt</span><span class="o">.</span><span class="n">CASA</span><span class="p">)</span>
+            <span class="n">pos1</span><span class="p">,</span><span class="n">maxval</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxpos_im</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">fim</span><span class="p">))</span>     <span class="c1"># compute maxpos, since it is not in bdp (yet)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;CubeSum::maxpos,val=</span><span class="si">%s</span><span class="s1">,</span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pos1</span><span class="p">),</span><span class="n">maxval</span><span class="p">))</span>
+            <span class="n">pos</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pos1</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">pos</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pos1</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;Moment-pos&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>                                      <span class="c1"># check if SourceList</span>
+            <span class="c1"># print &quot;BDP[3] type: &quot;,self._bdp_in[3]._type</span>
+            <span class="c1"># a table (SourceList)</span>
+            <span class="n">b1p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+            <span class="n">ra</span>   <span class="o">=</span> <span class="n">b1p</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">getFullColumnByName</span><span class="p">(</span><span class="s2">&quot;RA&quot;</span><span class="p">)</span>
+            <span class="n">dec</span>  <span class="o">=</span> <span class="n">b1p</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">getFullColumnByName</span><span class="p">(</span><span class="s2">&quot;DEC&quot;</span><span class="p">)</span>
+            <span class="n">peak</span> <span class="o">=</span> <span class="n">b1p</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">getFullColumnByName</span><span class="p">(</span><span class="s2">&quot;Peak&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">sources</span> <span class="o">==</span> <span class="p">[]:</span>
+                <span class="c1"># use the whole SourceList</span>
+                <span class="k">for</span> <span class="p">(</span><span class="n">r</span><span class="p">,</span><span class="n">d</span><span class="p">,</span><span class="n">p</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ra</span><span class="p">,</span><span class="n">dec</span><span class="p">,</span><span class="n">peak</span><span class="p">):</span>
+                  <span class="n">rdc</span> <span class="o">=</span> <span class="n">convert_sexa</span><span class="p">(</span><span class="n">r</span><span class="p">,</span><span class="n">d</span><span class="p">)</span>
+                  <span class="n">pos</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rdc</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                  <span class="n">pos</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rdc</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                  <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;SourceList::maxpos,val=</span><span class="si">%s</span><span class="s1">,</span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">rdc</span><span class="p">),</span><span class="n">p</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>                  
+                <span class="c1"># select specific ones from the source list</span>
+                <span class="k">for</span> <span class="n">ipos</span> <span class="ow">in</span> <span class="n">sources</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">ipos</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">ra</span><span class="p">):</span>
+                        <span class="n">radec</span> <span class="o">=</span>  <span class="n">convert_sexa</span><span class="p">(</span><span class="n">ra</span><span class="p">[</span><span class="n">ipos</span><span class="p">],</span><span class="n">dec</span><span class="p">[</span><span class="n">ipos</span><span class="p">])</span>
+                        <span class="n">pos</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">radec</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                        <span class="n">pos</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">radec</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;SourceList::maxpos,val=</span><span class="si">%s</span><span class="s1">,</span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">radec</span><span class="p">),</span><span class="n">peak</span><span class="p">[</span><span class="n">ipos</span><span class="p">]))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Skipping illegal source number </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">ipos</span><span class="p">)</span>
+
+            <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;SourceList-pos&quot;</span><span class="p">)</span>
+
+        <span class="c1"># if pos[] still blank, use the AT keyword.</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;pos&quot;</span><span class="p">)</span>
+
+        <span class="c1"># if still none, try the map center</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># @todo  this could result in a masked pixel and cause further havoc</span>
+            <span class="c1"># @todo  could also take the reference pixel, but that could be outside image</span>
+            <span class="n">ia</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">fin</span><span class="p">))</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
+            <span class="n">pos</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="s1">&#39;shape&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="s1">&#39;shape&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No input positions supplied, map center choosen: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">pos</span><span class="p">))</span>
+            <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;map-center&quot;</span><span class="p">)</span>
+
+        <span class="c1"># exhausted all sources where pos[] can be set; if still zero, bail out</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span><span class="s2">&quot;No positions found from input BDP&#39;s or pos=&quot;</span>
+
+        <span class="c1"># convert this regular list to a list of tuples with duplicates removed</span>
+        <span class="c1"># sadly the order is lost.</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">pos</span><span class="p">[</span><span class="mi">0</span><span class="p">::</span><span class="mi">2</span><span class="p">],</span><span class="n">pos</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">])))</span>
+        <span class="n">npos</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
+        
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;open&quot;</span><span class="p">)</span>
+
+        <span class="n">bdp_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mkext</span><span class="p">(</span><span class="n">fin</span><span class="p">,</span><span class="s2">&quot;csp&quot;</span><span class="p">)</span>
+        <span class="n">b2</span> <span class="o">=</span> <span class="n">CubeSpectrum_BDP</span><span class="p">(</span><span class="n">bdp_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addoutput</span><span class="p">(</span><span class="n">b2</span><span class="p">)</span>
+
+        <span class="n">imval</span>  <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">npos</span><span class="p">)</span>                             <span class="c1"># spectra, one for each pos (placeholder)</span>
+        <span class="n">planes</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">npos</span><span class="p">)</span>                             <span class="c1"># labels for the tables (placeholder)</span>
+        <span class="n">images</span> <span class="o">=</span> <span class="p">{}</span>                                      <span class="c1"># png&#39;s accumulated</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">npos</span><span class="p">):</span>                            <span class="c1"># loop over pos, they can have mixed types now</span>
+            <span class="n">sd</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">caption</span> <span class="o">=</span> <span class="s2">&quot;Spectrum&quot;</span>
+            <span class="n">xpos</span> <span class="o">=</span> <span class="n">pos</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">ypos</span> <span class="o">=</span> <span class="n">pos</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">xpos</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="n">ypos</span><span class="p">):</span>
+                <span class="nb">print</span> <span class="s2">&quot;POS:&quot;</span><span class="p">,</span><span class="n">xpos</span><span class="p">,</span><span class="n">ypos</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span><span class="s2">&quot;position pair not of the same type&quot;</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">xpos</span><span class="p">)</span><span class="o">==</span><span class="nb">int</span><span class="p">:</span>
+                <span class="c1"># for integers, boxes are allowed, even multiple</span>
+                <span class="n">box</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">,</span><span class="si">%d</span><span class="s1">,</span><span class="si">%d</span><span class="s1">,</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">xpos</span><span class="p">,</span><span class="n">ypos</span><span class="p">,</span><span class="n">xpos</span><span class="p">,</span><span class="n">ypos</span><span class="p">)</span>
+                <span class="c1"># convention for summary is (box)</span>
+                <span class="n">cbox</span> <span class="o">=</span> <span class="s1">&#39;(</span><span class="si">%d</span><span class="s1">,</span><span class="si">%d</span><span class="s1">,</span><span class="si">%d</span><span class="s1">,</span><span class="si">%d</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">xpos</span><span class="p">,</span><span class="n">ypos</span><span class="p">,</span><span class="n">xpos</span><span class="p">,</span><span class="n">ypos</span><span class="p">)</span>
+                <span class="c1"># use extend here, not append, we want individual values in a list</span>
+                <span class="n">sd</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">xpos</span><span class="p">,</span><span class="n">ypos</span><span class="p">,</span><span class="n">cbox</span><span class="p">])</span>
+                <span class="n">caption</span> <span class="o">=</span> <span class="s2">&quot;Average Spectrum at </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">cbox</span>
+                <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
+                    <span class="c1"># this will fail on 3D cubes (see CAS-7648)</span>
+                    <span class="n">imval</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">casa</span><span class="o">.</span><span class="n">imval</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">fin</span><span class="p">),</span><span class="n">box</span><span class="o">=</span><span class="n">box</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># work around that CAS-7648 bug </span>
+                    <span class="c1"># another approach is the ia.getprofile(), see CubeStats, this will</span>
+                    <span class="c1"># also integrate over regions, imval will not (!!!)</span>
+                    <span class="n">region</span> <span class="o">=</span> <span class="s1">&#39;centerbox[[</span><span class="si">%d</span><span class="s1">pix,</span><span class="si">%d</span><span class="s1">pix],[1pix,1pix]]&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">xpos</span><span class="p">,</span><span class="n">ypos</span><span class="p">)</span>
+                    <span class="n">caption</span> <span class="o">=</span> <span class="s2">&quot;Average Spectrum at </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">region</span>
+                    <span class="n">imval</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">casa</span><span class="o">.</span><span class="n">imval</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">fin</span><span class="p">),</span><span class="n">region</span><span class="o">=</span><span class="n">region</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">xpos</span><span class="p">)</span><span class="o">==</span><span class="nb">str</span><span class="p">:</span>
+                <span class="c1"># this is tricky, to stay under 1 pixel , or you get a 2x2 back.</span>
+                <span class="n">region</span> <span class="o">=</span> <span class="s1">&#39;centerbox[[</span><span class="si">%s</span><span class="s1">,</span><span class="si">%s</span><span class="s1">],[1pix,1pix]]&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">xpos</span><span class="p">,</span><span class="n">ypos</span><span class="p">)</span>
+                <span class="n">caption</span> <span class="o">=</span> <span class="s2">&quot;Average Spectrum at </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">region</span>
+                <span class="n">sd</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">xpos</span><span class="p">,</span><span class="n">ypos</span><span class="p">,</span><span class="n">region</span><span class="p">])</span>
+                <span class="n">imval</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">casa</span><span class="o">.</span><span class="n">imval</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">fin</span><span class="p">),</span><span class="n">region</span><span class="o">=</span><span class="n">region</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span> <span class="s2">&quot;Data type: &quot;</span><span class="p">,</span><span class="nb">type</span><span class="p">(</span><span class="n">xpos</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span><span class="s2">&quot;Data type for region not handled&quot;</span>
+            <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;imval&quot;</span><span class="p">)</span>
+
+            <span class="n">flux</span>  <span class="o">=</span> <span class="n">imval</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">flux</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>     <span class="c1"># rare case if we step on a boundary between cells?</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;source </span><span class="si">%d</span><span class="s2"> has spectrum shape </span><span class="si">%s</span><span class="s2">: averaging the spectra&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="nb">repr</span><span class="p">(</span><span class="n">flux</span><span class="o">.</span><span class="n">shape</span><span class="p">)))</span>
+                <span class="n">flux</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">flux</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;minmax: </span><span class="si">%f</span><span class="s1"> </span><span class="si">%f</span><span class="s1"> </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">flux</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span><span class="n">flux</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span><span class="nb">len</span><span class="p">(</span><span class="n">flux</span><span class="p">)))</span>
+            <span class="n">smax</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">flux</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+            <span class="k">if</span> <span class="n">i</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>                                              <span class="c1"># for first point record few extra things</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">imval</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;coords&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>                   <span class="c1"># normal case: 1 pixel</span>
+                    <span class="n">freqs</span> <span class="o">=</span> <span class="n">imval</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;coords&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">transpose</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span><span class="o">/</span><span class="mi">1</span><span class="n">e9</span>        <span class="c1"># convert to GHz  @todo: input units ok?</span>
+                <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">imval</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;coords&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>                 <span class="c1"># rare case if &gt; 1 point in imval()</span>
+                    <span class="n">freqs</span> <span class="o">=</span> <span class="n">imval</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;coords&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">transpose</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span><span class="o">/</span><span class="mi">1</span><span class="n">e9</span>     <span class="c1"># convert to GHz  @todo: input units ok?</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">fatal</span><span class="p">(</span><span class="s2">&quot;bad shape </span><span class="si">%s</span><span class="s2"> in freq return from imval - SHOULD NEVER HAPPEN&quot;</span> <span class="o">%</span> <span class="n">imval</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;coords&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+                <span class="n">chans</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">freqs</span><span class="p">))</span>                     <span class="c1"># channels 0..nchans-1</span>
+                <span class="n">unit</span>  <span class="o">=</span> <span class="n">imval</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span>
+                <span class="n">restfreq</span> <span class="o">=</span> <span class="n">casa</span><span class="o">.</span><span class="n">imhead</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">fin</span><span class="p">),</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;get&quot;</span><span class="p">,</span><span class="n">hdkey</span><span class="o">=</span><span class="s2">&quot;restfreq&quot;</span><span class="p">)[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span><span class="o">/</span><span class="mi">1</span><span class="n">e9</span>    <span class="c1"># in GHz</span>
+                <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;imhead&quot;</span><span class="p">)</span>
+                <span class="n">vel</span>   <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">freqs</span><span class="o">/</span><span class="n">restfreq</span><span class="p">)</span><span class="o">*</span><span class="n">utils</span><span class="o">.</span><span class="n">c</span>                <span class="c1">#  @todo : use a function (and what about relativistic?)</span>
+
+            <span class="c1"># construct the Table for CubeSpectrum_BDP </span>
+            <span class="c1"># @todo note data needs to be a tuple, later to be column_stack&#39;d</span>
+            <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;channel&quot;</span> <span class="p">,</span><span class="s2">&quot;frequency&quot;</span> <span class="p">,</span><span class="s2">&quot;flux&quot;</span> <span class="p">]</span>
+            <span class="n">units</span>  <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;number&quot;</span>  <span class="p">,</span><span class="s2">&quot;GHz&quot;</span>       <span class="p">,</span><span class="n">unit</span>   <span class="p">]</span>
+            <span class="n">data</span>   <span class="o">=</span> <span class="p">(</span><span class="n">chans</span>     <span class="p">,</span><span class="n">freqs</span>       <span class="p">,</span><span class="n">flux</span>   <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">i</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># plane 0 : we are allowing a multiplane table, so the first plane is special</span>
+                <span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">labels</span><span class="p">,</span><span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span><span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">(</span><span class="n">data</span><span class="p">),</span><span class="n">planes</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;0&quot;</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># planes 1,2,3.... are stacked onto the previous one</span>
+                <span class="n">table</span><span class="o">.</span><span class="n">addPlane</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">(</span><span class="n">data</span><span class="p">),</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">i</span><span class="p">)</span>
+
+            <span class="c1"># example plot , one per position for now</span>
+            <span class="k">if</span> <span class="n">use_vel</span><span class="p">:</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">vel</span>
+                <span class="n">xlab</span> <span class="o">=</span> <span class="s1">&#39;VLSR (km/s)&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">chans</span>
+                <span class="n">xlab</span>  <span class="o">=</span> <span class="s1">&#39;Channel&#39;</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="p">[</span><span class="n">flux</span><span class="p">]</span>
+            <span class="n">sd</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">xlab</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">xpos</span><span class="p">)</span><span class="o">==</span><span class="nb">int</span><span class="p">:</span>
+                <span class="c1"># grab the RA/DEC... kludgy</span>
+                <span class="n">h</span> <span class="o">=</span> <span class="n">casa</span><span class="o">.</span><span class="n">imstat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">fin</span><span class="p">),</span><span class="n">box</span><span class="o">=</span><span class="n">box</span><span class="p">)</span>
+                <span class="n">ra</span>  <span class="o">=</span> <span class="n">h</span><span class="p">[</span><span class="s1">&#39;blcf&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">dec</span> <span class="o">=</span> <span class="n">h</span><span class="p">[</span><span class="s1">&#39;blcf&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> </span><span class="si">%d</span><span class="s1"> @ </span><span class="si">%d</span><span class="s1">,</span><span class="si">%d</span><span class="s1"> = </span><span class="si">%s</span><span class="s1">,</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">bdp_name</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">xpos</span><span class="p">,</span><span class="n">ypos</span><span class="p">,</span><span class="n">ra</span><span class="p">,</span><span class="n">dec</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> </span><span class="si">%d</span><span class="s1"> @ </span><span class="si">%s</span><span class="s1">,</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">bdp_name</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">xpos</span><span class="p">,</span><span class="n">ypos</span><span class="p">)</span>       <span class="c1"># or use box, once we allow non-points</span>
+
+            <span class="n">myplot</span> <span class="o">=</span> <span class="n">APlot</span><span class="p">(</span><span class="n">ptype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_plot_type</span><span class="p">,</span><span class="n">pmode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_plot_mode</span><span class="p">,</span> <span class="n">abspath</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">())</span>
+            <span class="n">ylab</span>  <span class="o">=</span> <span class="s1">&#39;Flux (</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="n">unit</span>
+            <span class="n">p1</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">bdp_name</span><span class="p">,</span><span class="n">i</span><span class="p">)</span>
+            <span class="n">myplot</span><span class="o">.</span><span class="n">plotter</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">title</span><span class="p">,</span><span class="n">p1</span><span class="p">,</span><span class="n">xlab</span><span class="o">=</span><span class="n">xlab</span><span class="p">,</span><span class="n">ylab</span><span class="o">=</span><span class="n">ylab</span><span class="p">,</span><span class="n">thumbnail</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="c1"># Why not use p1 as the key?</span>
+            <span class="n">ii</span> <span class="o">=</span> <span class="n">images</span><span class="p">[</span><span class="s2">&quot;pos</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">myplot</span><span class="o">.</span><span class="n">getFigure</span><span class="p">(</span><span class="n">figno</span><span class="o">=</span><span class="n">myplot</span><span class="o">.</span><span class="n">figno</span><span class="p">,</span><span class="n">relative</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">thumbname</span> <span class="o">=</span> <span class="n">myplot</span><span class="o">.</span><span class="n">getThumbnail</span><span class="p">(</span><span class="n">figno</span><span class="o">=</span><span class="n">myplot</span><span class="o">.</span><span class="n">figno</span><span class="p">,</span><span class="n">relative</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">sd</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">ii</span><span class="p">,</span> <span class="n">thumbname</span><span class="p">,</span> <span class="n">caption</span><span class="p">,</span> <span class="n">fin</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">spec_description</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sd</span><span class="p">)</span>
+
+        <span class="n">logging</span><span class="o">.</span><span class="n">regression</span><span class="p">(</span><span class="s2">&quot;CSP: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">smax</span><span class="p">))</span>
+
+        <span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span><span class="n">images</span><span class="o">=</span><span class="n">images</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;CubeSpectrum&quot;</span><span class="p">)</span>
+        <span class="n">b2</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;image&quot;</span><span class="p">,</span><span class="n">image</span><span class="p">)</span>
+        <span class="n">b2</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;table&quot;</span><span class="p">,</span><span class="n">table</span><span class="p">)</span>
+        <span class="n">b2</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;sigma&quot;</span><span class="p">,</span><span class="n">csigma</span><span class="p">)</span>   <span class="c1"># TODO: not always available</span>
+        <span class="n">b2</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span><span class="n">cmean</span><span class="p">)</span>     <span class="c1"># TODO: not always available</span>
+
+        <span class="k">if</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="c1">#       @todo     only first plane due to limitation in exportTable()</span>
+            <span class="n">islash</span> <span class="o">=</span> <span class="n">bdp_name</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">islash</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">tabname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="s2">&quot;testCubeSpectrum.tab&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">tabname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">bdp_name</span><span class="p">[:</span><span class="n">islash</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;/testCubeSpectrum.tab&quot;</span><span class="p">)</span>
+            <span class="n">table</span><span class="o">.</span><span class="n">exportTable</span><span class="p">(</span><span class="n">tabname</span><span class="p">,</span><span class="n">cols</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;frequency&quot;</span> <span class="p">,</span><span class="s2">&quot;flux&quot;</span><span class="p">])</span>
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;done&quot;</span><span class="p">)</span>
+        <span class="c1"># For a single spectrum this is</span>
+        <span class="c1"># SummaryEntry([[data for spec1]], &quot;CubeSpectrum_AT&quot;,taskid)</span>
+        <span class="c1"># For multiple spectra this is</span>
+        <span class="c1"># SummaryEntry([[data for spec1],[data for spec2],...], &quot;CubeSpectrum_AT&quot;,taskid)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="s2">&quot;spectra&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SummaryEntry</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec_description</span><span class="p">,</span><span class="s2">&quot;CubeSpectrum_AT&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">(</span><span class="kc">True</span><span class="p">))</span>
+        <span class="n">taskargs</span> <span class="o">=</span> <span class="s2">&quot;pos=&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
+        <span class="n">taskargs</span> <span class="o">+=</span> <span class="s1">&#39;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; &amp;nbsp;&amp;nbsp;&amp;nbsp; &lt;span style=&quot;background-color:white&quot;&gt;&amp;nbsp;&#39;</span> <span class="o">+</span> <span class="n">fin</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;&amp;nbsp;&lt;/span&gt;&#39;</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="n">v</span><span class="p">]</span><span class="o">.</span><span class="n">setTaskArgs</span><span class="p">(</span><span class="n">taskargs</span><span class="p">)</span>
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;summary&quot;</span><span class="p">)</span>
+        <span class="n">dt</span><span class="o">.</span><span class="n">end</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="CubeSpectrum_AT.maxpos_im"><a class="viewcode-back" href="../../../module/admit.at/CubeSpectrum_AT.html#admit.at.CubeSpectrum_AT.CubeSpectrum_AT.maxpos_im">[docs]</a>    <span class="k">def</span> <span class="nf">maxpos_im</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">im</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Find the position of the maximum in an image.</span>
+<span class="sd">        Helper function returns the position of the maximum value in the</span>
+<span class="sd">        image as an [x,y] list in 0-based pixel coordinates.</span>
+
+<span class="sd">        Parameters  </span>
+<span class="sd">        ----------</span>
+<span class="sd">        im :  String, CASA image name</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            [x,y] list in 0-based pixel coordinates.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># 2D images don&#39;t store maxpos/maxval yet, so we need to grab them</span>
+        <span class="c1"># imstat on a 512^2 image is about 0.032 sec</span>
+        <span class="c1"># ia.getchunk is about 0.008, about 4x faster.</span>
+        <span class="c1"># we&#39;re going to assume 2D images fit in memory and always use getchunk</span>
+        <span class="c1"># @todo  review the use of the new casautil.getdata() style routines</span>
+        <span class="k">if</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">ia</span> <span class="o">=</span> <span class="n">taskinit</span><span class="o">.</span><span class="n">iatool</span><span class="p">()</span>
+            <span class="n">ia</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">im</span><span class="p">)</span>
+            <span class="n">plane</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">getchunk</span><span class="p">(</span><span class="n">blc</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="n">trc</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="n">dropdeg</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">masked_invalid</span><span class="p">(</span><span class="n">plane</span><span class="p">)</span>
+            <span class="n">ia</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="n">mp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unravel_index</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">argmax</span><span class="p">(),</span> <span class="n">v</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <span class="n">maxval</span> <span class="o">=</span> <span class="n">v</span><span class="p">[</span><span class="n">mp</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">mp</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+            <span class="n">maxpos</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">mp</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span><span class="nb">int</span><span class="p">(</span><span class="n">mp</span><span class="p">[</span><span class="mi">1</span><span class="p">])]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">imstat0</span> <span class="o">=</span> <span class="n">casa</span><span class="o">.</span><span class="n">imstat</span><span class="p">(</span><span class="n">im</span><span class="p">)</span>
+            <span class="n">maxpos</span> <span class="o">=</span> <span class="n">imstat0</span><span class="p">[</span><span class="s2">&quot;maxpos&quot;</span><span class="p">][:</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="n">maxval</span> <span class="o">=</span> <span class="n">imstat0</span><span class="p">[</span><span class="s2">&quot;max&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c1">#print &quot;MAXPOS_IM:::&quot;,maxpos,maxval,type(maxpos[0])</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">maxpos</span><span class="p">,</span><span class="n">maxval</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CubeSpectrum_AT.summary"><a class="viewcode-back" href="../../../module/admit.at/CubeSpectrum_AT.html#admit.at.CubeSpectrum_AT.CubeSpectrum_AT.summary">[docs]</a>    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the summary dictionary from the AT, for merging</span>
+<span class="sd">           into the ADMIT Summary object.</span>
+
+<span class="sd">           CubeSpectrum_AT adds the following to ADMIT summary:</span>
+
+<span class="sd">           .. table::</span>
+<span class="sd">              :class: borderless</span>
+
+<span class="sd">              +---------+----------+---------------------------+</span>
+<span class="sd">              |   Key   | type     |    Description            |</span>
+<span class="sd">              +=========+==========+===========================+</span>
+<span class="sd">              | spectra | list     |   the spectral plots      |</span>
+<span class="sd">              +---------+----------+---------------------------+</span>
+<span class="sd">           </span>
+<span class="sd">           Parameters</span>
+<span class="sd">           ----------</span>
+<span class="sd">           None</span>
+
+<span class="sd">           Returns</span>
+<span class="sd">           -------</span>
+<span class="sd">           dict</span>
+<span class="sd">               Dictionary of SummaryEntry</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;_summary&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{}</span></div></div>
+
+
+<div class="viewcode-block" id="convert_sexa"><a class="viewcode-back" href="../../../module/admit.at/CubeSpectrum_AT.html#admit.at.CubeSpectrum_AT.convert_sexa">[docs]</a><span class="k">def</span> <span class="nf">convert_sexa</span><span class="p">(</span><span class="n">ra</span><span class="p">,</span><span class="n">de</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; this peculiar function converts something like</span>
+<span class="sd">               &#39;18:29:56.713&#39;, &#39;+01.13.15.61&#39;</span>
+<span class="sd">        to</span>
+<span class="sd">               &#39;18h29m56.713s&#39;, &#39;+01d13m15.61s&#39;</span>
+
+<span class="sd">        It&#39;s a mystery why the output format from casa.sourcefind()</span>
+<span class="sd">        has this peculiar H:M:S/D.M.S format</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ran</span> <span class="o">=</span> <span class="n">ra</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">,</span><span class="s1">&#39;h&#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">,</span><span class="s1">&#39;m&#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;s&#39;</span>
+    <span class="n">den</span> <span class="o">=</span> <span class="n">de</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span><span class="s1">&#39;d&#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span><span class="s1">&#39;m&#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;s&#39;</span>
+    <span class="k">return</span> <span class="n">ran</span><span class="p">,</span><span class="n">den</span></div>
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

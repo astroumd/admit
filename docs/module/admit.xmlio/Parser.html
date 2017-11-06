@@ -1,0 +1,304 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Parser — Converts an ADMIT project on disk to in-memory objects. &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../index.html" />
+    <link rel="up" title="Python Scripting Interface (API)" href="../../api.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" accesskey="U">Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-admit.xmlio.Parser"></span><div class="section" id="parser-converts-an-admit-project-on-disk-to-in-memory-objects">
+<span id="parser-api"></span><h1>Parser &#8212; Converts an ADMIT project on disk to in-memory objects.<a class="headerlink" href="#parser-converts-an-admit-project-on-disk-to-in-memory-objects" title="Permalink to this headline">¶</a></h1>
+<p>This module is for parsing the input xml files, both admit.xml and the
+general bdp xml files.</p>
+<dl class="class">
+<dt id="admit.xmlio.Parser.Parser">
+<em class="property">class </em><code class="descclassname">admit.xmlio.Parser.</code><code class="descname">Parser</code><span class="sig-paren">(</span><em>base</em>, <em>baseDir=''</em>, <em>xmlFile=''</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/xmlio/Parser.html#Parser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.xmlio.Parser.Parser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Main XML parsing class.</p>
+<p>This class parses the main xml file (usually admit.xml) and reads in all
+AT and ADMIT data. It then searches for all BDP&#8217;s in the working
+directory and subdirectories. These BDP files are then parsed and added
+to their parent ATs.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>base</strong> : ADMIT</p>
+<blockquote>
+<div><p>Instance of the base ADMIT class to add everything to.
+No Default.</p>
+</div></blockquote>
+<p><strong>baseDir</strong> : str</p>
+<blockquote>
+<div><p>The root directory of the admit tree.
+Default: &#8220;&#8221; (current dirctory).</p>
+</div></blockquote>
+<p><strong>xmlFile</strong> : str</p>
+<blockquote class="last">
+<div><p>The root admit xml file to parse.
+Default: &#8220;&#8221;.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="22%" />
+<col width="78%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>xmlFile</td>
+<td>(str) String for the xml file to parse.</td>
+</tr>
+<tr class="row-even"><td>parser</td>
+<td>(SAX parser) The parser to use.</td>
+</tr>
+<tr class="row-odd"><td>admit</td>
+<td>(ADMIT) The instance of the ADMIT class to add everything to.</td>
+</tr>
+<tr class="row-even"><td>baseDir</td>
+<td>(str) The root directory for working.</td>
+</tr>
+<tr class="row-odd"><td>tasks</td>
+<td>(List) A list of all AT&#8217;s found.</td>
+</tr>
+<tr class="row-even"><td>userData</td>
+<td>(dict) Dictionary for user data.</td>
+</tr>
+<tr class="row-odd"><td>summaryData</td>
+<td>(dict) Summary data.</td>
+</tr>
+<tr class="row-even"><td>flowmanager</td>
+<td>(FlowManager) Temporary FM for reading in the data.</td>
+</tr>
+<tr class="row-odd"><td>projmanager: dict</td>
+<td>Project ID to base directory map.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#admit.xmlio.Parser.Parser.addBDPtoAT" title="admit.xmlio.Parser.Parser.addBDPtoAT"><code class="xref py py-obj docutils literal"><span class="pre">addBDPtoAT</span></code></a>(bdp)</td>
+<td>Method to add a BDP to an AT.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.xmlio.Parser.Parser.getSummary" title="admit.xmlio.Parser.Parser.getSummary"><code class="xref py py-obj docutils literal"><span class="pre">getSummary</span></code></a>()</td>
+<td>Return the local copy of the summaryData</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.xmlio.Parser.Parser.getTasks" title="admit.xmlio.Parser.Parser.getTasks"><code class="xref py py-obj docutils literal"><span class="pre">getTasks</span></code></a>()</td>
+<td>Return the list of AT&#8217;s that have been read in</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.xmlio.Parser.Parser.getflowmanager" title="admit.xmlio.Parser.Parser.getflowmanager"><code class="xref py py-obj docutils literal"><span class="pre">getflowmanager</span></code></a>()</td>
+<td>Return the local copy of the FlowManager</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.xmlio.Parser.Parser.parse" title="admit.xmlio.Parser.Parser.parse"><code class="xref py py-obj docutils literal"><span class="pre">parse</span></code></a>([doParse])</td>
+<td>Method that controls the parsing flow.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="admit.xmlio.Parser.Parser.addBDPtoAT">
+<code class="descname">addBDPtoAT</code><span class="sig-paren">(</span><em>bdp</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/xmlio/Parser.html#Parser.addBDPtoAT"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.xmlio.Parser.Parser.addBDPtoAT" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to add a BDP to an AT. The AT is not specified, but the
+_taskid attribute of the BDP is used to identify the necessary AT.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>bdp</strong> : BDP</p>
+<blockquote>
+<div><p>Any valid BDP, to be added to an existing AT.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.xmlio.Parser.Parser.getSummary">
+<code class="descname">getSummary</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/xmlio/Parser.html#Parser.getSummary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.xmlio.Parser.Parser.getSummary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the local copy of the summaryData</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>None</strong></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">summaryData</p>
+<blockquote class="last">
+<div><p>Copy of the local summaryData that was read in from XML.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.xmlio.Parser.Parser.getTasks">
+<code class="descname">getTasks</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/xmlio/Parser.html#Parser.getTasks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.xmlio.Parser.Parser.getTasks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the list of AT&#8217;s that have been read in</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>None</strong></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">List</p>
+<blockquote class="last">
+<div><p>List of the AT&#8217;s from the xml file</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.xmlio.Parser.Parser.getflowmanager">
+<code class="descname">getflowmanager</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/xmlio/Parser.html#Parser.getflowmanager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.xmlio.Parser.Parser.getflowmanager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the local copy of the FlowManager</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>None</strong></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">FlowManager</p>
+<blockquote class="last">
+<div><p>Copy of the local FlowManager that was read in from XML.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.xmlio.Parser.Parser.parse">
+<code class="descname">parse</code><span class="sig-paren">(</span><em>doParse=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/xmlio/Parser.html#Parser.parse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.xmlio.Parser.Parser.parse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method that controls the parsing flow. First reads in the root xml
+file and then any BDP files that were found.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>doParse</strong> : Boolean</p>
+<blockquote>
+<div><p>Whether or not to actually parse the XML
+Default: True</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/module/admit.xmlio/Parser.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" >Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

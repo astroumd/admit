@@ -1,0 +1,464 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.util.LineData &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.util.LineData</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; .. _LineData-api:</span>
+
+<span class="sd">    **LineData** --- Extended spectral line metadata.</span>
+<span class="sd">    -------------------------------------------------</span>
+
+<span class="sd">    This module defines the LineData class.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">admit.util.Line</span> <span class="k">import</span> <span class="n">Line</span>
+
+
+<div class="viewcode-block" id="LineData"><a class="viewcode-back" href="../../../module/admit.util/LineData.html#admit.util.LineData.LineData">[docs]</a><span class="k">class</span> <span class="nc">LineData</span><span class="p">(</span><span class="n">Line</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Class for holding information on a specific spectral line, expanding on that of the Line</span>
+<span class="sd">        base class.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        keyval : dict</span>
+<span class="sd">            Dictionary of keyword:value pairs.</span>
+
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        name : str</span>
+<span class="sd">            Name of the molecule/atom.</span>
+<span class="sd">            Default: &quot;&quot;.</span>
+
+<span class="sd">        uid : str</span>
+<span class="sd">            Unique identifier for the transition.</span>
+<span class="sd">            Default: &quot;&quot;.</span>
+
+<span class="sd">        formula : str</span>
+<span class="sd">            The chemical formula.</span>
+<span class="sd">            Default: &quot;&quot;.</span>
+
+<span class="sd">        transition : str</span>
+<span class="sd">            The transition/quantum number information.</span>
+<span class="sd">            Default: &quot;&quot;.</span>
+
+<span class="sd">        energies : 2 element list</span>
+<span class="sd">            List of the lower and upper state energies of the transition.</span>
+<span class="sd">            Default: [0.0, 0.0].</span>
+
+<span class="sd">        energyunits : str</span>
+<span class="sd">            Units of the upper/lower state energy.</span>
+<span class="sd">            Default: K.</span>
+
+<span class="sd">        linestrength : float</span>
+<span class="sd">            The line strength of the transition.</span>
+<span class="sd">            Default: 0.0.</span>
+
+<span class="sd">        lsunits : str</span>
+<span class="sd">            The units of the line strength.</span>
+<span class="sd">            Default: &quot;Debye^2&quot;.</span>
+
+<span class="sd">        frequency : float</span>
+<span class="sd">            The frequency of the transition.</span>
+<span class="sd">            Default: 0.0.</span>
+
+<span class="sd">        funits : str</span>
+<span class="sd">            The units of the frequency.</span>
+<span class="sd">            Default: &quot;GHz&quot;.</span>
+
+<span class="sd">        blend : int</span>
+<span class="sd">            If this molecule is blended with others. Value of 0 means no blending</span>
+<span class="sd">            any other value gives the index of the blend.</span>
+<span class="sd">            Default: 0 (no blending).</span>
+
+<span class="sd">        mass : int</span>
+<span class="sd">            Rough mass of the molecule (H=1, C=12, etc.).</span>
+<span class="sd">            Default: 0.</span>
+
+<span class="sd">        plain : str</span>
+<span class="sd">            A human redable version of the chemical formula.</span>
+<span class="sd">            Default: &quot;&quot;.</span>
+
+<span class="sd">        isocount : int</span>
+<span class="sd">            A count of the number of non-standard isotopes in the molecule. For example the standard</span>
+<span class="sd">            for carbon is 12C and 13C would be the non-standard isotope.</span>
+<span class="sd">            Default: 0.</span>
+
+<span class="sd">        chans : two element list</span>
+<span class="sd">            List of the starting and ending channels of the line.</span>
+<span class="sd">            Default: [0, 0].</span>
+
+<span class="sd">        freqs : two element list</span>
+<span class="sd">            List of the starting and ending frequencies of the line.</span>
+<span class="sd">            Default: [0.0, 0.0].</span>
+
+<span class="sd">        peakintensity : float</span>
+<span class="sd">            The peak intensity of the line in units from the input data.</span>
+<span class="sd">            Default: 0.0.</span>
+
+<span class="sd">        peakrms : float</span>
+<span class="sd">            The S/N of the peak of the line.</span>
+<span class="sd">            Default: 0.0.</span>
+
+<span class="sd">        fwhm : float</span>
+<span class="sd">            Full width half maximum of the line.</span>
+<span class="sd">            Default: 0.0.</span>
+
+<span class="sd">        noise : float</span>
+<span class="sd">            The rms noise of the spectrum.</span>
+<span class="sd">            Default: 0.0.</span>
+
+<span class="sd">        hfnum : int</span>
+<span class="sd">            Hyperfine identifier from the Tier1 database.</span>
+<span class="sd">            Default: 0 (no hyperfines).</span>
+
+<span class="sd">        peakoffset : float</span>
+<span class="sd">            The offset of the peak of the line from the vlsr.</span>
+<span class="sd">            Default: 0.0.</span>
+
+<span class="sd">        velocity : float</span>
+<span class="sd">            The velocity of the line (offset + vlsr).</span>
+<span class="sd">            Default: 0.0.</span>
+
+<span class="sd">        force : bool</span>
+<span class="sd">            If True then the user forced the identification via the force keyword in LineID, if</span>
+<span class="sd">            False then the id was generated by LineID.</span>
+<span class="sd">            Default: False.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">keyval</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mass</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plain</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">isocount</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chans</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">freqs</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">peakintensity</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">peakrms</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fwhm</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">noise</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hfnum</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">velocity</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">peakoffset</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">force</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">Line</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="n">keyval</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%g</span><span class="s2"> </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">uid</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">energies</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">linestrength</span><span class="p">)</span>
+
+<div class="viewcode-block" id="LineData.setkey"><a class="viewcode-back" href="../../../module/admit.util/LineData.html#admit.util.LineData.LineData.setkey">[docs]</a>    <span class="k">def</span> <span class="nf">setkey</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to set the key-value pairs for the class. It treats the chans and freqs keywords</span>
+<span class="sd">            specially, making sure that the pairs of numbers are properly ordered. All other keys</span>
+<span class="sd">            and values are passed directly to the Line superclass setkey.</span>
+
+<span class="sd">            set keys, two styles are possible:</span>
+
+<span class="sd">            1. name = {key:val}            e.g. **setkey({&quot;a&quot;:1})**</span>
+
+<span class="sd">            2. name = &quot;key&quot;, value = val     e.g. **setkey(&quot;a&quot;, 1)**</span>
+
+<span class="sd">            This method checks the type of the keyword value, as it must</span>
+<span class="sd">            remain the same. Also new keywords cannot be added.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+
+<span class="sd">            name : dictionary or string</span>
+<span class="sd">                Dictionary of keyword value pais to set or a string with the name</span>
+<span class="sd">                of a single key</span>
+
+<span class="sd">            value : any</span>
+<span class="sd">                The value to change the keyword to</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">name</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="s2">&quot;freqs&quot;</span> <span class="ow">or</span> <span class="n">k</span> <span class="o">==</span> <span class="s2">&quot;chans&quot;</span><span class="p">:</span>
+                    <span class="n">v</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+                    <span class="n">name</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+        <span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;freqs&quot;</span> <span class="ow">or</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;chans&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">raise</span>
+            <span class="n">value</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="n">Line</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LineData.getstart"><a class="viewcode-back" href="../../../module/admit.util/LineData.html#admit.util.LineData.LineData.getstart">[docs]</a>    <span class="k">def</span> <span class="nf">getstart</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to get the starting channel number.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            Int containing the starting channel number</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">chans</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="LineData.getend"><a class="viewcode-back" href="../../../module/admit.util/LineData.html#admit.util.LineData.LineData.getend">[docs]</a>    <span class="k">def</span> <span class="nf">getend</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to get the ending channel number.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            Int containing the ending channel number</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">chans</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="LineData.setstart"><a class="viewcode-back" href="../../../module/admit.util/LineData.html#admit.util.LineData.LineData.setstart">[docs]</a>    <span class="k">def</span> <span class="nf">setstart</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chan</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to set the starting channel number.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            chan : int</span>
+<span class="sd">                The starting channel number to set</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chans</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">chan</span></div>
+
+<div class="viewcode-block" id="LineData.setend"><a class="viewcode-back" href="../../../module/admit.util/LineData.html#admit.util.LineData.LineData.setend">[docs]</a>    <span class="k">def</span> <span class="nf">setend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chan</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to set the ending channel number.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            chan : int</span>
+<span class="sd">                The ending channel number to set</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chans</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">chan</span></div>
+
+<div class="viewcode-block" id="LineData.getfstart"><a class="viewcode-back" href="../../../module/admit.util/LineData.html#admit.util.LineData.LineData.getfstart">[docs]</a>    <span class="k">def</span> <span class="nf">getfstart</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to get the starting frequency.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            Float containing the starting frequency</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">freqs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="LineData.getfend"><a class="viewcode-back" href="../../../module/admit.util/LineData.html#admit.util.LineData.LineData.getfend">[docs]</a>    <span class="k">def</span> <span class="nf">getfend</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to get the ending frequency.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            Float containing the ending frequency</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">freqs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="LineData.setfstart"><a class="viewcode-back" href="../../../module/admit.util/LineData.html#admit.util.LineData.LineData.setfstart">[docs]</a>    <span class="k">def</span> <span class="nf">setfstart</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">freq</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to set the starting frequency.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            chan : int</span>
+<span class="sd">                The starting frequency to set</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">freqs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">freq</span></div>
+
+<div class="viewcode-block" id="LineData.setfend"><a class="viewcode-back" href="../../../module/admit.util/LineData.html#admit.util.LineData.LineData.setfend">[docs]</a>    <span class="k">def</span> <span class="nf">setfend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">freq</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to set the ending frequency.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            chan : int</span>
+<span class="sd">                The ending frequency to set</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">freqs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">freq</span></div>
+
+<div class="viewcode-block" id="LineData.setchans"><a class="viewcode-back" href="../../../module/admit.util/LineData.html#admit.util.LineData.LineData.setchans">[docs]</a>    <span class="k">def</span> <span class="nf">setchans</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chans</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to set the channel range for the line.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            chans : list</span>
+<span class="sd">                Two element list of the channel range for the line</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chans</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">chans</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chans</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">chans</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LineData.setfreqs"><a class="viewcode-back" href="../../../module/admit.util/LineData.html#admit.util.LineData.LineData.setfreqs">[docs]</a>    <span class="k">def</span> <span class="nf">setfreqs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">freqs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to set the frequency range for the line.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            chans : list</span>
+<span class="sd">                Two element list of the frequency range for the line</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">freqs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">freqs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">freqs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">freqs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LineData.getkey"><a class="viewcode-back" href="../../../module/admit.util/LineData.html#admit.util.LineData.LineData.getkey">[docs]</a>    <span class="k">def</span> <span class="nf">getkey</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to get a data member by name</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            key : str</span>
+<span class="sd">                The name of the data member to return</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            various, the contents of the requested item</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># treat a few specific ones specially</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;El&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getlowerenergy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;Eu&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getupperenergy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;startchan&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getstart</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;endchan&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getend</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">Line</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LineData.converttoline"><a class="viewcode-back" href="../../../module/admit.util/LineData.html#admit.util.LineData.LineData.converttoline">[docs]</a>    <span class="k">def</span> <span class="nf">converttoline</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to convert the contents of the LineData object to a Line Object</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            Line object populated with the relevant data from this LineData object</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">Line</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">__dict__</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="n">line</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="n">item</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="n">item</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">line</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

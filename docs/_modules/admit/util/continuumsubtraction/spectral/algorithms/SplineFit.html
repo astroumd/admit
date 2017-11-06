@@ -1,0 +1,235 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.util.continuumsubtraction.spectral.algorithms.SplineFit &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.util.continuumsubtraction.spectral.algorithms.SplineFit</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; .. _splinecontinuum:</span>
+
+<span class="sd">    SplineFit --- Continuum subtraction using a spline fit.</span>
+<span class="sd">    -------------------------------------------------------</span>
+
+<span class="sd">    Module for doing spline fitting to the continuum of a 1D spectrum.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">admit.util.AdmitLogging</span> <span class="k">import</span> <span class="n">AdmitLogging</span> <span class="k">as</span> <span class="n">logging</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="k">import</span> <span class="n">UnivariateSpline</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="nb">print</span> <span class="s2">&quot;WARNING: No scipy; SplineFit fitter cannot function.&quot;</span>
+
+
+<div class="viewcode-block" id="SplineFit"><a class="viewcode-back" href="../../../../../../module/admit.util.continuumsubtraction/spectral/algorithms/SplineFit.html#admit.util.continuumsubtraction.spectral.algorithms.SplineFit.SplineFit">[docs]</a><span class="k">class</span> <span class="nc">SplineFit</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Class which calculates the continuum of a 1D spectrum by</span>
+<span class="sd">        fitting a spline to the continuum channels. The algorithm</span>
+<span class="sd">        can be controlled by arguments to the run() method.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x : numpy array</span>
+<span class="sd">            An array containing the x coordinates.</span>
+
+<span class="sd">        y : masked array</span>
+<span class="sd">            A masked array containing the y coordinates with any</span>
+<span class="sd">            strong emission masked.</span>
+
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">y</span>
+
+<div class="viewcode-block" id="SplineFit.run"><a class="viewcode-back" href="../../../../../../module/admit.util.continuumsubtraction/spectral/algorithms/SplineFit.html#admit.util.continuumsubtraction.spectral.algorithms.SplineFit.SplineFit.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">**</span><span class="n">keyval</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to calculate the continuum from the given masked spectrum.</span>
+<span class="sd">            If search=True is given as an argument then the algorithm will</span>
+<span class="sd">            iterate through the different order splines to find the best fit,</span>
+<span class="sd">            based on noise level.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            keyval : dictionary</span>
+<span class="sd">                Dictionary containing the keyword value pair arguments</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            numpy array containing the best fit continuum</span>
+
+<span class="sd">            Notes</span>
+<span class="sd">            -----</span>
+<span class="sd">            Arguments for the run method:</span>
+
+<span class="sd">            - search : bool, whether or not to search for the best fit. Default: False</span>
+<span class="sd">            - bbox : array_like, 2-sequence specifying the boundary of the approximation</span>
+<span class="sd">              interval. If None (default), ``bbox=[x[0], x[-1]]``.</span>
+<span class="sd">            - k : int 1 &lt; k &lt;= 5, the degree of spline smoothing to use, Defualt: 3</span>
+<span class="sd">            - s : float or None</span>
+<span class="sd">              Positive smoothing factor used to choose the number of knots.  Number</span>
+<span class="sd">              of knots will be increased until the smoothing condition is satisfied::</span>
+<span class="sd"> </span>
+<span class="sd">                sum((w[i] * (y[i]-spl(x[i])))**2, axis=0) &lt;= s</span>
+<span class="sd"> </span>
+<span class="sd">              If None (default), ``s = len(w)`` which should be a good value if</span>
+<span class="sd">              ``1/w[i]`` is an estimate of the standard deviation of ``y[i]``.</span>
+<span class="sd">              If 0, spline will interpolate through all data points.</span>
+<span class="sd">            - ext : int or str</span>
+<span class="sd">              Controls the extrapolation mode for elements</span>
+<span class="sd">              not in the interval defined by the knot sequence.</span>
+<span class="sd">  </span>
+<span class="sd">                * if ext=0 or &#39;extrapolate&#39;, return the extrapolated value.</span>
+<span class="sd">                * if ext=1 or &#39;zeros&#39;, return 0</span>
+<span class="sd">                * if ext=2 or &#39;raise&#39;, raise a ValueError</span>
+<span class="sd">                * if ext=3 of &#39;const&#39;, return the boundary value.</span>
+<span class="sd">   </span>
+<span class="sd">              The default value is 0.</span>
+<span class="sd">            - check_finite : bool</span>
+<span class="sd">              Whether to check that the input arrays contain only finite numbers.</span>
+<span class="sd">              Disabling may give a performance gain, but may result in problems</span>
+<span class="sd">              (crashes, non-termination or non-sensical results) if the inputs</span>
+<span class="sd">              do contain infinities or NaNs.</span>
+<span class="sd">              Default is False.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># set up the data elements</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span>
+                <span class="s2">&quot;y&quot;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">data</span><span class="p">,</span>
+                <span class="c1"># reverse the weights since a masked array uses True for good values</span>
+                <span class="c1"># and UnivariateSpline needs a number. The reversal translates the</span>
+                <span class="c1"># True values to False, which are then interpreted as 0.0 </span>
+                <span class="s2">&quot;w&quot;</span> <span class="p">:</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">mask</span><span class="p">}</span>
+
+        <span class="c1"># get the given arguments</span>
+        <span class="n">search</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">noise</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="s2">&quot;search&quot;</span> <span class="ow">in</span> <span class="n">keyval</span><span class="p">:</span>
+            <span class="n">search</span> <span class="o">=</span> <span class="n">keyval</span><span class="p">[</span><span class="s2">&quot;search&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s2">&quot;noise&quot;</span> <span class="ow">in</span> <span class="n">keyval</span><span class="p">:</span>
+            <span class="n">noise</span> <span class="o">=</span> <span class="n">keyval</span><span class="p">[</span><span class="s2">&quot;noise&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s2">&quot;chisq&quot;</span> <span class="ow">in</span> <span class="n">keyval</span><span class="p">:</span>
+            <span class="n">maxchisq</span> <span class="o">=</span> <span class="n">keyval</span><span class="p">[</span><span class="s2">&quot;chisq&quot;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;bbox&quot;</span><span class="p">,</span><span class="s2">&quot;k&quot;</span><span class="p">,</span><span class="s2">&quot;s&quot;</span><span class="p">,</span><span class="s2">&quot;ext&quot;</span><span class="p">,</span><span class="s2">&quot;check_finite&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">keyval</span><span class="p">:</span>
+                <span class="n">args</span><span class="p">[</span><span class="n">arg</span><span class="p">]</span> <span class="o">=</span> <span class="n">keyval</span><span class="p">[</span><span class="n">arg</span><span class="p">]</span>
+        <span class="c1"># if searching for the best fit</span>
+        <span class="c1"># limited to 3rd order as 4th and 5th order could fit weak wide lines </span>
+        <span class="k">if</span> <span class="n">search</span><span class="p">:</span>
+            <span class="n">chisq</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span><span class="mf">1000.</span><span class="p">,</span>
+                     <span class="mi">2</span><span class="p">:</span><span class="mf">1000.</span><span class="p">,</span>
+                     <span class="mi">3</span><span class="p">:</span><span class="mf">1000.</span><span class="p">}</span>
+            <span class="c1"># iterate over each possible order</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">chisq</span><span class="p">:</span>
+                <span class="n">args</span><span class="p">[</span><span class="s2">&quot;k&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">k</span>
+                <span class="n">spl</span> <span class="o">=</span> <span class="n">UnivariateSpline</span><span class="p">(</span><span class="o">**</span><span class="n">args</span><span class="p">)</span>
+                <span class="n">fit</span> <span class="o">=</span> <span class="n">spl</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">)</span>
+                <span class="n">chisq</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">reducedchisquared</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">fit</span><span class="p">,</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">noise</span><span class="p">)</span>
+            <span class="c1"># find the best fit, if chisq values are close (&lt;20%), then prefer the lowest order</span>
+            <span class="n">mv</span> <span class="o">=</span> <span class="mf">1000.</span>
+            <span class="n">order</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">chisq</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">chisq</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">mv</span> <span class="ow">and</span> <span class="p">(</span><span class="n">mv</span> <span class="o">-</span> <span class="n">chisq</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="o">/</span> <span class="n">mv</span> <span class="o">&gt;</span> <span class="mf">0.2</span><span class="p">:</span>
+                    <span class="n">mv</span> <span class="o">=</span> <span class="n">chisq</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+                    <span class="n">order</span> <span class="o">=</span> <span class="n">k</span>
+            <span class="c1"># if we have a really poor fit then just give up</span>
+            <span class="k">if</span> <span class="n">mv</span> <span class="o">&gt;</span> <span class="n">maxchisq</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No good fit for continuum found&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">None</span>
+            <span class="n">args</span><span class="p">[</span><span class="s2">&quot;k&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">order</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Using fit of order </span><span class="si">%i</span><span class="s2"> with chi^2 of </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">order</span><span class="p">,</span> <span class="n">mv</span><span class="p">))</span>
+            <span class="c1"># do the final fit</span>
+            <span class="n">spl</span> <span class="o">=</span> <span class="n">UnivariateSpline</span><span class="p">(</span><span class="o">**</span><span class="n">args</span><span class="p">)</span>
+            <span class="n">fit</span> <span class="o">=</span> <span class="n">spl</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># do the fit with the given parameters</span>
+            <span class="n">spl</span> <span class="o">=</span> <span class="n">UnivariateSpline</span><span class="p">(</span><span class="o">**</span><span class="n">args</span><span class="p">)</span>
+            <span class="n">fit</span> <span class="o">=</span> <span class="n">spl</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fit</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

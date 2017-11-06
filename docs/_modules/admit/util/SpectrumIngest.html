@@ -1,0 +1,528 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.util.SpectrumIngest &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.util.SpectrumIngest</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; .. _SpectrumIngest-api:</span>
+
+<span class="sd">    **SpectrumIngest** --- Converts non-ADMIT spectral data to ADMIT format.</span>
+<span class="sd">    ------------------------------------------------------------------------</span>
+
+<span class="sd">    This module defines the SpectrumIngest class.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># system imports</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="c1"># ADMIT imports</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.CubeSpectrum_BDP</span> <span class="k">import</span> <span class="n">CubeSpectrum_BDP</span>
+<span class="kn">from</span> <span class="nn">admit.util.AdmitLogging</span> <span class="k">import</span> <span class="n">AdmitLogging</span> <span class="k">as</span> <span class="n">logging</span>
+<span class="kn">from</span> <span class="nn">admit.util</span> <span class="k">import</span> <span class="n">Spectrum</span>
+<span class="kn">from</span> <span class="nn">admit.util.Table</span> <span class="k">import</span> <span class="n">Table</span>
+<span class="kn">from</span> <span class="nn">admit.util.Image</span> <span class="k">import</span> <span class="n">Image</span>
+<span class="kn">from</span> <span class="nn">admit.util</span> <span class="k">import</span> <span class="n">APlot</span>
+<span class="kn">import</span> <span class="nn">admit.util.utils</span> <span class="k">as</span> <span class="nn">utils</span>
+<span class="kn">import</span> <span class="nn">admit</span>
+
+
+<div class="viewcode-block" id="SpectrumIngest"><a class="viewcode-back" href="../../../module/admit.util/SpectrumIngest.html#admit.util.SpectrumIngest.SpectrumIngest">[docs]</a><span class="k">class</span> <span class="nc">SpectrumIngest</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; This class is used to convert foreign data (either files or arrays) into a CubeSpectrum_BDP</span>
+<span class="sd">        suitable for use as an input to LineID_AT. If files are used then then the columns</span>
+<span class="sd">        containing the frequency and the intensity must be given (channel numbers are optional). Any</span>
+<span class="sd">        number of files can be given, but all spectra must have the same length as they are assumed</span>
+<span class="sd">        to come from the same data source. Blank lines and lines starting with a comment &#39;#&#39; will be</span>
+<span class="sd">        skipped, additionally any line with too few columns will be skipped. If arrays are used an</span>
+<span class="sd">        input then both the frequency and intensity must be specified (the channel numbers are</span>
+<span class="sd">        optional). Both lists and numpy arrays are accepted as inputs. Multidimmensional arrays are</span>
+<span class="sd">        supported with the following parameters:</span>
+
+<span class="sd">        + A single frequency list can be given to cover all input spectra, otherwise the shape</span>
+<span class="sd">          of the frequency array must match that of the spectra</span>
+<span class="sd">        + A single channel list can be given to cover all input spectra, otherwise the shape</span>
+<span class="sd">          of the channel array must match that of the spectra</span>
+<span class="sd">        + All spectra must have the same length</span>
+
+<span class="sd">        If a channel array is not specified then one will be constructed with the following</span>
+<span class="sd">        parameters:</span>
+
+<span class="sd">        + The channel numbers will start at 0 (casa convention)</span>
+<span class="sd">        + The first entry in the spectrum will be considered the first channel, regardless of</span>
+<span class="sd">          whether the frequency array increases or decreases.</span>
+
+<span class="sd">        The convert method will return a single CubeSpectrum_BDP instance holding all input spectra</span>
+<span class="sd">        along with an image of each.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        chan : array</span>
+<span class="sd">            An array holding the channel numbers for the data, multidimmensional arrays are</span>
+<span class="sd">            supported.</span>
+<span class="sd">            Default: None.</span>
+
+<span class="sd">        chancol : int</span>
+<span class="sd">            The column of the input file(s) that corresponds to the channel listing. Column numbers</span>
+<span class="sd">            are 1 based.</span>
+<span class="sd">            Default: -1.</span>
+
+<span class="sd">        freq : array</span>
+<span class="sd">            An array holding the frequencies for the data, multidimmensional arrays are supported.</span>
+<span class="sd">            Default: None.</span>
+
+<span class="sd">        freqcol : int</span>
+<span class="sd">            The column of the input file(s) that corresponds to the frequency listing. Column</span>
+<span class="sd">            numbers are 1 based.</span>
+<span class="sd">            Default: -1.</span>
+
+<span class="sd">        spec : array</span>
+<span class="sd">            An array holding the intesities of the data, multidimmensional arrays are supported.</span>
+<span class="sd">            Default: None.</span>
+
+<span class="sd">        speccol : int</span>
+<span class="sd">            The column of the input file(s) that corresponds to the intensity listing. Column</span>
+<span class="sd">            numbers are 1 based.</span>
+<span class="sd">            Default: -1.</span>
+
+<span class="sd">        file : list or str</span>
+<span class="sd">            A single file name or a list of file names to be read in for spectra.</span>
+<span class="sd">            Default: None.</span>
+
+<span class="sd">        seperator : str</span>
+<span class="sd">            The column separator for reading in the data files.</span>
+<span class="sd">            Default: None (any whitespace).</span>
+
+<span class="sd">        length : int</span>
+<span class="sd">            Internal tracking of the length of the spectra.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chan</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chancol</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">freq</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">freqcol</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">velocity</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">velcol</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spec</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">speccol</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">file</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">separator</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">restfreq</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vlsr</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">length</span> <span class="o">=</span> <span class="mi">0</span>
+
+<div class="viewcode-block" id="SpectrumIngest.getfile"><a class="viewcode-back" href="../../../module/admit.util/SpectrumIngest.html#admit.util.SpectrumIngest.SpectrumIngest.getfile">[docs]</a>    <span class="k">def</span> <span class="nf">getfile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to read in a file and convert it to a Spectrum. Columns must already have been</span>
+<span class="sd">            specified.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            file : str</span>
+<span class="sd">                Name of the file to read in</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            Spectrum instance containing the data read in from the file</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># do some consistency and integrity checking</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">freqcol</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">velcol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Either the frequency column or velocity column must be specified.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chancol</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;chan parameter must be an int.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">freqcol</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">freqcol</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;freq parameter must be an int.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">velcol</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">velcol</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;velocity parameter must be an int.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">speccol</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;spec parameter must be an int.&quot;</span><span class="p">)</span>
+        <span class="c1">#if self.freqcol &lt; 0 and self.freqcol is not None:</span>
+        <span class="c1">#    raise Exception(&quot;The frequency column must be specified (i.e. freq=1)&quot;)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">speccol</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;The spectral column must be specified (i.e. spec=1)&quot;</span><span class="p">)</span>
+        <span class="nb">print</span> <span class="bp">self</span><span class="o">.</span><span class="n">velcol</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">velcol</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">restfreq</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">restfreq</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">restfreq</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Restfreq must be a float.&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Restfreq must be specified.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">vlsr</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="nb">print</span> <span class="s2">&quot;vlsr was not specified, assuming it is 0.0&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">vlsr</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vlsr</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vlsr</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;vlsr must be a float&quot;</span><span class="p">)</span>
+        <span class="c1"># find out the minimum number of columns to expect</span>
+        <span class="n">mincol</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">freqcol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">chancol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">speccol</span><span class="p">)</span>
+
+        <span class="c1"># open the file and read it in</span>
+        <span class="n">fl</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="n">fl</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+        <span class="n">fl</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="c1"># track line that are skipped for various reasons</span>
+        <span class="n">skipped</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">comments</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">blank</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="n">freq</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">spec</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">chan</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># go through each line</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+            <span class="c1"># if the line is blank</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">blank</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># if the line is a comment</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">):</span>
+                <span class="n">comments</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># split the line up</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">separator</span><span class="p">)</span>
+
+            <span class="c1"># if there are not enough columns</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">mincol</span><span class="p">:</span>
+                <span class="n">skipped</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># add the data to the arrays</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">velcol</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">freq</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">velcol</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">freq</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">freqcol</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]))</span>
+            <span class="n">spec</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">speccol</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]))</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">chancol</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">chan</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">chancol</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">velcol</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">frq</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">freq</span><span class="p">):</span>
+                <span class="n">freq</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">restfreq</span> <span class="o">+</span> <span class="n">utils</span><span class="o">.</span><span class="n">veltofreq</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vlsr</span> <span class="o">-</span> <span class="n">frq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">restfreq</span><span class="p">)</span>
+
+        <span class="c1"># if the was no channel column the generate it</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">chan</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">chan</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">spec</span><span class="p">))</span>
+
+        <span class="c1"># report what was found</span>
+        <span class="nb">print</span> <span class="s2">&quot;Imported </span><span class="si">%i</span><span class="s2"> lines from file </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">spec</span><span class="p">),</span> <span class="n">file</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">blank</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="s2">&quot;Skipped </span><span class="si">%i</span><span class="s2"> blank lines from file </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">blank</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">skipped</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="s2">&quot;Skipped </span><span class="si">%i</span><span class="s2"> lines with too few columns from file </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">skipped</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">comments</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="s2">&quot;Skipped </span><span class="si">%i</span><span class="s2"> commented lines from file </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">comments</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># if this spectrum is not the same length of the others</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">spec</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Not all input spectra are the same length.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># convert to a Spectrum instance</span>
+        <span class="k">return</span> <span class="n">Spectrum</span><span class="p">(</span><span class="n">spec</span><span class="o">=</span><span class="n">spec</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="n">freq</span><span class="p">,</span> <span class="n">chans</span><span class="o">=</span><span class="n">chan</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SpectrumIngest.convert"><a class="viewcode-back" href="../../../module/admit.util/SpectrumIngest.html#admit.util.SpectrumIngest.SpectrumIngest.convert">[docs]</a>    <span class="k">def</span> <span class="nf">convert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chan</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">velocity</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">spec</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">separator</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+                <span class="n">restfreq</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">vlsr</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to convert input data (either files or arrays) into a CubeSpectrum_BDP. If files</span>
+<span class="sd">            are used then then the columns containing the frequency and the intensity must be given</span>
+<span class="sd">            (channel numbers are optional). Any number of files can be given, but all spectra must</span>
+<span class="sd">            have the same length as they are assumed to come from the same data source. Blank lines</span>
+<span class="sd">            and lines starting with a comment &#39;#&#39; will be skipped, additionally any line with too</span>
+<span class="sd">            few columns will be skipped. If arrays are used an input then both the frequency and</span>
+<span class="sd">            intensity must be specified (the channel numbers are optional). Both lists and numpy</span>
+<span class="sd">            arrays are accepted as inputs. Multidimmensional arrays are supported with the following</span>
+<span class="sd">            parameters:</span>
+
+<span class="sd">            + A single frequency list can be given to cover all input spectra, otherwise the shape</span>
+<span class="sd">              of the frequency array must match that of the spectra</span>
+<span class="sd">            + A single channel list can be given to cover all input spectra, otherwise the shape</span>
+<span class="sd">              of the channel array must match that of the spectra</span>
+<span class="sd">            + All spectra must have the same length</span>
+
+<span class="sd">            If a channel array is not specified then one will be constructed with the following</span>
+<span class="sd">            parameters:</span>
+
+<span class="sd">            + The channel numbers will start at 0 (casa convention)</span>
+<span class="sd">            + The first entry in the spectrum will be considered the first channel, regardless of</span>
+<span class="sd">              whether the frequency array increases or decreases.</span>
+
+<span class="sd">            Additionally, if there is velocity axis, but no frequency axis, a frequency axis can</span>
+<span class="sd">            be constructed by specifying a rest frequency (restfreq), and vlsr.</span>
+
+<span class="sd">            The convert method will return a single CubeSpectrum_BDP instance holding all input spectra</span>
+<span class="sd">            along with an image of each.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            chan : array or int</span>
+<span class="sd">                An array holding the channel numbers for the data, multidimmensional arrays are</span>
+<span class="sd">                supported. If an integer is specified then it is the number of the column</span>
+<span class="sd">                in the file which contains the channel numbers, column numbers are 1 based.</span>
+<span class="sd">                Default: None</span>
+
+<span class="sd">            freq : array</span>
+<span class="sd">                An array holding the frequencies for the data, multidimmensional arrays are</span>
+<span class="sd">                supported. If an integer is specified then it is the number of the column</span>
+<span class="sd">                in the file which contains the frequencies, column numbers are 1 based.</span>
+<span class="sd">                Default: None</span>
+
+<span class="sd">            velocity : array</span>
+<span class="sd">                An array holding the velocity for the data, multidimmensional arrays are</span>
+<span class="sd">                supported. If an integer is specified then it is the number of the column</span>
+<span class="sd">                in the file which contains the velcoties, column numbers are 1 based. If this</span>
+<span class="sd">                parameter is specified then restfreq and vlsr must also be specified.</span>
+<span class="sd">                Default: None</span>
+
+<span class="sd">            spec : array</span>
+<span class="sd">                An array holding the intesities of the data, multidimmensional arrays are supported.</span>
+<span class="sd">                If an integer is specified then it is the number of the column in the file which</span>
+<span class="sd">                contains the intensities, column numbers are 1 based.</span>
+<span class="sd">                Default: None</span>
+
+<span class="sd">            file : list or str</span>
+<span class="sd">                A single file name or a list of file names to be read in for spectra.</span>
+<span class="sd">                Default: None</span>
+
+<span class="sd">            separator : str</span>
+<span class="sd">                The column separator for reading in the data files.</span>
+<span class="sd">                Default: None (any whitespace)</span>
+
+<span class="sd">            restfreq : float</span>
+<span class="sd">                The rest frequency to use to convert the spectra from velocity to frequency units.</span>
+<span class="sd">                The rest frequency is in GHz.</span>
+<span class="sd">                Default: None (no conversion done)</span>
+
+<span class="sd">            vlsr : float</span>
+<span class="sd">                The reference velocity for converting a velocity axis to frequency. The units are</span>
+<span class="sd">                km/s. If this is not set then it is assumed that the vlsr is 0.0.</span>
+<span class="sd">                Default: None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            CubeSpectrum_BDP instance containing all of the inpur spectra.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">restfreq</span> <span class="o">=</span> <span class="n">restfreq</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vlsr</span> <span class="o">=</span> <span class="n">vlsr</span>
+
+        <span class="c1"># if a string was given as the file name then turn it into a list so it can be iterated over</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">file</span> <span class="o">=</span> <span class="p">[</span><span class="n">file</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">file</span> <span class="o">=</span> <span class="n">file</span>
+        <span class="c1"># do some error checking</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">chan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">chan</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">chan</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">chan</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">chan</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">chan</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">chan</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">chancol</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">chan</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">chancol</span> <span class="o">=</span> <span class="n">chan</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">chan</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">chancol</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">chan</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">freq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">freq</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">freq</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">freq</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">freqcol</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">freqcol</span> <span class="o">=</span> <span class="n">freq</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">freq</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">freqcol</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">freq</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">velocity</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">velocity</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">velocity</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">freq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">velocity</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">freq</span> <span class="o">=</span> <span class="n">velocity</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">frq</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">freq</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">freq</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">restfreq</span> <span class="o">+</span> <span class="n">utils</span><span class="o">.</span><span class="n">veltofreq</span><span class="p">(</span><span class="n">frq</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">vlsr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">restfreq</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">freqcol</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">velocity</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">velcol</span> <span class="o">=</span> <span class="n">velocity</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">velocity</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">velcol</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">velocity</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">spec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">spec</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">speccol</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">speccol</span> <span class="o">=</span> <span class="n">spec</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">spec</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">speccol</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">spec</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">separator</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">separator</span> <span class="o">=</span> <span class="n">separator</span>
+        <span class="n">spectra</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># read in the data from any files</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">fl</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">:</span>
+                <span class="n">spectra</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getfile</span><span class="p">(</span><span class="n">fl</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># convert the input arrays</span>
+            <span class="n">singlefreq</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">singlechan</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">havechan</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="c1"># make sure they have the same shape or that the frequency array is 1D</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">freq</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">freq</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Frequency axis and spectral axis do not have the same shape.&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">singlefreq</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="c1"># make sure they have the same shape or that the channel array is 1D</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">chan</span><span class="p">:</span>
+                <span class="n">havechan</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">chan</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chan</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Channel axis and spectral axis do not have the same shape.&quot;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">singlechan</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="c1"># if the arrays are more than 1D, then go through each</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+                    <span class="n">spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">havechan</span><span class="p">:</span>
+                        <span class="n">chan</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">spec</span><span class="p">))</span>
+                    <span class="k">elif</span> <span class="n">singlechan</span><span class="p">:</span>
+                        <span class="n">chan</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">chan</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">chan</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">chan</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">singlefreq</span><span class="p">:</span>
+                        <span class="n">freq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">freq</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">freq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">freq</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                    <span class="n">spectra</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Spectrum</span><span class="p">(</span><span class="n">spec</span><span class="o">=</span><span class="n">spec</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="n">freq</span><span class="p">,</span> <span class="n">chans</span><span class="o">=</span><span class="n">chan</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># construct the channel array if needed</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">havechan</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">chan</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">))</span>
+                <span class="n">spectra</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Spectrum</span><span class="p">(</span><span class="n">spec</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">freq</span><span class="p">,</span> <span class="n">chans</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">chan</span><span class="p">))</span>
+
+        <span class="n">first</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">images</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># make images from the spectra</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">spec</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">spectra</span><span class="p">):</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">chans</span><span class="p">(</span><span class="n">masked</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span> <span class="n">spec</span><span class="o">.</span><span class="n">freq</span><span class="p">(</span><span class="n">masked</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+                    <span class="n">spec</span><span class="o">.</span><span class="n">spec</span><span class="p">(</span><span class="n">csub</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">masked</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">first</span><span class="p">:</span>
+                <span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;channel&quot;</span><span class="p">,</span> <span class="s2">&quot;frequency&quot;</span><span class="p">,</span> <span class="s2">&quot;flux&quot;</span><span class="p">],</span>
+                              <span class="n">units</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;number&quot;</span><span class="p">,</span> <span class="s2">&quot;GHz&quot;</span><span class="p">,</span> <span class="s2">&quot;Unknown&quot;</span><span class="p">],</span> <span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">(</span><span class="n">data</span><span class="p">),</span>
+                              <span class="n">planes</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;0&quot;</span><span class="p">])</span>
+                <span class="n">first</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">table</span><span class="o">.</span><span class="n">addPlane</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="s2">&quot;</span><span class="si">%i</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">i</span><span class="p">)</span>
+            <span class="n">myplot</span> <span class="o">=</span> <span class="n">APlot</span><span class="p">(</span><span class="n">ptype</span><span class="o">=</span><span class="n">admit</span><span class="o">.</span><span class="n">PlotControl</span><span class="o">.</span><span class="n">PNG</span><span class="p">,</span> <span class="n">pmode</span><span class="o">=</span><span class="n">admit</span><span class="o">.</span><span class="n">PlotControl</span><span class="o">.</span><span class="n">BATCH</span><span class="p">,</span>
+                                 <span class="n">abspath</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">())</span>
+            <span class="n">myplot</span><span class="o">.</span><span class="n">plotter</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">freq</span><span class="p">(</span><span class="n">masked</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span> <span class="p">[</span><span class="n">spec</span><span class="o">.</span><span class="n">spec</span><span class="p">(</span><span class="n">csub</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">masked</span><span class="o">=</span><span class="kc">False</span><span class="p">)],</span>
+                           <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Spectrum </span><span class="si">%i</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">i</span><span class="p">,</span> <span class="n">figname</span><span class="o">=</span><span class="s2">&quot;fig_</span><span class="si">%i</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">i</span><span class="p">,</span> <span class="n">xlab</span><span class="o">=</span><span class="s2">&quot;Frequency&quot;</span><span class="p">,</span>
+                           <span class="n">ylab</span><span class="o">=</span><span class="s2">&quot;Intensity&quot;</span><span class="p">,</span> <span class="n">thumbnail</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="c1"># Why not use p1 as the key?</span>
+            <span class="n">images</span><span class="p">[</span><span class="s2">&quot;fig</span><span class="si">%i</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">myplot</span><span class="o">.</span><span class="n">getFigure</span><span class="p">(</span><span class="n">figno</span><span class="o">=</span><span class="n">myplot</span><span class="o">.</span><span class="n">figno</span><span class="p">,</span> <span class="n">relative</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span><span class="n">images</span><span class="o">=</span><span class="n">images</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Spectra&quot;</span><span class="p">)</span>
+        <span class="c1"># construct the BDP</span>
+        <span class="n">bdp</span> <span class="o">=</span> <span class="n">CubeSpectrum_BDP</span><span class="p">(</span><span class="n">image</span><span class="o">=</span><span class="n">image</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="n">table</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">bdp</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

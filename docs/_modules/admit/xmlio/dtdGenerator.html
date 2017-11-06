@@ -1,0 +1,616 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.xmlio.dtdGenerator &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.xmlio.dtdGenerator</h1><div class="highlight"><pre>
+<span></span><span class="ch">#! /usr/bin/env casarun</span>
+<span class="c1">#-*- mode: python -*-</span>
+<span class="sd">&quot;&quot;&quot; .. _Dtd-Generator:</span>
+
+<span class="sd">    dtdGenerator --- Generates the ADMIT DTD files.</span>
+<span class="sd">    -----------------------------------------------</span>
+
+<span class="sd">    This module defines the DTD generator for ADMIT. The DTDs are used to</span>
+<span class="sd">    validate the XML I/O.</span>
+
+<span class="sd">    In addition to generating the DTDs for each AT and BDP, the following</span>
+<span class="sd">    files are also created:</span>
+
+<span class="sd">    - bdp_types.py ---   constants and types definition file</span>
+
+<span class="sd">    - __init__.py ---    in both admit/at and admit/bdp</span>
+
+<span class="sd">    Usage:</span>
+
+<span class="sd">    ::</span>
+
+<span class="sd">      import dtdGenerator</span>
+<span class="sd">      dtdGenerator.generate()</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># system imports</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">types</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="c1"># ADMIT imports</span>
+<span class="kn">import</span> <span class="nn">admit.util.bdp_types</span> <span class="k">as</span> <span class="nn">bt</span>
+<span class="kn">from</span> <span class="nn">admit.util</span> <span class="k">import</span> <span class="n">UtilBase</span>
+<span class="kn">import</span> <span class="nn">admit.util.utils</span> <span class="k">as</span> <span class="nn">utils</span>
+
+<span class="c1"># Just some useful constant strings</span>
+<span class="n">START</span> <span class="o">=</span> <span class="s2">&quot;&lt;!ELEMENT &quot;</span>
+<span class="n">END</span> <span class="o">=</span> <span class="s2">&quot;(#PCDATA)&gt;</span><span class="se">\n</span><span class="s2">&quot;</span>
+<span class="n">ATSTART</span> <span class="o">=</span> <span class="s2">&quot;&lt;!ATTLIST &quot;</span>
+<span class="n">ATEND</span> <span class="o">=</span> <span class="s2">&quot;) #REQUIRED&gt;</span><span class="se">\n</span><span class="s2">&quot;</span>
+<span class="n">HEADER</span> <span class="o">=</span> <span class="s2">&quot;&lt;!-- The root node is BDP and has child nodes listed afterward,</span><span class="se">\n</span><span class="s2">     a * indicates 0 or more instances</span><span class="se">\n</span><span class="s2">     a ? indicates 0 or 1 instances</span><span class="se">\n</span><span class="s2">     no added marker indicates 1 instance is expected</span><span class="se">\n</span><span class="s2"> --&gt;</span><span class="se">\n</span><span class="s2">&quot;</span>
+<span class="n">MIDHEAD</span> <span class="o">=</span> <span class="s2">&quot;&lt;!-- attributes for the different nodes</span><span class="se">\n</span><span class="s2">     format: node attribute (choices if like an enum)</span><span class="se">\n</span><span class="s2">     CDATA indicates character data, followed by the default value</span><span class="se">\n</span><span class="s2">--&gt;</span><span class="se">\n</span><span class="s2">&quot;</span>
+<span class="n">AUTOGEN</span> <span class="o">=</span> <span class="s2">&quot;This file is automatically generated by dtdGenerator.py,</span><span class="se">\n</span><span class="s2">  based on files in admit/bdp and admit/at. Edit this file at your own risk.&quot;</span>
+<span class="n">atlist</span> <span class="o">=</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="DtdGenerator"><a class="viewcode-back" href="../../../module/admit.xmlio/dtdGenerator.html#admit.xmlio.dtdGenerator.DtdGenerator">[docs]</a><span class="k">class</span> <span class="nc">DtdGenerator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Class to generate the dtd files for ADMIT. The dtd&#39;s are generated by searching</span>
+<span class="sd">        for all BDP, AT, and utility class files (those located in admit/util and inherit</span>
+<span class="sd">        from UtilBase). Each file is then loaded and introspected, and dtd&#39;s are generated</span>
+<span class="sd">        by both the name and the type of each class attribute.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        util_class : dict</span>
+<span class="sd">            Dictionary containing the utility class types as keys and a class instance</span>
+<span class="sd">            as the values.</span>
+
+<span class="sd">        util_string : dict</span>
+<span class="sd">            Dictionary containing the utility class types as keys and the class description</span>
+<span class="sd">            for the dtd as the values.</span>
+
+<span class="sd">        util_dtd : dict</span>
+<span class="sd">            Dictionary containing the utility class types as keys and the dtd entries</span>
+<span class="sd">            as the values.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">util_class</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">util_string</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">util_dtd</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generate</span><span class="p">()</span>
+
+<div class="viewcode-block" id="DtdGenerator.getType"><a class="viewcode-back" href="../../../module/admit.xmlio/dtdGenerator.html#admit.xmlio.dtdGenerator.DtdGenerator.getType">[docs]</a>    <span class="k">def</span> <span class="nf">getType</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to generate a string version of the data type of the input value.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            val : various</span>
+<span class="sd">                The value whose type is to be determined</span>
+
+<span class="sd">            key : str</span>
+<span class="sd">                The name of the variable that holds the data. Used only to give</span>
+<span class="sd">                sensible error messages.</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            A string containing the type information</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">typ</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">typ</span> <span class="o">=</span> <span class="n">val</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">typ</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+        <span class="c1"># if this is inherits from the UtilBase class then return the type string of the class</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">typ</span><span class="p">,</span> <span class="n">UtilBase</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">typ</span><span class="o">.</span><span class="n">_type</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">typ</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">bt</span><span class="o">.</span><span class="n">LIST</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">typ</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">bt</span><span class="o">.</span><span class="n">DICT</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">typ</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">bt</span><span class="o">.</span><span class="n">NDARRAY</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">typ</span><span class="p">,</span> <span class="nb">set</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">bt</span><span class="o">.</span><span class="n">SET</span>
+        <span class="c1"># BOOL must come before INT as BOOL is a subclass of INT and will be</span>
+        <span class="c1"># incorrectly identified if it doesn&#39;t come first</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">typ</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">bt</span><span class="o">.</span><span class="n">BOOL</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">typ</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">bt</span><span class="o">.</span><span class="n">INT</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">typ</span><span class="p">,</span> <span class="n">long</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">bt</span><span class="o">.</span><span class="n">LONG</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">typ</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">bt</span><span class="o">.</span><span class="n">FLOAT</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">typ</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">bt</span><span class="o">.</span><span class="n">TUPLE</span>
+        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">typ</span><span class="p">)</span> <span class="ow">in</span> <span class="n">types</span><span class="o">.</span><span class="n">StringTypes</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">bt</span><span class="o">.</span><span class="n">STRING</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Improper type: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">typ</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; found for attribute &quot;</span> <span class="o">+</span> <span class="n">i</span> <span class="o">+</span> <span class="s2">&quot; in &quot;</span> <span class="o">+</span> <span class="n">key</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DtdGenerator.writeEntry"><a class="viewcode-back" href="../../../module/admit.xmlio/dtdGenerator.html#admit.xmlio.dtdGenerator.DtdGenerator.writeEntry">[docs]</a>    <span class="k">def</span> <span class="nf">writeEntry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">dtd</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Generic method to write out the given class attribute to the dtd.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            k : str</span>
+<span class="sd">                The keyword that is being written out.</span>
+
+<span class="sd">            v : str</span>
+<span class="sd">                The data type of the keyword (e.g. bt.FLOAT).</span>
+
+<span class="sd">            dtd : file handle</span>
+<span class="sd">                The handle to the file where the dtd is being written.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># if writing out a utility class then iterate through all of the items in the class</span>
+        <span class="k">if</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">bt</span><span class="o">.</span><span class="n">UTIL_LIST</span><span class="p">:</span>
+            <span class="c1"># multiimages are a special case</span>
+            <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">MULTIIMAGE</span><span class="p">:</span>
+                <span class="n">dtd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">START</span> <span class="o">+</span> <span class="n">k</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">(images)&gt;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">dtd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ATSTART</span> <span class="o">+</span> <span class="n">k</span> <span class="o">+</span> <span class="s2">&quot; type (&quot;</span> <span class="o">+</span> <span class="n">bt</span><span class="o">.</span><span class="n">MULTIIMAGE</span> <span class="o">+</span> <span class="n">ATEND</span><span class="p">)</span>
+                <span class="c1"># listing of all data memebers and their type, any changes made to the</span>
+                <span class="c1"># MultiImage base class must be reflected here</span>
+                <span class="n">listing</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;images&quot;</span>     <span class="p">:</span> <span class="n">bt</span><span class="o">.</span><span class="n">DICT</span><span class="p">}</span>
+                <span class="c1"># write out each of the data members</span>
+                <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">listing</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">writeEntry</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">dtd</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">writeEntry</span><span class="p">(</span><span class="n">bt</span><span class="o">.</span><span class="n">IMG</span><span class="p">,</span> <span class="s2">&quot;Image&quot;</span><span class="p">,</span> <span class="n">dtd</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dtd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">START</span> <span class="o">+</span> <span class="n">k</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">util_string</span><span class="p">[</span><span class="n">v</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">dtd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ATSTART</span> <span class="o">+</span> <span class="n">k</span> <span class="o">+</span> <span class="s2">&quot; type (</span><span class="si">%s</span><span class="s2">) #REQUIRED&gt;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">upper</span><span class="p">()))</span>
+                <span class="n">dtd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">util_dtd</span><span class="p">[</span><span class="n">v</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dtd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">START</span> <span class="o">+</span> <span class="n">k</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\t\t</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">END</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">v</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">LIST</span> <span class="ow">or</span> <span class="n">v</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">DICT</span> <span class="ow">or</span> <span class="n">v</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">TUPLE</span><span class="p">:</span>
+                <span class="n">dtd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ATSTART</span> <span class="o">+</span> <span class="n">k</span> <span class="o">+</span> <span class="s2">&quot; ndarray (&quot;</span> <span class="o">+</span> <span class="n">bt</span><span class="o">.</span><span class="n">STRING</span> <span class="o">+</span> <span class="s2">&quot;) #REQUIRED&gt;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">dtd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ATSTART</span> <span class="o">+</span> <span class="n">k</span> <span class="o">+</span> <span class="s2">&quot; set (&quot;</span> <span class="o">+</span> <span class="n">bt</span><span class="o">.</span><span class="n">STRING</span> <span class="o">+</span> <span class="s2">&quot;) #REQUIRED&gt;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">dtd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ATSTART</span> <span class="o">+</span> <span class="n">k</span> <span class="o">+</span> <span class="s2">&quot; type (</span><span class="si">%s</span><span class="s2">) #REQUIRED&gt;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">v</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="DtdGenerator.write_bdp"><a class="viewcode-back" href="../../../module/admit.xmlio/dtdGenerator.html#admit.xmlio.dtdGenerator.DtdGenerator.write_bdp">[docs]</a>    <span class="k">def</span> <span class="nf">write_bdp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method which takes a class name and BDP sub-class instance. It creates</span>
+<span class="sd">            a dtd file for the class and collects relevant info for the file.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            key : str</span>
+<span class="sd">                the name of the class</span>
+
+<span class="sd">            value : BDP</span>
+<span class="sd">                an instance of the BDP sub-class</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Processing </span><span class="si">%s</span><span class="s2"> ...&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">))</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="c1"># open the dtd file, we don&#39;t append, just write it from scratch</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">__file__</span><span class="p">))</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s2">&quot;..&quot;</span><span class="p">)</span>
+
+        <span class="n">dtd</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">__file__</span><span class="p">))</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s2">&quot;dtd&quot;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s2">&quot;.dtd&quot;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+        <span class="n">dtd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;&lt;!-- &quot;</span> <span class="o">+</span> <span class="n">AUTOGEN</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">--&gt;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">dtd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">HEADER</span><span class="p">)</span>
+
+        <span class="n">listing</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c1"># write out the individual data elements based on their occurrence</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">START</span> <span class="o">+</span> <span class="n">bt</span><span class="o">.</span><span class="n">BDP</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">(&quot;</span>
+        <span class="c1"># loop over all data nodes adding them to the appropriate list</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">val</span><span class="o">.</span><span class="n">__dict__</span><span class="p">:</span>
+            <span class="n">listing</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getType</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+            <span class="n">line</span> <span class="o">+=</span> <span class="n">i</span> <span class="o">+</span> <span class="s2">&quot;,&quot;</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;)&gt;</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+        <span class="n">dtd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="n">dtd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ATSTART</span> <span class="o">+</span> <span class="s2">&quot;BDP type (&quot;</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s2">&quot;) #REQUIRED&gt;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">dtd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;&lt;!-- child nodes #PCDATA indicates parsable character data--&gt;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">listing</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">writeEntry</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">dtd</span><span class="p">)</span>
+
+        <span class="n">dtd</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Done</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="DtdGenerator.write_at"><a class="viewcode-back" href="../../../module/admit.xmlio/dtdGenerator.html#admit.xmlio.dtdGenerator.DtdGenerator.write_at">[docs]</a>    <span class="k">def</span> <span class="nf">write_at</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method which takes a class name and AT sub-class instance. It creates</span>
+<span class="sd">            a dtd file for the class and collects relevant info for the file.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            key : str</span>
+<span class="sd">                the name of the class</span>
+
+<span class="sd">            value : AT</span>
+<span class="sd">                an instance of the AT sub-class</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Processing </span><span class="si">%s</span><span class="s2"> ...&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">))</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="c1"># open the dtd file, we don&#39;t append, just write it from scratch</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">__file__</span><span class="p">))</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s2">&quot;..&quot;</span><span class="p">)</span>
+
+        <span class="n">dtd</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">__file__</span><span class="p">))</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s2">&quot;dtd&quot;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s2">&quot;.dtd&quot;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+
+        <span class="n">listing</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c1"># write out the individual data elements based on their occurrence</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">START</span> <span class="o">+</span> <span class="n">val</span><span class="o">.</span><span class="n">_type</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">(&quot;</span>
+        <span class="c1"># loop over all data nodes adding them to the appropriate list</span>
+        <span class="c1"># skipping those that are derived or reconstructed</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">val</span><span class="o">.</span><span class="n">__dict__</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="s2">&quot;_bdp_in&quot;</span> <span class="ow">or</span> <span class="n">i</span> <span class="o">==</span> <span class="s2">&quot;_bdp_out&quot;</span> <span class="ow">or</span> <span class="n">i</span> <span class="o">==</span> <span class="s2">&quot;_valid_bdp_in&quot;</span> <span class="ow">or</span> \
+               <span class="n">i</span> <span class="o">==</span> <span class="s2">&quot;_valid_bdp_out&quot;</span> <span class="ow">or</span> <span class="n">i</span> <span class="o">==</span> <span class="s2">&quot;_keys&quot;</span> <span class="ow">or</span> <span class="n">i</span> <span class="o">==</span> <span class="s2">&quot;_type&quot;</span> <span class="ow">or</span> \
+               <span class="n">i</span> <span class="o">==</span> <span class="s2">&quot;_bdp_out_length&quot;</span> <span class="ow">or</span> <span class="n">i</span> <span class="o">==</span> <span class="s2">&quot;_bdp_in_length&quot;</span> <span class="ow">or</span> \
+               <span class="n">i</span> <span class="o">==</span> <span class="s2">&quot;_bdp_out_zero&quot;</span> <span class="ow">or</span> <span class="n">i</span> <span class="o">==</span> <span class="s2">&quot;_bdp_out_order_list&quot;</span> <span class="ow">or</span> \
+               <span class="n">i</span> <span class="o">==</span> <span class="s2">&quot;_bdp_in_zero&quot;</span> <span class="ow">or</span> <span class="n">i</span> <span class="o">==</span> <span class="s2">&quot;_bdp_in_order_list&quot;</span> <span class="ow">or</span> \
+               <span class="n">i</span> <span class="o">==</span> <span class="s2">&quot;_bdp_in_order_type&quot;</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">listing</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getType</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+            <span class="n">line</span> <span class="o">+=</span> <span class="n">i</span> <span class="o">+</span> <span class="s2">&quot;,&quot;</span>
+        <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;_keys&quot;</span>
+        <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;)&gt;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">dtd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="c1"># process images, tables, tasks, and everything else adding their attributes</span>
+        <span class="n">dtd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;&lt;!-- child nodes #PCDATA indicates parsable character data--&gt;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">listing</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">writeEntry</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">dtd</span><span class="p">)</span>
+
+        <span class="n">listing</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="c1"># write out the individual data elements based on their occurrence</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">START</span> <span class="o">+</span> <span class="s2">&quot;_keys&quot;</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">(&quot;</span>
+        <span class="c1"># loop over all data nodes adding them to the appropriate list</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">val</span><span class="o">.</span><span class="n">_keys</span><span class="p">:</span>
+            <span class="n">listing</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getType</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">val</span><span class="o">.</span><span class="n">_keys</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+            <span class="n">line</span> <span class="o">+=</span> <span class="n">i</span> <span class="o">+</span> <span class="s2">&quot;,&quot;</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;)&gt;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">line</span> <span class="o">+=</span> <span class="n">ATSTART</span> <span class="o">+</span> <span class="s2">&quot;_keys type (&quot;</span> <span class="o">+</span> <span class="n">bt</span><span class="o">.</span><span class="n">DICT</span> <span class="o">+</span> <span class="n">ATEND</span>
+        <span class="n">dtd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">listing</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">writeEntry</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">dtd</span><span class="p">)</span>
+        <span class="n">dtd</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Done</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="DtdGenerator.generate"><a class="viewcode-back" href="../../../module/admit.xmlio/dtdGenerator.html#admit.xmlio.dtdGenerator.DtdGenerator.generate">[docs]</a>    <span class="k">def</span> <span class="nf">generate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Main method for generating the dtd. Searches through the BDP and AT</span>
+<span class="sd">            directories and generates dtds for each file found.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># get a list of the BDPs</span>
+        <span class="n">bdp_files</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">__file__</span><span class="p">))</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s2">&quot;..&quot;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s2">&quot;bdp&quot;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">file</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;_BDP.py&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">file</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">)):</span>
+                <span class="n">bdp_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.py&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
+
+        <span class="c1"># get a list of the ATs</span>
+        <span class="n">at_files</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">__file__</span><span class="p">))</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s2">&quot;..&quot;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s2">&quot;at&quot;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">file</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;_AT.py&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">file</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">)):</span>
+                <span class="n">at_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.py&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
+
+        <span class="c1"># get list of utility classes</span>
+        <span class="n">util_files</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">__file__</span><span class="p">))</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s2">&quot;..&quot;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s2">&quot;util&quot;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">file</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.py&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">file</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">file</span> <span class="o">==</span> <span class="s2">&quot;__init__.py&quot;</span><span class="p">):</span>
+                <span class="n">fl</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">__file__</span><span class="p">))</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s2">&quot;..&quot;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s2">&quot;util&quot;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="n">file</span><span class="p">)</span>
+                <span class="n">lines</span> <span class="o">=</span> <span class="n">fl</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+                <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="s2">&quot;import&quot;</span> <span class="ow">in</span> <span class="n">l</span> <span class="ow">and</span> <span class="s2">&quot;UtilBase&quot;</span> <span class="ow">in</span> <span class="n">l</span><span class="p">:</span>
+                        <span class="n">util_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.py&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
+                        <span class="k">break</span>
+
+        <span class="n">bdp_files</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="n">at_files</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="n">util_files</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+
+        <span class="c1"># create the bdp_types.py file</span>
+        <span class="n">types</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s2">&quot;tmp&quot;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getpid</span><span class="p">())</span> <span class="o">+</span> <span class="s2">&quot;.bdp_types.py&quot;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+        <span class="n">typesfl</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">__file__</span><span class="p">))</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s2">&quot;..&quot;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s2">&quot;util&quot;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s2">&quot;bdp_types.py&quot;</span>
+        <span class="n">bdp_init</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">__file__</span><span class="p">))</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s2">&quot;..&quot;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s2">&quot;bdp&quot;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s2">&quot;__init__.py&quot;</span>
+        <span class="n">bdp_f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s2">&quot;tmp&quot;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getpid</span><span class="p">())</span> <span class="o">+</span> <span class="s2">&quot;.bdp__init__.py&quot;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+        <span class="n">at_init</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">__file__</span><span class="p">))</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s2">&quot;..&quot;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s2">&quot;at&quot;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s2">&quot;__init__.py&quot;</span>
+        <span class="n">at_f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s2">&quot;tmp&quot;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getpid</span><span class="p">())</span> <span class="o">+</span> <span class="s2">&quot;.at__init__.py&quot;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+        <span class="n">at_f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\&quot;\&quot;\&quot;</span><span class="s2">AT Package</span><span class="se">\n</span><span class="s2">   ----------</span><span class="se">\n\n</span><span class="s2">   This package contains specific implementations of ADMIT Tasks, derived</span><span class="se">\n</span><span class="s2">   from the AT base class.</span><span class="se">\n\&quot;\&quot;\&quot;\n</span><span class="s2"># This file is automatically generated, do not edit.</span><span class="se">\n</span><span class="s2"># Standard, streamlined AT names.</span><span class="se">\n</span><span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+        <span class="n">bdp_f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\&quot;\&quot;\&quot;</span><span class="s2">BDP Package</span><span class="se">\n</span><span class="s2">   -----------</span><span class="se">\n\n</span><span class="s2">   This package contains specific implementations of ADMIT Basic Data Products, </span><span class="se">\n</span><span class="s2">   derived from the BDP base class.</span><span class="se">\n\&quot;\&quot;\&quot;\n</span><span class="s2"># This file is automatically generated, do not edit.</span><span class="se">\n\n</span><span class="s2"># Standard, streamlined BDP names.</span><span class="se">\n</span><span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\&quot;\&quot;\&quot;\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">AUTOGEN</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">This file contains string constants useful for programming</span><span class="se">\n\&quot;\&quot;\&quot;\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Writing types.py ...&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="c1"># these are really just constant strings that will make life easier for programming</span>
+        <span class="c1"># generic data types</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">#Generics</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;GENERIC = </span><span class="se">\&quot;</span><span class="s2">Generic</span><span class="se">\&quot;\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ADMIT = </span><span class="se">\&quot;</span><span class="s2">ADMIT</span><span class="se">\&quot;\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;AT = </span><span class="se">\&quot;</span><span class="s2">AT</span><span class="se">\&quot;\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;BDP = </span><span class="se">\&quot;</span><span class="s2">BDP</span><span class="se">\&quot;\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;INT = </span><span class="se">\&quot;</span><span class="s2">INT</span><span class="se">\&quot;\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;FLOWMANAGER = </span><span class="se">\&quot;</span><span class="s2">flowmanager</span><span class="se">\&quot;\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;FLOAT = </span><span class="se">\&quot;</span><span class="s2">FLOAT</span><span class="se">\&quot;\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;DICT = </span><span class="se">\&quot;</span><span class="s2">DICT</span><span class="se">\&quot;\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;LIST = </span><span class="se">\&quot;</span><span class="s2">LIST</span><span class="se">\&quot;\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;BOOL = </span><span class="se">\&quot;</span><span class="s2">BOOL</span><span class="se">\&quot;\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;LONG = </span><span class="se">\&quot;</span><span class="s2">LONG</span><span class="se">\&quot;\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;STRING = </span><span class="se">\&quot;</span><span class="s2">STRING</span><span class="se">\&quot;\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;NDARRAY = </span><span class="se">\&quot;</span><span class="s2">NDARRAY</span><span class="se">\&quot;\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;TUPLE = </span><span class="se">\&quot;</span><span class="s2">TUPLE</span><span class="se">\&quot;\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;NONE = </span><span class="se">\&quot;</span><span class="s2">NONE</span><span class="se">\&quot;\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;SET = </span><span class="se">\&quot;</span><span class="s2">SET</span><span class="se">\&quot;\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;SUMMARY = </span><span class="se">\&quot;</span><span class="s2">SUMMARY</span><span class="se">\&quot;\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;SUMMARYENTRY = </span><span class="se">\&quot;</span><span class="s2">SUMMARYENTRY</span><span class="se">\&quot;\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;METADATA = </span><span class="se">\&quot;</span><span class="s2">METADATA</span><span class="se">\&quot;\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;REQUIRED = </span><span class="se">\&quot;</span><span class="s2">REQ</span><span class="se">\&quot;\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;OPTIONAL = </span><span class="se">\&quot;</span><span class="s2">OPT</span><span class="se">\&quot;\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;FOUND = </span><span class="se">\&quot;</span><span class="s2">FOUND</span><span class="se">\&quot;\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;MISSING = </span><span class="se">\&quot;</span><span class="s2">MISSING</span><span class="se">\&quot;\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;IMG = </span><span class="se">\&quot;</span><span class="s2">IMG</span><span class="se">\&quot;\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Utility classes</span>
+        <span class="c1"># generate the dtd strings and headers for the utility classes</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"># Utility classes</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">ut</span> <span class="ow">in</span> <span class="n">util_files</span><span class="p">:</span>
+            <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ut</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot; = </span><span class="se">\&quot;</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">ut</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\&quot;\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">util_class</span><span class="p">[</span><span class="n">ut</span><span class="p">]</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">getClass</span><span class="p">(</span><span class="s2">&quot;util&quot;</span><span class="p">,</span> <span class="n">ut</span><span class="p">)</span>
+            <span class="n">items</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">util_class</span><span class="p">[</span><span class="n">ut</span><span class="p">]</span><span class="o">.</span><span class="n">__dict__</span><span class="p">:</span>
+                <span class="n">items</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getType</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">util_class</span><span class="p">[</span><span class="n">ut</span><span class="p">],</span> <span class="n">ut</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">util_string</span><span class="p">[</span><span class="n">ut</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">(&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">util_dtd</span><span class="p">[</span><span class="n">ut</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">items</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="s2">&quot;_type&quot;</span> <span class="ow">or</span> <span class="n">k</span> <span class="o">==</span> <span class="s2">&quot;_order&quot;</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">util_string</span><span class="p">[</span><span class="n">ut</span><span class="p">]</span> <span class="o">+=</span> <span class="n">k</span> <span class="o">+</span> <span class="s2">&quot;,&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">util_dtd</span><span class="p">[</span><span class="n">ut</span><span class="p">]</span> <span class="o">+=</span> <span class="n">START</span> <span class="o">+</span> <span class="n">k</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\t\t</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">END</span>
+                <span class="k">if</span> <span class="n">v</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">LIST</span> <span class="ow">or</span> <span class="n">v</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">DICT</span> <span class="ow">or</span> <span class="n">v</span> <span class="o">==</span> <span class="n">bt</span><span class="o">.</span><span class="n">TUPLE</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">util_dtd</span><span class="p">[</span><span class="n">ut</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span><span class="n">ATSTART</span> <span class="o">+</span> <span class="n">k</span> <span class="o">+</span> <span class="s2">&quot; ndarray (&quot;</span> <span class="o">+</span> <span class="n">bt</span><span class="o">.</span><span class="n">STRING</span> <span class="o">+</span> <span class="s2">&quot;) #REQUIRED&gt;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">util_dtd</span><span class="p">[</span><span class="n">ut</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span><span class="n">ATSTART</span> <span class="o">+</span> <span class="n">k</span> <span class="o">+</span> <span class="s2">&quot; set (&quot;</span> <span class="o">+</span> <span class="n">bt</span><span class="o">.</span><span class="n">STRING</span> <span class="o">+</span> <span class="s2">&quot;) #REQUIRED&gt;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">util_dtd</span><span class="p">[</span><span class="n">ut</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span><span class="n">ATSTART</span> <span class="o">+</span> <span class="n">k</span> <span class="o">+</span> <span class="s2">&quot; type (</span><span class="si">%s</span><span class="s2">) #REQUIRED&gt;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">v</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">util_string</span><span class="p">[</span><span class="n">ut</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">util_string</span><span class="p">[</span><span class="n">ut</span><span class="p">][:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;)&gt;&quot;</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;UTIL_LIST = </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">util_class</span><span class="o">.</span><span class="n">keys</span><span class="p">())))</span>
+
+
+        <span class="c1"># image data types</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"># Image types</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;DATA = </span><span class="se">\&quot;</span><span class="s2">DATA</span><span class="se">\&quot;\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;THUMB = THUMBNAIL = </span><span class="se">\&quot;</span><span class="s2">THUMBNAIL</span><span class="se">\&quot;\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;AUX = AUXILIARY = </span><span class="se">\&quot;</span><span class="s2">AUXILIARY</span><span class="se">\&quot;\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;imagedescriptor_types = [DATA, THUMB, AUX]</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">valid_image_types</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;FITS&quot;</span><span class="p">,</span> <span class="s2">&quot;CASA&quot;</span><span class="p">,</span> <span class="s2">&quot;MIRIAD&quot;</span><span class="p">,</span> <span class="s2">&quot;GIF&quot;</span><span class="p">,</span> <span class="s2">&quot;PNG&quot;</span><span class="p">,</span> <span class="s2">&quot;JPG&quot;</span><span class="p">,</span> <span class="s2">&quot;PDF&quot;</span><span class="p">,</span> <span class="s2">&quot;PS&quot;</span><span class="p">,</span> <span class="s2">&quot;SVG&quot;</span><span class="p">]</span>
+        <span class="n">type_string</span> <span class="o">=</span> <span class="s2">&quot;image_types = [&quot;</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">valid_image_types</span><span class="p">:</span>
+            <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> = </span><span class="se">\&quot;</span><span class="si">%s</span><span class="se">\&quot;\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+            <span class="n">type_string</span> <span class="o">+=</span> <span class="n">i</span> <span class="o">+</span> <span class="s2">&quot;, &quot;</span>
+        <span class="n">type_string</span> <span class="o">=</span> <span class="n">type_string</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;]&quot;</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">type_string</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># write out the BDP types</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;# BDP classes</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">bdp_files</span><span class="p">:</span>
+            <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot; = </span><span class="se">\&quot;</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\&quot;\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># write out the AT types</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"># AT classes</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">at_files</span><span class="p">:</span>
+            <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot; = </span><span class="se">\&quot;</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\&quot;\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># colors for pretty printing</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">class color:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;    PURPLE = &#39;&#39;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># &#39;\\033[95m&#39;\n&quot;)</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;    CYAN = &#39;&#39;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># &#39;\\033[96m&#39;\n&quot;)</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;    DARKCYAN = &#39;&#39;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># &#39;\\033[36m&#39;\n&quot;)</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;    BLUE = &#39;&#39;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># &#39;\\033[94m&#39;\n&quot;)</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;    GREEN = &#39;&#39;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># &#39;\\033[92m&#39;\n&quot;)</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;    YELLOW = &#39;&#39;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># &#39;\\033[93m&#39;\n&quot;)</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;    RED = &#39;&#39;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># &#39;\\033[91m&#39;\n&quot;)</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;    END = &#39;&#39;</span><span class="se">\n\n\n</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># &#39;\\033[0m&#39;\n\n&quot;)</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;class format:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;    BOLD = &#39;&#39;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># &#39;\\033[1m&#39;\n&quot;)</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;    UNDERLINE = &#39;&#39;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># &#39;\\033[4m&#39;\n&quot;)</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;    END = &#39;&#39;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># &#39;\\033[0m&#39;\n&quot;)</span>
+
+        <span class="n">types</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">typesfl</span> <span class="o">+</span> <span class="s2">&quot;c&quot;</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s2">&quot;tmp&quot;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getpid</span><span class="p">())</span> <span class="o">+</span> <span class="s2">&quot;.bdp_types.py&quot;</span><span class="p">,</span> <span class="n">typesfl</span><span class="p">)</span>
+        <span class="c1"># load in the new bdp_types file</span>
+        <span class="n">reload</span><span class="p">(</span><span class="n">bt</span><span class="p">)</span>
+        <span class="n">bdp_f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;from BDP&quot;</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="mi">24</span> <span class="o">+</span> <span class="s2">&quot;import BDP&quot;</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="mi">24</span> <span class="o">+</span> <span class="s2">&quot;as BDP</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># generate the dtds for the BDPs</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">bdp_files</span><span class="p">:</span>
+            <span class="c1">#line = &quot;from &quot; + key + &quot; &quot; * (27 - len(key)) + &quot;import &quot; + key + &quot; &quot; * (27 - len(key)) + &quot;as &quot; + key[:-4] + &quot;\n&quot;</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;from &quot;</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="p">(</span><span class="mi">27</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">key</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;import &quot;</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="p">(</span><span class="mi">27</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">key</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;as &quot;</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="n">bdp_f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+
+        <span class="n">bdp_f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s2">&quot;tmp&quot;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getpid</span><span class="p">())</span> <span class="o">+</span> <span class="s2">&quot;.bdp__init__.py&quot;</span><span class="p">,</span> <span class="n">bdp_init</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">bdp_files</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write_bdp</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">utils</span><span class="o">.</span><span class="n">getClass</span><span class="p">(</span><span class="s2">&quot;bdp&quot;</span><span class="p">,</span> <span class="n">key</span><span class="p">))</span>
+
+        <span class="c1"># generate the dtds for the ATs</span>
+        <span class="n">ATTYPES</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">at_files</span><span class="p">:</span>
+            <span class="c1">#line = &quot;from &quot; + key + &quot; &quot; * (27 - len(key)) + &quot;import &quot; + key + &quot; &quot; * (27 - len(key)) + &quot;as &quot; + key[:-3] + &quot;\n&quot;</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;from &quot;</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="p">(</span><span class="mi">27</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">key</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;import &quot;</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="p">(</span><span class="mi">27</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">key</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;as &quot;</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="n">at_f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+            <span class="n">ATTYPES</span> <span class="o">+=</span> <span class="n">key</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;,&quot;</span>
+
+        <span class="n">ATTYPES</span> <span class="o">=</span> <span class="n">ATTYPES</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">at_f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s2">&quot;tmp&quot;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getpid</span><span class="p">())</span> <span class="o">+</span> <span class="s2">&quot;.at__init__.py&quot;</span><span class="p">,</span> <span class="n">at_init</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">at_files</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write_at</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">utils</span><span class="o">.</span><span class="n">getClass</span><span class="p">(</span><span class="s2">&quot;at&quot;</span><span class="p">,</span> <span class="n">key</span><span class="p">))</span>
+
+        <span class="c1"># make the dtd for the ADMIT object</span>
+        <span class="n">admit</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">__file__</span><span class="p">))</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s2">&quot;dtd&quot;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="s2">&quot;admit.dtd&quot;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;&lt;!-- &quot;</span> <span class="o">+</span> <span class="n">AUTOGEN</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">--&gt;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">HEADER</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">START</span> <span class="o">+</span> <span class="s2">&quot;ADMIT (userData,summaryData,project_id,name,pmode,ptype,flowmanager,projmanager,loglevel,astale,_loggername,&quot;</span> <span class="o">+</span> <span class="n">ATTYPES</span> <span class="o">+</span> <span class="s2">&quot;)&gt;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">START</span> <span class="o">+</span> <span class="s2">&quot;userData &quot;</span> <span class="o">+</span> <span class="n">END</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ATSTART</span> <span class="o">+</span> <span class="s2">&quot;userData type (DICT&quot;</span> <span class="o">+</span> <span class="n">ATEND</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ATSTART</span> <span class="o">+</span> <span class="s2">&quot;userData ndarray (&quot;</span> <span class="o">+</span> <span class="n">bt</span><span class="o">.</span><span class="n">STRING</span> <span class="o">+</span> <span class="s2">&quot;) #REQUIRED&gt;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ATSTART</span> <span class="o">+</span> <span class="s2">&quot;userData set (&quot;</span> <span class="o">+</span> <span class="n">bt</span><span class="o">.</span><span class="n">STRING</span> <span class="o">+</span> <span class="s2">&quot;) #REQUIRED&gt;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">START</span> <span class="o">+</span> <span class="s2">&quot;summaryData (metadata,_datatype,_description)&gt;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ATSTART</span> <span class="o">+</span> <span class="s2">&quot;summaryData type (SUMMARY&quot;</span> <span class="o">+</span> <span class="n">ATEND</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">START</span> <span class="o">+</span> <span class="s2">&quot;metadata (summaryEntry)&gt;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ATSTART</span> <span class="o">+</span> <span class="s2">&quot;metadata type (METADATA&quot;</span> <span class="o">+</span> <span class="n">ATEND</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ATSTART</span> <span class="o">+</span> <span class="s2">&quot;metadata name (STRING&quot;</span> <span class="o">+</span> <span class="n">ATEND</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">START</span> <span class="o">+</span> <span class="s2">&quot;summaryEntry (_value,_taskname,_taskid,_taskargs)&gt;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ATSTART</span> <span class="o">+</span> <span class="s2">&quot;summaryEntry type (SUMMARYENTRY&quot;</span> <span class="o">+</span> <span class="n">ATEND</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">START</span> <span class="o">+</span> <span class="s2">&quot;_value &quot;</span> <span class="o">+</span> <span class="n">END</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ATSTART</span> <span class="o">+</span> <span class="s2">&quot;_value type (&quot;</span> <span class="o">+</span> <span class="n">bt</span><span class="o">.</span><span class="n">LIST</span> <span class="o">+</span> <span class="n">ATEND</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ATSTART</span> <span class="o">+</span> <span class="s2">&quot;_value ndarray (&quot;</span> <span class="o">+</span> <span class="n">bt</span><span class="o">.</span><span class="n">STRING</span> <span class="o">+</span> <span class="s2">&quot;) #REQUIRED&gt;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ATSTART</span> <span class="o">+</span> <span class="s2">&quot;_value set (&quot;</span> <span class="o">+</span> <span class="n">bt</span><span class="o">.</span><span class="n">STRING</span> <span class="o">+</span> <span class="s2">&quot;) #REQUIRED&gt;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">START</span> <span class="o">+</span> <span class="s2">&quot;_taskname &quot;</span> <span class="o">+</span> <span class="n">END</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ATSTART</span> <span class="o">+</span> <span class="s2">&quot;_taskname type (&quot;</span> <span class="o">+</span> <span class="n">bt</span><span class="o">.</span><span class="n">STRING</span> <span class="o">+</span> <span class="n">ATEND</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">START</span> <span class="o">+</span> <span class="s2">&quot;_taskid &quot;</span> <span class="o">+</span> <span class="n">END</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ATSTART</span> <span class="o">+</span> <span class="s2">&quot;_taskid type (&quot;</span> <span class="o">+</span> <span class="n">bt</span><span class="o">.</span><span class="n">INT</span> <span class="o">+</span> <span class="n">ATEND</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">START</span> <span class="o">+</span> <span class="s2">&quot;_taskargs &quot;</span> <span class="o">+</span> <span class="n">END</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ATSTART</span> <span class="o">+</span> <span class="s2">&quot;_taskargs type (&quot;</span> <span class="o">+</span> <span class="n">bt</span><span class="o">.</span><span class="n">STRING</span> <span class="o">+</span> <span class="n">ATEND</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">START</span> <span class="o">+</span> <span class="s2">&quot;_datatype &quot;</span> <span class="o">+</span> <span class="n">END</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ATSTART</span> <span class="o">+</span> <span class="s2">&quot;_datatype type (&quot;</span> <span class="o">+</span> <span class="n">bt</span><span class="o">.</span><span class="n">DICT</span> <span class="o">+</span> <span class="n">ATEND</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ATSTART</span> <span class="o">+</span> <span class="s2">&quot;_datatype ndarray (&quot;</span> <span class="o">+</span> <span class="n">bt</span><span class="o">.</span><span class="n">STRING</span> <span class="o">+</span> <span class="s2">&quot;) #REQUIRED&gt;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ATSTART</span> <span class="o">+</span> <span class="s2">&quot;_datatype set (&quot;</span> <span class="o">+</span> <span class="n">bt</span><span class="o">.</span><span class="n">STRING</span> <span class="o">+</span> <span class="s2">&quot;) #REQUIRED&gt;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">START</span> <span class="o">+</span> <span class="s2">&quot;_description &quot;</span> <span class="o">+</span> <span class="n">END</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ATSTART</span> <span class="o">+</span> <span class="s2">&quot;_description type (&quot;</span> <span class="o">+</span> <span class="n">bt</span><span class="o">.</span><span class="n">DICT</span> <span class="o">+</span> <span class="n">ATEND</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ATSTART</span> <span class="o">+</span> <span class="s2">&quot;_description ndarray (&quot;</span> <span class="o">+</span> <span class="n">bt</span><span class="o">.</span><span class="n">STRING</span> <span class="o">+</span> <span class="s2">&quot;) #REQUIRED&gt;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ATSTART</span> <span class="o">+</span> <span class="s2">&quot;_description set (&quot;</span> <span class="o">+</span> <span class="n">bt</span><span class="o">.</span><span class="n">STRING</span> <span class="o">+</span> <span class="s2">&quot;) #REQUIRED&gt;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">START</span> <span class="o">+</span> <span class="s2">&quot;project_id &quot;</span> <span class="o">+</span> <span class="n">END</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ATSTART</span> <span class="o">+</span> <span class="s2">&quot;project_id type (INT&quot;</span> <span class="o">+</span> <span class="n">ATEND</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">START</span> <span class="o">+</span> <span class="s2">&quot;name &quot;</span> <span class="o">+</span> <span class="n">END</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ATSTART</span> <span class="o">+</span> <span class="s2">&quot;name type (STRING&quot;</span> <span class="o">+</span> <span class="n">ATEND</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">START</span> <span class="o">+</span> <span class="s2">&quot;pmode &quot;</span> <span class="o">+</span> <span class="n">END</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ATSTART</span> <span class="o">+</span> <span class="s2">&quot;pmode type (INT&quot;</span> <span class="o">+</span> <span class="n">ATEND</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">START</span> <span class="o">+</span> <span class="s2">&quot;ptype &quot;</span> <span class="o">+</span> <span class="n">END</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ATSTART</span> <span class="o">+</span> <span class="s2">&quot;ptype type (INT&quot;</span> <span class="o">+</span> <span class="n">ATEND</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">START</span> <span class="o">+</span> <span class="s2">&quot;flowmanager &quot;</span> <span class="o">+</span> <span class="n">END</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ATSTART</span> <span class="o">+</span> <span class="s2">&quot;flowmanager type (DICT&quot;</span> <span class="o">+</span> <span class="n">ATEND</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ATSTART</span> <span class="o">+</span> <span class="s2">&quot;flowmanager ndarray (&quot;</span> <span class="o">+</span> <span class="n">bt</span><span class="o">.</span><span class="n">STRING</span> <span class="o">+</span> <span class="s2">&quot;) #REQUIRED&gt;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ATSTART</span> <span class="o">+</span> <span class="s2">&quot;flowmanager set (&quot;</span> <span class="o">+</span> <span class="n">bt</span><span class="o">.</span><span class="n">STRING</span> <span class="o">+</span> <span class="s2">&quot;) #REQUIRED&gt;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">START</span> <span class="o">+</span> <span class="s2">&quot;projmanager &quot;</span> <span class="o">+</span> <span class="n">END</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ATSTART</span> <span class="o">+</span> <span class="s2">&quot;projmanager type (DICT&quot;</span> <span class="o">+</span> <span class="n">ATEND</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ATSTART</span> <span class="o">+</span> <span class="s2">&quot;projmanager ndarray (&quot;</span> <span class="o">+</span> <span class="n">bt</span><span class="o">.</span><span class="n">STRING</span> <span class="o">+</span> <span class="s2">&quot;) #REQUIRED&gt;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ATSTART</span> <span class="o">+</span> <span class="s2">&quot;projmanager set (&quot;</span> <span class="o">+</span> <span class="n">bt</span><span class="o">.</span><span class="n">STRING</span> <span class="o">+</span> <span class="s2">&quot;) #REQUIRED&gt;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">START</span> <span class="o">+</span> <span class="s2">&quot;loglevel &quot;</span> <span class="o">+</span> <span class="n">END</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ATSTART</span> <span class="o">+</span> <span class="s2">&quot;loglevel type (INT&quot;</span> <span class="o">+</span> <span class="n">ATEND</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">START</span> <span class="o">+</span> <span class="s2">&quot;astale &quot;</span> <span class="o">+</span> <span class="n">END</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ATSTART</span> <span class="o">+</span> <span class="s2">&quot;astale type (INT&quot;</span> <span class="o">+</span> <span class="n">ATEND</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">START</span> <span class="o">+</span> <span class="s2">&quot;_loggername &quot;</span> <span class="o">+</span> <span class="n">END</span><span class="p">)</span>
+        <span class="n">admit</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">ATSTART</span> <span class="o">+</span> <span class="s2">&quot;_loggername type (STRING&quot;</span> <span class="o">+</span> <span class="n">ATEND</span><span class="p">)</span>
+
+        <span class="n">admit</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Done</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span></div></div>
+
+<div class="viewcode-block" id="generate"><a class="viewcode-back" href="../../../module/admit.xmlio/dtdGenerator.html#admit.xmlio.dtdGenerator.generate">[docs]</a><span class="k">def</span> <span class="nf">generate</span><span class="p">():</span>
+    <span class="n">DtdGenerator</span><span class="p">()</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

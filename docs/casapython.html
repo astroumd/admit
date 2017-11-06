@@ -1,0 +1,185 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Usage of python in CASA &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="index.html" />
+    <link rel="next" title="ADMIT tricks and advanced script usage" href="tricks.html" />
+    <link rel="prev" title="How To Write Your Own ADMIT Task" href="examples.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="tricks.html" title="ADMIT tricks and advanced script usage"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="examples.html" title="How To Write Your Own ADMIT Task"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">ADMIT 1.0.6 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="usage-of-python-in-casa">
+<h1>Usage of python in CASA<a class="headerlink" href="#usage-of-python-in-casa" title="Permalink to this headline">¶</a></h1>
+<p>In this chapter we review some issues with programming in python in the CASA
+environment</p>
+<div class="section" id="casa-vs-numpy">
+<h2>CASA vs numpy<a class="headerlink" href="#casa-vs-numpy" title="Permalink to this headline">¶</a></h2>
+<p>Python indices are 0 based, like in C/C++. CASA arays are also indexed 0-based,
+but for those familiar with python&#8217;s numpy and masking arrays, this is where
+all similarity ends. Image data in CASA are columnn major, as in Fortran,
+where in numpy there are row major, as in C. Masking arrays in casa and numpy&#8217;s masking
+have a reversed logic (mask=True means a bad data point in numpy, but a good one in
+CASA)</p>
+<p>Our standard example below is an array with 2 planes, 3 rows and 4 columns. The values
+in the array will be <strong>i + 10*j + 100*k</strong>, where <strong>i</strong> counts the columns,
+<strong>j</strong> the rows, and <strong>k</strong> the planes, all 0-based indexed. This the first value
+in the array is 0 (000), the last one 123.  You can also find a file <strong>cube432.fits</strong>
+in the ADMIT data distribution.</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span>    <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy.ma</span> <span class="k">as</span> <span class="nn">ma</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">24</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">)</span>
+<span class="nb">print</span> <span class="n">a</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span>              <span class="c1"># should print: (2, 3, 4) 23 23</span>
+
+<span class="c1"># re-assign values based on their (i,j,k) index</span>
+<span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]):</span>
+            <span class="n">a</span><span class="p">[</span><span class="n">k</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span><span class="o">+</span><span class="mi">10</span><span class="o">*</span><span class="n">j</span><span class="o">+</span><span class="mi">100</span><span class="o">*</span><span class="n">k</span>
+
+<span class="c1"># mask every third number bad</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">masked_where</span><span class="p">(</span><span class="n">a</span><span class="o">%</span><span class="mi">3</span><span class="o">==</span><span class="mi">0</span><span class="p">,</span><span class="n">a</span><span class="p">)</span>
+<span class="nb">print</span> <span class="n">a</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">b</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>                          <span class="c1"># should print:  24 16</span>
+</pre></div>
+</div>
+<p>We will now see how masking in python and CASA is different.</p>
+</div>
+<div class="section" id="coding-style">
+<h2>CODING style<a class="headerlink" href="#coding-style" title="Permalink to this headline">¶</a></h2>
+<p>When reading the help files within CASA, there are a few bad habits you can pick up,
+which may seem convenient, but should not be used if you want your code to be more
+portable outside of CASA:</p>
+<p>In random order</p>
+<ul class="simple">
+<li><strong>True</strong> and <strong>False</strong> are the python literals for the two boolean values, but you will see
+both <strong>true</strong> and <strong>t</strong> being used in CASA examples. They are defined for convenience within CASA, but if you
+ever want to use your code outside of CASA, this will obviously cause problems. There is no reason
+to not use the official names (if not just for your colorizing editor to recognize them and
+color them appropriately), so use the original python literals.</li>
+<li>more to come</li>
+</ul>
+</div>
+<div class="section" id="casa-and-admit">
+<h2>CASA and ADMIT<a class="headerlink" href="#casa-and-admit" title="Permalink to this headline">¶</a></h2>
+<p>For an ADMIT developer environment (the case where your shell has an $ADMIT environment variable and you
+would have loaded this by sourcing the appropriate <em>admit_start.[c]sh</em> script), your CASA environment has
+also been modified to include not only $CASA_ROOT/bin in your $PATH, but also $CASA_ROOT/lib/casa/bin.</p>
+<p>If you want to build documentation, you will also have had to install <em>pip</em> and <em>sphinx</em>.  The <strong>make pip</strong>
+target in the $ADMIT directory should do this for most installations.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Usage of python in CASA</a><ul>
+<li><a class="reference internal" href="#casa-vs-numpy">CASA vs numpy</a></li>
+<li><a class="reference internal" href="#coding-style">CODING style</a></li>
+<li><a class="reference internal" href="#casa-and-admit">CASA and ADMIT</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="examples.html"
+                        title="previous chapter">How To Write Your Own ADMIT Task</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="tricks.html"
+                        title="next chapter">ADMIT tricks and advanced script usage</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/casapython.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="tricks.html" title="ADMIT tricks and advanced script usage"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="examples.html" title="How To Write Your Own ADMIT Task"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">ADMIT 1.0.6 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

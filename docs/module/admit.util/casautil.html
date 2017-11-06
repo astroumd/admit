@@ -1,0 +1,337 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>casautil — CASA-dependent utilities module. &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../index.html" />
+    <link rel="up" title="Python Scripting Interface (API)" href="../../api.html" />
+    <link rel="next" title="specutil — Module for low-level manipulation of spectral line data." href="specutil.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="specutil.html" title="specutil — Module for low-level manipulation of spectral line data."
+             accesskey="N">next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" accesskey="U">Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-admit.util.casautil"></span><div class="section" id="casautil-casa-dependent-utilities-module">
+<h1><strong>casautil</strong> &#8212; CASA-dependent utilities module.<a class="headerlink" href="#casautil-casa-dependent-utilities-module" title="Permalink to this headline">¶</a></h1>
+<p>This module contains utility functions that rely on CASA.</p>
+<dl class="function">
+<dt id="admit.util.casautil.getdata">
+<code class="descclassname">admit.util.casautil.</code><code class="descname">getdata</code><span class="sig-paren">(</span><em>imgname</em>, <em>chans=[]</em>, <em>zeromask=False</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/casautil.html#getdata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.casautil.getdata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return all good data from a CASA image as a masked numpy array.</p>
+<p>The tb.open() access method, although faster, didn&#8217;t seem to carry
+the mask (or at least in an easy way).  ma.masked_invalid(data)
+still returned all pixels ok.</p>
+<p>NOTE:  since this routine grabs all data in a single numpy
+array, this routine should only be used for 2D images
+or small 3D cubes, things with little impact on memory</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>imagename</strong> : str</p>
+<blockquote>
+<div><p>The (absolute) CASA image filename</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">array</p>
+<blockquote class="last">
+<div><p>data in a masked numpy array</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="admit.util.casautil.getdata1">
+<code class="descclassname">admit.util.casautil.</code><code class="descname">getdata1</code><span class="sig-paren">(</span><em>imgname</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/casautil.html#getdata1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.casautil.getdata1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return all good data from a CASA image as a compressed 1D numpy array.</p>
+<p>The tb.open() access method, although faster, didn&#8217;t seem to carry
+the mask (or at least in an easy way).  ma.masked_invalid(data)
+still returned all pixels ok.</p>
+<p>NOTE:  since this routine grabs all data in a single numpy
+array, this routine should only be used for 2D images
+or small 3D cubes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>imagename</strong> : str</p>
+<blockquote>
+<div><p>The (absolute) CASA image filename</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">array</p>
+<blockquote class="last">
+<div><p>data in a 1D numpy array</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="admit.util.casautil.getdata_raw">
+<code class="descclassname">admit.util.casautil.</code><code class="descname">getdata_raw</code><span class="sig-paren">(</span><em>imgname</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/casautil.html#getdata_raw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.casautil.getdata_raw" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return data as a 2D numpy array
+For more detailed access to cubes, don&#8217;t use this method, 
+as it will use all the memory. instead use ia.open()
+and getslice/putslice() to cycle through the cube.
+Note we&#8217;re not getting the mask this way.... see Moment_AT for
+a version that return a numpy.ma array with masking</p>
+<p>See putdata(imgname,data) for the reverse operation, but you
+will need to create a clone of the image to ensure the header.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>imagename</strong> : str</p>
+<blockquote>
+<div><p>The (absolute) CASA image filename</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">array</p>
+<blockquote class="last">
+<div><p>data in a 2D numpy array</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="admit.util.casautil.implot">
+<code class="descclassname">admit.util.casautil.</code><code class="descname">implot</code><span class="sig-paren">(</span><em>rasterfile</em>, <em>figname</em>, <em>contourfile=None</em>, <em>plottype=5</em>, <em>plotmode=32</em>, <em>colorwedge=False</em>, <em>zoom=1</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/casautil.html#implot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.casautil.implot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper for CASA&#8217;s imview, that will also create thumbnails.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>rasterfile</strong> : str</p>
+<blockquote>
+<div><p>Fully-qualified image file to use as raster map.  Optional if
+contourfile is given.</p>
+</div></blockquote>
+<p><strong>figname</strong> : str</p>
+<blockquote>
+<div><p>Fully-qualified output file name.</p>
+</div></blockquote>
+<p><strong>contourflie</strong> : str</p>
+<blockquote>
+<div><p>Fully-qualified image file to use as contour map. Contours
+will be overlaid on rasterfile if both are given.  Optional if
+rasterfile is given.</p>
+</div></blockquote>
+<p><strong>plottype</strong> : int</p>
+<blockquote>
+<div><p>Plotting format, one of util.PlotControl plot type (e.g., PlotControl.PNG). Default: PlotControl.PNG</p>
+</div></blockquote>
+<p><strong>plotmode</strong> : int</p>
+<blockquote>
+<div><p>Plot mode, one of util.PlotControl plot mode (e.g., PlotControl.INTERACTIVE). Default: PlotControl.BATCH</p>
+</div></blockquote>
+<p><strong>colorwedge</strong> : boolean</p>
+<blockquote>
+<div><p>True - show color wedge, False - don&#8217;t show color wedge</p>
+</div></blockquote>
+<p><strong>zoom</strong> : int</p>
+<blockquote>
+<div><p>Image zoom ratio.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="admit.util.casautil.iscasa">
+<code class="descclassname">admit.util.casautil.</code><code class="descname">iscasa</code><span class="sig-paren">(</span><em>file</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/casautil.html#iscasa"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.casautil.iscasa" title="Permalink to this definition">¶</a></dt>
+<dd><p>is a file a casa image</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">boolean</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="admit.util.casautil.mapdim">
+<code class="descclassname">admit.util.casautil.</code><code class="descname">mapdim</code><span class="sig-paren">(</span><em>imgname</em>, <em>dim=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/casautil.html#mapdim"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.casautil.mapdim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the dimensionality of the map, or if dim is given.</p>
+<p>Returns True if the dimensionality matches this value, or
+False if not.</p>
+<p>Warning: opens and closes the map via ia.open()</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>imagename</strong> : str (a filename)</p>
+<p class="last"><strong>dim</strong> : integer (or None)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="admit.util.casautil.parse_robust">
+<code class="descclassname">admit.util.casautil.</code><code class="descname">parse_robust</code><span class="sig-paren">(</span><em>robust</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/casautil.html#parse_robust"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.casautil.parse_robust" title="Permalink to this definition">¶</a></dt>
+<dd><p>parse a compound robust=[&#8216;algorithm&#8217;,optional_parameters...]</p>
+<p>Within ADMIT we use robust=[]
+Within CASA  we use a varargs type algorithm=,fence=,...</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>robust</strong> :  list of robust parameters, method specific. See e.g. casa::imstat</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">dict</p>
+<blockquote class="last">
+<div><p>A dictionary ready for **args inclusion in a CASA command.
+If none found, returns an empty dictionary.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="admit.util.casautil.putdata_raw">
+<code class="descclassname">admit.util.casautil.</code><code class="descname">putdata_raw</code><span class="sig-paren">(</span><em>imgname</em>, <em>data</em>, <em>clone=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/casautil.html#putdata_raw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.casautil.putdata_raw" title="Permalink to this definition">¶</a></dt>
+<dd><p>Store (overwrite) data in an existing CASA image.
+See getdata_raw(imgname) for the reverse operation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>imagename</strong> : str</p>
+<blockquote>
+<div><p>The (absolute) CASA image filename.  It should exist
+already, unless <strong>clone</strong> was given.</p>
+</div></blockquote>
+<p><strong>data</strong> : 2D numpy array or a list of 2D numpy arrays</p>
+<blockquote>
+<div><p>The data...</p>
+</div></blockquote>
+<p><strong>clone</strong> : str, optional</p>
+<blockquote class="last">
+<div><p>An optional filename from which to clone the image
+for output. It needs to be an absolute filename.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Next topic</h4>
+  <p class="topless"><a href="specutil.html"
+                        title="next chapter"><strong>specutil</strong> &#8212; Module for low-level manipulation of spectral line data.</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/module/admit.util/casautil.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="specutil.html" title="specutil — Module for low-level manipulation of spectral line data."
+             >next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" >Python Scripting Interface (API)</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

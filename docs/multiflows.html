@@ -1,0 +1,192 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Multiflow Projects &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="index.html" />
+    <link rel="next" title="Scripts that show real-world flows" href="examplescripts.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="examplescripts.html" title="Scripts that show real-world flows"
+             accesskey="N">next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">ADMIT 1.0.6 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="multiflow-projects">
+<h1>Multiflow Projects<a class="headerlink" href="#multiflow-projects" title="Permalink to this headline">¶</a></h1>
+<p>Standard ADMIT projects involve the analysis of individual FITS cubes by way
+of user-created data flows&#8212;pipelines (or trees) composed of <a class="reference external" href="module/admit/AT.html">ADMIT tasks</a>
+(ATs), each manipulating <a class="reference external" href="module/admit.bdp/BDP.html">data products</a> (BDPs) in a well-defined manner. In
+some cases, however, one wishes to combine results from several sources or
+observations (each with their own unique flow) into a single data flow; e.g.,
+to calculate the <a class="reference external" href="module/admit.at/OverlapIntegral_AT.html">OverlapIntegral</a> of several <a class="reference external" href="module/admit.at/Moment_AT.html">Moment</a> maps, or to apply a
+specific analysis sequence to similar BDPs spanning several projects, without
+having to modify each project individually. Projects whose flows involve data
+products from multiple projects are called <em>multiflows</em> in ADMIT (not to be
+confused with <a class="reference external" href="http://www.multiflowthebook.com/">Multiflow Computer</a>, R.I.P.).</p>
+<p>Multiflows are constructed by <em>linking</em> one or more tasks from other projects
+into the multiflow project, thereby allowing any of their outputs to be data
+inputs to the flow. Linked tasks always reside at the root of a multiflow and
+their own inputs can not be modified (as they are already determined by their
+parent flow). In normal flows, by contrast, only ATs taking <em>no</em> BDP inputs
+(e.g., <a class="reference external" href="module/admit.at/Ingest_AT.html">Ingest</a>) may appear as roots of the flow. Otherwise, multiflows are
+constructed and operate similarly to other flows.</p>
+<p>At the Python scripting level, a <em>linked</em> task is simply a task reference
+obtained from an existing AT via a call to its <a class="reference external" href="module/admit/AT.html#admit.AT.AT.link">link()</a> method. One can
+then <a class="reference external" href="module/admit/Admit.html#admit.Admit.Admit.add">add()</a> the cloned object to another (now multiflow) project as usual,
+except that no source connections may be specified. Note that linking an AT
+also locks its parent flow in the sense that no operation resulting in removal
+of the original AT (or tasks it depends upon) will be permitted, as this would
+render the dependent multiflow project non-functional. Deleting a linked task
+from the multiflow project will <a class="reference external" href="module/admit/AT.html#admit.AT.AT.unlink">unlink()</a> the AT and unlock its parent
+project (if it no longer contains any linked tasks).</p>
+<p>Data localization in multiflows requires special attention. In normal (uniflow)
+projects, all data products are written to a single ADMIT project directory,
+typically named in parallel with the corresponding FITS cube at the root of
+the flow. If linked ATs are modified in a multiflow (by changing one or more
+of their keyword values), the tasks will be re-executed when the flow is run.
+Data outputs from linked tasks, however, are always written to their original,
+parent project directories. Other tasks in the multiflow write their data to
+the <em>working project</em> directory, which may be either the multiflow project
+directory or a parent project directory as described below. Note that
+executing a linked task from a multiflow will mark its dependent tasks (if
+any) in the parent project as out of date, but will <em>not</em> re-execute them;
+this minimizes multiflow run time.</p>
+<p>ADMIT supports two basic types of multiflows:</p>
+<ol class="arabic simple">
+<li><strong>N-to-1</strong> flows, where data products from <em>N</em> projects are combined in
+a single multiflow.</li>
+<li><strong>1-to-N</strong> flows, where a single multiflow is automatically applied to
+compatible data products residing in <em>N</em> individual flows.</li>
+</ol>
+<p>These are discussed in more detail in the following sections.</p>
+<div class="section" id="n-to-1-multiflows">
+<h2>N-to-1 Multiflows<a class="headerlink" href="#n-to-1-multiflows" title="Permalink to this headline">¶</a></h2>
+<p>In this class of multiflows, the project will contain <em>N</em> linked ATs at
+the root of the flow. It does not matter whether the linked tasks are all
+from a single parent project, distinct parents, or somewhere in between,
+except that linked ATs from the same parent project should not depend on each
+other (unless such ATs are treated read-only in the multiflow). Once added to
+the multiflow, the flow can be extended, executed and manipulated like any
+other flow. The results of this type of multiflow are written to the multiflow
+project directory&#8212;i.e., the <em>working project</em> is the multiflow project.</p>
+</div>
+<div class="section" id="to-n-multiflows">
+<h2>1-to-N Multiflows<a class="headerlink" href="#to-n-multiflows" title="Permalink to this headline">¶</a></h2>
+<p>This type of multiflow is essentially a template or generator flow that is
+automatically applied to each AT in a list of tasks, as if the user had
+manually duplicated and attached the sub-flow to each AT in its parent project.
+To construct a template multiflow, one first constructs an <em>N</em>-to-1 multiflow
+(where <em>N</em> = 1 here), using any one of the ATs present in the task list
+(or any AT of compatible type) as the linked AT at the root of the flow.
+After the standard <em>N</em>-to-1 multiflow is created and (optionally) tested,
+the resulting flow can be sequentially applied to a list of tasks (with
+arbitrary parent projects) in an automated, batch processing mode.  All tasks
+in the list must have output signatures (numbers and types of BDPs) compatible
+with the prototype (linked) task used to initiate the multiflow. In batch mode,
+the <em>working project</em> is the parent project of the current AT and all
+associated flow output is written to its originating project directory.
+Outside of batch match, executing the flow will direct output to the multiflow
+project directory (as for any other <em>N</em>-to-1 multiflow).</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Multiflow Projects</a><ul>
+<li><a class="reference internal" href="#n-to-1-multiflows">N-to-1 Multiflows</a></li>
+<li><a class="reference internal" href="#to-n-multiflows">1-to-N Multiflows</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Next topic</h4>
+  <p class="topless"><a href="examplescripts.html"
+                        title="next chapter">Scripts that show real-world flows</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/multiflows.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="examplescripts.html" title="Scripts that show real-world flows"
+             >next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">ADMIT 1.0.6 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

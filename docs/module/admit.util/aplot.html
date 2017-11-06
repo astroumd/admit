@@ -1,0 +1,654 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Simple ADMIT plotter &mdash; ADMIT 0.8.4 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.8.4',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="ADMIT 0.8.4 documentation" href="../../index.html" />
+    <link rel="up" title="Python Scripting Interface (API)" href="../../api.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 0.8.4 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" accesskey="U">Python Scripting Interface (API)</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <span class="target" id="module-admit.util.aplot"></span><div class="section" id="simple-admit-plotter">
+<h1>Simple ADMIT plotter<a class="headerlink" href="#simple-admit-plotter" title="Permalink to this headline">¶</a></h1>
+<blockquote>
+<div><ul class="simple">
+<li>simple parser of extra layout commands on top of general style</li>
+<li>plotter, scatter or histogram</li>
+</ul>
+</div></blockquote>
+<p>line x0 y0 x1 y1 ...
+point x0 y0 ...</p>
+<dl class="class">
+<dt id="admit.util.aplot.APlot">
+<em class="property">class </em><code class="descclassname">admit.util.aplot.</code><code class="descname">APlot</code><span class="sig-paren">(</span><em>pmode=None</em>, <em>ptype=None</em>, <em>figno=None</em>, <em>abspath=''</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/aplot.html#APlot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.aplot.APlot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Basic ADMIT plotter that uses matplotlib calls to create figures.</p>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p class="last"><a class="reference internal" href="AbstractPlot.html#module-admit.util.AbstractPlot" title="admit.util.AbstractPlot"><code class="xref py py-obj docutils literal"><span class="pre">admit.util.AbstractPlot</span></code></a></p>
+</div>
+<p class="rubric">Attributes</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">plotmode</span></code></td>
+<td>Get the plotting mode</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">plottype</span></code></td>
+<td>Get the plot type</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">backend</span></code>(thebackend)</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">figure</span></code>([figno])</td>
+<td>set the figure number.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.aplot.APlot.final" title="admit.util.aplot.APlot.final"><code class="xref py py-obj docutils literal"><span class="pre">final</span></code></a>()</td>
+<td>final signoff from APlot</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">getFigure</span></code>(figno,&nbsp;relative)</td>
+<td>Get the name of the figure file for given figure number</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">getThumbnail</span></code>(figno,&nbsp;relative)</td>
+<td>Get the name of the thumbnail file for given figure number</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.aplot.APlot.hisplot" title="admit.util.aplot.APlot.hisplot"><code class="xref py py-obj docutils literal"><span class="pre">hisplot</span></code></a>(x[,&nbsp;title,&nbsp;figname,&nbsp;xlab,&nbsp;range,&nbsp;...])</td>
+<td>simple histogram of one column with optional overlayed gaussfit</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.aplot.APlot.histogram" title="admit.util.aplot.APlot.histogram"><code class="xref py py-obj docutils literal"><span class="pre">histogram</span></code></a>(columns[,&nbsp;title,&nbsp;figname,&nbsp;xlab,&nbsp;...])</td>
+<td>Simple histogram of one or more columns</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">makeThumbnail</span></code>([figno,&nbsp;scale,&nbsp;fig])</td>
+<td>Create a thumbnail for a given figure number.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.aplot.APlot.makeUlines" title="admit.util.aplot.APlot.makeUlines"><code class="xref py py-obj docutils literal"><span class="pre">makeUlines</span></code></a>(x,&nbsp;y[,&nbsp;noise,&nbsp;title,&nbsp;figname,&nbsp;...])</td>
+<td>simple plotter of multiple columns against one column</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.aplot.APlot.makespec" title="admit.util.aplot.APlot.makespec"><code class="xref py py-obj docutils literal"><span class="pre">makespec</span></code></a>(x,&nbsp;y,&nbsp;cutoff,&nbsp;figname[,&nbsp;title,&nbsp;...])</td>
+<td>Plots a spectrum, overlaying known spectral and reference lines.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.aplot.APlot.map1" title="admit.util.aplot.APlot.map1"><code class="xref py py-obj docutils literal"><span class="pre">map1</span></code></a>(data[,&nbsp;title,&nbsp;figname,&nbsp;xlab,&nbsp;ylab,&nbsp;...])</td>
+<td>display map; horrible hack, the caller should call np.rot90() since</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.aplot.APlot.parse" title="admit.util.aplot.APlot.parse"><code class="xref py py-obj docutils literal"><span class="pre">parse</span></code></a>(lines)</td>
+<td>APlot parser to pass along some matplotlib commands</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.aplot.APlot.plotter" title="admit.util.aplot.APlot.plotter"><code class="xref py py-obj docutils literal"><span class="pre">plotter</span></code></a>(x,&nbsp;y[,&nbsp;title,&nbsp;figname,&nbsp;xlab,&nbsp;ylab,&nbsp;...])</td>
+<td>Simple plotter of multiple columns against one column, optionally in histogram style</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#admit.util.aplot.APlot.scatter" title="admit.util.aplot.APlot.scatter"><code class="xref py py-obj docutils literal"><span class="pre">scatter</span></code></a>(x,&nbsp;y[,&nbsp;title,&nbsp;figname,&nbsp;xlab,&nbsp;ylab,&nbsp;...])</td>
+<td>Scatter plot of multiple columns against one column</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.aplot.APlot.segplotter" title="admit.util.aplot.APlot.segplotter"><code class="xref py py-obj docutils literal"><span class="pre">segplotter</span></code></a>(x,&nbsp;y[,&nbsp;title,&nbsp;figname,&nbsp;xlab,&nbsp;...])</td>
+<td>Plotter for spectral line segments.</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">show</span></code>()</td>
+<td>show internals for debugging</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#admit.util.aplot.APlot.summaryspec" title="admit.util.aplot.APlot.summaryspec"><code class="xref py py-obj docutils literal"><span class="pre">summaryspec</span></code></a>(stat,&nbsp;spec,&nbsp;pvc,&nbsp;figname[,&nbsp;...])</td>
+<td>Method to plot a summary of all spectra with overlayed id&#8217;s.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="admit.util.aplot.APlot.final">
+<code class="descname">final</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/aplot.html#APlot.final"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.aplot.APlot.final" title="Permalink to this definition">¶</a></dt>
+<dd><p>final signoff from APlot</p>
+<p>This would be needed for plotmode=PlotControl.SHOW_AT_END, but
+this does not seem to work (anymore)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.aplot.APlot.hisplot">
+<code class="descname">hisplot</code><span class="sig-paren">(</span><em>x</em>, <em>title=None</em>, <em>figname=None</em>, <em>xlab=None</em>, <em>range=None</em>, <em>bins=80</em>, <em>gauss=None</em>, <em>thumbnail=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/aplot.html#APlot.hisplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.aplot.APlot.hisplot" title="Permalink to this definition">¶</a></dt>
+<dd><p>simple histogram of one column with optional overlayed gaussfit
+This plot could be merged with histogram()</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.aplot.APlot.histogram">
+<code class="descname">histogram</code><span class="sig-paren">(</span><em>columns</em>, <em>title=None</em>, <em>figname=None</em>, <em>xlab=None</em>, <em>xrange=None</em>, <em>ylab='#'</em>, <em>bins=80</em>, <em>thumbnail=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/aplot.html#APlot.histogram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.aplot.APlot.histogram" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple histogram of one or more columns</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>columns</strong> : numpy array or list of numpy arrays</p>
+<blockquote>
+<div><p>X axis (abscissa) values</p>
+</div></blockquote>
+<p><strong>title</strong> : str</p>
+<blockquote>
+<div><p>Title string for plot</p>
+</div></blockquote>
+<p><strong>figname</strong> : str</p>
+<blockquote>
+<div><p>Root of output file name.  An extension matching the plot
+type will be appended. For instance, for, figname=&#8217;fig&#8217;
+and plottype=PlotControl.PNG, the output file is &#8216;fig.png&#8217;</p>
+</div></blockquote>
+<p><strong>xlab</strong> : str</p>
+<blockquote>
+<div><p>X axis label</p>
+</div></blockquote>
+<p><strong>xrange: tuple</strong></p>
+<blockquote>
+<div><p>X axis range, (xmin,xmax)</p>
+</div></blockquote>
+<p><strong>ylab</strong> : str</p>
+<blockquote>
+<div><p>Y axis label</p>
+</div></blockquote>
+<p><strong>bins: int</strong></p>
+<blockquote>
+<div><p>Number of histogram bins. Default:80</p>
+</div></blockquote>
+<p><strong>thumbnail</strong> : boolean</p>
+<blockquote>
+<div><p>If True, create a thumbnail when creating an output figure.
+Thumbnails will have &#8216;_thumb&#8217; appended for file root.
+For instance, if the output file is &#8216;fig.jpg&#8217;, the thumbnail
+will be &#8216;fig_thumb.jpg&#8217;</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.aplot.APlot.makeUlines">
+<code class="descname">makeUlines</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>noise=0.0</em>, <em>title=None</em>, <em>figname=None</em>, <em>xlab=None</em>, <em>ylab=None</em>, <em>segments=None</em>, <em>tags=None</em>, <em>thumbnail=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/aplot.html#APlot.makeUlines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.aplot.APlot.makeUlines" title="Permalink to this definition">¶</a></dt>
+<dd><p>simple plotter of multiple columns against one column
+stolen from atable, allowing some extra bars in the plot
+for line_id
+This code should be merged with plotter()</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.aplot.APlot.makespec">
+<code class="descname">makespec</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>cutoff</em>, <em>figname</em>, <em>title=''</em>, <em>xlabel=''</em>, <em>lines=[]</em>, <em>force=[]</em>, <em>blends=[]</em>, <em>continuum=None</em>, <em>ylabel=None</em>, <em>thumbnail=True</em>, <em>references={}</em>, <em>refline=None</em>, <em>chan=None</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/aplot.html#APlot.makespec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.aplot.APlot.makespec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots a spectrum, overlaying known spectral and reference lines.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>x</strong> : list</p>
+<blockquote>
+<div><p>The x data to plot (usually freq or velocity).</p>
+</div></blockquote>
+<p><strong>y</strong> : list</p>
+<blockquote>
+<div><p>The spectrum to plot.</p>
+</div></blockquote>
+<p><strong>cutoff</strong> : float or numpy array</p>
+<blockquote>
+<div><p>A horizontal line at this level will be plotted</p>
+</div></blockquote>
+<p><strong>figname</strong> : str</p>
+<blockquote>
+<div><p>Root of output file name.  An extension matching the plot
+type will be appended. For instance, for, figname=&#8217;fig&#8217;
+and plottype=PlotControl.PNG, the output file is &#8216;fig.png&#8217;</p>
+</div></blockquote>
+<p><strong>title</strong> : str</p>
+<blockquote>
+<div><p>The title to put at the top.
+Default: &#8220;&#8221;</p>
+</div></blockquote>
+<p><strong>xlabel</strong> : str</p>
+<blockquote>
+<div><p>Label along the X axis</p>
+</div></blockquote>
+<p><strong>lines</strong> : list</p>
+<blockquote>
+<div><p>A list of LineData objects, one for each detected transition.
+The labels and channel ranges are plotted from this
+information.</p>
+</div></blockquote>
+<p><strong>force</strong> : list</p>
+<blockquote>
+<div><p>A list of LineData objects for forced lines. The labels and
+channel ranges are plotted from this information.</p>
+</div></blockquote>
+<p><strong>blends</strong> : list</p>
+<blockquote>
+<div><p>A list of LineData objects for blended lines. The labels and
+channel ranges are plotted from this information.</p>
+</div></blockquote>
+<p><strong>references</strong> : dictionary</p>
+<blockquote>
+<div><p>A dictionary of frequencies and reference line names to be
+overplotted. This can be useful if you want to plot some well
+known, but possibly not detected, lines.
+Default: empty</p>
+</div></blockquote>
+<p><strong>refline</strong> : float</p>
+<blockquote>
+<div><p>If given, this is the reference frequency for which VLSR = 0.0,
+the top axis will then be labeled in KM/S. Otherwise the middle
+of the plot is chosen to be VLSR = 0.0.
+Default: empty</p>
+</div></blockquote>
+<p><strong>continuum</strong> : list or numpy array?</p>
+<blockquote>
+<div><p>Matching to the size of the input spectrum, this is
+the continuum of the spectrum.
+Default: None</p>
+</div></blockquote>
+<p><strong>ylabel</strong> : str</p>
+<blockquote>
+<div><p>Label along the Y axis.
+Default: None (no label)</p>
+</div></blockquote>
+<p><strong>thumbnail</strong> : boolean</p>
+<blockquote>
+<div><p>If True, create a thumbnail when creating an output figure.
+Thumbnails will have &#8216;_thumb&#8217; appended for file root.
+For instance, if the output file is &#8216;fig.jpg&#8217;, the thumbnail
+will be &#8216;fig_thumb.jpg&#8217;</p>
+</div></blockquote>
+<p><strong>references</strong> : dict</p>
+<blockquote>
+<div><p>Dictionary of reference lines to plot. The keys are the
+frequencies and the values are the labels to place. Default: {}</p>
+</div></blockquote>
+<p><strong>refline</strong> : float</p>
+<blockquote>
+<div><p>The frequency to use as the reference for plotting the vlsr on
+the top axis.  Default: None (use the center of the spectrum)</p>
+</div></blockquote>
+<p><strong>chan</strong> : list of int, optional</p>
+<blockquote>
+<div><p>Channel numbers corresponding to <cite>x</cite>
+(default: if <cite>None</cite>, use index number).</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.aplot.APlot.map1">
+<code class="descname">map1</code><span class="sig-paren">(</span><em>data</em>, <em>title=None</em>, <em>figname=None</em>, <em>xlab=None</em>, <em>ylab=None</em>, <em>range=None</em>, <em>contours=None</em>, <em>cmap='hot'</em>, <em>segments=None</em>, <em>circles=None</em>, <em>thumbnail=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/aplot.html#APlot.map1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.aplot.APlot.map1" title="Permalink to this definition">¶</a></dt>
+<dd><p>display map; horrible hack, the caller should call np.rot90() since
+casa and numpy do not have their axes in the same order.
+In addition any (ix,iy) needs to be (ix,ny-iy-1) in matplotlib
+after the map was rotated.
+We cannot call casa here, since aplot needs to stay casa agnostic.
+To be resolved.
+segments    [x0,x1,y0,y1]
+See also casa.viewer() calls in e.g. Moment_AT</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.aplot.APlot.parse">
+<code class="descname">parse</code><span class="sig-paren">(</span><em>lines</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/aplot.html#APlot.parse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.aplot.APlot.parse" title="Permalink to this definition">¶</a></dt>
+<dd><p>APlot parser to pass along some matplotlib commands
+lines : list</p>
+<blockquote>
+<div><p>A list of matplotlib commands to be added to the current figure.
+Currently supported:</p>
+<dl class="docutils">
+<dt>grid</dt>
+<dd>display a grid on the plot</dd>
+<dt>axis equal</dt>
+<dd>ensure axis scales to be the same, if you want squares and
+circles to come out as such.</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.aplot.APlot.plotter">
+<code class="descname">plotter</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>title=None</em>, <em>figname=None</em>, <em>xlab=None</em>, <em>ylab=None</em>, <em>yrange=None</em>, <em>segments=None</em>, <em>labels=[]</em>, <em>histo=False</em>, <em>thumbnail=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/aplot.html#APlot.plotter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.aplot.APlot.plotter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple plotter of multiple columns against one column, optionally in histogram style</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>x</strong> : numpy array</p>
+<blockquote>
+<div><p>X axis (abscissa) values</p>
+</div></blockquote>
+<p><strong>y</strong> : numpy array</p>
+<blockquote>
+<div><p>Y axis (ordinate) values</p>
+</div></blockquote>
+<p><strong>title</strong> : str</p>
+<blockquote>
+<div><p>Title string for plot</p>
+</div></blockquote>
+<p><strong>figname</strong> : str</p>
+<blockquote>
+<div><p>Root of output file name.  An extension matching the plot
+type will be appended. For instance, for, figname=&#8217;fig&#8217;
+and plottype=PlotControl.PNG, the output file is &#8216;fig.png&#8217;</p>
+</div></blockquote>
+<p><strong>xlab</strong> : str</p>
+<blockquote>
+<div><p>X axis label</p>
+</div></blockquote>
+<p><strong>ylab</strong> : str</p>
+<blockquote>
+<div><p>Y axis label</p>
+</div></blockquote>
+<p><strong>yrange: tuple</strong></p>
+<blockquote>
+<div><p>Y axis range, (ymin,ymax)</p>
+</div></blockquote>
+<p><strong>segments</strong> : list</p>
+<blockquote>
+<div><p>list of segment end points pairs for overlaying horizontal
+segment lines.  e.g. [[0,2],[5,6.3],[10.1,14.27]]</p>
+</div></blockquote>
+<p><strong>labels</strong> : list</p>
+<blockquote>
+<div><p>labels for the plot traces. In general, there should be one per plot trace.</p>
+</div></blockquote>
+<p><strong>histo</strong> : boolean</p>
+<blockquote>
+<div><p>Histogram style?  not implemented yet</p>
+</div></blockquote>
+<p><strong>thumbnail</strong> : boolean</p>
+<blockquote>
+<div><p>If True, create a thumbnail when creating an output figure.
+Thumbnails will have &#8216;_thumb&#8217; appended for file root.
+For instance, if the output file is &#8216;fig.jpg&#8217;, the thumbnail
+will be &#8216;fig_thumb.jpg&#8217;</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.aplot.APlot.scatter">
+<code class="descname">scatter</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>title=None</em>, <em>figname=None</em>, <em>xlab=None</em>, <em>ylab=None</em>, <em>color=None</em>, <em>size=None</em>, <em>cmds=None</em>, <em>thumbnail=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/aplot.html#APlot.scatter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.aplot.APlot.scatter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Scatter plot of multiple columns against one column</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>x</strong> : numpy array</p>
+<blockquote>
+<div><p>X axis (abscissa) values</p>
+</div></blockquote>
+<p><strong>y</strong> : numpy array</p>
+<blockquote>
+<div><p>Y axis (ordinate) values</p>
+</div></blockquote>
+<p><strong>title</strong> : str</p>
+<blockquote>
+<div><p>Title string for plot</p>
+</div></blockquote>
+<p><strong>figname</strong> : str</p>
+<blockquote>
+<div><p>Root of output file name.  An extension matching the plot
+type will be appended. For instance, for, figname=&#8217;fig&#8217;
+and plottype=PlotControl.PNG, the output file is &#8216;fig.png&#8217;</p>
+</div></blockquote>
+<p><strong>xlab</strong> : str</p>
+<blockquote>
+<div><p>X axis label</p>
+</div></blockquote>
+<p><strong>ylab</strong> : str</p>
+<blockquote>
+<div><p>Y axis label</p>
+</div></blockquote>
+<p><strong>color</strong> : str</p>
+<blockquote>
+<div><p>Color as defined in matplotlib.Axes.scatter() argument &#8216;c&#8217;.</p>
+</div></blockquote>
+<p><strong>size</strong> : numpy array or scalar</p>
+<blockquote>
+<div><p>Point size as defined matplotlib.Axes.scatter() argument,
+It is a size in points^2.  It is a scalar
+or an array of the same length as x and y.</p>
+</div></blockquote>
+<p><strong>cmds :</strong></p>
+<blockquote>
+<div><p>add matplot lib commands. See parse()</p>
+</div></blockquote>
+<p><strong>thumbnail</strong> : boolean</p>
+<blockquote>
+<div><p>If True, create a thumbnail when creating an output figure.
+Thumbnails will have &#8216;_thumb&#8217; appended for file root.
+For instance, if the output file is &#8216;fig.jpg&#8217;, the thumbnail
+will be &#8216;fig_thumb.jpg&#8217;</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.aplot.APlot.segplotter">
+<code class="descname">segplotter</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>title=''</em>, <em>figname=''</em>, <em>xlab=''</em>, <em>ylab=''</em>, <em>segments=[]</em>, <em>cutoff=0.0</em>, <em>continuum=None</em>, <em>thumbnail=True</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/aplot.html#APlot.segplotter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.aplot.APlot.segplotter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plotter for spectral line segments. Based on plotter, but extended to create a legend.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>x</strong> : numpy array</p>
+<blockquote>
+<div><p>X axis (abscissa) values</p>
+</div></blockquote>
+<p><strong>y</strong> : numpy array</p>
+<blockquote>
+<div><p>Y axis (ordinate) values</p>
+</div></blockquote>
+<p><strong>title</strong> : str</p>
+<blockquote>
+<div><p>Title string for plot</p>
+</div></blockquote>
+<p><strong>figname</strong> : str</p>
+<blockquote>
+<div><p>Root of output file name.  An extension matching the plot
+type will be appended. For instance, for, figname=&#8217;fig&#8217;
+and plottype=PlotControl.PNG, the output file is &#8216;fig.png&#8217;</p>
+</div></blockquote>
+<p><strong>xlab</strong> : str</p>
+<blockquote>
+<div><p>X axis label</p>
+</div></blockquote>
+<p><strong>ylab</strong> : str</p>
+<blockquote>
+<div><p>Y axis label</p>
+</div></blockquote>
+<p><strong>segments</strong> : list</p>
+<blockquote>
+<div><p>list of segment end points pairs for overlaying horizontal segment lines.
+e.g. [[0,2],[5,6.3],[10.1,14.27]]</p>
+</div></blockquote>
+<p><strong>cutoff</strong> : float</p>
+<blockquote>
+<div><p>y-axis value at which to draw the cutoff-level indicator (horizontal line)</p>
+</div></blockquote>
+<p><strong>thumbnail</strong> : boolean</p>
+<blockquote>
+<div><p>If True, create a thumbnail when creating an output figure.
+Thumbnails will have &#8216;_thumb&#8217; appended for file root.
+For instance, if the output file is &#8216;fig.jpg&#8217;, the thumbnail
+will be &#8216;fig_thumb.jpg&#8217;</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="admit.util.aplot.APlot.summaryspec">
+<code class="descname">summaryspec</code><span class="sig-paren">(</span><em>stat</em>, <em>spec</em>, <em>pvc</em>, <em>figname</em>, <em>lines=[]</em>, <em>thumbnail=True</em>, <em>force=[]</em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/admit/util/aplot.html#APlot.summaryspec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#admit.util.aplot.APlot.summaryspec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to plot a summary of all spectra with overlayed id&#8217;s. All spectra
+are in S/N units.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>stat</strong> : list</p>
+<blockquote>
+<div><p>List of Spectrum class holding the CubeStats based spectrum</p>
+</div></blockquote>
+<p><strong>spec</strong> : list</p>
+<blockquote>
+<div><p>List of Spectrum classes, each holding the CubeSpectrum based
+spectrum</p>
+</div></blockquote>
+<p><strong>pvc</strong> : Spectrum instance</p>
+<blockquote>
+<div><p>Instance of Spectrum class holding the PVCorr based spectrum</p>
+</div></blockquote>
+<p><strong>figname</strong> : str</p>
+<blockquote>
+<div><p>The name of the output figure</p>
+</div></blockquote>
+<p><strong>lines</strong> : list</p>
+<blockquote>
+<div><p>List of LineData objects, one for each detected transition or segment</p>
+</div></blockquote>
+<p><strong>thumbnail</strong> : bool</p>
+<blockquote>
+<div><p>If True then generate a thumbnail of the image. Default: True</p>
+</div></blockquote>
+<p><strong>force</strong> : list</p>
+<blockquote>
+<div><p>List of LineData objects, one for each forced line id.
+Default: []</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/module/admit.util/aplot.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ADMIT 0.8.4 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../api.html" >Python Scripting Interface (API)</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
+    </div>
+  </body>
+</html>

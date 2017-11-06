@@ -1,0 +1,362 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.util.Tier1DB &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.util.Tier1DB</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; .. _Tier1DB-api:</span>
+
+<span class="sd">    **Tier1DB** --- Tier 1 molecular line database services.</span>
+<span class="sd">    --------------------------------------------------------</span>
+
+<span class="sd">    This module is used to interact with the Tier 1 database.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">sqlite3</span> <span class="k">as</span> <span class="nn">sql</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">admit.util</span> <span class="k">import</span> <span class="n">LineData</span>
+<span class="kn">from</span> <span class="nn">admit.util</span> <span class="k">import</span> <span class="n">utils</span>
+
+<div class="viewcode-block" id="Tier1DB"><a class="viewcode-back" href="../../../module/admit.util/Tier1DB.html#admit.util.Tier1DB.Tier1DB">[docs]</a><span class="k">class</span> <span class="nc">Tier1DB</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Class for interacting with the Tier 1 database. Methods are supplied to</span>
+<span class="sd">        query the database and get restults of the query. See the DOCUMENTATION</span>
+<span class="sd">        on the Tier 1 database for specifics.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        conn : sql connection</span>
+<span class="sd">            The main sql database connection.</span>
+
+<span class="sd">        cursor : sql cursor</span>
+<span class="sd">            The cursor used to interact with the database.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># open up the database</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conn</span> <span class="o">=</span> <span class="n">sql</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">__file__</span><span class="p">)),</span>
+                                             <span class="s2">&quot;..&quot;</span><span class="p">,</span> <span class="s2">&quot;..&quot;</span><span class="p">,</span> <span class="s2">&quot;etc&quot;</span><span class="p">,</span> <span class="s2">&quot;transitions.db&quot;</span><span class="p">))</span>
+        <span class="c1"># get a cursor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ishfs</span> <span class="o">=</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="Tier1DB.close"><a class="viewcode-back" href="../../../module/admit.util/Tier1DB.html#admit.util.Tier1DB.Tier1DB.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to cleanly close the database connection</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Tier1DB.add"><a class="viewcode-back" href="../../../module/admit.util/Tier1DB.html#admit.util.Tier1DB.Tier1DB.add">[docs]</a>    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">string</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to append to the query string, automatically adding where/and if</span>
+<span class="sd">            necessary.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            string : str</span>
+<span class="sd">                The string to add to the query</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># if this is the first one the add where</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">first</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">query</span> <span class="o">+=</span> <span class="s2">&quot; where&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">first</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1"># otherwise add an and</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">query</span> <span class="o">+=</span> <span class="s2">&quot; and&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">query</span> <span class="o">+=</span> <span class="n">string</span></div>
+
+<div class="viewcode-block" id="Tier1DB.searchtransitions"><a class="viewcode-back" href="../../../module/admit.util/Tier1DB.html#admit.util.Tier1DB.Tier1DB.searchtransitions">[docs]</a>    <span class="k">def</span> <span class="nf">searchtransitions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="p">[],</span> <span class="n">eu</span><span class="o">=</span><span class="p">[],</span> <span class="n">el</span><span class="o">=</span><span class="p">[],</span> <span class="n">linestr</span><span class="o">=</span><span class="p">[],</span> <span class="n">species</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to construct the query and send it to the database.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            freq : list or float</span>
+<span class="sd">                The frequency range to search over. If a list is given it is treated</span>
+<span class="sd">                as [min,max]. If a single float is given then it is treated as a maximum</span>
+<span class="sd">                allowable frequency. The units are GHz.</span>
+
+<span class="sd">            eu : list or float</span>
+<span class="sd">                The upper energy range to search over. If a list is given it is treated</span>
+<span class="sd">                as [min,max]. If a single float is given then it is treated as a maximum</span>
+<span class="sd">                allowable upper state energy.</span>
+
+<span class="sd">            el : list or float</span>
+<span class="sd">                The lower energy range to search over. If a list is given it is treated</span>
+<span class="sd">                as [min,max]. If a single float is given then it is treated as a maximum</span>
+<span class="sd">                allowable lower state energy.</span>
+
+<span class="sd">            linestr : list or float</span>
+<span class="sd">                The line strength range to search over. If a list is given it is treated</span>
+<span class="sd">                as [min,max]. If a single float is given then it is treated as a maximum</span>
+<span class="sd">                allowable line strength.</span>
+
+<span class="sd">            species : str</span>
+<span class="sd">                The species to restrict the search to. It is executed as an sql &quot;like&quot;</span>
+<span class="sd">                statement, and thus an exact match is not required.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># set up the query</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ishfs</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">first</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;select SPECIES, NAME, FREQUENCY, QUANTUM_NUMBERS, LINE_STR, LOWER_ENERGY, UPPER_ENERGY, HFS from Transitions&quot;</span>
+
+        <span class="c1"># add any frequency restrictions</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot; FREQUENCY between </span><span class="si">%f</span><span class="s2"> and </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">freq</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">freq</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">max</span><span class="p">(</span><span class="n">freq</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">freq</span><span class="p">[</span><span class="mi">1</span><span class="p">])))</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot; FREQUENCY &lt;= </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">freq</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Invalid number of freq components given, bust be 0, 1, or 2&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot; FREQUENCY &lt;= </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">freq</span><span class="p">)))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Invalid data type given for freq, must be a list or float&quot;</span><span class="p">)</span>
+
+        <span class="c1"># add any upper energy restrictions</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">eu</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">eu</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot; UPPER_ENERGY between </span><span class="si">%f</span><span class="s2"> and </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">eu</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">eu</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">max</span><span class="p">(</span><span class="n">eu</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">eu</span><span class="p">[</span><span class="mi">1</span><span class="p">])))</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">eu</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot; UPPER_ENERGY &lt;= </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">eu</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">eu</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Invalid number of eu components given, bust be 0, 1, or 2&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">eu</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">eu</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot; UPPER_ENERGY &lt;= </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">eu</span><span class="p">)))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Invalid data type given for eu, must be a list or float&quot;</span><span class="p">)</span>
+
+        <span class="c1"># add any lower energy restrictions</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">el</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">el</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot; LOWER_ENERGY between </span><span class="si">%f</span><span class="s2"> and </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">el</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">el</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">max</span><span class="p">(</span><span class="n">el</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">el</span><span class="p">[</span><span class="mi">1</span><span class="p">])))</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">el</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot; LOWER_ENERGY &lt;= </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">el</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">el</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Invalid number of el components given, bust be 0, 1, or 2&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">el</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">el</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot; LOWER_ENERGY &lt;= </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">el</span><span class="p">)))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Invalid data type given for el, must be a list or float&quot;</span><span class="p">)</span>
+
+        <span class="c1"># add and line strength restrictions</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">linestr</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">linestr</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot; LINE_STR between </span><span class="si">%f</span><span class="s2"> and </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">linestr</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">linestr</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">max</span><span class="p">(</span><span class="n">linestr</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">linestr</span><span class="p">[</span><span class="mi">1</span><span class="p">])))</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">linestr</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot; LINE_STR &lt;= </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">linestr</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">linestr</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Invalid number of linestr components given, bust be 0, 1, or 2&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">linestr</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">linestr</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot; LINE_STR &lt;= </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">linestr</span><span class="p">)))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Invalid data type given for linestr, must be a list or float&quot;</span><span class="p">)</span>
+
+        <span class="c1"># add any species restrictions</span>
+        <span class="k">if</span> <span class="n">species</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot; SPECIES like &#39;</span><span class="si">%%%s%%</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">species</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Tier1DB.searchhfs"><a class="viewcode-back" href="../../../module/admit.util/Tier1DB.html#admit.util.Tier1DB.Tier1DB.searchhfs">[docs]</a>    <span class="k">def</span> <span class="nf">searchhfs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hfsid</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to search the HFS table for the requested transitions</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            hfsid : int</span>
+<span class="sd">                The id of the HFS line to get</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ishfs</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;select FREQUENCY, QUANTUM_NUMBERS, LINE_STR, LOWER_ENERGY, UPPER_ENERGY from HFS where TRANSITION=</span><span class="si">%i</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">hfsid</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Tier1DB.getall"><a class="viewcode-back" href="../../../module/admit.util/Tier1DB.html#admit.util.Tier1DB.Tier1DB.getall">[docs]</a>    <span class="k">def</span> <span class="nf">getall</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to get all results from the query</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            List of LineData objects, one for each transition</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ishfs</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">res</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+                <span class="n">output</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">LineData</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">transition</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">linestrength</span><span class="o">=</span><span class="n">res</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                                       <span class="n">energies</span><span class="o">=</span><span class="p">[</span><span class="n">res</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">res</span><span class="p">[</span><span class="mi">4</span><span class="p">]]))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">res</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+                <span class="n">formula</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">output</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">LineData</span><span class="p">(</span><span class="n">formula</span><span class="o">=</span><span class="n">formula</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">frequency</span><span class="o">=</span><span class="n">res</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">uid</span><span class="o">=</span><span class="n">utils</span><span class="o">.</span><span class="n">getplain</span><span class="p">(</span><span class="n">formula</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;_</span><span class="si">%.5f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">res</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                                       <span class="n">energies</span><span class="o">=</span><span class="p">[</span><span class="n">res</span><span class="p">[</span><span class="mi">5</span><span class="p">],</span> <span class="n">res</span><span class="p">[</span><span class="mi">6</span><span class="p">]],</span> <span class="n">linestrength</span><span class="o">=</span><span class="n">res</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="n">mass</span><span class="o">=</span><span class="n">utils</span><span class="o">.</span><span class="n">getmass</span><span class="p">(</span><span class="n">formula</span><span class="p">),</span> <span class="n">transition</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">3</span><span class="p">]),</span>
+                                       <span class="n">plain</span><span class="o">=</span><span class="n">utils</span><span class="o">.</span><span class="n">getplain</span><span class="p">(</span><span class="n">formula</span><span class="p">),</span> <span class="n">isocount</span><span class="o">=</span><span class="n">utils</span><span class="o">.</span><span class="n">isotopecount</span><span class="p">(</span><span class="n">formula</span><span class="p">),</span>
+                                       <span class="n">hfnum</span><span class="o">=</span><span class="n">res</span><span class="p">[</span><span class="mi">7</span><span class="p">]))</span>
+        <span class="k">return</span> <span class="n">output</span></div>
+
+<div class="viewcode-block" id="Tier1DB.getone"><a class="viewcode-back" href="../../../module/admit.util/Tier1DB.html#admit.util.Tier1DB.Tier1DB.getone">[docs]</a>    <span class="k">def</span> <span class="nf">getone</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to get the next result from the query</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            LineData object containing the transition data</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ishfs</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">LineData</span><span class="p">(</span><span class="n">frequency</span><span class="o">=</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">transition</span><span class="o">=</span><span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">linestrength</span><span class="o">=</span><span class="n">res</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                            <span class="n">energies</span><span class="o">=</span><span class="p">[</span><span class="n">res</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">res</span><span class="p">[</span><span class="mi">4</span><span class="p">]])</span>
+        <span class="n">formula</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">LineData</span><span class="p">(</span><span class="n">formula</span><span class="o">=</span><span class="n">formula</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">frequency</span><span class="o">=</span><span class="n">res</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">uid</span><span class="o">=</span><span class="n">utils</span><span class="o">.</span><span class="n">getplain</span><span class="p">(</span><span class="n">formula</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;_</span><span class="si">%.5f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">res</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                        <span class="n">energies</span><span class="o">=</span><span class="p">[</span><span class="n">res</span><span class="p">[</span><span class="mi">5</span><span class="p">],</span> <span class="n">res</span><span class="p">[</span><span class="mi">6</span><span class="p">]],</span> <span class="n">linestrength</span><span class="o">=</span><span class="n">res</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="n">mass</span><span class="o">=</span><span class="n">utils</span><span class="o">.</span><span class="n">getmass</span><span class="p">(</span><span class="n">formula</span><span class="p">),</span> <span class="n">transition</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">3</span><span class="p">]),</span>
+                        <span class="n">plain</span><span class="o">=</span><span class="n">utils</span><span class="o">.</span><span class="n">getplain</span><span class="p">(</span><span class="n">formula</span><span class="p">),</span> <span class="n">isocount</span><span class="o">=</span><span class="n">utils</span><span class="o">.</span><span class="n">isotopecount</span><span class="p">(</span><span class="n">formula</span><span class="p">),</span> <span class="n">hfnum</span><span class="o">=</span><span class="n">res</span><span class="p">[</span><span class="mi">7</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="Tier1DB.get"><a class="viewcode-back" href="../../../module/admit.util/Tier1DB.html#admit.util.Tier1DB.Tier1DB.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to get many results from the query</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            num : int</span>
+<span class="sd">                The number of results to get</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            A tuple containing the requested results as a list</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">fetchmany</span><span class="p">(</span><span class="n">num</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Tier1DB.query"><a class="viewcode-back" href="../../../module/admit.util/Tier1DB.html#admit.util.Tier1DB.Tier1DB.query">[docs]</a>    <span class="k">def</span> <span class="nf">query</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">querystring</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to execute the requested query against the transitions database</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            query : str</span>
+<span class="sd">                The query to perform, no error checking is done</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">querystring</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

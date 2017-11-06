@@ -1,0 +1,440 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.at.Smooth_AT &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.at.Smooth_AT</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; .. _Smooth-at-api:</span>
+
+<span class="sd">   **Smooth_AT** --- Creates a smoothed version of a cube.</span>
+<span class="sd">   -------------------------------------------------------</span>
+
+<span class="sd">   This module defines the Smooth_AT class.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">admit.AT</span> <span class="k">import</span> <span class="n">AT</span>
+<span class="kn">from</span> <span class="nn">admit.Summary</span> <span class="k">import</span> <span class="n">SummaryEntry</span>
+<span class="kn">import</span> <span class="nn">admit.util.bdp_types</span> <span class="k">as</span> <span class="nn">bt</span>
+<span class="kn">import</span> <span class="nn">admit.util.Image</span> <span class="k">as</span> <span class="nn">Image</span>
+<span class="kn">import</span> <span class="nn">admit.util.utils</span> <span class="k">as</span> <span class="nn">utils</span>
+<span class="kn">import</span> <span class="nn">admit.util.Line</span> <span class="k">as</span> <span class="nn">Line</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.SpwCube_BDP</span> <span class="k">import</span> <span class="n">SpwCube_BDP</span>
+<span class="kn">from</span> <span class="nn">admit.util.AdmitLogging</span> <span class="k">import</span> <span class="n">AdmitLogging</span> <span class="k">as</span> <span class="n">logging</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
+
+<span class="k">try</span><span class="p">:</span>
+  <span class="kn">import</span> <span class="nn">casa</span>
+  <span class="kn">import</span> <span class="nn">taskinit</span>
+<span class="k">except</span><span class="p">:</span>
+  <span class="nb">print</span> <span class="s2">&quot;WARNING: No CASA; Smooth task cannot function.&quot;</span>
+
+<div class="viewcode-block" id="Smooth_AT"><a class="viewcode-back" href="../../../module/admit.at/Smooth_AT.html#admit.at.Smooth_AT.Smooth_AT">[docs]</a><span class="k">class</span> <span class="nc">Smooth_AT</span><span class="p">(</span><span class="n">AT</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Creates a smoothed version of a datacube.</span>
+
+<span class="sd">    Because interferometric arrays produce spectral cubes with </span>
+<span class="sd">    the frequency varying along the spectral axis, these cubes</span>
+<span class="sd">    have varying resolutions that are proportional to the wavelength.</span>
+<span class="sd">    It is often desirable to smooth the resolution of the cube to </span>
+<span class="sd">    a uniform one. In this task, we take an input cube, take the </span>
+<span class="sd">    beam for each plane, compute the minimum ellipse that contains </span>
+<span class="sd">    all the beams, and then smooth uniformly to that resolution.</span>
+<span class="sd">    Also, we may wish to smooth along the velocity axis so that</span>
+<span class="sd">    weak lines may come out more clearly in the resulting image. </span>
+<span class="sd">    If the user desires, we take the input cube and smooth it </span>
+<span class="sd">    to a given velocity resolution. </span>
+
+<span class="sd">    See also :ref:`Smooth-AT-Design` for the design document.</span>
+
+<span class="sd">    **Keywords**</span>
+
+<span class="sd">        **bmaj**: dictionary</span>
+<span class="sd">            A dictionary with keys &#39;unit&#39; giving the unit of the </span>
+<span class="sd">            major axis of the desired restoring beam and &#39;value&#39;, </span>
+<span class="sd">            giving the value of the major axis of the desired </span>
+<span class="sd">            restoring beam.  If &#39;value&#39; is negative, then the </span>
+<span class="sd">            major axis of the restoring beam will be that of the </span>
+<span class="sd">            minimum enclosing ellipse for all the beams in the </span>
+<span class="sd">            image. Allowed units are &quot;arcsec&quot; and &quot;pixel.&quot;</span>
+<span class="sd">            **Default**: {&#39;value&#39; : -1.0, &#39;unit&#39;: &#39;arcsec&#39;}.</span>
+
+<span class="sd">        **bmin**: dictionary</span>
+<span class="sd">            A dictionary with keys &#39;unit&#39; giving the unit of the </span>
+<span class="sd">            minor axis of the desired restoring beam and &#39;value&#39;, </span>
+<span class="sd">            giving the value of the minor axis of the desired </span>
+<span class="sd">            restoring beam.  If &#39;value&#39; is negative, then the </span>
+<span class="sd">            minor axis of the restoring beam will be that of the </span>
+<span class="sd">            minimum enclosing ellipse for all the beams in the </span>
+<span class="sd">            image. Allowed units are &quot;arcsec&quot; and &quot;pixel.&quot;</span>
+<span class="sd">            **Default**: {&#39;value&#39; : -1.0, &#39;unit&#39;: &#39;arcsec&#39;}. </span>
+
+<span class="sd">        **bpa**: float</span>
+<span class="sd">            A float that gives the position angle of the desired </span>
+<span class="sd">            restoring beam. If negative, this will be set to the </span>
+<span class="sd">            position angle of the minimum enclosing ellipse for </span>
+<span class="sd">            all the beams in the image.  </span>
+<span class="sd">            **Default**: -1.0.</span>
+
+<span class="sd">        **velres**: dictionary </span>
+<span class="sd">            A dictionary with keys &#39;unit&#39; giving the unit of the </span>
+<span class="sd">            desired velocity resolution of the image cube and &#39;value&#39;, </span>
+<span class="sd">            giving the value of the desired velocity resolution of </span>
+<span class="sd">            the image cube.  If &#39;value&#39; is negative, no smoothing </span>
+<span class="sd">            in velocity will be done. Allowed units are &quot;m/s&quot;, &quot;km/s&quot;,</span>
+<span class="sd">            &quot;Hz&quot;, &quot;kHz&quot;,&quot;MHz&quot;, &quot;GHz&quot;, and &quot;pixel&quot;</span>
+<span class="sd">            **Default**: {&#39;value&#39; : -1.0, &#39;unit&#39;: &#39;km/s&#39;}.</span>
+<span class="sd">                </span>
+<span class="sd">    **Input BDPs**</span>
+
+<span class="sd">        **SpwCube_BDP**: count: `varies`</span>
+<span class="sd">          Input cubes; e.g., output from an</span>
+<span class="sd">          `Ingest_AT &lt;Ingest_AT.html&gt;`_,</span>
+<span class="sd">          `ContinuumSub_AT &lt;ContinuumSub_AT.html&gt;`_ or</span>
+<span class="sd">          `LineCube_AT &lt;LineCube_AT.html&gt;`_.</span>
+
+<span class="sd">    **Output BDPs**</span>
+
+<span class="sd">        **SpwCube_BDP**: count: `varies` (equal to input count)</span>
+<span class="sd">          Smoothed cubes.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">        keyval : dict, optional</span>
+<span class="sd">          Dictionary of keyword:value pairs.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">        _version : string</span>
+<span class="sd">          Version ID string.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">keyval</span><span class="p">):</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">{</span>
+           <span class="s2">&quot;bmaj&quot;</span>    <span class="p">:</span> <span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;unit&#39;</span><span class="p">:</span> <span class="s1">&#39;arcsec&#39;</span><span class="p">},</span>
+           <span class="s2">&quot;bmin&quot;</span>    <span class="p">:</span> <span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;unit&#39;</span><span class="p">:</span> <span class="s1">&#39;arcsec&#39;</span><span class="p">},</span>
+           <span class="s2">&quot;bpa&quot;</span>     <span class="p">:</span>  <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span>
+           <span class="s2">&quot;velres&quot;</span>  <span class="p">:</span> <span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;unit&#39;</span><span class="p">:</span> <span class="s1">&#39;pixel&#39;</span><span class="p">},</span>
+        <span class="p">}</span>
+
+        <span class="n">AT</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">keys</span><span class="p">,</span><span class="n">keyval</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_version</span> <span class="o">=</span> <span class="s2">&quot;1.1.0&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_bdp_in</span><span class="p">([(</span><span class="n">SpwCube_BDP</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="n">bt</span><span class="o">.</span><span class="n">REQUIRED</span><span class="p">)])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_bdp_out</span><span class="p">([(</span><span class="n">SpwCube_BDP</span><span class="p">,</span><span class="mi">0</span><span class="p">)])</span>
+
+<div class="viewcode-block" id="Smooth_AT.summary"><a class="viewcode-back" href="../../../module/admit.at/Smooth_AT.html#admit.at.Smooth_AT.Smooth_AT.summary">[docs]</a>    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the summary dictionary from the AT, for merging</span>
+<span class="sd">           into the ADMIT Summary object.</span>
+
+<span class="sd">        Smooth_AT adds the following to ADMIT summary::</span>
+
+<span class="sd">           Key      type        Description</span>
+<span class="sd">         --------  ------       -----------</span>
+<span class="sd">         smooth    list        Info about smoothing done (e.g., beam parameters, spectral resolution).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;_summary&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{}</span></div>
+
+<div class="viewcode-block" id="Smooth_AT.run"><a class="viewcode-back" href="../../../module/admit.at/Smooth_AT.html#admit.at.Smooth_AT.Smooth_AT.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; The run method creates the BDP</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">Dtime</span><span class="p">(</span><span class="s2">&quot;Smooth&quot;</span><span class="p">)</span>
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;start&quot;</span><span class="p">)</span>
+        <span class="c1"># get the input keys</span>
+        <span class="n">bmaj</span>   <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;bmaj&quot;</span><span class="p">)</span>
+        <span class="n">bmin</span>   <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;bmin&quot;</span><span class="p">)</span>
+        <span class="n">bpa</span>    <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;bpa&quot;</span><span class="p">)</span>
+        <span class="n">velres</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;velres&quot;</span><span class="p">)</span>
+
+        <span class="c1"># take care of potential issues in the unit strings</span>
+        <span class="c1"># @todo  if not provided?</span>
+        <span class="n">bmaj</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bmaj</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="n">bmin</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bmin</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="n">velres</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">velres</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="n">taskargs</span> <span class="o">=</span> <span class="s2">&quot;bmaj=</span><span class="si">%s</span><span class="s2"> bmin=</span><span class="si">%s</span><span class="s2"> bpa=</span><span class="si">%s</span><span class="s2"> velres=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">bmaj</span><span class="p">,</span><span class="n">bmin</span><span class="p">,</span><span class="n">bpa</span><span class="p">,</span><span class="n">velres</span><span class="p">)</span>
+
+        <span class="n">ia</span> <span class="o">=</span> <span class="n">taskinit</span><span class="o">.</span><span class="n">iatool</span><span class="p">()</span>
+        <span class="n">qa</span> <span class="o">=</span> <span class="n">taskinit</span><span class="o">.</span><span class="n">qatool</span><span class="p">()</span>
+
+        <span class="n">bdpnames</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">for</span> <span class="n">ibdp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">:</span>
+            <span class="n">istem</span> <span class="o">=</span> <span class="n">ibdp</span><span class="o">.</span><span class="n">getimagefile</span><span class="p">(</span><span class="n">bt</span><span class="o">.</span><span class="n">CASA</span><span class="p">)</span>
+            <span class="n">image_in</span> <span class="o">=</span> <span class="n">ibdp</span><span class="o">.</span><span class="n">baseDir</span><span class="p">()</span> <span class="o">+</span> <span class="n">istem</span>
+
+            <span class="n">bdp_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mkext</span><span class="p">(</span><span class="n">istem</span><span class="p">,</span><span class="s1">&#39;sim&#39;</span><span class="p">)</span>
+            <span class="n">image_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">bdp_name</span><span class="p">)</span>
+          
+            <span class="n">ia</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">image_in</span><span class="p">)</span>        
+            <span class="n">h</span> <span class="o">=</span> <span class="n">casa</span><span class="o">.</span><span class="n">imhead</span><span class="p">(</span><span class="n">image_in</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;list&#39;</span><span class="p">)</span>
+            <span class="n">pix_scale</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="s1">&#39;cdelt1&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="mf">206265.0</span><span class="p">)</span> <span class="c1"># pix scale in asec @todo QA ?</span>
+            <span class="n">CC</span> <span class="o">=</span> <span class="mf">299792458.0</span> <span class="c1"># speed of light  @todo somewhere else   [utils.c , but in km/s]</span>
+
+            <span class="n">rest_freq</span> <span class="o">=</span> <span class="n">h</span><span class="p">[</span><span class="s1">&#39;crval3&#39;</span><span class="p">]</span>
+            <span class="c1"># frequency pixel scale in km/s </span>
+            <span class="n">vel_scale</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">CC</span><span class="o">*</span><span class="n">h</span><span class="p">[</span><span class="s1">&#39;cdelt3&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">rest_freq</span><span class="o">/</span><span class="mf">1000.0</span><span class="p">)</span>
+
+            <span class="c1"># unit conversion to arcsec (spatial) or km/s </span>
+            <span class="c1"># (velocity) or some flavor of Hz.</span>
+
+            <span class="k">if</span><span class="p">(</span><span class="n">bmaj</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;pixel&#39;</span><span class="p">):</span>
+                <span class="n">bmaj</span> <span class="o">=</span> <span class="n">bmaj</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span><span class="o">*</span><span class="n">pix_scale</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">bmaj</span> <span class="o">=</span> <span class="n">bmaj</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">bmin</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;pixel&#39;</span><span class="p">):</span>
+                <span class="n">bmin</span> <span class="o">=</span> <span class="n">bmin</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span><span class="o">*</span><span class="n">pix_scale</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">bmin</span> <span class="o">=</span> <span class="n">bmin</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+
+            <span class="n">hertz_input</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="n">velres</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;pixel&#39;</span><span class="p">:</span>
+                <span class="n">velres</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">velres</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span><span class="o">*</span><span class="n">vel_scale</span>
+                <span class="n">velres</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;km/s&#39;</span>
+            <span class="k">elif</span> <span class="n">velres</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;m/s&#39;</span><span class="p">:</span>
+                <span class="n">velres</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">velres</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span><span class="o">/</span><span class="mf">1000.0</span>
+                <span class="n">velres</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;km/s&#39;</span>
+            <span class="k">elif</span> <span class="n">velres</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">2</span><span class="p">:]</span> <span class="o">==</span> <span class="s1">&#39;hz&#39;</span><span class="p">:</span>
+                <span class="n">hertz_input</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">elif</span> <span class="n">velres</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;km/s&#39;</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Unknown units in velres=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">velres</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">])</span>
+
+            <span class="n">rdata</span> <span class="o">=</span> <span class="n">bmaj</span>
+
+            <span class="c1"># we smooth in velocity first. if smoothing in velocity</span>
+            <span class="c1"># the cube apparently must be closed afterwards and </span>
+            <span class="c1"># then reopened if spatial smoothing is to be done.</span>
+
+            <span class="k">if</span> <span class="n">velres</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># handle the different units allowed. CASA doesn&#39;t</span>
+                <span class="c1"># like lowercase for hz units...          </span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">hertz_input</span><span class="p">:</span>
+                    <span class="n">freq_res</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">velres</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span><span class="o">*</span><span class="mf">1000.0</span><span class="o">/</span><span class="n">CC</span> <span class="o">*</span><span class="n">rest_freq</span> <span class="p">)</span><span class="o">+</span><span class="s1">&#39;Hz&#39;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">freq_res</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">velres</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">])</span>
+                    <span class="c1"># try to convert velres to km/s for debug purposes</span>
+                    <span class="n">velres</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">velres</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">rest_freq</span><span class="o">*</span><span class="n">CC</span> <span class="o">/</span> <span class="mf">1000.0</span> 
+                    <span class="k">if</span><span class="p">(</span><span class="n">velres</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;khz&#39;</span><span class="p">):</span>
+                        <span class="n">velres</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">velres</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span><span class="o">*</span><span class="mf">1000.0</span>
+                        <span class="n">velres</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;kHz&#39;</span>
+                    <span class="k">elif</span><span class="p">(</span><span class="n">velres</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;mhz&#39;</span><span class="p">):</span>
+                        <span class="n">velres</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">velres</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span><span class="o">*</span><span class="mi">1</span><span class="n">E6</span>
+                        <span class="n">velres</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;MHz&#39;</span>
+                    <span class="k">elif</span><span class="p">(</span><span class="n">velres</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;ghz&#39;</span><span class="p">):</span>
+                        <span class="n">velres</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">velres</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span><span class="o">*</span><span class="mi">1</span><span class="n">E9</span>
+                        <span class="n">velres</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;GHz&#39;</span>
+                    <span class="n">freq_res</span> <span class="o">=</span> <span class="n">freq_res</span> <span class="o">+</span> <span class="n">velres</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span>
+
+                <span class="c1"># NB: there is apparently a bug in CASA. only smoothing along the frequency</span>
+                <span class="c1"># axis does not work. sepconvolve gives a unit error (says axis unit is radian rather </span>
+                <span class="c1"># than Hz). MUST smooth in 2+ dimensions if you want this to work.</span>
+
+                <span class="k">if</span><span class="p">(</span><span class="n">velres</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">vel_scale</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span><span class="s2">&quot;Desired velocity resolution </span><span class="si">%g</span><span class="s2"> less than pixel scale </span><span class="si">%g</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">velres</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">],</span><span class="n">vel_scale</span><span class="p">)</span>
+                <span class="n">image_tmp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="s1">&#39;tmp.smooth&#39;</span><span class="p">)</span>
+                <span class="n">im2</span><span class="o">=</span><span class="n">ia</span><span class="o">.</span><span class="n">sepconvolve</span><span class="p">(</span><span class="n">outfile</span><span class="o">=</span><span class="n">image_tmp</span><span class="p">,</span><span class="n">axes</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="n">types</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;boxcar&quot;</span><span class="p">,</span><span class="s2">&quot;boxcar&quot;</span><span class="p">,</span><span class="s2">&quot;gauss&quot;</span><span class="p">],</span>\
+                                              <span class="n">widths</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;1pix&#39;</span><span class="p">,</span><span class="s1">&#39;1pix&#39;</span><span class="p">,</span><span class="n">freq_res</span><span class="p">],</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">im2</span><span class="o">.</span><span class="n">done</span><span class="p">()</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;sepconvolve to </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">image_out</span><span class="p">)</span>
+                <span class="c1"># for some reason, doing this in memory does not seem to work, so outfile must be specified.</span>
+
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Smoothing cube to a velocity resolution of </span><span class="si">%s</span><span class="s2"> km/s&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">velres</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]))</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Smoothing cube to a frequency resolution of </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">freq_res</span><span class="p">)</span>
+                <span class="n">ia</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="n">ia</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">image_tmp</span><span class="p">)</span>
+                <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;sepconvolve&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">image_tmp</span> <span class="o">=</span> <span class="n">image_out</span>
+
+            <span class="c1"># now do the spatial smoothing </span>
+
+            <span class="n">convolve_to_min_beam</span> <span class="o">=</span> <span class="kc">True</span>                     <span class="c1"># default is to convolve to a min enclosing beam</span>
+
+            <span class="k">if</span> <span class="n">bmaj</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">bmin</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># form qa objects out of these so that casa can understand</span>
+                <span class="n">bmaj</span> <span class="o">=</span> <span class="n">qa</span><span class="o">.</span><span class="n">quantity</span><span class="p">(</span><span class="n">bmaj</span><span class="p">,</span><span class="s1">&#39;arcsec&#39;</span><span class="p">)</span>
+                <span class="n">bmin</span> <span class="o">=</span> <span class="n">qa</span><span class="o">.</span><span class="n">quantity</span><span class="p">(</span><span class="n">bmin</span><span class="p">,</span><span class="s1">&#39;arcsec&#39;</span><span class="p">)</span>
+                <span class="n">bpa</span>  <span class="o">=</span> <span class="n">qa</span><span class="o">.</span><span class="n">quantity</span><span class="p">(</span><span class="n">bpa</span><span class="p">,</span><span class="s1">&#39;deg&#39;</span><span class="p">)</span>
+
+                <span class="n">target_res</span><span class="o">=</span><span class="p">{}</span>
+                <span class="n">target_res</span><span class="p">[</span><span class="s1">&#39;major&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bmaj</span>
+                <span class="n">target_res</span><span class="p">[</span><span class="s1">&#39;minor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bmin</span>
+                <span class="n">target_res</span><span class="p">[</span><span class="s1">&#39;positionangle&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bpa</span>
+
+                <span class="c1"># throw an exception if cannot be convolved</span>
+
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="c1"># for whatever reason, if you give convolve2d a beam parameter,</span>
+                    <span class="c1"># it complains ...</span>
+                    <span class="n">im2</span><span class="o">=</span><span class="n">ia</span><span class="o">.</span><span class="n">convolve2d</span><span class="p">(</span><span class="n">outfile</span><span class="o">=</span><span class="n">image_out</span><span class="p">,</span><span class="n">major</span> <span class="o">=</span> <span class="n">bmaj</span><span class="p">,</span>\
+                                             <span class="n">minor</span> <span class="o">=</span> <span class="n">bmin</span><span class="p">,</span> <span class="n">pa</span> <span class="o">=</span> <span class="n">bpa</span><span class="p">,</span>\
+                                             <span class="n">targetres</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="n">im2</span><span class="o">.</span><span class="n">done</span><span class="p">()</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Smoothing cube to a resolution of </span><span class="si">%s</span><span class="s2"> by </span><span class="si">%s</span><span class="s2"> at a PA of </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span>
+                                      <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">bmaj</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]),</span> <span class="nb">str</span><span class="p">(</span><span class="n">bmin</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]),</span> <span class="nb">str</span><span class="p">(</span><span class="n">bpa</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">])))</span>
+                    <span class="n">convolve_to_min_beam</span> <span class="o">=</span> <span class="kc">False</span>
+                    <span class="n">achieved_res</span> <span class="o">=</span> <span class="n">target_res</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="c1"># @todo   remind what you need ?</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Warning: Could not convolve to requested resolution of &quot;</span>\
+                            <span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">bmaj</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="s2">&quot; by &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">bmin</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">])</span> <span class="o">+</span> \
+                            <span class="s2">&quot; at a PA of &quot;</span><span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">bpa</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]))</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span><span class="s2">&quot;Could not convolve to beam given!&quot;</span>
+            <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;convolve2d-1&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">convolve_to_min_beam</span><span class="p">:</span>
+                <span class="n">restoring_beams</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">restoringbeam</span><span class="p">()</span>
+                <span class="n">commonbeam</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">commonbeam</span><span class="p">()</span>
+                <span class="c1"># for whatever reason, setrestoringbeam does not use the same set of hashes...</span>
+                <span class="n">commonbeam</span><span class="p">[</span><span class="s1">&#39;positionangle&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">commonbeam</span><span class="p">[</span><span class="s1">&#39;pa&#39;</span><span class="p">]</span>
+                <span class="k">del</span> <span class="n">commonbeam</span><span class="p">[</span><span class="s1">&#39;pa&#39;</span><span class="p">]</span>
+
+                <span class="c1"># if there&#39;s one beam, apparently the beams keyword does not exist</span>
+                <span class="k">if</span> <span class="s1">&#39;beams&#39;</span> <span class="ow">in</span> <span class="n">restoring_beams</span><span class="p">:</span> 
+                    <span class="nb">print</span> <span class="s2">&quot;Smoothing cube to a resolution of &quot;</span><span class="o">+</span>  \
+                         <span class="nb">str</span><span class="p">(</span><span class="n">commonbeam</span><span class="p">[</span><span class="s1">&#39;major&#39;</span><span class="p">][</span><span class="s1">&#39;value&#39;</span><span class="p">])</span> <span class="o">+</span><span class="s2">&quot; by &quot;</span><span class="o">+</span> \
+                         <span class="nb">str</span><span class="p">(</span><span class="n">commonbeam</span><span class="p">[</span><span class="s1">&#39;minor&#39;</span><span class="p">][</span><span class="s1">&#39;value&#39;</span><span class="p">])</span><span class="o">+</span><span class="s2">&quot; at a PA of &quot;</span>\
+                        <span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">commonbeam</span><span class="p">[</span><span class="s1">&#39;pa&#39;</span><span class="p">][</span><span class="s1">&#39;value&#39;</span><span class="p">])</span>  
+                    <span class="n">target_res</span> <span class="o">=</span> <span class="n">commonbeam</span>
+                    <span class="n">im2</span><span class="o">=</span><span class="n">ia</span><span class="o">.</span><span class="n">convolve2d</span><span class="p">(</span><span class="n">outfile</span><span class="o">=</span><span class="n">image_out</span><span class="p">,</span><span class="n">major</span><span class="o">=</span><span class="n">commonbeam</span><span class="p">[</span><span class="s1">&#39;major&#39;</span><span class="p">],</span>\
+                                               <span class="n">minor</span><span class="o">=</span><span class="n">commonbeam</span><span class="p">[</span><span class="s1">&#39;minor&#39;</span><span class="p">],</span>\
+                                               <span class="n">pa</span><span class="o">=</span><span class="n">commonbeam</span><span class="p">[</span><span class="s1">&#39;positionangle&#39;</span><span class="p">],</span>\
+                                               <span class="n">targetres</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="n">im2</span><span class="o">.</span><span class="n">done</span><span class="p">()</span>
+                    <span class="n">achieved_res</span> <span class="o">=</span> <span class="n">commonbeam</span>
+                    <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;convolve2d-2&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">print</span> <span class="s2">&quot;One beam for all planes. Smoothing to common beam redundant.&quot;</span>
+                    <span class="n">achieved_res</span> <span class="o">=</span> <span class="n">commonbeam</span> 
+                    <span class="k">if</span> <span class="n">velres</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">ia</span><span class="o">.</span><span class="n">fromimage</span><span class="p">(</span><span class="n">outfile</span><span class="o">=</span><span class="n">image_out</span><span class="p">,</span> <span class="n">infile</span><span class="o">=</span><span class="n">image_in</span><span class="p">)</span>
+                    <span class="c1"># not really doing anything</span>
+                <span class="c1"># else, we&#39;ve already done what we needed to</span>
+
+                <span class="n">ia</span><span class="o">.</span><span class="n">setrestoringbeam</span><span class="p">(</span><span class="n">beam</span> <span class="o">=</span> <span class="n">achieved_res</span><span class="p">)</span>
+                <span class="n">rdata</span> <span class="o">=</span> <span class="n">achieved_res</span><span class="p">[</span><span class="s1">&#39;major&#39;</span><span class="p">][</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+
+            <span class="c1"># else do no smoothing and just close the image</span>
+
+            <span class="n">ia</span><span class="o">.</span><span class="n">close</span><span class="p">()</span> 
+            <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;close&quot;</span><span class="p">)</span>
+
+            <span class="n">b1</span> <span class="o">=</span> <span class="n">SpwCube_BDP</span><span class="p">(</span><span class="n">bdp_name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">addoutput</span><span class="p">(</span><span class="n">b1</span><span class="p">)</span> 
+            <span class="c1"># need to update for multiple images.</span>
+
+            <span class="n">b1</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;image&quot;</span><span class="p">,</span> <span class="n">Image</span><span class="p">(</span><span class="n">images</span><span class="o">=</span><span class="p">{</span><span class="n">bt</span><span class="o">.</span><span class="n">CASA</span><span class="p">:</span><span class="n">bdp_name</span><span class="p">}))</span>
+
+            <span class="n">bdpnames</span> <span class="o">=</span> <span class="n">bdpnames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bdp_name</span><span class="p">)</span>
+
+            <span class="c1"># and clean up the temp image before the next image</span>
+            <span class="k">if</span> <span class="n">velres</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">utils</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">image_tmp</span><span class="p">)</span>
+
+        <span class="c1"># thes are task arguments not summary entries.</span>
+        <span class="n">_bmaj</span> <span class="o">=</span> <span class="n">qa</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">achieved_res</span><span class="p">[</span><span class="s1">&#39;major&#39;</span><span class="p">],</span><span class="s1">&#39;rad&#39;</span><span class="p">)[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+        <span class="n">_bmin</span> <span class="o">=</span> <span class="n">qa</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">achieved_res</span><span class="p">[</span><span class="s1">&#39;minor&#39;</span><span class="p">],</span><span class="s1">&#39;rad&#39;</span><span class="p">)[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+        <span class="n">_bpa</span> <span class="o">=</span> <span class="n">qa</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">achieved_res</span><span class="p">[</span><span class="s1">&#39;positionangle&#39;</span><span class="p">],</span><span class="s1">&#39;deg&#39;</span><span class="p">)[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+        <span class="n">vres</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%.2f</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">velres</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">],</span><span class="n">velres</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">])</span>
+
+        <span class="n">logging</span><span class="o">.</span><span class="n">regression</span><span class="p">(</span><span class="s2">&quot;SMOOTH: </span><span class="si">%f</span><span class="s2"> </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rdata</span><span class="p">,</span><span class="n">velres</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]))</span>
+       
+        <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="s2">&quot;smooth&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SummaryEntry</span><span class="p">([</span><span class="n">bdp_name</span><span class="p">,</span><span class="n">convolve_to_min_beam</span><span class="p">,</span><span class="n">_bmaj</span><span class="p">,</span><span class="n">_bmin</span><span class="p">,</span><span class="n">_bpa</span><span class="p">,</span><span class="n">vres</span><span class="p">],</span><span class="s2">&quot;Smooth_AT&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">(</span><span class="kc">True</span><span class="p">),</span><span class="n">taskargs</span><span class="p">)</span>
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;done&quot;</span><span class="p">)</span>
+        <span class="n">dt</span><span class="o">.</span><span class="n">end</span><span class="p">()</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

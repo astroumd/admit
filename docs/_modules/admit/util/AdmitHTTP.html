@@ -1,0 +1,277 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.util.AdmitHTTP &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.util.AdmitHTTP</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   **AdmitHTTP** --- Data browser services module.</span>
+<span class="sd">   -----------------------------------------------</span>
+
+<span class="sd">   This module defines the classes needed to serve ADMIT data</span>
+<span class="sd">   to the data browser on a localhost port.   These classes are</span>
+<span class="sd">   subclasses of those provided in the Python library BaseHTTPServer</span>
+<span class="sd">   module.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">posixpath</span>
+<span class="kn">import</span> <span class="nn">urllib</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">socket</span>
+<span class="kn">import</span> <span class="nn">BaseHTTPServer</span>
+<span class="kn">from</span> <span class="nn">SimpleHTTPServer</span> <span class="k">import</span> <span class="n">SimpleHTTPRequestHandler</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;AdmitHTTPServer&quot;</span><span class="p">,</span> <span class="s2">&quot;AdmitHTTPRequestHandler&quot;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="AdmitHTTPServer"><a class="viewcode-back" href="../../../module/admit.util/AdmitHTTP.html#admit.util.AdmitHTTP.AdmitHTTPServer">[docs]</a><span class="k">class</span> <span class="nc">AdmitHTTPServer</span><span class="p">(</span><span class="n">BaseHTTPServer</span><span class="o">.</span><span class="n">HTTPServer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This class is identical to BaseHTTPServer.HTTPServer except</span>
+<span class="sd">        1) It defines a fixed document root instead of using the current</span>
+<span class="sd">           working directory.</span>
+<span class="sd">        2) The handler class is fixed to be AdmitHTTPRequestHandler.</span>
+
+<span class="sd">       This is accomplished by overriding the constructor and</span>
+<span class="sd">       BaseServer.finish_request().</span>
+
+<span class="sd">       Parameters</span>
+<span class="sd">       ----------</span>
+<span class="sd">       server_address : tuple</span>
+<span class="sd">           The address on which the server is listening.  This is a tuple</span>
+<span class="sd">           containing a string giving the address, and an integer port</span>
+<span class="sd">           number: (&#39;127.0.0.1&#39;, 80), for example.</span>
+
+<span class="sd">       docroot : string</span>
+<span class="sd">           The document root directory for the local data web server.  Requests</span>
+<span class="sd">           will be served out of this directory. ** todo: possibly make</span>
+<span class="sd">           this always localhost**</span>
+
+<span class="sd">       postcallback : function</span>
+<span class="sd">           The external function to call when handling a POST.</span>
+
+<span class="sd">       Attributes</span>
+<span class="sd">       ----------</span>
+<span class="sd">       _documentRoot : string</span>
+<span class="sd">           The document root directory for the web server.  Requests will be</span>
+<span class="sd">           served out of this directory.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">server_address</span><span class="p">,</span> <span class="n">docroot</span><span class="p">,</span> <span class="n">postcallback</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_documentRoot</span><span class="o">=</span><span class="n">docroot</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_postCallbackFn</span> <span class="o">=</span> <span class="n">postcallback</span>
+        <span class="n">BaseHTTPServer</span><span class="o">.</span><span class="n">HTTPServer</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">server_address</span><span class="p">,</span> <span class="n">AdmitHTTPRequestHandler</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timeout</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="AdmitHTTPServer.finish_request"><a class="viewcode-back" href="../../../module/admit.util/AdmitHTTP.html#admit.util.AdmitHTTP.AdmitHTTPServer.finish_request">[docs]</a>    <span class="k">def</span> <span class="nf">finish_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">client_address</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Finish one http request by instantiating RequestHandlerClass.</span>
+<span class="sd">           Construction of the handler class calls the methods to process</span>
+<span class="sd">           the request.</span>
+<span class="sd">           *overrides:* `BaseServer.finish_request &lt;https://docs.python.org/2/library/socketserver.html#SocketServer.BaseServer.finish_request&gt;`_</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#print &quot;server %s:%d finishing request with handler docroot: %s&quot; % (self.server_address[0], self.server_address[1], self._documentRoot )</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">RequestHandlerClass</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">client_address</span><span class="p">,</span> <span class="n">docroot</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_documentRoot</span><span class="p">,</span><span class="n">postcallback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_postCallbackFn</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span> 
+            <span class="bp">self</span><span class="o">.</span><span class="n">handle_error</span><span class="p">(</span><span class="n">request</span><span class="p">,</span><span class="n">client_address</span><span class="p">)</span></div></div>
+
+
+
+<div class="viewcode-block" id="AdmitHTTPRequestHandler"><a class="viewcode-back" href="../../../module/admit.util/AdmitHTTP.html#admit.util.AdmitHTTP.AdmitHTTPRequestHandler">[docs]</a><span class="k">class</span> <span class="nc">AdmitHTTPRequestHandler</span><span class="p">(</span><span class="n">SimpleHTTPRequestHandler</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;And HTTP request handler that allows a fixed document root.</span>
+<span class="sd">       Python&#39;s SimpleHTTPRequestHandler always uses the current</span>
+<span class="sd">       working directory which is stored globally. Therefore,</span>
+<span class="sd">       SimpleHTTPRequestHandler cannot be used to spawn off</span>
+<span class="sd">       http servers in separate threads because they will</span>
+<span class="sd">       overwrite each other&#39;s working directories.</span>
+<span class="sd">       &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">request</span><span class="p">,</span><span class="n">client_address</span><span class="p">,</span><span class="n">docroot</span><span class="p">,</span><span class="n">postcallback</span><span class="p">):</span>
+       <span class="c1"># Note: documentRoot must be set BEFORE instantiation of SimpleHTTPServer</span>
+       <span class="c1"># because the __init__ in the base class calls the methods that</span>
+       <span class="c1"># actually handle the request, including AdmitHTTPServer.finish_request()</span>
+       <span class="c1"># above.</span>
+       <span class="bp">self</span><span class="o">.</span><span class="n">_documentRoot</span> <span class="o">=</span> <span class="n">docroot</span>
+       <span class="c1"># for now don&#39;t log anything; it&#39;s too verbose</span>
+       <span class="bp">self</span><span class="o">.</span><span class="n">_logging</span> <span class="o">=</span> <span class="kc">False</span>
+       <span class="bp">self</span><span class="o">.</span><span class="n">_postCallbackFn</span> <span class="o">=</span> <span class="n">postcallback</span>
+       <span class="k">try</span><span class="p">:</span>
+           <span class="n">SimpleHTTPRequestHandler</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">,</span> <span class="n">client_address</span><span class="o">=</span><span class="n">client_address</span><span class="p">,</span> <span class="n">server</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+       <span class="k">except</span><span class="p">:</span>
+           <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_broken_pipe_error</span><span class="p">():</span> <span class="k">pass</span>
+           <span class="k">else</span><span class="p">:</span> <span class="k">raise</span>
+
+<div class="viewcode-block" id="AdmitHTTPRequestHandler.is_broken_pipe_error"><a class="viewcode-back" href="../../../module/admit.util/AdmitHTTP.html#admit.util.AdmitHTTP.AdmitHTTPRequestHandler.is_broken_pipe_error">[docs]</a>    <span class="k">def</span> <span class="nf">is_broken_pipe_error</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_value</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[:</span><span class="mi">2</span><span class="p">]</span>
+        <span class="k">return</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">exc_type</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">error</span><span class="p">)</span> <span class="ow">and</span> <span class="n">exc_value</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">32</span></div>
+
+<div class="viewcode-block" id="AdmitHTTPRequestHandler.handle_error"><a class="viewcode-back" href="../../../module/admit.util/AdmitHTTP.html#admit.util.AdmitHTTP.AdmitHTTPRequestHandler.handle_error">[docs]</a>    <span class="k">def</span> <span class="nf">handle_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">client_address</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_broken_pipe_error</span><span class="p">():</span>
+            <span class="nb">print</span> <span class="s2">&quot;- Broken pipe from </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">client_address</span><span class="p">)</span>
+            <span class="k">return</span></div>
+
+    <span class="sd">&quot;&quot;&quot;Override base class log message method to bypass logging.&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="AdmitHTTPRequestHandler.log_message"><a class="viewcode-back" href="../../../module/admit.util/AdmitHTTP.html#admit.util.AdmitHTTP.AdmitHTTPRequestHandler.log_message">[docs]</a>    <span class="k">def</span> <span class="nf">log_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="nb">format</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+       <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_logging</span><span class="p">:</span>
+            <span class="n">SimpleHTTPRequestHandler</span><span class="o">.</span><span class="n">log_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">format</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AdmitHTTPRequestHandler.translate_path"><a class="viewcode-back" href="../../../module/admit.util/AdmitHTTP.html#admit.util.AdmitHTTP.AdmitHTTPRequestHandler.translate_path">[docs]</a>    <span class="k">def</span> <span class="nf">translate_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Translate a /-separated PATH to the local filename syntax.</span>
+<span class="sd">        Components that mean special things to the local file system</span>
+<span class="sd">        (e.g. drive or directory names) are ignored.</span>
+<span class="sd">        This method is identical to SimpleHTTPRequestHandler.translate_path()</span>
+<span class="sd">        except it uses the locally stored document root instead of the current</span>
+<span class="sd">        working directory.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># abandon query parameters</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;?&#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;#&#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">posixpath</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">urllib</span><span class="o">.</span><span class="n">unquote</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
+        <span class="n">words</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+        <span class="n">words</span> <span class="o">=</span> <span class="nb">filter</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">words</span><span class="p">)</span>
+        <span class="c1"># Always use document root!</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_documentRoot</span>
+        <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">words</span><span class="p">:</span>
+            <span class="n">drive</span><span class="p">,</span> <span class="n">word</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitdrive</span><span class="p">(</span><span class="n">word</span><span class="p">)</span>
+            <span class="n">head</span><span class="p">,</span> <span class="n">word</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">word</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">word</span> <span class="ow">in</span> <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">curdir</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">pardir</span><span class="p">):</span> <span class="k">continue</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">word</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">path</span></div>
+
+<div class="viewcode-block" id="AdmitHTTPRequestHandler.do_OPTIONS"><a class="viewcode-back" href="../../../module/admit.util/AdmitHTTP.html#admit.util.AdmitHTTP.AdmitHTTPRequestHandler.do_OPTIONS">[docs]</a>    <span class="k">def</span> <span class="nf">do_OPTIONS</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">send_response</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="s2">&quot;ok&quot;</span><span class="p">)</span>       
+        <span class="bp">self</span><span class="o">.</span><span class="n">send_header</span><span class="p">(</span><span class="s1">&#39;Access-Control-Allow-Origin&#39;</span><span class="p">,</span> <span class="s1">&#39;*&#39;</span><span class="p">)</span>                
+        <span class="bp">self</span><span class="o">.</span><span class="n">send_header</span><span class="p">(</span><span class="s1">&#39;Access-Control-Allow-Methods&#39;</span><span class="p">,</span> <span class="s1">&#39;GET, POST, OPTIONS, HEAD&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">send_header</span><span class="p">(</span><span class="s2">&quot;Access-Control-Allow-Headers&quot;</span><span class="p">,</span> <span class="s2">&quot;X-Requested-With&quot;</span><span class="p">,</span> <span class="s2">&quot;Content-Type&quot;</span><span class="p">)</span> </div>
+
+<div class="viewcode-block" id="AdmitHTTPRequestHandler.do_POST"><a class="viewcode-back" href="../../../module/admit.util/AdmitHTTP.html#admit.util.AdmitHTTP.AdmitHTTPRequestHandler.do_POST">[docs]</a>    <span class="k">def</span> <span class="nf">do_POST</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">length</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">&#39;Content-Length&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_string</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rfile</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+        <span class="c1">#print &quot;DATASTRING=%s&quot; % self.data_string</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_string</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;{&quot;</span><span class="p">:</span>
+            <span class="c1"># Firefox sends extra GETs disguised as POSTs with</span>
+            <span class="c1"># garbage data.  Need to deal with this.</span>
+            <span class="c1"># Disabling network prefetch in about:config does not fix it.</span>
+            <span class="c1">#print &quot;this looks like a bogus GET&quot;</span>
+            <span class="c1">#self.send_response(200)</span>
+            <span class="c1"># THE ISSUE HERE IS WHAT RESPONSE TO SEND THAT DOES</span>
+            <span class="c1"># NOT BREAK THE BROWSER VIEW.  200 will refresh</span>
+            <span class="c1"># a blank page.  We really just want the button to</span>
+            <span class="c1"># come unstuck and no refresh of html.</span>
+            <span class="c1"># The correct answer may be do nothing.</span>
+            <span class="k">return</span>
+ 
+        <span class="k">try</span><span class="p">:</span> 
+            <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_string</span><span class="p">)</span>
+            <span class="c1">#print &quot;GOT JSON: %d \n %s&quot; % (len(data), data)</span>
+            <span class="c1">#command = data[&quot;command&quot;]</span>
+            <span class="c1">#print &quot;command = %s&quot; % command</span>
+            <span class="nb">print</span> <span class="s2">&quot;User agent: </span><span class="si">%s</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">&#39;user-agent&#39;</span><span class="p">]</span>
+            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;firefox&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">isFirefox</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_postCallbackFn</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">send_response</span><span class="p">(</span><span class="mi">200</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="s2">&quot;Problem with server/browser connection: &quot;</span><span class="p">,</span> <span class="n">e</span>
+            <span class="c1"># This is almost certainly the firefox bug, try sending 200</span>
+            <span class="c1"># instead of 400</span>
+            <span class="c1">#print &quot;sending 200 anyway&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">send_response</span><span class="p">(</span><span class="mi">200</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">send_header</span><span class="p">(</span><span class="s1">&#39;Content-type&#39;</span><span class="p">,</span><span class="s1">&#39;text/html&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">end_headers</span><span class="p">()</span>
+
+        <span class="k">return</span></div>
+
+<div class="viewcode-block" id="AdmitHTTPRequestHandler.isFirefox"><a class="viewcode-back" href="../../../module/admit.util/AdmitHTTP.html#admit.util.AdmitHTTP.AdmitHTTPRequestHandler.isFirefox">[docs]</a>    <span class="k">def</span> <span class="nf">isFirefox</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Attempt to detect the Firefox browser. This is because Firefox does</span>
+<span class="sd">           funny things and we have to workaround it.</span>
+<span class="sd">           Return True if the user-agent header contains the string &#39;firefox&#39;  </span>
+<span class="sd">           (case insensitive)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">&#39;user-agent&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;firefox&#39;</span><span class="p">)</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span></div></div>
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

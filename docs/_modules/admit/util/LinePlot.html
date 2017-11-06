@@ -1,0 +1,218 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.util.LinePlot &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.util.LinePlot</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">**LinePlot** --- Interactive/non-interactive line plotting utility.</span>
+<span class="sd">-----------------------------------------------------------------------</span>
+
+<span class="sd">This module defines the LinePlot class.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">PlotControl</span>
+<span class="kn">import</span> <span class="nn">APlot</span>
+
+<div class="viewcode-block" id="LinePlot"><a class="viewcode-back" href="../../../module/admit.util/LinePlot.html#admit.util.LinePlot.LinePlot">[docs]</a><span class="k">class</span> <span class="nc">LinePlot</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">  Interactive and non-interactive line plot generator.</span>
+
+<span class="sd">  This class takes a LineID BDP as produced by the LineID task and creates </span>
+<span class="sd">  standardized line plots for each of the inputs.</span>
+
+<span class="sd">  Parameters</span>
+<span class="sd">  ----------</span>
+<span class="sd">  pmode : int, optional</span>
+<span class="sd">    Plotting mode (admit.util.PlotControl plot mode; e.g., PlotControl.BATCH).</span>
+
+<span class="sd">  ptype : int, optional</span>
+<span class="sd">    Plotting format (admit.util.PlotControl plot type; e.g., PlotControl.PNG).</span>
+<span class="sd">    Ignored for interactive plots.</span>
+
+<span class="sd">  figno : int, optional</span>
+<span class="sd">    Starting figure number.</span>
+
+<span class="sd">  abspath : str</span>
+<span class="sd">    Fully-qualified path where images will be written. An empty string</span>
+<span class="sd">    implies relative to the current working directory.</span>
+
+<span class="sd">  Attributes</span>
+<span class="sd">  ----------</span>
+<span class="sd">  _plot : APlot</span>
+<span class="sd">    ADMIT plotter.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pmode</span><span class="o">=</span><span class="n">PlotControl</span><span class="o">.</span><span class="n">INTERACTIVE</span><span class="p">,</span>
+                     <span class="n">ptype</span><span class="o">=</span><span class="n">PlotControl</span><span class="o">.</span><span class="n">SVG</span><span class="p">,</span> <span class="n">figno</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">abspath</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_plot</span> <span class="o">=</span> <span class="n">APlot</span><span class="o">.</span><span class="n">APlot</span><span class="p">(</span><span class="n">pmode</span><span class="p">,</span> <span class="n">ptype</span><span class="p">,</span> <span class="n">figno</span><span class="p">,</span> <span class="n">abspath</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="LinePlot.plot"><a class="viewcode-back" href="../../../module/admit.util/LinePlot.html#admit.util.LinePlot.LinePlot.plot">[docs]</a>  <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">llbdp</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">showlines</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">numsigma</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span> 
+           <span class="n">vlsr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">refs</span><span class="o">=</span><span class="p">{}):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generates line plots.</span>
+
+<span class="sd">    Generates a complete set of LineID-style line plots for the spectra present</span>
+<span class="sd">    in a LineList (e.g., as output by LineID), or only a selected set if</span>
+<span class="sd">    `names` is specified. A summary plot combining all spectra is **not** produced.</span>
+
+<span class="sd">    In interactive mode, plots are presented individually to the user and need</span>
+<span class="sd">    to be dismissed to proceed to the next.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    llbdp : LineList_BDP</span>
+<span class="sd">      Input spectra.</span>
+
+<span class="sd">    names : list of str, optional</span>
+<span class="sd">      Spectrum names to plot; if ``None``, all spectra in the BDP will be</span>
+<span class="sd">      plotted. Call `llbdp.getSpectraNames()` to see the complete list.</span>
+
+<span class="sd">    showlines : bool, optional</span>
+<span class="sd">      Whether to include line segments and identifications on each plot.</span>
+<span class="sd">      (Note this includes **all** lines present in the BDP, not just those </span>
+<span class="sd">      derived from the plotted spectrum in particular.)</span>
+<span class="sd">      </span>
+<span class="sd">    numsigma : float, optional</span>
+<span class="sd">      Noise multiplier for cut-off.</span>
+
+<span class="sd">    vlsr : float, optional</span>
+<span class="sd">      Object line-of-sight velocity (km/s); labeled &#39;unknown&#39; if not specified.</span>
+
+<span class="sd">    refs : dict, optional</span>
+<span class="sd">      A dictionary of frequencies and reference line names to be included in</span>
+<span class="sd">      the plots. Allows plotting specific lines whether or not they are present</span>
+<span class="sd">      in the spectra.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Separate lines by blend or force trait.</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">force</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">blend</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">showlines</span><span class="p">:</span>
+      <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">llbdp</span><span class="o">.</span><span class="n">getall</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">blend</span><span class="p">:</span>
+          <span class="n">blend</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">line</span><span class="o">.</span><span class="n">force</span><span class="p">:</span>
+          <span class="n">force</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+          <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">names</span><span class="p">:</span> <span class="n">names</span> <span class="o">=</span> <span class="n">llbdp</span><span class="o">.</span><span class="n">getSpectraNames</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+      <span class="nb">print</span> <span class="n">name</span><span class="p">,</span> <span class="s2">&quot;spectrum...&quot;</span>
+      <span class="n">ftype</span> <span class="o">=</span> <span class="s2">&quot;Sky&quot;</span> <span class="k">if</span> <span class="n">llbdp</span><span class="o">.</span><span class="n">veltype</span> <span class="o">==</span> <span class="s1">&#39;vlsr&#39;</span> <span class="k">else</span> <span class="s2">&quot;Rest&quot;</span>
+      <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;Peak/Noise&quot;</span>    <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;CubeStats_0&#39;</span> <span class="k">else</span> \
+              <span class="s2">&quot;Minimum/Noise&quot;</span> <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;CubeStats_1&#39;</span> <span class="k">else</span> \
+              <span class="s2">&quot;Correlation&quot;</span>   <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;PVCorr&#39;</span> <span class="k">else</span> \
+              <span class="s2">&quot;Intensity&quot;</span>
+      <span class="n">mult</span>  <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;CubeStats_1&quot;</span> <span class="k">else</span> <span class="mi">1</span>
+      <span class="n">spec</span>  <span class="o">=</span> <span class="n">llbdp</span><span class="o">.</span><span class="n">getSpectrum</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+      <span class="n">vstr</span>  <span class="o">=</span> <span class="s2">&quot; (vlsr=</span><span class="si">%.2f</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="n">vlsr</span> <span class="k">if</span> <span class="n">vlsr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">&quot; (vlsr unknown)&quot;</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_plot</span><span class="o">.</span><span class="n">makespec</span><span class="p">(</span>
+                    <span class="n">x</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">freq</span><span class="p">(),</span>
+                    <span class="n">y</span> <span class="o">=</span> <span class="n">mult</span><span class="o">*</span><span class="n">spec</span><span class="o">.</span><span class="n">spec</span><span class="p">(</span><span class="n">csub</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+                    <span class="n">chan</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">chans</span><span class="p">(),</span>
+                    <span class="n">continuum</span> <span class="o">=</span> <span class="n">mult</span><span class="o">*</span><span class="n">spec</span><span class="o">.</span><span class="n">contin</span><span class="p">(),</span>
+                    <span class="n">cutoff</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">contin</span><span class="p">()</span> <span class="o">+</span> <span class="n">mult</span><span class="o">*</span><span class="n">spec</span><span class="o">.</span><span class="n">noise</span><span class="p">()</span><span class="o">*</span><span class="n">numsigma</span><span class="p">,</span>
+                    <span class="n">figname</span> <span class="o">=</span> <span class="n">name</span><span class="p">,</span>
+                    <span class="n">title</span> <span class="o">=</span> <span class="n">name</span><span class="o">+</span><span class="n">vstr</span><span class="p">,</span>
+                    <span class="n">xlabel</span> <span class="o">=</span> <span class="n">ftype</span> <span class="o">+</span> <span class="s2">&quot; Frequency (GHz)&quot;</span><span class="p">,</span>
+                    <span class="n">ylabel</span> <span class="o">=</span> <span class="n">label</span><span class="p">,</span>
+                    <span class="n">blends</span> <span class="o">=</span> <span class="n">blend</span><span class="p">,</span>
+                    <span class="n">force</span> <span class="o">=</span> <span class="n">force</span><span class="p">,</span>
+                    <span class="n">lines</span> <span class="o">=</span> <span class="n">lines</span><span class="p">,</span>
+                    <span class="n">references</span><span class="o">=</span><span class="n">refs</span><span class="p">,</span>
+                    <span class="n">thumbnail</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

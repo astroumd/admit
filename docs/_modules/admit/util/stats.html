@@ -1,0 +1,253 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.util.stats &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.util.stats</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; **stats** --- Statistics functions module.</span>
+<span class="sd">    ------------------------------------------</span>
+
+<span class="sd">    This module contains utility functions used for statistics in ADMIT.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy.ma</span> <span class="k">as</span> <span class="nn">ma</span>
+
+
+<div class="viewcode-block" id="rejecto1"><a class="viewcode-back" href="../../../module/admit.util/stats.html#admit.util.stats.rejecto1">[docs]</a><span class="k">def</span> <span class="nf">rejecto1</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">f</span><span class="o">=</span><span class="mf">1.5</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; reject outliers from a distribution</span>
+<span class="sd">    using a hinges-fences style rejection,</span>
+<span class="sd">    using a mean.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : array</span>
+
+<span class="sd">    f : float</span>
+<span class="sd">        The factor f, such that only data is retained</span>
+<span class="sd">        between mean - f*std and mean + f*std</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    returns: an array with only data between</span>
+<span class="sd">    mean - f*std and mean + f*std</span>
+<span class="sd">        </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">u</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">newdata</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">data</span> <span class="k">if</span> <span class="p">(</span><span class="n">u</span> <span class="o">-</span> <span class="n">f</span> <span class="o">*</span> <span class="n">s</span> <span class="o">&lt;</span> <span class="n">e</span> <span class="o">&lt;</span> <span class="n">u</span> <span class="o">+</span> <span class="n">f</span> <span class="o">*</span> <span class="n">s</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">newdata</span></div>
+
+<div class="viewcode-block" id="rejecto2"><a class="viewcode-back" href="../../../module/admit.util/stats.html#admit.util.stats.rejecto2">[docs]</a><span class="k">def</span> <span class="nf">rejecto2</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">f</span><span class="o">=</span><span class="mf">1.5</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; reject outliers from a distribution</span>
+<span class="sd">        using a hinges-fences style rejection,</span>
+<span class="sd">        using a median.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : array</span>
+
+<span class="sd">    f : float</span>
+<span class="sd">        The factor f, such that only data is retained</span>
+<span class="sd">        between median - f*std and median + f*std</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    returns: an array with only data between</span>
+<span class="sd">    median - f*std and median + f*std</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">data</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+    <span class="n">mdev</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">d</span><span class="o">/</span><span class="n">mdev</span> <span class="k">if</span> <span class="n">mdev</span> <span class="k">else</span> <span class="mf">0.</span>
+    <span class="k">return</span> <span class="n">data</span><span class="p">[</span><span class="n">s</span><span class="o">&lt;</span><span class="n">f</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="mystats"><a class="viewcode-back" href="../../../module/admit.util/stats.html#admit.util.stats.mystats">[docs]</a><span class="k">def</span> <span class="nf">mystats</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; return raw and robust statistics for a distribution</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        data : array </span>
+<span class="sd">            The data array for which the statistics is returned.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        returns:   N, mean, std for the raw and robust resp.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">m1</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="n">s1</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">std</span><span class="p">()</span>
+    <span class="n">n1</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">rejecto2</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">m2</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="n">s2</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">std</span><span class="p">()</span>
+    <span class="n">n2</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">n1</span><span class="p">,</span><span class="n">m1</span><span class="p">,</span><span class="n">s1</span><span class="p">,</span><span class="n">n2</span><span class="p">,</span><span class="n">m2</span><span class="p">,</span><span class="n">s2</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="robust"><a class="viewcode-back" href="../../../module/admit.util/stats.html#admit.util.stats.robust">[docs]</a><span class="k">def</span> <span class="nf">robust</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">f</span><span class="o">=</span><span class="mf">1.5</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;return a subset of the data with outliers robustly removed</span>
+<span class="sd">    data - can be masked</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">compressed</span><span class="p">()</span>
+    <span class="n">n</span><span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+    <span class="n">n1</span> <span class="o">=</span> <span class="n">n</span><span class="o">/</span><span class="mi">4</span>
+    <span class="n">n2</span> <span class="o">=</span> <span class="n">n</span><span class="o">/</span><span class="mi">2</span>
+    <span class="n">n3</span> <span class="o">=</span> <span class="p">(</span><span class="mi">3</span><span class="o">*</span><span class="n">n</span><span class="p">)</span><span class="o">/</span><span class="mi">4</span>
+    <span class="n">q1</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="n">n1</span><span class="p">]</span>
+    <span class="n">q2</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="n">n2</span><span class="p">]</span>
+    <span class="n">q3</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="n">n3</span><span class="p">]</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">q3</span><span class="o">-</span><span class="n">q1</span>
+    <span class="n">f1</span> <span class="o">=</span> <span class="n">q1</span><span class="o">-</span><span class="n">f</span><span class="o">*</span><span class="n">d</span>
+    <span class="n">f3</span> <span class="o">=</span> <span class="n">q3</span><span class="o">+</span><span class="n">f</span><span class="o">*</span><span class="n">d</span>
+    <span class="c1"># median = np.median(d)</span>
+    <span class="c1"># print &quot;robust: Median: &quot;, median</span>
+    <span class="c1"># print &quot;robust: n,Q1,2,3:&quot;,n,q1,q2,q3</span>
+    <span class="c1"># print &quot;robust: f1,f3:&quot;,f1,f3</span>
+    <span class="n">dm</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">masked_outside</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">f1</span><span class="p">,</span><span class="n">f3</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">dm</span></div>
+
+<div class="viewcode-block" id="reducedchisquared"><a class="viewcode-back" href="../../../module/admit.util/stats.html#admit.util.stats.reducedchisquared">[docs]</a><span class="k">def</span> <span class="nf">reducedchisquared</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">numpar</span><span class="p">,</span> <span class="n">noise</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Method to compute the reduced chi squared of a fit to data.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        data : array like</span>
+<span class="sd">            The raw data the fit is based on, acceptable data types</span>
+<span class="sd">            are numpy array, masked array, and list</span>
+
+<span class="sd">        model : array like</span>
+<span class="sd">            The fit to the data, acceptable data types are numpy array,</span>
+<span class="sd">            masked array, and list. Must be of the same length as data,</span>
+<span class="sd">            no error checking is done</span>
+
+<span class="sd">        dof : int</span>
+<span class="sd">            Number of free parameters (degrees of freedom) in the model</span>
+
+<span class="sd">        noise : float</span>
+<span class="sd">            The noise/uncertainty of the data</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Float containing the reduced chi squared value, the closer to 1.0</span>
+<span class="sd">        the better</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">noise</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">chisq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">data</span> <span class="o">-</span> <span class="n">model</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">chisq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(((</span><span class="n">data</span> <span class="o">-</span> <span class="n">model</span><span class="p">)</span><span class="o">/</span><span class="n">noise</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="p">):</span>
+        <span class="n">nu</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">count</span><span class="p">()</span> <span class="o">-</span> <span class="n">numpar</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="n">nu</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">numpar</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">nu</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">-</span> <span class="n">numpar</span>
+    <span class="k">return</span> <span class="n">chisq</span> <span class="o">/</span> <span class="n">nu</span></div>
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">123</span><span class="p">)</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">()</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="mi">1000</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="mf">1.5</span>
+    <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">,</span><span class="n">n</span><span class="p">)</span>     <span class="c1"># gaussian</span>
+        <span class="nb">print</span> <span class="s2">&quot;normal(0.0,1.0,</span><span class="si">%d</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="n">n</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>             <span class="c1"># uniform</span>
+        <span class="nb">print</span> <span class="s2">&quot;random(</span><span class="si">%d</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="n">n</span>
+    <span class="n">a1</span> <span class="o">=</span> <span class="n">rejecto1</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">f</span><span class="p">)</span>
+    <span class="nb">print</span> <span class="s2">&quot;rejecto1: &quot;</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">a1</span><span class="p">)</span>
+    <span class="n">a2</span> <span class="o">=</span> <span class="n">rejecto2</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">f</span><span class="p">)</span>
+    <span class="nb">print</span> <span class="s2">&quot;rejecto2: &quot;</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">a2</span><span class="p">)</span>
+    <span class="nb">print</span> <span class="s2">&quot;mystats:&quot;</span><span class="p">,</span><span class="n">mystats</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+    <span class="n">ar</span> <span class="o">=</span> <span class="n">robust</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">f</span><span class="p">)</span>
+    <span class="c1">#print &quot;robust: &quot;,len(ar),ar</span>
+    <span class="nb">print</span> <span class="s2">&quot;robust: len=&quot;</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">ar</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

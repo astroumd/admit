@@ -1,0 +1,421 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.at.OverlapIntegral_AT &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.at.OverlapIntegral_AT</h1><div class="highlight"><pre>
+<span></span>
+<span class="sd">&quot;&quot;&quot; .. _OverlapIntegral-at-api:</span>
+
+<span class="sd">   **OverlapIntegral_AT** --- Computes the overlap integral between images.</span>
+<span class="sd">   ------------------------------------------------------------------------</span>
+
+<span class="sd">   This module defines the OverlapIntegral_AT class.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy.ma</span> <span class="k">as</span> <span class="nn">ma</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
+<span class="kn">import</span> <span class="nn">types</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">from</span> <span class="nn">admit.AT</span> <span class="k">import</span> <span class="n">AT</span>
+<span class="kn">from</span> <span class="nn">admit.Summary</span> <span class="k">import</span> <span class="n">SummaryEntry</span>
+<span class="kn">import</span> <span class="nn">admit.util.bdp_types</span> <span class="k">as</span> <span class="nn">bt</span>
+<span class="kn">from</span> <span class="nn">admit.util.Image</span> <span class="k">import</span> <span class="n">Image</span>
+<span class="kn">import</span> <span class="nn">admit.util.utils</span> <span class="k">as</span> <span class="nn">utils</span>
+<span class="kn">import</span> <span class="nn">admit.util.APlot</span> <span class="k">as</span> <span class="nn">APlot</span>
+<span class="kn">import</span> <span class="nn">admit.util.Line</span> <span class="k">as</span> <span class="nn">Line</span>
+<span class="kn">import</span> <span class="nn">admit.util.ImPlot</span> <span class="k">as</span> <span class="nn">ImPlot</span>
+<span class="kn">import</span> <span class="nn">admit.util.Table</span>
+<span class="kn">from</span> <span class="nn">admit.bdp.Image_BDP</span> <span class="k">import</span> <span class="n">Image_BDP</span>
+<span class="kn">from</span> <span class="nn">admit.util.AdmitLogging</span> <span class="k">import</span> <span class="n">AdmitLogging</span> <span class="k">as</span> <span class="n">logging</span>
+<span class="kn">import</span> <span class="nn">admit.util.casautil</span> <span class="k">as</span> <span class="nn">casautil</span>
+
+<span class="k">try</span><span class="p">:</span>
+  <span class="kn">import</span> <span class="nn">scipy</span>
+  <span class="kn">import</span> <span class="nn">scipy.signal</span>
+  <span class="kn">import</span> <span class="nn">casa</span>
+  <span class="kn">import</span> <span class="nn">taskinit</span>
+<span class="k">except</span><span class="p">:</span>
+  <span class="nb">print</span> <span class="s2">&quot;WARNING: No scipy or casa; OverlapIntegral task cannot function.&quot;</span>
+
+
+<div class="viewcode-block" id="OverlapIntegral_AT"><a class="viewcode-back" href="../../../module/admit.at/OverlapIntegral_AT.html#admit.at.OverlapIntegral_AT.OverlapIntegral_AT">[docs]</a><span class="k">class</span> <span class="nc">OverlapIntegral_AT</span><span class="p">(</span><span class="n">AT</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Compute an overlap integral between selected images (or cubes).</span>
+
+<span class="sd">    Images (or cubes) need to have a confirming WCS. It also makes sense</span>
+<span class="sd">    if the input maps have the same resolving power, see also</span>
+<span class="sd">    :ref:`Smooth-at-api` how to achieve this.</span>
+
+<span class="sd">    See also :ref:`OverlapIntegral-AT-Design` for the design document.</span>
+
+<span class="sd">    **Keywords**</span>
+
+<span class="sd">        **chans**: string</span>
+<span class="sd">           If selected (for cubes), this is the channel range over which</span>
+<span class="sd">           data is compared. Experimental.</span>
+
+<span class="sd">        **normalize**: boolean</span>
+<span class="sd">           Normalize all data?  Default: False.</span>
+
+<span class="sd">        **method**: tuple</span>
+<span class="sd">           The method name (string) and a dictionary of keywords describing</span>
+<span class="sd">           the method will determine the way an overlap integral is computed.</span>
+<span class="sd">           Not used yet.</span>
+
+<span class="sd">        **cmap**: string</span>
+<span class="sd">           A matplotlib name of colormaps available. The default (&#39;jet&#39;) will</span>
+<span class="sd">           have blue at the low end through green yellow to red.</span>
+
+<span class="sd">    **Input BDPS**</span>
+
+<span class="sd">        **Image_BDP**: count: 2 or more</span>
+<span class="sd">            Input images (or cubes); for example, from </span>
+<span class="sd">            `Ingest_AT &lt;Ingest_AT.html&gt;`_, `LineCube_AT &lt;LineCube_AT.html&gt;`_</span>
+<span class="sd">            or `Moment_AT &lt;Moment_AT.html&gt;`_.</span>
+
+<span class="sd">    **Output BDPs**</span>
+
+<span class="sd">        **Image_BDP**: count: 1</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">        keyval : dictionary, optional</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">        _version : string</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">keyval</span><span class="p">):</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;chans&quot;</span>     <span class="p">:</span> <span class="p">[],</span>          <span class="c1"># 0-based channel range, e.g. [5,10]</span>
+            <span class="s2">&quot;normalize&quot;</span> <span class="p">:</span> <span class="kc">False</span><span class="p">,</span> 
+            <span class="s2">&quot;method&quot;</span>    <span class="p">:</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;key1&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;key2&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s2">&quot;key3&quot;</span><span class="p">:</span> <span class="s2">&quot;abc&quot;</span><span class="p">}),</span>
+            <span class="s2">&quot;cmap&quot;</span>      <span class="p">:</span> <span class="s2">&quot;jet&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">AT</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">keys</span><span class="p">,</span><span class="n">keyval</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_version</span> <span class="o">=</span> <span class="s2">&quot;1.0.1&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_bdp_in</span><span class="p">([(</span><span class="n">Image_BDP</span><span class="p">,</span>     <span class="mi">0</span><span class="p">,</span> <span class="n">bt</span><span class="o">.</span><span class="n">REQUIRED</span><span class="p">)])</span>     <span class="c1"># 2 or more should be input</span>
+
+        <span class="c1"># @TODO: Why is OverlapIntegral_BDP not used here, </span>
+        <span class="c1"># since the output is a Table and an Image</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_bdp_out</span><span class="p">([(</span><span class="n">Image_BDP</span><span class="p">,</span><span class="mi">1</span><span class="p">)])</span>                      <span class="c1"># 1 is output</span>
+
+<div class="viewcode-block" id="OverlapIntegral_AT.summary"><a class="viewcode-back" href="../../../module/admit.at/OverlapIntegral_AT.html#admit.at.OverlapIntegral_AT.OverlapIntegral_AT.summary">[docs]</a>    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the summary dictionary from the AT, for merging</span>
+<span class="sd">           into the ADMIT Summary object.</span>
+
+<span class="sd">           OverlapIntegral_AT adds the following to ADMIT summary:</span>
+
+<span class="sd">           .. table::</span>
+<span class="sd">              :class: borderless</span>
+
+<span class="sd">              +----------+----------+-----------------------------------+</span>
+<span class="sd">              |   Key    | type     |    Description                    |</span>
+<span class="sd">              +==========+==========+===================================+</span>
+<span class="sd">              | overlap  | list     |   output image and information    | </span>
+<span class="sd">              |          |          |   about lines used                |</span>
+<span class="sd">              +----------+----------+-----------------------------------+</span>
+
+<span class="sd">           </span>
+<span class="sd">           Parameters</span>
+<span class="sd">           ----------</span>
+<span class="sd">           None</span>
+
+<span class="sd">           Returns</span>
+<span class="sd">           -------</span>
+<span class="sd">           dict</span>
+<span class="sd">               Dictionary of SummaryEntry</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s2">&quot;_summary&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{}</span></div>
+
+<div class="viewcode-block" id="OverlapIntegral_AT.run"><a class="viewcode-back" href="../../../module/admit.at/OverlapIntegral_AT.html#admit.at.OverlapIntegral_AT.OverlapIntegral_AT.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Main program for OverlapIntegral</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">Dtime</span><span class="p">(</span><span class="s2">&quot;OverlapIntegral&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">chans</span> <span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;chans&quot;</span><span class="p">)</span>
+        <span class="n">cmap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;cmap&quot;</span><span class="p">)</span>
+        <span class="n">normalize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getkey</span><span class="p">(</span><span class="s2">&quot;normalize&quot;</span><span class="p">)</span>
+        <span class="n">doCross</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">doCross</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">myplot</span> <span class="o">=</span> <span class="n">APlot</span><span class="p">(</span><span class="n">pmode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_plot_mode</span><span class="p">,</span><span class="n">ptype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_plot_type</span><span class="p">,</span><span class="n">abspath</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">())</span>
+        
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;start&quot;</span><span class="p">)</span>
+ 
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">n</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span><span class="s2">&quot;Need at least 1 input Image_BDP &quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Processing </span><span class="si">%d</span><span class="s2"> input maps&quot;</span> <span class="o">%</span> <span class="n">n</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>     <span class="c1"># array in which each element is placeholder for the data</span>
+        <span class="n">mdata</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>    <span class="c1"># array to hold the max in each array</span>
+        <span class="n">summarytable</span> <span class="o">=</span> <span class="n">admit</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">Table</span><span class="p">()</span>
+        <span class="n">summarytable</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;File name&quot;</span><span class="p">,</span><span class="s2">&quot;Spectral Line ID&quot;</span><span class="p">]</span>
+        <span class="n">summarytable</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;Images used in Overlap Integral&quot;</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+            <span class="n">bdpfile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">getimagefile</span><span class="p">(</span><span class="n">bt</span><span class="o">.</span><span class="n">CASA</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="s2">&quot;line&quot;</span><span class="p">):</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="s2">&quot;line&quot;</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Map </span><span class="si">%d</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">line</span><span class="o">.</span><span class="n">uid</span><span class="p">))</span>
+                <span class="n">lineid</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">uid</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">lineid</span><span class="o">=</span><span class="s2">&quot;no line&quot;</span>
+            <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">casautil</span><span class="o">.</span><span class="n">getdata</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">bdpfile</span><span class="p">),</span><span class="n">chans</span><span class="p">)</span>
+            <span class="n">mdata</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;shape[</span><span class="si">%d</span><span class="s2">] = </span><span class="si">%s</span><span class="s2"> with </span><span class="si">%d</span><span class="s2"> good data&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">count</span><span class="p">()))</span>
+            <span class="k">if</span> <span class="n">i</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">shape</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span>
+                <span class="n">outfile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mkext</span><span class="p">(</span><span class="s2">&quot;testOI&quot;</span><span class="p">,</span><span class="s2">&quot;oi&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">shape</span> <span class="o">!=</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span><span class="s2">&quot;Shapes not the same, cannot overlap them&quot;</span>
+            <span class="c1"># collect the file names and line identifications for the summary</span>
+            <span class="n">summarytable</span><span class="o">.</span><span class="n">addRow</span><span class="p">([</span><span class="n">bdpfile</span><span class="p">,</span><span class="n">lineid</span><span class="p">])</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">regression</span><span class="p">(</span><span class="s2">&quot;OI: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">mdata</span><span class="p">))</span>
+                    
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">2</span> <span class="ow">and</span> <span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span><span class="s2">&quot;Cannot handle 3D cubes yet&quot;</span>
+
+        <span class="k">if</span> <span class="n">doCross</span><span class="p">:</span>
+            <span class="c1"># debug: produce all cross-corr&#39;s of the N input maps (expensive!)</span>
+            <span class="n">crossn</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">myplot</span><span class="p">)</span>
+            <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;crossn&quot;</span><span class="p">)</span>
+
+        <span class="n">b1</span> <span class="o">=</span> <span class="n">Image_BDP</span><span class="p">(</span><span class="n">outfile</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addoutput</span><span class="p">(</span><span class="n">b1</span><span class="p">)</span>
+        <span class="n">b1</span><span class="o">.</span><span class="n">setkey</span><span class="p">(</span><span class="s2">&quot;image&quot;</span><span class="p">,</span> <span class="n">Image</span><span class="p">(</span><span class="n">images</span><span class="o">=</span><span class="p">{</span><span class="n">bt</span><span class="o">.</span><span class="n">CASA</span><span class="p">:</span><span class="n">outfile</span><span class="p">}))</span>
+
+        <span class="n">ia</span> <span class="o">=</span> <span class="n">taskinit</span><span class="o">.</span><span class="n">iatool</span><span class="p">()</span>
+
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;open&quot;</span><span class="p">)</span>
+
+        <span class="n">useClone</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="c1"># to create an output dataset, clone the first input, but using the chans=ch0~ch1</span>
+        <span class="c1"># e.g. using imsubimage(infile,outfile=,chans=</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">chans</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># ia.regrid() doesn&#39;t have the chans=</span>
+            <span class="n">ia</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">getimagefile</span><span class="p">(</span><span class="n">bt</span><span class="o">.</span><span class="n">CASA</span><span class="p">)))</span>
+            <span class="n">ia</span><span class="o">.</span><span class="n">regrid</span><span class="p">(</span><span class="n">outfile</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">outfile</span><span class="p">))</span>
+            <span class="n">ia</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># 2D for now</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">useClone</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;OVERLAP out=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">outfile</span><span class="p">)</span>
+                <span class="n">ia</span><span class="o">.</span><span class="n">fromimage</span><span class="p">(</span><span class="n">infile</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">getimagefile</span><span class="p">(</span><span class="n">bt</span><span class="o">.</span><span class="n">CASA</span><span class="p">)),</span>
+                                      <span class="n">outfile</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">outfile</span><span class="p">),</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">ia</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;fromimage&quot;</span><span class="p">)</span>
+
+
+        <span class="k">if</span> <span class="n">n</span><span class="o">==</span><span class="mi">3</span><span class="p">:</span>
+            <span class="c1"># RGB</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;RGB mode&quot;</span><span class="p">)</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">rgb1</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">data</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">normalize</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># simple sum</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">n</span><span class="p">):</span>
+                <span class="n">out</span> <span class="o">=</span> <span class="n">out</span> <span class="o">+</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">useClone</span><span class="p">:</span>
+            <span class="n">casautil</span><span class="o">.</span><span class="n">putdata_raw</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">outfile</span><span class="p">),</span><span class="n">out</span><span class="p">,</span><span class="n">clone</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bdp_in</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">getimagefile</span><span class="p">(</span><span class="n">bt</span><span class="o">.</span><span class="n">CASA</span><span class="p">)))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ia</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dir</span><span class="p">(</span><span class="n">outfile</span><span class="p">))</span>
+            <span class="n">s1</span> <span class="o">=</span> <span class="n">ia</span><span class="o">.</span><span class="n">shape</span><span class="p">()</span>
+            <span class="n">s0</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">rg</span> <span class="o">=</span> <span class="n">taskinit</span><span class="o">.</span><span class="n">rgtool</span><span class="p">()</span>
+            <span class="n">r1</span> <span class="o">=</span> <span class="n">rg</span><span class="o">.</span><span class="n">box</span><span class="p">(</span><span class="n">blc</span><span class="o">=</span><span class="n">s0</span><span class="p">,</span><span class="n">trc</span><span class="o">=</span><span class="n">s1</span><span class="p">)</span>
+            <span class="n">pixeldata</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">data</span>
+            <span class="n">pixelmask</span> <span class="o">=</span> <span class="o">~</span><span class="n">out</span><span class="o">.</span><span class="n">mask</span>
+            <span class="n">ia</span><span class="o">.</span><span class="n">putregion</span><span class="p">(</span><span class="n">pixels</span><span class="o">=</span><span class="n">pixeldata</span><span class="p">,</span> <span class="n">pixelmask</span><span class="o">=</span><span class="n">pixelmask</span><span class="p">,</span> <span class="n">region</span><span class="o">=</span><span class="n">r1</span><span class="p">)</span>
+            <span class="n">ia</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;OverlapIntegral&quot;</span>
+        <span class="n">pdata</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rot90</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">squeeze</span><span class="p">())</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;PDATA: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">pdata</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+        
+        <span class="n">myplot</span><span class="o">.</span><span class="n">map1</span><span class="p">(</span><span class="n">pdata</span><span class="p">,</span><span class="n">title</span><span class="p">,</span><span class="s2">&quot;testOI&quot;</span><span class="p">,</span><span class="n">thumbnail</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">)</span>
+        
+        <span class="c1">#-----------------------------</span>
+        <span class="c1"># Populate summary information</span>
+        <span class="c1">#-----------------------------</span>
+        <span class="n">taskargs</span> <span class="o">=</span> <span class="s2">&quot;chans=</span><span class="si">%s</span><span class="s2"> cmap=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">chans</span><span class="p">,</span> <span class="n">cmap</span><span class="p">)</span>
+        <span class="n">imname</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">thumbnailname</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="c1"># uncomment when ready.</span>
+        <span class="n">imname</span> <span class="o">=</span> <span class="n">myplot</span><span class="o">.</span><span class="n">getFigure</span><span class="p">(</span><span class="n">figno</span><span class="o">=</span><span class="n">myplot</span><span class="o">.</span><span class="n">figno</span><span class="p">,</span><span class="n">relative</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">thumbnailname</span> <span class="o">=</span> <span class="n">myplot</span><span class="o">.</span><span class="n">getThumbnail</span><span class="p">(</span><span class="n">figno</span><span class="o">=</span><span class="n">myplot</span><span class="o">.</span><span class="n">figno</span><span class="p">,</span><span class="n">relative</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="c1">#@todo fill in caption with more info - line names, etc.</span>
+        <span class="n">caption</span> <span class="o">=</span> <span class="s2">&quot;Need descriptive caption here&quot;</span>
+        <span class="n">summaryinfo</span> <span class="o">=</span> <span class="p">[</span><span class="n">summarytable</span><span class="o">.</span><span class="n">serialize</span><span class="p">(),</span><span class="n">imname</span><span class="p">,</span><span class="n">thumbnailname</span><span class="p">,</span><span class="n">caption</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">[</span><span class="s2">&quot;overlap&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SummaryEntry</span><span class="p">(</span><span class="n">summaryinfo</span><span class="p">,</span>
+                                   <span class="s2">&quot;OverlapIntegral_AT&quot;</span><span class="p">,</span>
+                                   <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">(</span><span class="kc">True</span><span class="p">),</span><span class="n">taskargs</span><span class="p">)</span>
+        <span class="c1">#-----------------------------</span>
+        <span class="n">dt</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="s2">&quot;done&quot;</span><span class="p">)</span>
+        <span class="n">dt</span><span class="o">.</span><span class="n">end</span><span class="p">()</span></div></div>
+
+<div class="viewcode-block" id="crossn"><a class="viewcode-back" href="../../../module/admit.at/OverlapIntegral_AT.html#admit.at.OverlapIntegral_AT.crossn">[docs]</a><span class="k">def</span> <span class="nf">crossn</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">myplot</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;  Run over all possible cross-correlations between the N input data</span>
+<span class="sd">         CAUTION: Expensive routine</span>
+<span class="sd">         @todo     divide    cross(i,j)/sqrt(auto(i)*auto(j))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">nx</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">ny</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">auto</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>         <span class="c1"># place holder for the auto&#39;s</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="n">idata</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">correlate2d</span><span class="p">(</span><span class="n">idata</span><span class="p">,</span><span class="n">idata</span><span class="p">,</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;same&#39;</span><span class="p">)</span>
+        <span class="n">auto</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rot90</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">nx</span><span class="p">,</span><span class="n">ny</span><span class="p">)))</span>
+        <span class="n">myplot</span><span class="o">.</span><span class="n">map1</span><span class="p">(</span><span class="n">auto</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="s2">&quot;autocorr-</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">i</span><span class="p">,</span><span class="s2">&quot;testOI-</span><span class="si">%d</span><span class="s2">-</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">i</span><span class="p">),</span><span class="n">thumbnail</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>        
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="n">idata</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="n">n</span><span class="p">):</span>
+            <span class="n">jdata</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">correlate2d</span><span class="p">(</span><span class="n">idata</span><span class="p">,</span><span class="n">jdata</span><span class="p">,</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;same&#39;</span><span class="p">)</span>
+            <span class="c1">#outd = np.rot90(out.reshape((nx,ny))) / np.sqrt(auto[i]*auto[j])</span>
+            <span class="n">outd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rot90</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">nx</span><span class="p">,</span><span class="n">ny</span><span class="p">)))</span> 
+            <span class="n">myplot</span><span class="o">.</span><span class="n">map1</span><span class="p">(</span><span class="n">outd</span><span class="p">,</span><span class="s2">&quot;crosscorr-</span><span class="si">%d</span><span class="s2">-</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">),</span><span class="s2">&quot;testOI-</span><span class="si">%d</span><span class="s2">-</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">),</span><span class="n">thumbnail</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="rgb1"><a class="viewcode-back" href="../../../module/admit.at/OverlapIntegral_AT.html#admit.at.OverlapIntegral_AT.rgb1">[docs]</a><span class="k">def</span> <span class="nf">rgb1</span><span class="p">(</span><span class="n">r</span><span class="p">,</span><span class="n">g</span><span class="p">,</span><span class="n">b</span><span class="p">,</span> <span class="n">normalize</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+     <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+     <span class="n">rmin</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+     <span class="n">rmax</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+     <span class="n">gmin</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+     <span class="n">gmax</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+     <span class="n">bmin</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+     <span class="n">bmax</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+
+     <span class="c1"># normalize each to [0,1]</span>
+     <span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="n">r</span><span class="o">-</span><span class="n">rmin</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">rmax</span><span class="o">-</span><span class="n">rmin</span><span class="p">)</span>
+     <span class="n">y</span> <span class="o">=</span> <span class="p">(</span><span class="n">g</span><span class="o">-</span><span class="n">gmin</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">gmax</span><span class="o">-</span><span class="n">gmin</span><span class="p">)</span>
+     <span class="n">z</span> <span class="o">=</span> <span class="p">(</span><span class="n">b</span><span class="o">-</span><span class="n">bmin</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">bmax</span><span class="o">-</span><span class="n">bmin</span><span class="p">)</span>
+
+     <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">x</span><span class="o">&lt;</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">x</span><span class="p">,</span> <span class="mi">0</span>    <span class="p">)</span>
+     <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">y</span><span class="o">&lt;</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">y</span><span class="p">,</span> <span class="mi">2</span><span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="n">y</span><span class="p">)</span>
+     <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">z</span><span class="o">&lt;</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">0</span>  <span class="p">,</span> <span class="mi">2</span><span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="n">z</span><span class="p">)</span>
+
+     <span class="k">return</span> <span class="n">x</span><span class="o">+</span><span class="n">y</span><span class="o">+</span><span class="n">z</span></div>
+  
+<div class="viewcode-block" id="rgb2"><a class="viewcode-back" href="../../../module/admit.at/OverlapIntegral_AT.html#admit.at.OverlapIntegral_AT.rgb2">[docs]</a><span class="k">def</span> <span class="nf">rgb2</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">jpgname</span><span class="p">,</span> <span class="n">f</span><span class="o">=</span><span class="mf">0.5</span><span class="p">):</span>
+     <span class="sd">&quot;&quot;&quot; Convert 2 2D-numpy arrays into a colorful JPG image</span>
+<span class="sd">         f = Color Composition Index</span>
+<span class="sd">         RGB = (A, B+f*A, B)</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+     <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;RGB2 not implemented&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="rgb3"><a class="viewcode-back" href="../../../module/admit.at/OverlapIntegral_AT.html#admit.at.OverlapIntegral_AT.rgb3">[docs]</a><span class="k">def</span> <span class="nf">rgb3</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">jpgname</span><span class="p">):</span>
+     <span class="sd">&quot;&quot;&quot; Convert 3 2D-numpy arrays into a colorful JPG image</span>
+<span class="sd">         It needs the PIL module, which CASA doesn&#39;t have</span>
+<span class="sd">         but we would like to try this out one of these moons...</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+     <span class="kn">from</span> <span class="nn">PIL</span> <span class="k">import</span> <span class="n">Image</span>
+
+     <span class="c1"># skip all the shape tests and being 2D</span>
+     <span class="n">sh</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">shape</span>
+
+     <span class="n">rgb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">sh</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">sh</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="mi">3</span><span class="p">),</span> <span class="s1">&#39;uint8&#39;</span><span class="p">)</span>
+     <span class="n">rgb</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="o">*</span><span class="mi">256</span>
+     <span class="n">rgb</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">g</span><span class="o">*</span><span class="mi">256</span>
+     <span class="n">rgb</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">b</span><span class="o">*</span><span class="mi">256</span>
+     <span class="n">img</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">rgb</span><span class="p">)</span>
+     <span class="n">img</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">jpgname</span><span class="p">)</span></div>
+    
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

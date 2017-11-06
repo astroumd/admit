@@ -1,0 +1,944 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>admit.util.SpectralLineSearch &#8212; ADMIT 1.0.6 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="top" title="ADMIT 1.0.6 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for admit.util.SpectralLineSearch</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot; .. _SpectralLineSearch:</span>
+
+<span class="sd">    **SpectralLineSearch** --- Interface to spectral line searching.</span>
+<span class="sd">    ----------------------------------------------------------------</span>
+
+<span class="sd">    This module defines the SpectralLineSearch class.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># system imports</span>
+<span class="kn">import</span> <span class="nn">urllib2</span>
+<span class="kn">import</span> <span class="nn">random</span>
+
+<span class="c1"># admit imports</span>
+<span class="kn">from</span> <span class="nn">admit.util</span> <span class="k">import</span> <span class="n">Splatalogue</span>
+<span class="kn">from</span> <span class="nn">admit.util</span> <span class="k">import</span> <span class="n">logging</span>
+<span class="kn">from</span> <span class="nn">admit.util</span> <span class="k">import</span> <span class="n">utils</span>
+<span class="kn">from</span> <span class="nn">admit.util</span> <span class="k">import</span> <span class="n">LineData</span>
+
+<div class="viewcode-block" id="SpectralLineSearch"><a class="viewcode-back" href="../../../module/admit.util/SpectralLineSearch.html#admit.util.SpectralLineSearch.SpectralLineSearch">[docs]</a><span class="k">class</span> <span class="nc">SpectralLineSearch</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Class to act an as interface to the spectral line searching tools.</span>
+<span class="sd">        It can search both the slsearch catalog and, if online, the</span>
+<span class="sd">        splatalogue database.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        online : bool</span>
+<span class="sd">            Whether to use the online splatalogue database. If no internet</span>
+<span class="sd">            connection is detected, then it will fall back on slsearch.</span>
+<span class="sd">            Default: True.</span>
+
+<span class="sd">        tier1freq : list</span>
+<span class="sd">            A list of tier1 frequency coverage, to eliminate any matches</span>
+<span class="sd">            that fall in the range of a tier1 line.</span>
+
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        sls_kw : dict</span>
+<span class="sd">            Dictionary to hold the keyword/value pairs for slsearch.</span>
+
+<span class="sd">        sp_kw : dict</span>
+<span class="sd">            Dictionary to hold the keyword/value paris for splatalogue.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">online</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">tier1freq</span><span class="o">=</span><span class="p">[]):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">online</span> <span class="o">=</span> <span class="n">online</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_online</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tier1freq</span> <span class="o">=</span> <span class="n">tier1freq</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sls_kw</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;exclude&quot;</span> <span class="p">:</span> <span class="p">[],</span>
+                      <span class="s2">&quot;line_lists&quot;</span> <span class="p">:</span> <span class="p">[],</span>
+                      <span class="s2">&quot;line_strengths&quot;</span> <span class="p">:</span> <span class="p">[],</span>
+                      <span class="s2">&quot;energy_levels&quot;</span> <span class="p">:</span> <span class="p">[],</span>
+                      <span class="s2">&quot;top20&quot;</span> <span class="p">:</span> <span class="p">[]}</span>
+
+<div class="viewcode-block" id="SpectralLineSearch.setkeywords"><a class="viewcode-back" href="../../../module/admit.util/SpectralLineSearch.html#admit.util.SpectralLineSearch.SpectralLineSearch.setkeywords">[docs]</a>    <span class="k">def</span> <span class="nf">setkeywords</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">minfreq</span><span class="p">,</span> <span class="n">maxfreq</span><span class="p">,</span> <span class="n">rrlevelstr</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to set the keywords for the search(es)</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            minfreq : float</span>
+<span class="sd">                The starting frequency of the search, in GHz.</span>
+
+<span class="sd">            maxfreq : float</span>
+<span class="sd">                The ending frequency of the search, in GHz.</span>
+
+<span class="sd">            rrlevelstr : str</span>
+<span class="sd">                A string representation of what recombination lines</span>
+<span class="sd">                to allow in the results</span>
+
+<span class="sd">            kwargs : dict</span>
+<span class="sd">                Dictionary of keyword/value pairs for search options.</span>
+<span class="sd">                Possibilities are (no default values for most):</span>
+
+<span class="sd">                **tablename** : str</span>
+<span class="sd">                    Output table name for slsearch.</span>
+
+<span class="sd">                **outfile** : str</span>
+<span class="sd">                    Output file name for slsearch.</span>
+
+<span class="sd">                **rrlonly** : bool</span>
+<span class="sd">                    Only return recombination lines.</span>
+<span class="sd">                    (slsearch)</span>
+
+<span class="sd">                **verbose** : bool</span>
+<span class="sd">                    Be verbose in slsearch.</span>
+
+<span class="sd">                **logfile** : str</span>
+<span class="sd">                    Send slsearch results to the given log file.</span>
+
+<span class="sd">                **append** : bool</span>
+<span class="sd">                    Append to the slsearch log file.</span>
+
+<span class="sd">                **no_atmospheric** : bool</span>
+<span class="sd">                    If True will exclude atmospheric lines from the results.</span>
+<span class="sd">                    Default: False</span>
+<span class="sd">                    (splatalogue)</span>
+
+<span class="sd">                **no_potential** : bool</span>
+<span class="sd">                    If True will exclude potential species from the results.</span>
+<span class="sd">                    Default: False</span>
+<span class="sd">                    (splatalogue)</span>
+
+<span class="sd">                **no_probable** : bool</span>
+<span class="sd">                    If True will exclude probable species from the results.</span>
+<span class="sd">                    Default: False</span>
+<span class="sd">                    (splatalogue)</span>
+
+<span class="sd">                **exclude** : list</span>
+<span class="sd">                    Alternate method of excluding types, can contain any of</span>
+<span class="sd">                    &quot;atmospheric&quot;, &quot;potential&quot;, or &quot;probable&quot;</span>
+
+<span class="sd">                **include_only_nrao** or **only_NRAO_recommended** : bool</span>
+<span class="sd">                    If True only NRAO recommended transitions will be returned.</span>
+<span class="sd">                    Default: False</span>
+<span class="sd">                    (splatalogue)</span>
+
+<span class="sd">                **displayLovas** : bool</span>
+<span class="sd">                    If True include results from the Lovas Line List.</span>
+<span class="sd">                    Default: False</span>
+<span class="sd">                    (splatalogue)</span>
+
+<span class="sd">                **displaySLAIM** : bool</span>
+<span class="sd">                    If True include results from the SLAIM molecular database.</span>
+<span class="sd">                    Default: False</span>
+<span class="sd">                    (splatalogue)</span>
+
+<span class="sd">                **displayJPL** : bool</span>
+<span class="sd">                    If True include results from the JPL database.</span>
+<span class="sd">                    Default: False</span>
+<span class="sd">                    (splatalogue)</span>
+
+<span class="sd">                **displayCDMS** : bool</span>
+<span class="sd">                    If True include results from the Cologne database.</span>
+<span class="sd">                    Default: False</span>
+<span class="sd">                    (splatalogue)</span>
+
+<span class="sd">                **displayToyaMA** : bool</span>
+<span class="sd">                    If True include results from the ToyaMA database.</span>
+<span class="sd">                    Default: False</span>
+<span class="sd">                    (splatalogue)</span>
+
+<span class="sd">                **displayOSU** : bool</span>
+<span class="sd">                    If True include results from the Ohio State database.</span>
+<span class="sd">                    Default: False</span>
+<span class="sd">                    (splatalogue)</span>
+
+<span class="sd">                **displayLisa** : bool</span>
+<span class="sd">                    If True include results from the the 13 methyl formate database.</span>
+<span class="sd">                    Default: False</span>
+<span class="sd">                    (splatalogue)</span>
+
+<span class="sd">                **displayRFI** : bool</span>
+<span class="sd">                    If True include RFI lines</span>
+<span class="sd">                    Default: False</span>
+<span class="sd">                    (splatalogue)</span>
+
+<span class="sd">                **line_lists** : list</span>
+<span class="sd">                    Alternate method to specify which database to search. Can contain any</span>
+<span class="sd">                    of the following:</span>
+<span class="sd">                    &quot;Lovas&quot;, &quot;SLAIM&quot;, &quot;JPL&quot;, &quot;CDMS&quot;, &quot;ToyaMA&quot;, &quot;OSU&quot;, &quot;Lisa&quot;, &quot;RFI&quot;</span>
+<span class="sd">                    (splatalogue)</span>
+
+<span class="sd">                **ls1** : bool</span>
+<span class="sd">                    If True then return the JPL line strength.</span>
+<span class="sd">                    Default: False</span>
+<span class="sd">                    (splatalogue)</span>
+
+<span class="sd">                **ls2** : bool</span>
+<span class="sd">                    If True then return the Smu^2 line strength.</span>
+<span class="sd">                    Default: False</span>
+<span class="sd">                    (splatalogue)</span>
+
+<span class="sd">                **ls3** : bool</span>
+<span class="sd">                    If True then return the S line strength.</span>
+<span class="sd">                    Default: False</span>
+<span class="sd">                    (splatalogue)</span>
+
+<span class="sd">                **ls4** : bool</span>
+<span class="sd">                    If True then return the Eistein A.</span>
+<span class="sd">                    Default: False</span>
+<span class="sd">                    (splatalogue)</span>
+
+<span class="sd">                **ls5** : bool</span>
+<span class="sd">                    If True then return the Lovas line strength.</span>
+<span class="sd">                    Default: False</span>
+<span class="sd">                    (splatalogue)</span>
+
+<span class="sd">                **line_strengths** : list</span>
+<span class="sd">                    Alternate way of specifying the line strength(s) to return.</span>
+<span class="sd">                    Can be any of the following: &quot;ls1&quot;, &quot;ls2&quot;, &quot;ls3&quot;, &quot;ls4&quot;, &quot;ls5&quot;</span>
+<span class="sd">                    (splatalogue)</span>
+
+<span class="sd">                **el1** : bool</span>
+<span class="sd">                    If True then return the lower state energy in cm^-1.</span>
+<span class="sd">                    Default: False</span>
+<span class="sd">                    (spltalogue)</span>
+
+<span class="sd">                **el2** : bool</span>
+<span class="sd">                    If True then return the lower state energy in K.</span>
+<span class="sd">                    Default: False</span>
+<span class="sd">                    (splatalogue)</span>
+
+<span class="sd">                **el3** : bool</span>
+<span class="sd">                    If True then return the upper state energy in cm^-1.</span>
+<span class="sd">                    Default: False</span>
+<span class="sd">                    (splatalogue)</span>
+
+<span class="sd">                **el4** : bool</span>
+<span class="sd">                    If True then return the upper state energy in K.</span>
+<span class="sd">                    Default: False</span>
+<span class="sd">                    (splatalogue)</span>
+
+<span class="sd">                **energy_levels** : list</span>
+<span class="sd">                    Alternate way of specifying the energy levels to return. Can contain</span>
+<span class="sd">                    any of the following: &quot;el1&quot;, &quot;el2&quot;, &quot;el3&quot;, &quot;el4&quot;</span>
+<span class="sd">                    (splatalogue)</span>
+
+<span class="sd">                **fel** : bool</span>
+<span class="sd">                    If True exclude results where the frequency uncertainty</span>
+<span class="sd">                    is more than 50 MHz.</span>
+<span class="sd">                    Default: False</span>
+<span class="sd">                    (splatalogue)</span>
+
+<span class="sd">                **noHFS** : bool</span>
+<span class="sd">                    If True then do not return hyperfine split lines, only the</span>
+<span class="sd">                    main component.</span>
+<span class="sd">                    Default: False</span>
+<span class="sd">                    (splatalogue)</span>
+
+<span class="sd">                **displayHFS** : bool</span>
+<span class="sd">                    If True then return the hyperfine strengths of split lines.</span>
+<span class="sd">                    Default: False</span>
+<span class="sd">                    (splatalogue)</span>
+
+<span class="sd">                **show_unres_qn** : bool</span>
+<span class="sd">                    If True then return the unresolved quantum numbers.</span>
+<span class="sd">                    Default: False</span>
+<span class="sd">                    (splatalogue)</span>
+
+<span class="sd">                **show_upper_degeneracy** : bool</span>
+<span class="sd">                    If True then return the uper state degeneracy.</span>
+<span class="sd">                    Default: False</span>
+<span class="sd">                    (splatalogue)</span>
+
+<span class="sd">                **show_molecule_tag** : bool</span>
+<span class="sd">                    If True then return the molecule tag.</span>
+<span class="sd">                    Default: False</span>
+<span class="sd">                    (splatalogue)</span>
+
+<span class="sd">                **show_lovas_labref** : bool</span>
+<span class="sd">                    If True then return the Lovas lab reference.</span>
+<span class="sd">                    Default: False</span>
+<span class="sd">                    (splatalogue)</span>
+
+<span class="sd">                **show_lovas_obsref** : bool</span>
+<span class="sd">                    If True then return the Lovas observational reference.</span>
+<span class="sd">                    Default: False</span>
+<span class="sd">                    (splatalogue)</span>
+
+<span class="sd">                **show_orderedfreq_only** : bool</span>
+<span class="sd">                    If True then</span>
+<span class="sd">                    Default: False</span>
+<span class="sd">                    (splatalogue)</span>
+
+<span class="sd">                **show_nrao_recommended** : bool</span>
+<span class="sd">                    If True then return the NRAO recommended frequency.</span>
+<span class="sd">                    (splatalogue)</span>
+
+<span class="sd">                **top20** : list</span>
+<span class="sd">                    Include the results from the given top20 lists. Possibilities are:</span>
+<span class="sd">                    &#39;comet&#39;, &#39;planet&#39;, &#39;ism_hotcore&#39;, &#39;ism_darkcloud&#39;, &#39;ism_diffusecloud&#39;</span>
+<span class="sd">                    (splatalogue)</span>
+
+<span class="sd">                **comet** : bool</span>
+<span class="sd">                    If True then return results most likely found in comets.</span>
+<span class="sd">                    (splatalogue)</span>
+
+<span class="sd">                **planet** : bool</span>
+<span class="sd">                    If True then return results most likely found in planetary atmospheres.</span>
+<span class="sd">                    (splatalogue)</span>
+
+<span class="sd">                **ism_hotcore** : bool</span>
+<span class="sd">                    If True then return results most liekly found in hot cores.</span>
+<span class="sd">                    (splatalogue)</span>
+
+<span class="sd">                **ism_darkcloud** : bool</span>
+<span class="sd">                    If True then return results most likely found in dark clouds.</span>
+<span class="sd">                    (splatalogue)</span>
+
+<span class="sd">                **ism_diffusecloud** : bool</span>
+<span class="sd">                    If True then return results most likely found in diffuse clouds.</span>
+<span class="sd">                    (splatalogue)</span>
+
+<span class="sd">                **band** : str</span>
+<span class="sd">                    Which band to use for frequency range, will override any specified</span>
+<span class="sd">                    frequency range.</span>
+<span class="sd">                    (splatalogue)</span>
+
+<span class="sd">                **species** : str</span>
+<span class="sd">                    Limit the results to the given molecule</span>
+
+<span class="sd">                **reconly** or **only_NRAO_recommended** : bool</span>
+<span class="sd">                    Only return results with recommended NROA rest frequencies. This option</span>
+<span class="sd">                    can remove duplicate records arising from the multiple databases inside</span>
+<span class="sd">                    slsearch and splatalogue.</span>
+<span class="sd">                    Default: False</span>
+
+<span class="sd">                **chemnames** or **chemical_name** : str</span>
+<span class="sd">                    Limit the results to the given molecule.</span>
+
+<span class="sd">                **qns** or **transition** : str</span>
+<span class="sd">                    Limit the results to the specified quantum numbers.</span>
+
+<span class="sd">                **energy_type** : str</span>
+<span class="sd">                    Energy units for both the el and eu keywords. Possibilities are</span>
+<span class="sd">                    &#39;K&#39; for Kelvin, and &#39;cm&#39; for inverse cm.</span>
+
+<span class="sd">                **el** : list or float</span>
+<span class="sd">                    If a list then the range of lower state energies to search between,</span>
+<span class="sd">                    else it is treated as a lower limit. Note splatalogue only supports</span>
+<span class="sd">                    a lower limit, so upper limit is ignored, but passed to slsearch.</span>
+
+<span class="sd">                **eu** : list or float</span>
+<span class="sd">                    If a list then the range of upper state energies to search between,</span>
+<span class="sd">                    else it is treated as a lower limit. Note splatalogue only supports</span>
+<span class="sd">                    a lower limit, so upper limit is ignored, but passed to slsearch.</span>
+
+<span class="sd">                **smu2** : list or float</span>
+<span class="sd">                    If a list then the range of line strengths to search between, in D^2,</span>
+<span class="sd">                    else it is treated as a lower limit. Note splatalogue only supports</span>
+<span class="sd">                    a lower limit, so upper limit is ignored, but passed to slsearch.</span>
+
+<span class="sd">                **loga** : list or float</span>
+<span class="sd">                    If a list then the range of line strengths to search between, in log</span>
+<span class="sd">                    of the Einstein A,</span>
+<span class="sd">                    else it is treated as a lower limit. Note splatalogue only supports</span>
+<span class="sd">                    a lower limit, so upper limit is ignored, but passed to slsearch.</span>
+
+<span class="sd">                **intensity** : list or float</span>
+<span class="sd">                    If a list then the range of line strengths to search between, in JPL</span>
+<span class="sd">                    intensity units,</span>
+<span class="sd">                    else it is treated as a lower limit. Note splatalogue only supports</span>
+<span class="sd">                    a lower limit, so upper limit is ignored, but passed to slsearch.</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># set the mandatory, common keys</span>
+        <span class="c1"># frequency limits</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sls_kw</span><span class="p">[</span><span class="s2">&quot;freqrange&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">minfreq</span><span class="p">,</span> <span class="n">maxfreq</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span><span class="p">[</span><span class="s2">&quot;min_frequency&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">minfreq</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span><span class="p">[</span><span class="s2">&quot;max_frequency&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">maxfreq</span>
+
+        <span class="c1"># whether to return recombination lines</span>
+        <span class="k">if</span> <span class="n">rrlevelstr</span> <span class="o">==</span> <span class="s2">&quot;OFF&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sls_kw</span><span class="p">[</span><span class="s2">&quot;rrlinclude&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sls_kw</span><span class="p">[</span><span class="s2">&quot;rrlinclude&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="c1">#self.sp_kw[&quot;displayRecomb&quot;] = &quot;displayRecomb&quot;</span>
+
+        <span class="c1"># set keys that are specific to slsearch</span>
+        <span class="c1"># output table name</span>
+        <span class="k">if</span> <span class="s2">&quot;tablename&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sls_kw</span><span class="p">[</span><span class="s2">&quot;tablename&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;tablename&quot;</span><span class="p">]</span>
+
+        <span class="c1"># output file name</span>
+        <span class="k">if</span> <span class="s2">&quot;outfile&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sls_kw</span><span class="p">[</span><span class="s2">&quot;outfile&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;outfile&quot;</span><span class="p">]</span>
+
+        <span class="c1"># only return recombination lines</span>
+        <span class="k">if</span> <span class="s2">&quot;rrlonly&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sls_kw</span><span class="p">[</span><span class="s2">&quot;rrlonly&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;rrlonly&quot;</span><span class="p">]</span>
+
+        <span class="c1"># be verbose in the search</span>
+        <span class="k">if</span> <span class="s2">&quot;verbose&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sls_kw</span><span class="p">[</span><span class="s2">&quot;verbose&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;verbose&quot;</span><span class="p">]</span>
+
+        <span class="c1"># send results to the given log file</span>
+        <span class="k">if</span> <span class="s2">&quot;logfile&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sls_kw</span><span class="p">[</span><span class="s2">&quot;logfile&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;logfile&quot;</span><span class="p">]</span>
+
+        <span class="c1"># append to the log file</span>
+        <span class="k">if</span> <span class="s2">&quot;append&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sls_kw</span><span class="p">[</span><span class="s2">&quot;append&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;append&quot;</span><span class="p">]</span>
+
+        <span class="c1"># set keys that are specific to splatalogue</span>
+        <span class="c1"># exclude atmospheric lines</span>
+        <span class="k">if</span> <span class="s2">&quot;no_atmospheric&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span><span class="p">[</span><span class="s2">&quot;exclude&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;atmospheric&quot;</span><span class="p">)</span>
+
+        <span class="c1"># exclude potential species</span>
+        <span class="k">if</span> <span class="s2">&quot;no_potential&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span><span class="p">[</span><span class="s2">&quot;exclude&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;potential&quot;</span><span class="p">)</span>
+
+        <span class="c1"># exclude probable species</span>
+        <span class="k">if</span> <span class="s2">&quot;no_probable&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span><span class="p">[</span><span class="s2">&quot;exclude&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;probable&quot;</span><span class="p">)</span>
+
+        <span class="c1"># allow a different way of excluding types</span>
+        <span class="k">if</span> <span class="s2">&quot;exclude&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;exclude&quot;</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span><span class="p">[</span><span class="s2">&quot;exclude&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+
+        <span class="c1">#if &quot;known&quot; in kwargs:</span>
+        <span class="c1">#    self._kw[&quot;known&quot;] = kwargs[&quot;known&quot;]</span>
+
+        <span class="c1"># include only the NRAO recommended transitions</span>
+        <span class="c1"># can eliminate duplicates from splatalogue</span>
+        <span class="k">if</span> <span class="s2">&quot;include_only_nrao&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">or</span> <span class="s2">&quot;only_NRAO_recommended&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span><span class="p">[</span><span class="s2">&quot;only_NRAO_recommended&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;only_NRAO_recommended&quot;</span>
+
+        <span class="c1"># display results from the different lists</span>
+        <span class="k">if</span> <span class="s2">&quot;displayLovas&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">or</span> <span class="s2">&quot;Lovas&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span><span class="p">[</span><span class="s2">&quot;line_lists&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Lovas&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s2">&quot;displaySLAIM&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">or</span> <span class="s2">&quot;SLAIM&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span><span class="p">[</span><span class="s2">&quot;line_lists&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;SLAIM&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s2">&quot;displayJPL&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">or</span> <span class="s2">&quot;JPL&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span><span class="p">[</span><span class="s2">&quot;line_lists&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;JPL&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s2">&quot;displayCDMS&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">or</span> <span class="s2">&quot;CDMS&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span><span class="p">[</span><span class="s2">&quot;line_lists&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;CDMS&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s2">&quot;displayToyaMA&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">or</span> <span class="s2">&quot;ToyaMA&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span><span class="p">[</span><span class="s2">&quot;line_lists&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;ToyaMA&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s2">&quot;displayOSU&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">or</span> <span class="s2">&quot;OSU&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span><span class="p">[</span><span class="s2">&quot;line_lists&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;OSU&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s2">&quot;displayLisa&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">or</span> <span class="s2">&quot;Lisa&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span><span class="p">[</span><span class="s2">&quot;line_lists&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Lisa&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s2">&quot;displayRFI&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">or</span> <span class="s2">&quot;RFI&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span><span class="p">[</span><span class="s2">&quot;line_lists&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;RFI&quot;</span><span class="p">)</span>
+
+        <span class="c1"># alternate method of setting the line lists</span>
+        <span class="k">if</span> <span class="s2">&quot;line_lists&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;line_lists&quot;</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span><span class="p">[</span><span class="s2">&quot;line_lists&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+
+        <span class="c1"># set which line strengths to return</span>
+        <span class="k">for</span> <span class="n">ls</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;ls1&quot;</span><span class="p">,</span> <span class="s2">&quot;ls2&quot;</span><span class="p">,</span> <span class="s2">&quot;ls3&quot;</span><span class="p">,</span> <span class="s2">&quot;ls4&quot;</span><span class="p">,</span> <span class="s2">&quot;ls5&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">ls</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span><span class="p">[</span><span class="s2">&quot;line_strengths&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ls</span><span class="p">)</span>
+
+        <span class="c1"># alternate method</span>
+        <span class="k">if</span> <span class="s2">&quot;line_strengths&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">ls</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;line_strengths&quot;</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span><span class="p">[</span><span class="s2">&quot;line_strengths&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ls</span><span class="p">)</span>
+
+        <span class="c1"># set which energy labels to return</span>
+        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;el1&quot;</span><span class="p">,</span> <span class="s2">&quot;el2&quot;</span><span class="p">,</span> <span class="s2">&quot;el3&quot;</span><span class="p">,</span> <span class="s2">&quot;el4&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span><span class="p">[</span><span class="s2">&quot;energy_levels&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
+
+        <span class="c1"># alternate method</span>
+        <span class="k">if</span> <span class="s2">&quot;energy_levels&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;energy_levels&quot;</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span><span class="p">[</span><span class="s2">&quot;energy_levels&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
+
+        <span class="c1"># exclude transitions with high uncertainty</span>
+        <span class="k">if</span> <span class="s2">&quot;fel&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span><span class="p">[</span><span class="s2">&quot;fel&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;fel&quot;</span><span class="p">]</span>
+
+        <span class="c1"># set other keywords</span>
+        <span class="k">for</span> <span class="n">kw</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;noHFS&quot;</span><span class="p">,</span> <span class="s2">&quot;displayHFS&quot;</span><span class="p">,</span> <span class="s2">&quot;show_unres_qn&quot;</span><span class="p">,</span> <span class="s2">&quot;show_upper_degeneracy&quot;</span>
+                   <span class="s2">&quot;show_molecule_tag&quot;</span><span class="p">,</span> <span class="s2">&quot;show_lovas_labref&quot;</span><span class="p">,</span> <span class="s2">&quot;show_lovas_obsref&quot;</span><span class="p">,</span>
+                   <span class="s2">&quot;show_orderedfreq_only&quot;</span><span class="p">,</span> <span class="s2">&quot;show_nrao_recommended&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">kw</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span><span class="p">[</span><span class="n">kw</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">kw</span><span class="p">]</span>
+
+        <span class="c1"># select a top20 list</span>
+        <span class="k">if</span> <span class="s2">&quot;top20&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">tp</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;top20&quot;</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span><span class="p">[</span><span class="s2">&quot;top20&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tp</span><span class="p">)</span>
+
+        <span class="c1"># altername method</span>
+        <span class="k">for</span> <span class="n">tp</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;comet&#39;</span><span class="p">,</span> <span class="s1">&#39;planet&#39;</span><span class="p">,</span> <span class="s1">&#39;top20&#39;</span><span class="p">,</span> <span class="s1">&#39;ism_hotcore&#39;</span><span class="p">,</span> <span class="s1">&#39;ism_darkcloud&#39;</span><span class="p">,</span> <span class="s1">&#39;ism_diffusecloud&#39;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">tp</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span><span class="p">[</span><span class="n">tp</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">tp</span><span class="p">]</span>
+
+        <span class="c1"># set which band to use</span>
+        <span class="k">if</span> <span class="s2">&quot;band&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span><span class="p">[</span><span class="s2">&quot;band&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;band&quot;</span><span class="p">]</span>
+
+        <span class="c1"># set common keys</span>
+        <span class="c1"># select a specific species</span>
+        <span class="k">if</span> <span class="s2">&quot;species&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sls_kw</span><span class="p">[</span><span class="s2">&quot;species&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;species&quot;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span><span class="p">[</span><span class="s2">&quot;sid[]&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;species&quot;</span><span class="p">]</span>
+
+        <span class="c1"># select if only recombination lines should be returned</span>
+        <span class="k">if</span> <span class="s2">&quot;reconly&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sls_kw</span><span class="p">[</span><span class="s2">&quot;reconly&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;reconly&quot;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span><span class="p">[</span><span class="s2">&quot;only_NRAO_recommended&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;reconly&quot;</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="s2">&quot;only_NRAO_recommended&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sls_kw</span><span class="p">[</span><span class="s2">&quot;reconly&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;only_NRAO_recommended&quot;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span><span class="p">[</span><span class="s2">&quot;only_NRAO_recommended&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;only_NRAO_recommended&quot;</span><span class="p">]</span>
+
+        <span class="c1"># select a specific chemical name</span>
+        <span class="k">if</span> <span class="s2">&quot;chemnames&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sls_kw</span><span class="p">[</span><span class="s2">&quot;chemnames&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;chemnames&quot;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span><span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;chemnames&quot;</span><span class="p">]</span>
+
+        <span class="c1"># select specific quantum numbers</span>
+        <span class="k">if</span> <span class="s2">&quot;qns&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sls_kw</span><span class="p">[</span><span class="s2">&quot;qns&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;qns&quot;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span><span class="p">[</span><span class="s2">&quot;transition&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;qns&quot;</span><span class="p">]</span>
+
+        <span class="c1"># set limits on the lower energy</span>
+        <span class="k">if</span> <span class="s2">&quot;el&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">mult</span> <span class="o">=</span> <span class="mf">1.0</span>
+            <span class="k">if</span> <span class="s2">&quot;energy_type&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="s2">&quot;K&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;energy_type&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">():</span>
+                <span class="n">mult</span> <span class="o">=</span> <span class="mf">1.42879</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;el&quot;</span><span class="p">],</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">,</span> <span class="nb">set</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">)):</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Improper format for &#39;el&#39;&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;el&quot;</span><span class="p">],</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">,</span> <span class="nb">set</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;el&quot;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">el</span> <span class="o">=</span> <span class="p">[</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;el&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">mult</span><span class="p">,</span> <span class="mi">100000</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">el</span> <span class="o">=</span> <span class="p">[</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;el&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">mult</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;el&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">mult</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">el</span> <span class="o">=</span> <span class="p">[</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;el&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">mult</span><span class="p">,</span> <span class="mi">100000</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sls_kw</span><span class="p">[</span><span class="s2">&quot;el&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">el</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span><span class="p">[</span><span class="s2">&quot;energy_min&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">el</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span><span class="p">[</span><span class="s2">&quot;energy_max&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">el</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span><span class="p">[</span><span class="s2">&quot;energy_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;el_k&quot;</span>
+        <span class="c1"># set limits on the upper energy</span>
+        <span class="k">elif</span> <span class="s2">&quot;eu&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">mult</span> <span class="o">=</span> <span class="mf">1.0</span>
+            <span class="k">if</span> <span class="s2">&quot;energy_type&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="s2">&quot;K&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;energy_type&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">():</span>
+                <span class="n">mult</span> <span class="o">=</span> <span class="mf">1.42879</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;eu&quot;</span><span class="p">],</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">,</span> <span class="nb">set</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">)):</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Improper format for &#39;eu&#39;&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;eu&quot;</span><span class="p">],</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">,</span> <span class="nb">set</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;eu&quot;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">eu</span> <span class="o">=</span> <span class="p">[</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;eu&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">mult</span><span class="p">,</span> <span class="mi">100000</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">eu</span> <span class="o">=</span> <span class="p">[</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;eu&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">mult</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;eu&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">mult</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">eu</span> <span class="o">=</span> <span class="p">[</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;eu&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">mult</span><span class="p">,</span> <span class="mi">100000</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sls_kw</span><span class="p">[</span><span class="s2">&quot;eu&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">eu</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span><span class="p">[</span><span class="s2">&quot;energy_min&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">eu</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span><span class="p">[</span><span class="s2">&quot;energy_max&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">eu</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span><span class="p">[</span><span class="s2">&quot;energy_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;eu_k&quot;</span>
+
+        <span class="c1"># set limits on the line strength</span>
+        <span class="k">if</span> <span class="s2">&quot;smu2&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;smu2&quot;</span><span class="p">],</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">,</span> <span class="nb">set</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">)):</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Improper format for &#39;smu2&#39;&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;smu2&quot;</span><span class="p">],</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">,</span> <span class="nb">set</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;smu2&quot;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">smu</span> <span class="o">=</span> <span class="p">[</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;smu2&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="mi">100000</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">smu</span> <span class="o">=</span> <span class="p">[</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;smu2&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;smu2&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">]]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">smu</span> <span class="o">=</span> <span class="p">[</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;smu2&quot;</span><span class="p">],</span> <span class="mi">100000</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sls_kw</span><span class="p">[</span><span class="s2">&quot;smu2&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">smu</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span><span class="p">[</span><span class="s2">&quot;intensity_lower_limit&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">smu</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span><span class="p">[</span><span class="s2">&quot;intensity_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;sijmu2&quot;</span>
+
+        <span class="c1"># set limits on the Einstein A</span>
+        <span class="k">elif</span> <span class="s2">&quot;loga&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;loga&quot;</span><span class="p">],</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">,</span> <span class="nb">set</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">)):</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Improper format for &#39;loga&#39;&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;loga&quot;</span><span class="p">],</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">,</span> <span class="nb">set</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;loga&quot;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">loga</span> <span class="o">=</span> <span class="p">[</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;loga&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="mi">100000</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">loga</span> <span class="o">=</span> <span class="p">[</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;loga&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;loga&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">]]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">loga</span> <span class="o">=</span> <span class="p">[</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;loga&quot;</span><span class="p">],</span> <span class="mi">100000</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sls_kw</span><span class="p">[</span><span class="s2">&quot;loga&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">loga</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span><span class="p">[</span><span class="s2">&quot;intensity_lower_limit&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">loga</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span><span class="p">[</span><span class="s2">&quot;intensity_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;aij&quot;</span>
+
+        <span class="c1"># set limits on the JPL intensity</span>
+        <span class="k">elif</span> <span class="s2">&quot;intensity&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;intensity&quot;</span><span class="p">],</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">,</span> <span class="nb">set</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">)):</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Improper format for &#39;intensity&#39;&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;intensity&quot;</span><span class="p">],</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">,</span> <span class="nb">set</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;intensity&quot;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">intensity</span> <span class="o">=</span> <span class="p">[</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;intensity&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="mi">100000</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">intensity</span> <span class="o">=</span> <span class="p">[</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;intensity&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;intensity&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">]]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">intensity</span> <span class="o">=</span> <span class="p">[</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;intensity&quot;</span><span class="p">],</span> <span class="mi">100000</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sls_kw</span><span class="p">[</span><span class="s2">&quot;intensity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">intensity</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span><span class="p">[</span><span class="s2">&quot;intensity_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;cdms_jpl&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span><span class="p">[</span><span class="s2">&quot;intensity_lower_limit&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">intensity</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="SpectralLineSearch.checktier1overlap"><a class="viewcode-back" href="../../../module/admit.util/SpectralLineSearch.html#admit.util.SpectralLineSearch.SpectralLineSearch.checktier1overlap">[docs]</a>    <span class="k">def</span> <span class="nf">checktier1overlap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">freq</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to check for an overlap with tier1 lines.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            freq : float</span>
+<span class="sd">                The frequency to check if it is within an existing tier1</span>
+<span class="sd">                frequency range</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            Boolean, True if freq is within a tier1 range, False otherwise</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tier1freq</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">freq</span> <span class="o">&lt;</span> <span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="SpectralLineSearch.check_online"><a class="viewcode-back" href="../../../module/admit.util/SpectralLineSearch.html#admit.util.SpectralLineSearch.SpectralLineSearch.check_online">[docs]</a>    <span class="k">def</span> <span class="nf">check_online</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to check whether we are online or not. Just does a simple http</span>
+<span class="sd">            request to www.cv.nrao.edu, the host of splatalogue</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            None</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            Boolean saying whether we are online (True) or not (False)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="s1">&#39;http://www.cv.nrao.edu&#39;</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">URLError</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Cannot reach splatalogue server, please check your internet connection.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Cannot reach splatalogue server, please check your internet connection.&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SpectralLineSearch.search"><a class="viewcode-back" href="../../../module/admit.util/SpectralLineSearch.html#admit.util.SpectralLineSearch.SpectralLineSearch.search">[docs]</a>    <span class="k">def</span> <span class="nf">search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">minfreq</span><span class="p">,</span> <span class="n">maxfreq</span><span class="p">,</span> <span class="n">rrlevelstr</span><span class="p">,</span> <span class="n">allowExotics</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to do the search and return the results. Regardless of the search</span>
+<span class="sd">            method used the results will have the same format and units.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            minfreq : float</span>
+<span class="sd">                The starting frequency for the search, in GHz.</span>
+
+<span class="sd">            maxfreq : float</span>
+<span class="sd">                The ending frequency for the search, in GHz.</span>
+
+<span class="sd">            rrlevelstr : str</span>
+<span class="sd">                A string representation of the depth of recombination lines to return</span>
+
+<span class="sd">            allowExotics : bool</span>
+<span class="sd">                Whether or not to allow exotic atoms in the results (e.g. Ti).</span>
+<span class="sd">                Default: False</span>
+
+<span class="sd">            kwargs : dict</span>
+<span class="sd">                Dictionary containing any keyword/value pairs for the search. Possibilities are:</span>
+
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># set keyword args</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setkeywords</span><span class="p">(</span><span class="n">minfreq</span><span class="p">,</span> <span class="n">maxfreq</span><span class="p">,</span> <span class="n">rrlevelstr</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">online</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">splatalogue</span><span class="p">(</span><span class="n">minfreq</span><span class="p">,</span> <span class="n">maxfreq</span><span class="p">,</span> <span class="n">rrlevelstr</span><span class="p">,</span> <span class="n">allowExotics</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Error raised in splatalogue call, trying slsearch&quot;</span><span class="p">)</span>
+                <span class="k">raise</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">slsearch</span><span class="p">(</span><span class="n">rrlevelstr</span><span class="p">,</span> <span class="n">allowExotics</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SpectralLineSearch.slsearch"><a class="viewcode-back" href="../../../module/admit.util/SpectralLineSearch.html#admit.util.SpectralLineSearch.SpectralLineSearch.slsearch">[docs]</a>    <span class="k">def</span> <span class="nf">slsearch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rrlevelstr</span><span class="p">,</span> <span class="n">allowExotics</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to search through the slsearch database. Search options must already</span>
+<span class="sd">            have been set. Returns a formatted list of transitions, each item in the list</span>
+<span class="sd">            is another list containing the following:</span>
+
+<span class="sd">            #. Chemical formula</span>
+
+<span class="sd">            #. Name</span>
+
+<span class="sd">            #. Rest frequency</span>
+
+<span class="sd">            #. Unique identifier</span>
+
+<span class="sd">            #. Lower state energy in K</span>
+
+<span class="sd">            #. Upper state energy in K</span>
+
+<span class="sd">            #. Linestrength in D^2</span>
+
+<span class="sd">            #. Mass of molecule (rough)</span>
+
+<span class="sd">            #. Transition quantum numbers</span>
+
+<span class="sd">            #. Cleanly formatted chemical formula for display purposes</span>
+
+<span class="sd">            #. Number of non-standard isotopes in the molecule</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            rrlevelstr : str</span>
+<span class="sd">                String representation of how deep to search for recombination lines. Possibilities</span>
+<span class="sd">                are:</span>
+
+<span class="sd">                + `off`      no recombination lines are allowed in the results.</span>
+<span class="sd">                + `shallow`  only H and He, alpha and beta lines are allowed in the results.</span>
+<span class="sd">                + `deep`     any recombination line is allowed in the results.</span>
+
+<span class="sd">            allowExotics : bool</span>
+<span class="sd">                Whether or not to allow exotic atoms in the molecules (e.g Ti)</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            A list of LineData objects, with each containing the data for a single transition.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">slsearch</span> <span class="k">import</span> <span class="n">slsearch</span>
+            <span class="kn">import</span> <span class="nn">taskinit</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;WARNING: No CASA, slsearch is not available, no line identificaiton possible.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span>
+        <span class="k">if</span> <span class="s2">&quot;outfile&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sls_kw</span><span class="p">:</span>
+            <span class="c1"># @todo should really use tempfile, or $$; this is an accident in waiting</span>
+            <span class="c1"># also, in the same namespace if a seed is the same, the accident is guarenteed; see genspec.py)</span>
+            <span class="n">flname</span> <span class="o">=</span> <span class="s2">&quot;/tmp/slsearch.</span><span class="si">%i</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">))</span>
+            <span class="n">utils</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">flname</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sls_kw</span><span class="p">[</span><span class="s2">&quot;outfile&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">flname</span>
+        <span class="c1"># do the search</span>
+        <span class="c1">#print self.sls_kw</span>
+        <span class="c1">#print flname</span>
+        <span class="n">slsearch</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">sls_kw</span><span class="p">)</span>
+        <span class="c1"># open the table and get the contents</span>
+        <span class="n">tb</span> <span class="o">=</span> <span class="n">taskinit</span><span class="o">.</span><span class="n">tbtool</span><span class="p">()</span>
+        <span class="n">tb</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sls_kw</span><span class="p">[</span><span class="s2">&quot;outfile&quot;</span><span class="p">])</span>
+        <span class="n">numrows</span> <span class="o">=</span> <span class="n">tb</span><span class="o">.</span><span class="n">nrows</span><span class="p">()</span>
+        <span class="n">possible</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># convert the results to a list</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numrows</span><span class="p">):</span>
+            <span class="n">species</span> <span class="o">=</span> <span class="n">tb</span><span class="o">.</span><span class="n">getcell</span><span class="p">(</span><span class="s2">&quot;SPECIES&quot;</span><span class="p">,</span> <span class="n">row</span><span class="p">)</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">tb</span><span class="o">.</span><span class="n">getcell</span><span class="p">(</span><span class="s2">&quot;CHEMICAL_NAME&quot;</span><span class="p">,</span> <span class="n">row</span><span class="p">)</span>
+            <span class="n">freq</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">tb</span><span class="o">.</span><span class="n">getcell</span><span class="p">(</span><span class="s2">&quot;FREQUENCY&quot;</span><span class="p">,</span> <span class="n">row</span><span class="p">))</span>
+            <span class="n">qn</span> <span class="o">=</span> <span class="n">tb</span><span class="o">.</span><span class="n">getcell</span><span class="p">(</span><span class="s2">&quot;QUANTUM_NUMBERS&quot;</span><span class="p">,</span> <span class="n">row</span><span class="p">)</span>
+            <span class="n">linestr</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">tb</span><span class="o">.</span><span class="n">getcell</span><span class="p">(</span><span class="s2">&quot;SMU2&quot;</span><span class="p">,</span> <span class="n">row</span><span class="p">))</span>
+            <span class="n">el</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">tb</span><span class="o">.</span><span class="n">getcell</span><span class="p">(</span><span class="s2">&quot;EL&quot;</span><span class="p">,</span> <span class="n">row</span><span class="p">))</span>
+            <span class="n">eu</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">tb</span><span class="o">.</span><span class="n">getcell</span><span class="p">(</span><span class="s2">&quot;EU&quot;</span><span class="p">,</span> <span class="n">row</span><span class="p">))</span>
+            <span class="c1"># only add it to the output list if it does not contain an exotic atom,</span>
+            <span class="c1"># or if exotics are allowed</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">utils</span><span class="o">.</span><span class="n">isexotic</span><span class="p">(</span><span class="n">species</span> <span class="ow">or</span> <span class="n">allowExotics</span><span class="p">):</span>
+                <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="s2">&quot;RECOMBINATION&quot;</span> <span class="ow">in</span> <span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> \
+                   <span class="ow">or</span> <span class="p">(</span><span class="s2">&quot;RECOMBINATION&quot;</span> <span class="ow">in</span> <span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+                      <span class="ow">and</span> <span class="p">(</span><span class="n">rrlevelstr</span> <span class="o">==</span> <span class="s2">&quot;DEEP&quot;</span> <span class="ow">or</span> <span class="p">(</span><span class="s2">&quot;H&quot;</span> <span class="ow">in</span> <span class="n">species</span> \
+                          <span class="ow">and</span> <span class="p">(</span><span class="s2">&quot;alpha&quot;</span> <span class="ow">in</span> <span class="n">species</span> <span class="ow">or</span> <span class="s2">&quot;beta&quot;</span> <span class="ow">in</span> <span class="n">species</span><span class="p">)))))</span> \
+                   <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">checktier1overlap</span><span class="p">(</span><span class="n">freq</span><span class="p">):</span>
+                    <span class="n">possible</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">LineData</span><span class="p">(</span><span class="n">formula</span><span class="o">=</span><span class="n">species</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">frequency</span><span class="o">=</span><span class="n">freq</span><span class="p">,</span>
+                                    <span class="n">uid</span><span class="o">=</span><span class="n">utils</span><span class="o">.</span><span class="n">getplain</span><span class="p">(</span><span class="n">species</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;_</span><span class="si">%.5f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">freq</span><span class="p">,</span>
+                                    <span class="n">energies</span><span class="o">=</span><span class="p">[</span><span class="n">el</span><span class="p">,</span> <span class="n">eu</span><span class="p">],</span> <span class="n">linestrength</span><span class="o">=</span><span class="n">linestr</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="n">utils</span><span class="o">.</span><span class="n">getmass</span><span class="p">(</span><span class="n">species</span><span class="p">),</span>
+                                    <span class="n">transition</span><span class="o">=</span><span class="n">qn</span><span class="p">,</span> <span class="n">plain</span><span class="o">=</span><span class="n">utils</span><span class="o">.</span><span class="n">getplain</span><span class="p">(</span><span class="n">species</span><span class="p">),</span>
+                                    <span class="n">isocount</span><span class="o">=</span><span class="n">utils</span><span class="o">.</span><span class="n">isotopecount</span><span class="p">(</span><span class="n">species</span><span class="p">)))</span>
+        <span class="n">tb</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="c1"># remove the temporary table</span>
+        <span class="n">utils</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sls_kw</span><span class="p">[</span><span class="s2">&quot;outfile&quot;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">possible</span></div>
+
+<div class="viewcode-block" id="SpectralLineSearch.splatalogue"><a class="viewcode-back" href="../../../module/admit.util/SpectralLineSearch.html#admit.util.SpectralLineSearch.SpectralLineSearch.splatalogue">[docs]</a>    <span class="k">def</span> <span class="nf">splatalogue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">minfreq</span><span class="p">,</span> <span class="n">maxfreq</span><span class="p">,</span> <span class="n">rrlevelstr</span><span class="p">,</span> <span class="n">allowExotics</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to search through the slsearch database. Search options must already</span>
+<span class="sd">            have been set. Returns a formatted list of transitions, each item in the list</span>
+<span class="sd">            is another list containing the following:</span>
+
+<span class="sd">            #. Chemical formula</span>
+
+<span class="sd">            #. Name</span>
+
+<span class="sd">            #. Rest frequency</span>
+
+<span class="sd">            #. Unique identifier</span>
+
+<span class="sd">            #. Lower state energy in K</span>
+
+<span class="sd">            #. Upper state energy in K</span>
+
+<span class="sd">            #. Linestrength in D^2</span>
+
+<span class="sd">            #. Mass of molecule (rough)</span>
+
+<span class="sd">            #. Transition quantum numbers</span>
+
+<span class="sd">            #. Cleanly formatted chemical formula for display purposes</span>
+
+<span class="sd">            #. Number of non-standard isotopes in the molecule</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            rrlevelstr : str</span>
+<span class="sd">                String representation of how deep to search for recombination lines. Possibilities</span>
+<span class="sd">                are:</span>
+
+<span class="sd">                + `off`      no recombination lines are allowed in the results.</span>
+<span class="sd">                + `shallow`  only H and He, alpha and beta lines are allowed in the results.</span>
+<span class="sd">                + `deep`     any recombination line is allowed in the results.</span>
+
+<span class="sd">            allowExotics : bool</span>
+<span class="sd">                Whether or not to allow exotic atoms in the molecules (e.g Ti)</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            A list of LineData objects, with each containing the data for a single transition.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">possible</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># initialize the interface class</span>
+        <span class="n">sp</span> <span class="o">=</span> <span class="n">Splatalogue</span><span class="o">.</span><span class="n">Splatalogue</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">sp_kw</span><span class="p">)</span>
+        <span class="c1"># do the search</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">query_lines</span><span class="p">(</span><span class="n">minfreq</span><span class="p">,</span> <span class="n">maxfreq</span><span class="p">)</span>
+        <span class="c1"># get the results</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+        <span class="c1"># the top row is the column headings as one long string</span>
+        <span class="c1"># split the string into its individual components</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
+        <span class="c1"># the indexes of the data are not guaranteed, so search for each needed one</span>
+        <span class="c1"># by its known name, if splatalogue changes the column headings this will</span>
+        <span class="c1"># break</span>
+        <span class="n">sidx</span> <span class="o">=</span> <span class="n">header</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;Species&quot;</span><span class="p">)</span>
+        <span class="n">cidx</span> <span class="o">=</span> <span class="n">header</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;Chemical Name&quot;</span><span class="p">)</span>
+        <span class="n">fidx</span> <span class="o">=</span> <span class="n">header</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;Freq-GHz&quot;</span><span class="p">)</span>
+        <span class="n">bfidx</span> <span class="o">=</span> <span class="n">header</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;Meas Freq-GHz&quot;</span><span class="p">)</span>
+        <span class="n">qidx</span> <span class="o">=</span> <span class="n">header</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;Resolved QNs&quot;</span><span class="p">)</span>
+        <span class="n">stidx</span> <span class="o">=</span> <span class="n">header</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;S&lt;sub&gt;ij&lt;/sub&gt;&amp;#956;&lt;sup&gt;2&lt;/sup&gt; (D&lt;sup&gt;2&lt;/sup&gt;)&quot;</span><span class="p">)</span>
+        <span class="n">elidx</span> <span class="o">=</span> <span class="n">header</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;E_L (K)&quot;</span><span class="p">)</span>
+        <span class="n">euidx</span> <span class="o">=</span> <span class="n">header</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;E_U (K)&quot;</span><span class="p">)</span>
+        <span class="c1"># remove the header row so the rest can be iterated over</span>
+        <span class="k">del</span> <span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c1"># make sure all of the indexes are found</span>
+        <span class="k">if</span> <span class="nb">min</span><span class="p">(</span><span class="n">sidx</span><span class="p">,</span> <span class="n">cidx</span><span class="p">,</span> <span class="n">fidx</span><span class="p">,</span> <span class="n">qidx</span><span class="p">,</span> <span class="n">stidx</span><span class="p">,</span> <span class="n">elidx</span><span class="p">,</span> <span class="n">euidx</span><span class="p">,</span> <span class="n">bfidx</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Missing data&quot;</span><span class="p">)</span> <span class="c1"># need a better message</span>
+        <span class="c1"># iterate over all the results</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+            <span class="c1"># sploit into columns</span>
+            <span class="n">row</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
+            <span class="c1"># see which frequency we have, prefering the &#39;Freq-GHz&#39; column</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">row</span><span class="p">[</span><span class="n">fidx</span><span class="p">]:</span>
+                <span class="n">freq</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">bfidx</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">freq</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">fidx</span><span class="p">])</span>
+            <span class="c1"># process the result, dropping if needed</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">utils</span><span class="o">.</span><span class="n">isexotic</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">sidx</span><span class="p">]</span> <span class="ow">or</span> <span class="n">allowExotics</span><span class="p">):</span>
+                <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="s2">&quot;RECOMBINATION&quot;</span> <span class="ow">in</span> <span class="n">row</span><span class="p">[</span><span class="n">cidx</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> \
+                   <span class="ow">or</span> <span class="p">(</span><span class="s2">&quot;RECOMBINATION&quot;</span> <span class="ow">in</span> <span class="n">row</span><span class="p">[</span><span class="n">cidx</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+                      <span class="ow">and</span> <span class="p">(</span><span class="n">rrlevelstr</span> <span class="o">==</span> <span class="s2">&quot;DEEP&quot;</span> <span class="ow">or</span> <span class="p">(</span><span class="s2">&quot;H&quot;</span> <span class="ow">in</span> <span class="n">row</span><span class="p">[</span><span class="n">sidx</span><span class="p">]</span> \
+                          <span class="ow">and</span> <span class="p">(</span><span class="s2">&quot;alpha&quot;</span> <span class="ow">in</span> <span class="n">row</span><span class="p">[</span><span class="n">sidx</span><span class="p">]</span> <span class="ow">or</span> <span class="s2">&quot;beta&quot;</span> <span class="ow">in</span> <span class="n">row</span><span class="p">[</span><span class="n">sidx</span><span class="p">])))))</span> \
+                   <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">checktier1overlap</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">fidx</span><span class="p">]):</span>
+                    <span class="n">possible</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">LineData</span><span class="p">(</span><span class="n">formula</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="n">sidx</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="n">cidx</span><span class="p">],</span> <span class="n">frequency</span><span class="o">=</span><span class="n">freq</span><span class="p">,</span>
+                                    <span class="n">uid</span><span class="o">=</span><span class="n">utils</span><span class="o">.</span><span class="n">getplain</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">sidx</span><span class="p">])</span> <span class="o">+</span> <span class="s2">&quot;_</span><span class="si">%.5f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">freq</span><span class="p">,</span>
+                                    <span class="n">energies</span><span class="o">=</span><span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">elidx</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">euidx</span><span class="p">])],</span> <span class="n">linestrength</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">stidx</span><span class="p">]),</span> <span class="n">mass</span><span class="o">=</span><span class="n">utils</span><span class="o">.</span><span class="n">getmass</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">sidx</span><span class="p">]),</span>
+                                    <span class="n">transition</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="n">qidx</span><span class="p">],</span> <span class="n">plain</span><span class="o">=</span><span class="n">utils</span><span class="o">.</span><span class="n">getplain</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">sidx</span><span class="p">]),</span>
+                                    <span class="n">isocount</span><span class="o">=</span><span class="n">utils</span><span class="o">.</span><span class="n">isotopecount</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">sidx</span><span class="p">])))</span>
+
+        <span class="k">return</span> <span class="n">possible</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ADMIT 1.0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, The ADMIT Team.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.8.
+    </div>
+  </body>
+</html>

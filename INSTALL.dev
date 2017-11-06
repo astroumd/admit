@@ -19,18 +19,19 @@ CASA requirements:
 
     e.g. the latest ones are:
 
-    https://casa.nrao.edu/download/distro/linux/release/el7/casa-release-4.7.2-el7.tar.gz
-    https://casa.nrao.edu/download/distro/linux/release/el6/casa-release-4.7.2-el6.tar.gz
-    https://casa.nrao.edu/download/distro/osx/release/10.11/casa-release-4.7.2-10.11.dmg
-    https://casa.nrao.edu/download/distro/osx/release/10.10/casa-release-4.7.2-10.10.dmg
-    
-    and there are also pre-releases in:
-    
-    https://casa.nrao.edu/download/distro/linux/prerelease/el7/
-    https://casa.nrao.edu/download/distro/linux/prerelease/el6/
-    https://casa.nrao.edu/download/distro/osx/prerelease/10.12/
+    https://casa.nrao.edu/download/distro/linux/release/el7/casa-release-5.1.1-5.el7.tar.gz    
+    https://casa.nrao.edu/download/distro/linux/release/el6/casa-release-5.1.1-5.el6.tar.gz    
 
-Programs you will need: (apart from the obvious things like python etc.)
+    https://casa.nrao.edu/download/distro/osx/release/10.12/casa-release-5.1.1-5-10.12.dmg
+    https://casa.nrao.edu/download/distro/osx/release/10.11/casa-release-5.1.1-5-10.11.dmg
+
+    
+    and there are also pre-releases in: (pick your os from el7, el6, 10.13, 10.12, 10.11)
+    
+    https://casa.nrao.edu/download/distro/linux/prerelease/
+
+
+Programs you will need if you develop: (apart from the obvious things like python etc.)
 
 		         package names
     program       ubuntu                redhat
@@ -83,27 +84,31 @@ ubuntu:   it needs a new symlink to the system version of CASA's libtinfo.so.5, 
 Example installation script
 ---------------------------
 
-  Sample scripts:
-  $ADMIT/scripts/get_stable-casa_admit             install both casa and admit, only for linux
+  Sample scripts to automate install if you have automated installs:
+  $ADMIT/scripts/get_stable_casa_admit             install both casa and admit, only for linux
 
 # example session:
 
 git clone https://github.com/astroumd/admit
 cd admit
 autoconf
-./configure --with-casa-root=/opt/casa-release-4.7.0-el6
+./configure --with-casa-root=/opt/casa-release-5.1.1-5.el7
 source admit_start.sh
 
-# unit tests (will need CASA in your environment)
+# 0: test the admit environment settings
+admit
+
+# 1: unit tests (will need CASA in your environment)
 make unit
 
-# integratation tests (will need CASA)
+# 2: integratation tests (will need CASA)
 make integration
 
-# regression (will need CASA)
+# 3: regression (will need CASA)
 make regression
 
-# make testdata
+# 4: testdata (will grab some data via FTP)
+make testdata
 cd testdata
 runa1 test0.fits
 

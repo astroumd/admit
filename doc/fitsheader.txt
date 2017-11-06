@@ -1,0 +1,17 @@
+FITS headers for input datacubes for ADMIT should conform to the FITS standard of course.
+
+The first two dimensions should be RA-DEC (can also be GLON-GLAT or other systems)
+as long as imhead() after importfits()  shows a proper "Direction" and "Spectral" axis.
+Some projection types are not handled well by CASA, but rest assured, CASA will warn
+you about those.
+The location of the Stokes axis being 2 and 3 is not important, ADMIT can deal with
+either case.
+
+
+	Axis Coord Type      Name             Proj Shape Tile   Coord value at pixel       Coord incr Units
+	--------------------------------------------------------------------------------------------------- 
+	0    0     Direction Right Ascension   SIN   128  128  10:27:51.600    64.00    -1.000000e+00 arcsec
+	1    0     Direction Declination       SIN   128  128 -43.54.18.000    64.00     1.000000e+00 arcsec
+	2    2     Spectral  Frequency                50    2   1.13813e+11     0.00 1.5626038206e+07 Hz
+	                     Velocity                               3791.65     0.00    -4.063954e+01 km/s
+	3    1     Stokes    Stokes                    1    1             I

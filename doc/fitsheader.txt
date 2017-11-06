@@ -5,7 +5,8 @@ as long as imhead() after importfits()  shows a proper "Direction" and "Spectral
 Some projection types are not handled well by CASA, but rest assured, CASA will warn
 you about those.
 The location of the Stokes axis being 2 and 3 is not important, ADMIT can deal with
-either case.
+either case, except in the current version the stokes axis length (called 'Shape' below)
+must be 1.
 
 
 	Axis Coord Type      Name             Proj Shape Tile   Coord value at pixel       Coord incr Units
@@ -15,3 +16,82 @@ either case.
 	2    2     Spectral  Frequency                50    2   1.13813e+11     0.00 1.5626038206e+07 Hz
 	                     Velocity                               3791.65     0.00    -4.063954e+01 km/s
 	3    1     Stokes    Stokes                    1    1             I
+
+
+The "Spectral" axis needs a bit more discussion, as a number of FITS conventions are in the wild.
+
+The ALMA (AIPS) convention
+
+
+test6503: (VLA data)
+--------------------
+NAXIS   =                    4 /                                                
+NAXIS1  =                  371 /                                                
+NAXIS2  =                  251 /                                                
+NAXIS3  =                   89 /                                                
+NAXIS4  =                    1 /
+
+CTYPE3  = 'FREQ    '                                                            
+CRVAL3  =    1.42027590166E+09 /                                                
+CDELT3  =      2.441406250E+04 /                                                
+CRPIX3  =      4.600000000E+01 /                                                
+CROTA3  =      0.000000000E+00 /
+
+RESTFREQ=    1.42040575200E+09 /REST FREQUENCY
+VELREF  =                    2 />256 RADIO, 1 LSR 2 HEL 3 OBS                   
+ALTRVAL =    2.60000000000E+04 /ALTENATE FREQ/VEL REF VALUE                     
+ALTRPIX =      4.600000000E+01 /ALTENATE FREQ/VEL REF PIXEL
+
+BUNIT   = 'JY/BEAM '
+HISTORY AIPS   CLEAN BMAJ=  4.0037E-03 BMIN=  3.7038E-03 BPA= -88.86            
+
+
+ADMIT#761 (SD data)
+-------------------
+NAXIS   =                    4                                                  
+NAXIS1  =                   26                                                  
+NAXIS2  =                   30                                                  
+NAXIS3  =                 1024                                                  
+NAXIS4  =                    1
+
+BMAJ    =   8.275597222222E-03                                                  
+BMIN    =   8.275597222222E-03                                                  
+BPA     =   1.999700000000E-02
+BUNIT   = 'Jy/beam '           /Brightness (pixel) unit
+
+CTYPE3  = 'FREQ    '                                                            
+CRVAL3  =   2.179684271151E+11                                                  
+CDELT3  =  -6.103585607910E+04                                                  
+CRPIX3  =   1.000000000000E+00                                                  
+CUNIT3  = 'Hz      '
+
+RESTFRQ =   2.179659584090E+11 /Rest Frequency (Hz)                             
+SPECSYS = 'LSRK    '           /Spectral reference frame
+ALTRVAL =  -3.395481894531E+03 /Alternate frequency reference value             
+ALTRPIX =   1.000000000000E+00 /Alternate frequency reference pixel             
+VELREF  =                  257 /1 LSR, 2 HEL, 3 OBS, +256 Radio                 
+
+ADMIT#720 [900 900 109   1]  cycle 3/4 pipeline
+-----------------------------------------------
+NAXIS   =                    4                                                  
+NAXIS1  =                  900                                                  
+NAXIS2  =                  900                                                  
+NAXIS3  =                  109                                                  
+NAXIS4  =                    1
+
+BMAJ    =   1.099132951991E-04                                                  
+BMIN    =   7.702260813366E-05                                                  
+BPA     =   5.446126693054E+01
+BUNIT   = 'Jy/beam '           /Brightness (pixel) unit
+
+CTYPE3  = 'FREQ    '                                                            
+CRVAL3  =   2.311740922730E+11                                                  
+CDELT3  =   1.562375456921E+07                                                  
+CRPIX3  =   1.000000000000E+00                                                  
+CUNIT3  = 'Hz      '
+
+RESTFRQ =   2.320000000000E+11 /Rest Frequency (Hz)                             
+SPECSYS = 'LSRK    '           /Spectral reference frame                        
+ALTRVAL =   1.067245291201E+06 /Alternate frequency reference value             
+ALTRPIX =   1.000000000000E+00 /Alternate frequency reference pixel             
+VELREF  =                  257 /1 LSR, 2 HEL, 3 OBS, +256 Radio                 

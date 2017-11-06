@@ -16,6 +16,9 @@ try:
 except:
   print "WARNING: No CASA; casautil can't function"
 
+# imview was left out of the casa namespace in CASA5
+from imview import imview as casa_imview
+
 import PlotControl
 
 def iscasa(file):
@@ -129,14 +132,13 @@ def implot(rasterfile, figname, contourfile=None, plottype=PlotControl.PNG,
     # axes = { 'x' : h['axisnames'][0],  'y' : h['axisnames'][1] , 'z' : 'z' }
 
     
-
-    casa.imview(raster=raster, contour=contour, out=figname, axes=axes,
+    casa_imview(raster=raster, contour=contour, out=figname, axes=axes,
                 zoom=zoom)
 
     #of = PlotControl.mkext(plottype,dot=False)
     #casa.viewer(outfile=outfile, infile=imagename, gui=False, plottype=of)
     if plotmode == PlotControl.INTERACTIVE or plotmode==PlotControl.SHOW_AT_END:
-        casa.imview(raster=raster, contour=contour,axes=axes)
+        casa_imview(raster=raster, contour=contour,axes=axes)
 
 # Moment_AT, and now CubeSum_AT too
 def getdata(imgname, chans=[], zeromask=False):

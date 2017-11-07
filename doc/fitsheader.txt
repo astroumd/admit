@@ -18,10 +18,39 @@ must be 1.
 	3    1     Stokes    Stokes                    1    1             I
 
 
-The "Spectral" axis needs a bit more discussion, as a number of FITS conventions are in the wild.
+1) cube should be 4dim (NAXIS=4), with a single polarization
+2) NAXIS1 and NAXIS2 should have valid FITS coordinate axis desciptors
+3) NAXIS3 in 'FREQ' and 'Hz'
+4) NAXIS4 is a dummy 'STOKES'
 
-The ALMA (AIPS) convention
+Other important keywords you need:
+----------------------------------
+TELESCOP
+BUNIT/BMAJ/BMIN/BPA 
+RESTFRQ
 
+
+Things not important, but nice to have
+--------------------------------------
+CUNITx
+ALTRVAL, ALTRPIX, VELREF
+SPECSYS
+RADECSYS
+EQUINOX
+
+
+
+
+
+
+
+
+
+
+
+
+Examples of some relevant fits header portions:
+===============================================
 
 test6503: (VLA data)
 --------------------

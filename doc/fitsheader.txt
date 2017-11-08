@@ -19,9 +19,9 @@ must be 1.
 
 
 1) cube should be 4dim (NAXIS=4), with a single polarization
-2) NAXIS1 and NAXIS2 should have valid FITS coordinate axis desciptors
-3) NAXIS3 in 'FREQ' and 'Hz'
-4) NAXIS4 is a dummy 'STOKES'
+2) NAXIS1 and NAXIS2 should have valid FITS (related) spatial coordinate axis desciptors
+3) NAXIS3 is spectral, 'FREQ' and 'Hz'
+4) NAXIS4 is polarization, 'STOKES', and properly labeled via CRVAL4
 
 Other important keywords you need:
 ----------------------------------

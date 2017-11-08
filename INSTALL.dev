@@ -84,8 +84,13 @@ ubuntu:   it needs a new symlink to the system version of CASA's libtinfo.so.5, 
 Example installation script
 ---------------------------
 
-  Sample scripts to automate install if you have automated installs:
+  # Example script to automate install if you have automated installs:
   $ADMIT/scripts/get_stable_casa_admit             install both casa and admit, only for linux
+
+
+  # Example scripts to re-run a whole buildbot style (you'll need to taylor it for your local setup)
+  $ADMIT/scripts/redo_from_scratch*
+
 
 # example session:
 

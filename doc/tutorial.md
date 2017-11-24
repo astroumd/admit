@@ -57,7 +57,9 @@ if that command fails (most developers would have this command), use our backup:
 
     cp scripts/configure  .
 
-and then proceed configuring ADMIT to use the CASA that you have.   On **Linux** you will probably need something like
+and then proceed configuring ADMIT to use the CASA that you have.
+
+On **Linux** you will probably need something like
 
     ./configure --with-casa-root=/astromake/opt/casa/511/bin/casa
 
@@ -157,3 +159,5 @@ Install ADMIT in the CASA distribution
 
 	cd $ADMIT
 	casa-config --exec python setup.py
+
+this should allow usage of ADMIT without any $ADMIT environment.

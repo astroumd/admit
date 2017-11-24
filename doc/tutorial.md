@@ -137,6 +137,10 @@ Recipes are in $ADMIT/admit/recipes, the command **admit_recipe** will remind yo
 	Source_Find
 	Source_Spectra
 
+For example
+
+	admit_recipe Line_Moment 
+	
 
 ### Running via the browser:
 

@@ -61,7 +61,7 @@ and then proceed configuring ADMIT to use the CASA that you have.
 
 On **Linux** you will probably need something like
 
-    ./configure --with-casa-root=/astromake/opt/casa/511/bin/casa
+    ./configure --with-casa-root=/astromake/opt/casa/511
 
 On **MAC**, if you have installed CASA via the DMG file, it should already detect the location, but here is the full command:
 
@@ -141,7 +141,9 @@ Recipes are in $ADMIT/admit/recipes, the command **admit_recipe** will remind yo
 
 For example
 
-	admit_recipe Line_Moment 
+	admit_recipe Line_Moment test0.fits
+
+would run 
 	
 
 ### Running via the browser:

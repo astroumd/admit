@@ -4,6 +4,8 @@ For this tutorial we'll be using the standard ADMIT version that
 expects ALMA-like data (cube with frequency as the spectral
 axis). BYOD or you can use my ADMIT test data.
 
+See also: https://github.com/astroumd/admit/blob/master/doc/tutorial.md
+
 Minus some startup time, a typical cube takes about 1" CPU per Mpixel
 to process, so if you bring a Gpixel cube, expect to be waiting 20
 mins or so.
@@ -73,4 +75,21 @@ To test if everything looks good, use the **admit** command
 	    version  = 5.1.1-rel-5
 	    revision = 1
 
-and thus...
+and thus we are ready to run ADMIT
+
+## Preparing testdata
+
+If you had downloaded the 3 testdata FITS files, you can install them manually, e.g.
+
+       mkdir testdata
+       mv ../*.fits testdata
+
+otherwise this will do the same thing, albeit a bit slower
+
+       make testdata
+
+
+## Running admit: batch-mode
+
+
+There are two ways to run admit. The **runa1** style scripts, which were used to 

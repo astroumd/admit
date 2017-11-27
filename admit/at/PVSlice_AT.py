@@ -336,6 +336,7 @@ class PVSlice_AT(AT):
             # debug:
             #
             # @todo    tmp1 is ok, tmp2 is not displaying the whole thing
+            #          use casa_imview, not casa.imview - if this is enabled.
             # old style:   viewer() seems to plot full image, but imview() wants square pixels?
             casa.viewer(infile=self.dir(pvname), outfile=self.dir('tmp1.pv.png'), gui=False, outformat="png")
             casa.imview(raster={'file':self.dir(pvname),  'colorwedge' : True, 'scaling':-1},

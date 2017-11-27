@@ -2,11 +2,13 @@
 
 For this tutorial we'll be using the standard ADMIT version that
 expects ALMA-like data (cube with frequency as the spectral
-axis). BYOD or you can use my ADMIT test data.
+axis). BYOD or you can use our ADMIT test data.
 
-This tutorial: https://github.com/astroumd/admit/blob/master/doc/tutorial.md
+ADMIT tutorial: https://github.com/astroumd/admit/blob/master/doc/tutorial.md (this page)
 
 ADMIT documentation: http://admit.astro.umd.edu/admit/
+
+## Preparations
 
 Minus some startup time, a typical cube takes about 1" CPU per Mpixel
 to process, so if you bring a Gpixel cube, expect to be waiting 20
@@ -22,7 +24,7 @@ You can speed up your installation by:
 
    git clone https://github.com/astroumd/admit.git
 
-   (the $ADMIT/INSTALL file should get you the basic steps)
+   (the $ADMIT/INSTALL file should get you the basic steps, see below)
 
 3) Grab some sample data using wget or curl:
 
@@ -83,7 +85,8 @@ To test if everything looks good, use the **admit** command
 	    version  = 5.1.1-rel-5
 	    revision = 1
 
-and thus we are ready to run ADMIT scripts
+and thus we are ready to run ADMIT scripts. On MAC systems you might see a warning about casa.init.py, please follow the instructions
+on what to put in your **~/.init/casa.py** file.
 
 ## Preparing testdata
 

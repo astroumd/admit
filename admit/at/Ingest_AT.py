@@ -239,7 +239,7 @@ class Ingest_AT(AT):
             # 'cbeam'   : 0.5,     # channel beam variation allowed in terms of pixel size to use median beam
         }
         AT.__init__(self,keys,keyval)
-        self._version = "1.1.0"
+        self._version = "1.1.1"
         self.set_bdp_in()                            # no input BDP
         self.set_bdp_out([(SpwCube_BDP, 1),          # one or two output BDPs
                           (Image_BDP,   0),          # optional PB if there was an pb= input
@@ -751,11 +751,14 @@ class Ingest_AT(AT):
             t3 = h['ctype3']
             df = h['cdelt3']
             fc = h['crval3'] + (0.5*(float(shape[2])-1)-h['crpix3'])*df        # center freq; 0 based pixels
-            if h.has_key('restfreq'):
+            if 'restfreq' in h:
                 fr = float(h['restfreq'][0])
+                if fr == 0.0:
+                    fr = fc
             else:
                 fr = fc
             fw = df*float(shape[2])
+            print "PJT:",fr,fc,fw
             dv = -df/fr*utils.c 
             logging.info("Freq Axis 3: %g %g %g" % (h['crval3']/1e9,h['cdelt3']/1e9,h['crpix3']))
             logging.info("Cube Axis 3: type=%s  velocity increment=%f km/s @ fc=%f fw=%f GHz" % (t3,dv,fc/1e9,fw/1e9))

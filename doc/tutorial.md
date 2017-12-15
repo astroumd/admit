@@ -34,7 +34,7 @@ You can speed up your installation by:
 
      wget ftp://ftp.astro.umd.edu/pub/admit/testdata/test253_cont.fits
 
-   these files need to be placed in $ADMIT/testdata
+   these files need to be placed in $ADMIT/testdata (at least if you follow the tutorial guidelines below)
 
 
 ## CASA sanity check
@@ -45,7 +45,9 @@ Open a terminal, and the command
 
 should give you some hint where the CASA_ROOT directory is. Example problem case is NRAO, where
 the return value is **/opt/local/bin/casa**. You would like to see something like **/astromake/opt/casa/511/bin/casa**
-in which case the CASA_ROOT is **/astromake/opt/casa/511** where it expects 
+in which case the CASA_ROOT is **/astromake/opt/casa/511** where it expects CASA's directories (bin, data, share, xml, etc.).
+At NRAO the true CASA_ROOT is hidden from the user, but after some inspection you can find them in
+/home/casa/packages/RHEL6/release/casa-release-5.1.1-5 and the usual variations on that theme (RHEL6, RHEL7 etc.).
 
 ## Prepare ADMIT to see the correct CASA
 

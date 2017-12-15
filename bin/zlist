@@ -35,6 +35,7 @@ if __name__ == "__main__":
     
     freq = float(sys.argv[1])
     print("# For observed freq=%s GHz the following (z,transition) pairs are possible:" %  sys.argv[1])
+    print("# Transitions are defined in %s" % zfile)
     for line in zlist:
         z = line[0]/freq - 1.0
         if z > 0:

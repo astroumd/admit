@@ -31,6 +31,9 @@ if __name__ == "__main__":
     zlist = get_list(zfile)
 
     if len(sys.argv) == 1:
+        print("Usage: zlist freq")
+        print("Creates list of z,restfreq,transition consistent with freq")
+        print("Based on %s" % zfile)
         sys.exit(0)
     
     freq = float(sys.argv[1])

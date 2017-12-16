@@ -2,11 +2,13 @@
 
 For this tutorial we'll be using the standard ADMIT version that
 expects ALMA-like data (cube with frequency as the spectral
-axis). BYOD or you can use my ADMIT test data.
+axis). BYOD or you can use our ADMIT test data.
 
-This tutorial: https://github.com/astroumd/admit/blob/master/doc/tutorial.md
+ADMIT tutorial: https://github.com/astroumd/admit/blob/master/doc/tutorial.md (this page)
 
 ADMIT documentation: http://admit.astro.umd.edu/admit/
+
+## Preparations
 
 Minus some startup time, a typical cube takes about 1" CPU per Mpixel
 to process, so if you bring a Gpixel cube, expect to be waiting 20
@@ -22,7 +24,7 @@ You can speed up your installation by:
 
    git clone https://github.com/astroumd/admit.git
 
-   (the $ADMIT/INSTALL file should get you the basic steps)
+   (the $ADMIT/INSTALL file should get you the basic steps, see below)
 
 3) Grab some sample data using wget or curl:
 
@@ -32,7 +34,7 @@ You can speed up your installation by:
 
      wget ftp://ftp.astro.umd.edu/pub/admit/testdata/test253_cont.fits
 
-   these files need to be placed in $ADMIT/testdata
+   these files need to be placed in $ADMIT/testdata (at least if you follow the tutorial guidelines below)
 
 
 ## CASA sanity check
@@ -43,7 +45,9 @@ Open a terminal, and the command
 
 should give you some hint where the CASA_ROOT directory is. Example problem case is NRAO, where
 the return value is **/opt/local/bin/casa**. You would like to see something like **/astromake/opt/casa/511/bin/casa**
-in which case the CASA_ROOT is **/astromake/opt/casa/511** where it expects 
+in which case the CASA_ROOT is **/astromake/opt/casa/511** where it expects CASA's directories (bin, data, share, xml, etc.).
+At NRAO the true CASA_ROOT is hidden from the user, but after some inspection you can find them in
+/home/casa/packages/RHEL6/release/casa-release-5.1.1-5 and the usual variations on that theme (RHEL6, RHEL7 etc.).
 
 ## Prepare ADMIT to see the correct CASA
 
@@ -83,7 +87,8 @@ To test if everything looks good, use the **admit** command
 	    version  = 5.1.1-rel-5
 	    revision = 1
 
-and thus we are ready to run ADMIT scripts
+and thus we are ready to run ADMIT scripts. On MAC systems you might see a warning about casa.init.py, please follow the instructions
+on what to put in your **~/.init/casa.py** file.
 
 ## Preparing testdata
 

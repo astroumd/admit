@@ -1,0 +1,47 @@
+#! /usr/bin/env python
+#
+#   show potential Z values of some common lines at high Z given an observed frequency
+#
+
+from __future__ import print_function
+
+
+import sys, os, math
+
+
+zlist = '/etc/z_lines.list'
+zfile = os.environ['ADMIT'] + zlist
+
+def get_list(zfile, report=False):
+    fp = open(zfile)
+    lines = fp.readlines()
+    z = []
+    for line in lines:
+        if line[0] == '#': continue
+        w = line.strip().split()
+        if len(w) < 2: continue
+        if report:
+            print(w[0],w[1])
+        z.append( (float(w[0]),w[1]) )
+    return z
+        
+
+
+if __name__ == "__main__":
+    zlist = get_list(zfile)
+
+    if len(sys.argv) == 1:
+        print("Usage: zlist freq")
+        print("Creates list of z,restfreq,transition consistent with freq")
+        print("Based on %s" % zfile)
+        sys.exit(0)
+    
+    freq = float(sys.argv[1])
+    print("# For an observed freq=%s GHz the following (z,restfreq,transition) pairs are possible:" %  sys.argv[1])
+    print("# Transitions are defined in %s" % zfile)
+    for line in zlist:
+        z = line[0]/freq - 1.0
+        if z > 0:
+            print("%.4f %f %s" % (z,line[0],line[1]))
+    
+    

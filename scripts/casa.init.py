@@ -1,6 +1,12 @@
 #
-#  this is a piece of code MAC users will need to place in
-#  ~/.casa/init.py
+#  this is a piece of code MAC users will need to place in ~/.casa/init.py
+#
+#  MAC users: if you want clicking the CASA desktop icon to work, your .bash_profile
+#             file needs to source the correct admit_start.sh file (recommended),
+#             or hack the admit_path variable below (not recommended)
+#  
+#
+#  CAVEAT: this code has no check if the code is appropriate for your CASA version.
 #
 import os
 import sys
@@ -13,3 +19,4 @@ try:
     os.environ["PATH"] += os.pathsep + '/usr/local/bin/'
 except KeyError:
     print("ADMIT path not defined. If you wish to use ADMIT, source the admit_start.[c]sh file.")
+    print("and place this in your .bash_profile (mac) or .bashrc (linux) file")

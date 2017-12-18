@@ -134,9 +134,10 @@ def admit_dir(file, out=None):
 
     It can be an absolute or relative address
 
-    x.fits  -> x.admit
-    x.admit -> x.admit (+warning)
-    x       -> x.admit
+    x.fits    -> x.admit
+    x.fits.gz -> x.admit
+    x.admit   -> x.admit (+warning)
+    x         -> x.admit
     """
     if out != None and len(out)>0:
         return out
@@ -148,6 +149,11 @@ def admit_dir(file, out=None):
         if file[loc:] == ext:
             print "Warning: assuming a re-run on existing ",file
             return file
+        if file[loc:] == '.gz':
+            loc = file[:loc].rfind('.')
+            if loc < 0:
+                print "Warning: ill format short filename ",file
+                return file
         return file[:loc] + ext
 
 def assert_files(files):

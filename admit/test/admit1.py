@@ -30,6 +30,7 @@
 #     allowed even then).
 #   - because of the current "/usr/bin/env casasun" interface, some of the short options
 #     will be eaten by casa's parser. Use the long options to be safe
+#   - consistent with CASA's importfits(), *.fits.gz files are also handled transparently
 #
 
 # =================================================================================================================
@@ -39,7 +40,7 @@ import argparse as ap
 
 import admit
 
-version  = '21-sep-2016'
+version  = '18-dec-2017'
 
 #  ===>>> set some parameters for this run <<<=================================================================
 #
@@ -214,7 +215,7 @@ parser.add_argument('-r','--apar'      ,nargs=1, help='ADMIT parameter file (in 
 parser.add_argument('-s','--stop'      ,nargs=1, help='early bailout label')
 parser.add_argument('-l','--loglevel'  ,nargs=1, help='logging level [20]')
 parser.add_argument('-0','--admit0'    ,action='store_true', help='Rerun using admit0?')
-parser.add_argument('file'             ,nargs=1, help='FITSCube (or CASA image, or MIRIAD image)')
+parser.add_argument('file'             ,nargs=1, help='FITS, CASA or MIRIAD image) [extra .gz allowed]')
 parser.add_argument('--version', action='version', version='%(prog)s ' + version)
 try:
     args = vars(parser.parse_args())
@@ -257,6 +258,8 @@ for ap1 in ['admit1.apar', file+".apar", apar]:         # loop over 3 possible a
     if ap1 != "" and os.path.isfile(ap1):
         print "Found parameter file ",ap1
         execfile(ap1)
+    else:
+        print "Skipping ",ap1
 
 # open admit
 a = admit.Project(adir,name='Testing ADMIT1 style pipeline - version %s' % version,create=create,loglevel=loglevel)

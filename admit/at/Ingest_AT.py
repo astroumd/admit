@@ -232,14 +232,14 @@ class Ingest_AT(AT):
             'edge'    : [],        # [] or zl,zr - number of edge channels
             'smooth'  : [],        # pixel smoothing size applied to data (can be slow) - see also Smooth_AT
             'variflow': False,     # requires manual sub-flow management for now
-            'vlsr'    : -999999.0, # force a VLSR (see also LineID)
+            'vlsr'    : -999999.99, # force a VLSR (see also LineID)
             'restfreq': -1.0,      # alternate VLSRf specification
             # 'symlink' : False,   # 
             # 'autobox' : False,   # automatically cut away spatial and spectral slices that are masked
             # 'cbeam'   : 0.5,     # channel beam variation allowed in terms of pixel size to use median beam
         }
         AT.__init__(self,keys,keyval)
-        self._version = "1.1.1"
+        self._version = "1.1.2"
         self.set_bdp_in()                            # no input BDP
         self.set_bdp_out([(SpwCube_BDP, 1),          # one or two output BDPs
                           (Image_BDP,   0),          # optional PB if there was an pb= input
@@ -732,7 +732,9 @@ class Ingest_AT(AT):
         # cheat add some things that need to be passed to summary....
         h['badpixel'] = 1.0-fgood
         if vlsr < -999998.0:
-            vlsr          = admit.VLSR().vlsr(h['object'].upper()) 
+            vlsr          = admit.VLSR().vlsr(h['object'].upper())
+            if vlsr == 0.0:
+                vlsr = -999999.99
         h['vlsr']     = vlsr
         logging.info("VLSR = %f (from source catalog)" % vlsr)
         

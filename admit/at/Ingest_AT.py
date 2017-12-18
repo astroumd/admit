@@ -239,7 +239,7 @@ class Ingest_AT(AT):
             # 'cbeam'   : 0.5,     # channel beam variation allowed in terms of pixel size to use median beam
         }
         AT.__init__(self,keys,keyval)
-        self._version = "1.1.2"
+        self._version = "1.1.3"
         self.set_bdp_in()                            # no input BDP
         self.set_bdp_out([(SpwCube_BDP, 1),          # one or two output BDPs
                           (Image_BDP,   0),          # optional PB if there was an pb= input
@@ -300,6 +300,7 @@ class Ingest_AT(AT):
         box   = self.getkey("box")          # corners in Z, XY or XYZ
         edge  = self.getkey("edge")         # number of edge channels to remove
         restfreq = self.getkey("restfreq")  # < 0 means not activated
+        ckms  = utils.c                     # 299792.458 km/s
 
         # smooth=  could become deprecated, and/or include a decimation option to make it useful
         #          again, Smooth_AT() does this also , at the cost of an extra cube to store
@@ -569,7 +570,7 @@ class Ingest_AT(AT):
         # rely on the BEAM's 'major', 'minor', 'positionangle' being present.
         # ia.commonbeam() is guaranteed to return beam parameters
         # if present
-        if do_cbeam and s.has_key('perplanebeams'):
+        if do_cbeam and 'perplanebeams' in s:
             # report on the beam extremities, need to loop over all, 
             # first and last don't need to be extremes....
             n = s['perplanebeams']['nChannels']
@@ -754,14 +755,19 @@ class Ingest_AT(AT):
             df = h['cdelt3']
             fc = h['crval3'] + (0.5*(float(shape[2])-1)-h['crpix3'])*df        # center freq; 0 based pixels
             if 'restfreq' in h:
-                fr = float(h['restfreq'][0])
+                fr = float(h['restfreq'][0])           # casa cheats, it may put 0 in here if FITS is missing it
                 if fr == 0.0:
                     fr = fc
+                else:
+                    if vlsr < -999998.0:
+                        vlsr = (1-fc/fr)*ckms
+                        h['vlsr'] = vlsr
             else:
                 fr = fc
             fw = df*float(shape[2])
-            print "PJT:",fr,fc,fw
-            dv = -df/fr*utils.c 
+            print "PJT:",fr/1e9,fc/1e9,fw/1e9
+            dv = -df/fr*ckms
+                
             logging.info("Freq Axis 3: %g %g %g" % (h['crval3']/1e9,h['cdelt3']/1e9,h['crpix3']))
             logging.info("Cube Axis 3: type=%s  velocity increment=%f km/s @ fc=%f fw=%f GHz" % (t3,dv,fc/1e9,fw/1e9))
         # @todo sort out this restfreq/vlsr
@@ -773,15 +779,14 @@ class Ingest_AT(AT):
         # Another method to get the vlsr is to override the restfreq (f0) with an AT keyword
         # and the 'restfreq' from the header (f) is then used to compute the vlsr:   v = c (1 - f/f0)
         #
-        if shape[2] > 1 and h.has_key('restfreq'):
+        if shape[2] > 1 and 'restfreq' in h:
             logging.info("RESTFREQ: %g %g %g" % (fr/1e9,h['restfreq'][0]/1e9,restfreq))
             if shape[2] > 1:
                 # v_radio of the center of the window w.r.t. restfreq
-                c = utils.c             # 299792.458 km/s
-                vlsrc = c*(1-fc/fr)     # @todo rel frame?
+                vlsrc = ckms*(1-fc/fr)     # @todo rel frame?
                 vlsrw = dv*float(shape[2])
                 if restfreq > 0:
-                    vlsrf = c*(1-fr/restfreq/1e9)
+                    vlsrf = ckms*(1-fr/restfreq/1e9)
                     h['vlsr'] = vlsrf
                 else:
                     vlsrf = 0.0

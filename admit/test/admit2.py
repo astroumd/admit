@@ -14,6 +14,10 @@
 #   -a  alias
 #   -r  apar_file
 #
+#   Notes:
+#   - consistent with CASA's importfits(), *.fits.gz files are also handled transparently
+#
+#
 # =================================================================================================================
 # python system modules
 import sys, os, math
@@ -21,7 +25,7 @@ import argparse as ap
 
 import admit
 
-version  = '8-jun-2017'
+version  = '18-dec-2017'
 
 #  ===>>> set some parameters for this run <<<=================================================================
 #
@@ -77,7 +81,7 @@ parser.add_argument('-b','--basename' ,nargs=1, help='Basename alias')
 parser.add_argument('-o','--out'      ,nargs=1, help='Optional output admit directory basename, instead derived from file')
 parser.add_argument('-r','--apar'     ,nargs=1, help='ADMIT parameter file (in addition to "file.apar"')
 parser.add_argument('-s','--stop'     ,nargs=1, help='early bailout label')
-parser.add_argument('file'            ,nargs=1, help='FITSMap (or CASA image, or MIRIAD image)')
+parser.add_argument('file'            ,nargs=1, help='FITS, CASA or MIRIAD image) [extra .gz allowed]')
 parser.add_argument('--version', action='version', version='%(prog)s ' + version)
 try:
     args = vars(parser.parse_args())

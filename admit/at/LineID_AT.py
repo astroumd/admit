@@ -86,8 +86,10 @@ class LineID_AT(AT):
 
           **identifylines**: boolean
             If True then attempt to identify any detected spectral lines. If False, then just locate
-            regions of line emission and stop. False is useful if the rest frequency/vlsr are not
-            known.
+            regions of line emission and stop.
+            Lines are now all marked as "U" (unidentified)
+            False is useful if the rest frequency/vlsr are not known.
+            If no vlsr set, this will be forced to be False, if it had been set True.
             Default: True.
 
           **allowexotics**: bool
@@ -262,7 +264,7 @@ class LineID_AT(AT):
 
     """
     def __init__(self, **keyval):
-        keys = {"vlsr"         : -999999.99,
+        keys = {"vlsr"         : -999999.99,         # see also Ingest_AT
                 "numsigma"     : 5.0,
                 "minchan"      : 4,
                 "maxgap"       : 3,
@@ -285,7 +287,7 @@ class LineID_AT(AT):
                }
         self.boxcar = True
         AT.__init__(self, keys, keyval)
-        self._version = "1.0.4"
+        self._version = "1.0.5"
         self.set_bdp_in([(CubeSpectrum_BDP, 1, bt.OPTIONAL),
                          (CubeStats_BDP,    1, bt.OPTIONAL),
                          (PVCorr_BDP,       1, bt.OPTIONAL)])
@@ -293,11 +295,14 @@ class LineID_AT(AT):
 
     def _taskargs(self):
         """ generate a task argument string for the summary taskbar """
+        # @todo   duh, why is getkey called again???
+        #         shouldn't we have this in self.
         taskargs = ""
         identifylines = self.getkey("identifylines")
         vlsr = self.getkey("vlsr")
         if vlsr != 0.0 and identifylines and vlsr > -999998:
             taskargs = taskargs + " vlsr=%g" % vlsr
+            
         taskargs = taskargs + " numsigma="    + str(self.getkey("numsigma"))
         taskargs = taskargs + " minchan=" + str(self.getkey("minchan"))
         taskargs = taskargs + " maxgap="  + str(self.getkey("maxgap"))
@@ -3078,9 +3083,18 @@ class LineID_AT(AT):
             except:
                 logging.info("No vlsr found in summary data and none given as an argument, switching identifylines to False.")
                 self.identifylines = False
+            # Ingest_AT could still have written the magic value if RESTFREQ is missing 
+            if self.vlsr < -999999.0:
+                self.identifylines = False
+        if self.identifylines:
+            vlsr = self.vlsr
+        else:
+            vlsr = 0.0
+        logging.info("Identifylines = %s" % str(self.identifylines))
+        logging.info("Using vlsr = %g" % vlsr)
+
         # grab any optional references overplotted on the "ll" plots
         line_ref = utils.get_references(self.getkey("references"))
-
 
         # Default to SVG output (full-size PNG also produced on-the-fly during
         # thumbnail creation).
@@ -3088,10 +3102,6 @@ class LineID_AT(AT):
 
         # instantiate a plotter for all plots made herein
         myplot = APlot(ptype=self._plot_type, pmode=self._plot_mode, abspath=self.dir())
-        if self.getkey("identifylines"):
-            vlsr = self.vlsr
-        else:
-            vlsr = 0.0
 
         ############################################################################
         #  Smoothing and continuum (baseline) subtraction of input spectra         #

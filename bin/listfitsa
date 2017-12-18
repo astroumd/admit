@@ -4,6 +4,8 @@
 #    100 files on listfits take ~44", 4" with listfitsa
 #    ~1900 files with listfitsa take about ...
 #
+#    Note fits.gz files are also properly dealt with
+#
 #    -v         print header instead of one line summary
 
 from __future__ import print_function

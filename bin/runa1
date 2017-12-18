@@ -43,8 +43,8 @@ foreach base ($*)
 
   # case 0: the apparent default of the pipeline
   #         longname.{cube,cont,mfs}.I.{pbcor,pb}.fits
-  #         <---    basename   ---->
-  #         but also catch when basename is full
+  #         <---     basename    ---->
+  #         but also catch when basename is the full name
   set im = $base.pbcor.fits
   set pb = $base.pb.fits
   set log = $base.log
@@ -53,6 +53,18 @@ foreach base ($*)
     echo $a  --pb $pb --basename x $im
     if ($sysname == Darwin) exec $a  --pb $pb --basename x $im >& $log
     time $a  --pb $pb --basename x $im >& $log
+    echo Logfile: $log
+    continue
+  endif
+
+  # continue and try the fits.gz versions
+  set imz = $im.gz
+  set pbz = $pb.gz
+  if (-e $imz && -e $pbz) then
+    listfitsa $imz
+    echo $a  --pb $pbz --basename x $imz
+    if ($sysname == Darwin) exec $a  --pb $pbz --basename x $imz >& $log
+    time $a  --pb $pbz --basename x $imz >& $log
     echo Logfile: $log
     continue
   endif
@@ -100,8 +112,8 @@ foreach base ($*)
 
 
   if (! -e $base) then
-      echo No method to parse $base and $base does not exist
+      echo RUNA1: No method to parse $base and $base does not exist
   else
-      echo No method to parse $base
+      echo RUNA1: No method to parse $base
   endif
 end

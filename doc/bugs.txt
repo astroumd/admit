@@ -11,6 +11,7 @@ M3-bb    http://admit.astro.umd.edu/admit-M3-buildbot/data.current
 
 data:    http://admit.astro.umd.edu/admit-data/
 
+issues:  https://github.com/astroumd/admit/issues
 
 ===================================================================================================
 
@@ -189,14 +190,11 @@ data:    http://admit.astro.umd.edu/admit-data/
   This problem went briefly away with one of the new stables, but it still seems intermittend
   (again, on Ubuntu)
 
-- convert to code from CVS to GIT ?  
-
 - admit1 flow with smooth-cube-masking as we do in BIMASONG/EDGE
 
 - can we have an option to not have thumbnails?
 
 - LineID: There is an N^k dependency in the pattern matching. known issue. [doug]
-
 
 - confirm everything runs at NRAO/CV    [peter]
   timing:      real: ~32m17.477s  user: 10m30.658s    sys: 6m49.845s
@@ -332,3 +330,7 @@ data:    http://admit.astro.umd.edu/admit-data/
   NRAO/CV:       linux-gnu ->
   NRAO/AOC:      linux-gnu ->
   UMD: centos6   linux -> linux
+
+- when multiple sources with different vlsr are present, there are no options to find them.
+
+- insmooth=[2,2,2] and smooth=[2,2,2] are not working anymore (admit1.apar)

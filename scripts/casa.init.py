@@ -4,7 +4,10 @@
 #  MAC users: if you want clicking the CASA desktop icon to work, your .bash_profile
 #             file needs to source the correct admit_start.sh file (recommended),
 #             or hack the admit_path variable below (not recommended)
-#  
+#
+#  Some discussion on this issue in
+#        https://open-jira.nrao.edu/browse/CAS-5295
+#        https://open-jira.nrao.edu/browse/CAS-7372
 #
 #  CAVEAT: this code has no check if the code is appropriate for your CASA version.
 #

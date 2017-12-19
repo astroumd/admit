@@ -161,8 +161,13 @@ class Summary():
            |         |reference frame, etc)       |                |                     |
            +---------+----------------------------+----------------+---------------------+
 
+        *@TODO:* the following entries are in the summary_defs.tab file, but not documented here:
+         
+
         *Note:* Keys are stored in all lower case.  All key access will change argument to lower case before
         accessing.
+
+        casaname, equinox, badpixel, vlsr, continuumsub, template, regrid, bdpingest
 
         .. table::
            :class: borderless

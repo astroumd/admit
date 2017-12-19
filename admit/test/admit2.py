@@ -1,7 +1,7 @@
 #! /usr/bin/env casarun
 #
 
-#   admit2.py :  process continuum data  
+#   admit2.py :  process continuum data, with optional repeat at lower significance
 #
 #   Usage:      $ADMIT/admit/test/admit2.py  [cont.fits [alias]] 
 #
@@ -13,6 +13,7 @@
 #   -p  pb.fits        (normally pbcor.fits is the associated PB corrrected file)
 #   -a  alias
 #   -r  apar_file
+#   -2               
 #
 #   Notes:
 #   - consistent with CASA's importfits(), *.fits.gz files are also handled transparently
@@ -25,7 +26,7 @@ import argparse as ap
 
 import admit
 
-version  = '18-dec-2017'
+version  = '19-dec-2017'
 
 #  ===>>> set some parameters for this run <<<=================================================================
 #
@@ -54,6 +55,9 @@ loglevel = 15               # 10=DEBUG, 15=TIMING 20=INFO 30=WARNING 40=ERROR 50
 insmooth = []               # smooth inside of Ingest_AT, in pixels
 inbox    = []               # grab subset in image
 smooth   = []               # if set, smooth the cube right after ingest
+smooth2  = []               # if set, smooth the cube for the 2nd run (in pixels)
+numsigma = 6.0              # default 
+repeat   = False            # repeat run at lower significance
 
 #robust  = ['hinge',-1]                   # stats method, you need CASA 4.4 or above for this
 #robust  = ['hinges-fences',1.5]          # stats method, you need CASA 4.4 or above for this
@@ -64,7 +68,6 @@ smooth   = []               # if set, smooth the cube right after ingest
 #robust  = ['chauvenet',-1]               # stats method, you need CASA 4.4 or above for 
 robust  = []
 #insmooth = [4,4]            # image smooth during ingest (gaussian pixels)    BUG: Ingest works around loosing OBJECT name
-#insmooth = [4,4,4]           # image smooth during ingest (gaussian pixels, hannning in freq)
 #smooth = [10,10]            # image smooth right after ingest (Smooth_AT)     BUG: _do_plot ?
 #loglevel = 20               # 10=DEBUG, 15=TIMING 20=INFO 30=WARNING 40=ERROR 50=FATAL
 #useMask  = False
@@ -82,6 +85,7 @@ parser.add_argument('-o','--out'      ,nargs=1, help='Optional output admit dire
 parser.add_argument('-r','--apar'     ,nargs=1, help='ADMIT parameter file (in addition to "file.apar"')
 parser.add_argument('-s','--stop'     ,nargs=1, help='early bailout label')
 parser.add_argument('file'            ,nargs=1, help='FITS, CASA or MIRIAD image) [extra .gz allowed]')
+parser.add_argument('-2',  action="store_true", help='add repeat run with lower significance', dest='repeat', default=False)
 parser.add_argument('--version', action='version', version='%(prog)s ' + version)
 try:
     args = vars(parser.parse_args())
@@ -116,6 +120,15 @@ if doClean and adir != file:
 else:
     create=False
 
+for ap1 in ['admit2.apar', file+".apar", apar]:         # loop over 3 possible apar files
+    if ap1 != "" and os.path.isfile(ap1):
+        print "Found parameter file to execfile:",ap1
+        execfile(ap1)
+    else:
+        print "Skipping ",ap1
+        
+    
+# open admit
 a = admit.Project(adir,name='Testing ADMIT2 style pipeline - version %s' % version,create=create,loglevel=loglevel)
 
 if a.new:
@@ -124,13 +137,10 @@ if a.new:
     os.system(cmd)
     a.set(admit_dir=adir)
     #
-    for ap in ['admit2.apar', file+".apar", apar]:         # loop over 3 possible apar files
-        if ap != "" and os.path.isfile(ap):
-            print "Found parameter file ",ap
-            os.system('cp %s %s' % (ap,adir))
-            lines = open(ap).readlines()
-            for line in lines:
-                exec(line.strip())
+    for ap1 in ['admit2.apar', file+".apar", apar]:         # loop over 3 possible apar files
+        if ap1 != "" and os.path.isfile(ap1):
+            print "Found parameter file to cp:",ap1
+            os.system('cp %s %s' % (ap1,adir))
 else:
     print "All done, we just read an existing admit.xml and it should do nothing"
     print "Use admit0.py to re-run inside of your admit directory"
@@ -163,11 +173,9 @@ if stop == 'ingest':  a.exit(1)
 
 if len(smooth) > 0:
     smooth1 = a.addtask(admit.Smooth_AT(), [bandcube1])
-    a[smooth1].setkey('bmaj',{'value':smooth[0], 'unit':'pixel'})  # yuck, i'd like the default not to have to mention it here
+    a[smooth1].setkey('bmaj',{'value':smooth[0], 'unit':'pixel'})  
     a[smooth1].setkey('bmin',{'value':smooth[1], 'unit':'pixel'})
     a[smooth1].setkey('bpa',0.0)                       
-    if len(smooth) > 2:
-        a[smooth1].setkey('velres',{'value':smooth[2], 'unit':'pixel'})
     
     bandcube2 = (smooth1,0)
     # Forget about the original, so we can continue the flow with the smoothed cube
@@ -194,6 +202,46 @@ if pbmap1 == None:
     sfind1 = a.addtask(admit.SFind2D_AT(), [bandcube1,csttab1])
 else:
     sfind1 = a.addtask(admit.SFind2D_AT(), [bandcube1,pbmap1,csttab1])
+a[sfind1].setkey('numsigma',numsigma)
+
+if repeat:
+    print "REPEAT mode on:"
+    # smooth the noise-flat map
+
+    if len(smooth2) == 0:
+        beam2 = [15,15]               # wild guess, should use 2x smooth1 or else from beam
+    else:
+        beam2 = smooth2
+        
+    smooth2 = a.addtask(admit.Smooth_AT(), [bandcube1])
+    a[smooth2].setkey('bmaj',{'value':beam2[0], 'unit':'pixel'})
+    a[smooth2].setkey('bmin',{'value':beam2[1], 'unit':'pixel'})
+    a[smooth2].setkey('bpa',0.0)                       
+    
+    bandcube2 = (smooth2,0)
+    # Forget about the original, so we can continue the flow with the smoothed cube
+    # in this model, it would be better to use insmooth= for Ingest_AT, it doesn't
+    # need the extra space to hold bandcube1
+    #
+    # Another model could be to have two flows in this script, up to LineID,
+    # one with each (or more) smoothing factor and decide which one to continue with
+    # or do LineID with bandcube2, but make linecube's from bandcube1
+    
+    # sfind with a lower detection
+    
+    # CubeStats - will also do log(Noise),log(Peak) plot
+    cubestats2 = a.addtask(admit.CubeStats_AT(), [bandcube2])
+    a[cubestats2].setkey('robust',robust)
+    a[cubestats2].setkey('ppp',False)
+    csttab2 = (cubestats2,0)
+
+    # SFind2D
+    if pbmap1 == None:
+        sfind2 = a.addtask(admit.SFind2D_AT(), [bandcube2,csttab2])
+    else:
+        sfind2 = a.addtask(admit.SFind2D_AT(), [bandcube2,pbmap1,csttab2])
+    a[sfind2].setkey('numsigma',numsigma-1.0)
+
 #OLD
 #a[sfind1].setkey('numsigma',6.0)
 #a[sfind1].setkey('sigma',-1.0)

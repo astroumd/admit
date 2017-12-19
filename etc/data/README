@@ -6,7 +6,7 @@ testdata from.
 We do keep commented apar files here, to guide you through experiments
 with these fits files.
 
-*.apar                admitX.py parameter files
+*.apar                admitX.py parameter files (commented examples)
 *.rout                REGRESSION output to be tested against
 
 

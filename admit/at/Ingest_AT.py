@@ -52,7 +52,7 @@ import random
 #             'BARY'  (helio)
 #   imhead->['reffreqtype']
 #  - smooth and decimate option?
-#  - vlsr=0.0 cannot be given?
+#  - vlsr=0.0 cannot be given technically?
 
 
 class Ingest_AT(AT):
@@ -239,7 +239,7 @@ class Ingest_AT(AT):
             # 'cbeam'   : 0.5,     # channel beam variation allowed in terms of pixel size to use median beam
         }
         AT.__init__(self,keys,keyval)
-        self._version = "1.1.3"
+        self._version = "1.1.4"
         self.set_bdp_in()                            # no input BDP
         self.set_bdp_out([(SpwCube_BDP, 1),          # one or two output BDPs
                           (Image_BDP,   0),          # optional PB if there was an pb= input
@@ -392,33 +392,35 @@ class Ingest_AT(AT):
                 else:
                     # the better way is to convert FITS->CASA and then call impbcor()
                     # the CPU savings are big, but I/O overhead can still be substantial
-                    ia.fromfits('_pbcor',fni,overwrite=True)
-                    ia.fromfits('_pb',pb,overwrite=True)
+                    _pbcor = utils.tmp_file('_pbcor_','.')
+                    _pb    = utils.tmp_file('_pb_',   '.')
+                    ia.fromfits(_pbcor,fni,overwrite=True)
+                    ia.fromfits(_pb,   pb, overwrite=True)
                     dt.tag("impbcor-1f")
                     if False:
-                        impbcor('_pbcor','_pb',fno,overwrite=True,mode='m')
+                        impbcor(_pbcor,_pb,fno,overwrite=True,mode='m')
                         # @todo fno2
-                        utils.remove('_pbcor')
-                        utils.remove('_pb')
+                        utils.remove(_pbcor)
+                        utils.remove(_pb)
                         dt.tag("impbcor-2")
                     else:
                         # immath appears to be even faster (2x in CPU)
                         # https://bugs.nrao.edu/browse/CAS-8299
                         # @todo  this needs to be confirmed that impbcor is now good to go (r36078)
-                        casa.immath(['_pbcor','_pb'],'evalexpr',fno,'IM0*IM1')
+                        casa.immath([_pbcor,_pb],'evalexpr',fno,'IM0*IM1')
                         dt.tag("immath")
                         if True:
                             # use the mean of all channels... faster may be to use the middle plane
                             # barf; edge channels can be with fewer subfields in a mosaic 
-                            ia.open('_pb')
+                            ia.open(_pb)
                             s=ia.summary()
                             #ia1=taskinit.ia.moments(moments=[-1],drop=True,outfile=fno2)    # fails for cont maps
                             ia1=ia.collapse(outfile=fno2, function='mean', axes=2)  # @todo ensure 2=freq axis
                             ia1.done()
                             ia.close()
                             dt.tag("moments")
-                        utils.remove('_pbcor')
-                        utils.remove('_pb')
+                        utils.remove(_pbcor)
+                        utils.remove(_pb)
                         dt.tag("impbcor-3")
             elif do_pb and not use_pb:
                 # cheat case: PB was given, but not meant to be used

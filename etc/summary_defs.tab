@@ -1,6 +1,8 @@
 # Entries that will go in the Summary object.
 # These should be treated as reserved keywords
 #
+# Note this file is used programmatically, see Summary.py
+#
 # *** In order to be compatible with FITS, 
 # *** keywords should not exceed 8 characters 
 #

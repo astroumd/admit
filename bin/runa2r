@@ -1,0 +1,115 @@
+#! /bin/csh -f
+#
+#  $ADMIT/bin/runa2
+#
+#  process a few ALMA projects with a super simplified interface 
+#  that will automagically detect it's intent
+#
+#  This version is meant for continuum data only
+#
+#  @todo special MFS case:   basename.tt0.pbcor.fits
+#                            basename.tt1.pbcor.fits
+#                            basename.alpha.fits
+#                            basename.alpha.error.fits
+#                            basename.pb.tt0.fits
+
+if ($?ADMIT == 0) then
+    setenv ADMIT `admit_root`
+endif
+
+set a = $ADMIT/admit/test/admit2.py
+
+set sysname = `uname -s`      # needed until casapy doesn't hang children with parents
+
+foreach base ($*)
+
+  # case 00: another old case TBD
+  #
+  set im = $base.pbcor.fits
+  set pb = $base.flux.fits
+  set log = $base.log
+  if (-e $im && -e $pb) then
+    listfitsa $im
+    echo $a  --pb $pb --basename x $im
+    if ($sysname == Darwin) exec $a  --pb $pb --basename x $im >& $log
+    time $a  --pb $pb --basename x $im >& $log
+    echo Logfile: $log
+    continue
+  endif
+  
+  # case 0: the apparent default of the pipeline
+  #         longname.{cube,cont,mfs}.I.{pbcor,pb}.fits
+  #         <---    basename     ---->
+  #         but also catch when basename is full
+  set im = $base.pbcor.fits
+  set pb = $base.pb.fits
+  set log = $base.log
+  if (-e $im && -e $pb) then
+    listfitsa $im
+    echo $a  -2 --pb $pb --basename x $im
+    if ($sysname == Darwin) exec $a  -2 --pb $pb --basename x $im >& $log
+    time $a  -2 --pb $pb --basename x $im >& $log
+    echo Logfile: $log
+    continue
+  endif
+
+  # continue and try the fits.gz versions
+  set imz = $im.gz
+  set pbz = $pb.gz
+  if (-e $imz && -e $pbz) then
+    listfitsa $imz
+    echo $a  -2 --pb $pbz --basename x $imz
+    if ($sysname == Darwin) exec $a -2 --pb $pbz --basename x $imz >& $log
+    time $a -2 --pb $pbz --basename x $imz >& $log
+    echo Logfile: $log
+    continue
+  endif
+
+
+  # case 1: basename meant to find (flux flat) image and pb file to get it noise flat
+  set im = $base.image.pbcor.fits
+  set pb = $base.flux.fits
+  set log = $base.log
+
+  if (-e $im && -e $pb) then
+    listfitsa $im
+    echo $a  --pb $pb --basename x $im
+    if ($sysname == Darwin) exec $a  --pb $pb --basename x $im >& $log
+    time $a  --pb $pb --basename x $im >& $log
+    echo Logfile: $log
+    continue
+  endif
+
+  # case 2: both noise flat and flux flat images
+  set nf = $base.image.fits
+  set ff = $base.pbcor.fits
+  set pb = $base.flux.fits
+  set log = $base.log
+  if (-e $nf && -e $ff && -e $pb) then
+    listfitsa $nf
+    echo $a --basename x $nf  
+    if ($sysname == Darwin) exec $a --basename x $nf   >& $log
+    time $a --basename x $nf   >& $log
+    echo Logfile: $log
+    continue
+  endif
+
+  # case 3: direct (noise flat) image
+  set im = $base
+  set log = $base.log
+  if (-e $im) then
+    listfitsa $im
+    echo $a --basename x $im
+    if ($sysname == Darwin) exec $a --basename x $im  >& $log
+    time $a --basename x $im  >& $log
+    echo Logfile: $log
+    continue
+  endif
+
+
+  if (! -e $base) then
+      echo RUNA2: No method to parse $base and $base does not exist
+  else
+      echo RUNA2: No method to parse $base
+  endif 
+end

@@ -359,19 +359,21 @@ def find_files(directory, pattern):
                 filename = os.path.join(root, basename)
                 yield filename
 
-def tmp_file(prefix):
+def tmp_file(prefix, tmpdir='/tmp'):
     """ Create a temporary file in /tmp.
 
         Parameters
         ----------
         prefix : str
-           starting name of the filename in /tmp/<pattern>
+           starting name of the filename in <tmpdir>/<pattern>
+
+        tmpdir
 
         Returns
         -------
         Unique filename
     """
-    fd = tempfile.NamedTemporaryFile(prefix=prefix,dir='/tmp',delete='false')
+    fd = tempfile.NamedTemporaryFile(prefix=prefix,dir=tmpdir,delete='false')
     name = fd.name
     fd.close()
     return name

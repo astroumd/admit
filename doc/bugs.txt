@@ -334,3 +334,6 @@ issues:  https://github.com/astroumd/admit/issues
 - when multiple sources with different vlsr are present, there are no options to find them.
 
 - insmooth=[2,2,2] and smooth=[2,2,2] are not working anymore (admit1.apar)
+
+- can we host this on readthedocs.io ?   currently we use the docs tree
+  

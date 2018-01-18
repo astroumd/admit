@@ -1,0 +1,14 @@
+How to read the pipeline results:
+
+- when lines don't match up?
+- VLSR is on top
+- a V scale in red is below, centered at 0, positive to the left (since freq always increases to the right)
+
+- sometimes you will see 2 CSP's (through CSM and cube max)
+  CSP_0 is from the peak in the CSM, for low S/N this may not show a peak
+  CSP_1 is from the peak in the cube, and this might then show a peak
+  sometimes 3. what's the 3rd ?
+
+- We need some heuristics to detect such features, and have a suite of links
+  that links towards can be used in our live index.html/accordion
+  [admit2]

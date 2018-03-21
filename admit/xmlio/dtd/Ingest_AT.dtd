@@ -36,20 +36,20 @@
 <!ATTLIST _taskid type (INT) #REQUIRED>
 <!ELEMENT _enabled		(#PCDATA)>
 <!ATTLIST _enabled type (BOOL) #REQUIRED>
-<!ELEMENT _keys	(box,file,mask,basename,smooth,pb,edge,restfreq,vlsr,usepb)>
+<!ELEMENT _keys	(box,file,smooth,basename,mask,pb,edge,restfreq,vlsr,usepb)>
 <!ATTLIST _keys type (DICT) #REQUIRED>
 <!ELEMENT box		(#PCDATA)>
 <!ATTLIST box ndarray (STRING) #REQUIRED>
 <!ATTLIST box set (STRING) #REQUIRED>
 <!ATTLIST box type (LIST) #REQUIRED>
-<!ELEMENT mask		(#PCDATA)>
-<!ATTLIST mask type (BOOL) #REQUIRED>
-<!ELEMENT basename		(#PCDATA)>
-<!ATTLIST basename type (STRING) #REQUIRED>
 <!ELEMENT smooth		(#PCDATA)>
 <!ATTLIST smooth ndarray (STRING) #REQUIRED>
 <!ATTLIST smooth set (STRING) #REQUIRED>
 <!ATTLIST smooth type (LIST) #REQUIRED>
+<!ELEMENT basename		(#PCDATA)>
+<!ATTLIST basename type (STRING) #REQUIRED>
+<!ELEMENT mask		(#PCDATA)>
+<!ATTLIST mask type (BOOL) #REQUIRED>
 <!ELEMENT pb		(#PCDATA)>
 <!ATTLIST pb type (STRING) #REQUIRED>
 <!ELEMENT edge		(#PCDATA)>

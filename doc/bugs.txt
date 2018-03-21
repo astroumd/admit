@@ -95,6 +95,10 @@ issues:  https://github.com/astroumd/admit/issues
 
   Conclusion - for now - fix it in Ingest or before, but the avalange of problems after that is bad.
 
+= [FIXED] imcontsub cannot repeat itself even when data were deleted, some file locking issue.
+  https://open-jira.nrao.edu/browse/CAS-10752
+  Still broken in 5.1.1, but fixed in test 5.3.0-69 pre-release
+  
 = [important] Aplot/matplotlib    This probably means that Tcl wasn't installed properly. (not finding init.tcl)
      works ok wihtout casa
      milestone2b works ok

@@ -55,6 +55,13 @@ class LineCube_AT(AT):
             velocity space is done.
             Default: 5 (add 5 channels to both sides of the line).
 
+          **fpad**: float
+            An optional way to control the padding would be to specify the
+            fraction of the current line segment that is going to be added
+            on either side of the segment. This would override the pad=
+            keyword. 
+            Default: -1 (meaning not used)
+
           **equalize**: bool
             Whether or not to create equal size cubes (based on widest line
             in input LineList_BDP).
@@ -91,9 +98,10 @@ class LineCube_AT(AT):
     def __init__(self, **keyval):
         keys = {"equalize" : False,  # default to no equalization and no regridding
                 "pad"      : 5,      # default to 5 channels on either side
+                "fpad"     : -1.0,   # optional fractional linesegment width padding
                 }
         AT.__init__(self, keys, keyval)
-        self._version = "1.0.2"
+        self._version = "1.0.3"
         self.set_bdp_in([(Image_BDP,     1, bt.REQUIRED),
                          (LineList_BDP,  1, bt.REQUIRED)])
         self.set_bdp_out([(LineCube_BDP, 0)])
@@ -122,7 +130,8 @@ class LineCube_AT(AT):
         self._summary = {}
         # look for an input noise level, either through keyword or input 
         # CubeStats BDP or calculate it if needed
-        pad = self.getkey("pad")
+        pad  = self.getkey("pad")
+        fpad = self.getkey("fpad")
         equalize = self.getkey("equalize")
         minchan = 0
 
@@ -143,7 +152,7 @@ class LineCube_AT(AT):
 
         dt.tag("start")
 
-        if pad != 0:
+        if pad != 0 or fpad > 0:
             nchan = imh['shape'][2]
             dt.tag("pad") 
 
@@ -154,7 +163,10 @@ class LineCube_AT(AT):
             # look for the widest line
             for i in range(len(start)):
                 diff = end[i] - start[i] + 1
-                minchan = max(minchan , diff + (pad * 2))
+                if fpad > 0:
+                    minchan = max(minchan , diff * int(1+ 2*fpad))
+                else:
+                    minchan = max(minchan , diff + (2*pad))
             dt.tag("equalize")
 
         # get all of the rows in the table
@@ -232,35 +244,51 @@ class LineCube_AT(AT):
                           (uid, end, nchan - 1))
                     end = nchan - 1
                 #print "\n\nDIFF ",startch,"\n\n"
-            if pad > 0 and not equalize:
-                start -= pad
-                end += pad
-                if start < 0:
-                    logging.warning("pad=%d too large, start=%d resetting to 0"
-                          % (pad, start))
-                    startch += abs(start)
-                    start = 0
-                else:
-                    startch += pad
-                if end >= nchan:
-                    logging.warning("pad=%d too large, end=%d resetting to %d"
-                          % (pad, end, nchan - 1))
-                    end = nchan - 1
-            elif pad < 0 and not equalize:
-                mid = (start + end) / 2
-                start = mid + pad / 2
-                end = mid - pad / 2 - 1
-                if start < 0:
-                    logging.warning("pad=%d too large, start=%d resetting to 0"
-                          % (pad, start))
-                    startch += abs(start)
-                    start = 0
-                else:
-                    startch += abs(start)
-                if end >= nchan:
-                    logging.warning("pad=%d too large, end=%d resetting to %d"
-                          % (pad, end, nchan - 1))
-                    end = nchan - 1
+            if not equalize:
+                if fpad > 0:
+                    diff   = end - start + 1
+                    start -= int(fpad*diff)
+                    end   += int(fpad*diff)
+                    if start < 0:
+                        logging.warning("fpad=%d too large, start=%d resetting to 0"
+                              % (int(fpad*diff), start))
+                        startch += abs(start)
+                        start = 0
+                    else:
+                        startch += int(fpad*diff)
+                    if end >= nchan:
+                        logging.warning("fpad=%d too large, end=%d resetting to %d"
+                              % (int(fpad*diff), end, nchan - 1))
+                        end = nchan - 1
+                elif pad > 0:
+                    start -= pad
+                    end += pad
+                    if start < 0:
+                        logging.warning("pad=%d too large, start=%d resetting to 0"
+                              % (pad, start))
+                        startch += abs(start)
+                        start = 0
+                    else:
+                        startch += pad
+                    if end >= nchan:
+                        logging.warning("pad=%d too large, end=%d resetting to %d"
+                              % (pad, end, nchan - 1))
+                        end = nchan - 1
+                elif pad < 0:
+                    mid = (start + end) / 2
+                    start = mid + pad / 2
+                    end = mid - pad / 2 - 1
+                    if start < 0:
+                        logging.warning("pad=%d too large, start=%d resetting to 0"
+                              % (pad, start))
+                        startch += abs(start)
+                        start = 0
+                    else:
+                        startch += abs(start)
+                    if end >= nchan:
+                        logging.warning("pad=%d too large, end=%d resetting to %d"
+                              % (pad, end, nchan - 1))
+                        end = nchan - 1
             endch = startch + diff
             args["chans"] = "%i~%i" % (start, end)
             rdata.append(start)
@@ -289,7 +317,7 @@ class LineCube_AT(AT):
 
         logging.regression("LC: %s" % str(rdata))
 
-        taskargs = "pad=%s equalize=%s" % (pad, equalize)
+        taskargs = "pad=%s fpad=%g equalize=%s" % (pad, fpad, equalize)
 
         self._summary["linecube"] = SummaryEntry(lc_description.serialize(), "LineCube_AT",
                                                  self.id(True), taskargs)

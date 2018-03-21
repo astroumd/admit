@@ -36,9 +36,11 @@
 <!ATTLIST _taskid type (INT) #REQUIRED>
 <!ELEMENT _enabled		(#PCDATA)>
 <!ATTLIST _enabled type (BOOL) #REQUIRED>
-<!ELEMENT _keys	(pad,equalize)>
+<!ELEMENT _keys	(equalize,pad,fpad)>
 <!ATTLIST _keys type (DICT) #REQUIRED>
 <!ELEMENT pad		(#PCDATA)>
 <!ATTLIST pad type (INT) #REQUIRED>
+<!ELEMENT fpad		(#PCDATA)>
+<!ATTLIST fpad type (FLOAT) #REQUIRED>
 <!ELEMENT equalize		(#PCDATA)>
 <!ATTLIST equalize type (BOOL) #REQUIRED>

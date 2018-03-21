@@ -40,7 +40,7 @@ import argparse as ap
 
 import admit
 
-version  = '18-dec-2017'
+version  = '21-dec-2017'
 
 #  ===>>> set some parameters for this run <<<=================================================================
 #
@@ -106,6 +106,7 @@ iterate  = True                   # iterate to find narrower higher S/N peaks
 online   = False                  # use splatalogue online?
 reflist  = 'etc/tier1_lines.list' # pick one from $ADMIT/etc 
 llsmooth = []                     # if set, apply this smoothing to the inputs for LineSegment and LineId
+numsigma = 4.0
 
 # -- above here are sensible default meant to automate a flow. Don't edit them above this line --
 # -- below here you can tinker with some of the above reasonable defaults                      --
@@ -256,7 +257,7 @@ if admit0:
 # parse apar file(s) first, overwriting local apar variables
 for ap1 in ['admit1.apar', file+".apar", apar]:         # loop over 3 possible apar files, set parameters
     if ap1 != "" and os.path.isfile(ap1):
-        print "Found parameter file ",ap1
+        print "Found parameter file to execfile",ap1
         execfile(ap1)
     else:
         print "Skipping ",ap1
@@ -266,13 +267,13 @@ a = admit.Project(adir,name='Testing ADMIT1 style pipeline - version %s' % versi
 
 if a.new:
     print "Starting a new ADMIT using",file
-    cmd = 'cp -a %s %s' % (sys.argv[0],adir)               # copy the script into the admit directory (@todo is that righ one?)
+    cmd = 'cp -a %s %s' % (sys.argv[0],adir)               # copy the script into the admit directory (@todo is that right one?)
     os.system(cmd)
     a.set(admit_dir=adir)                                  # why was this again?
     #
     for ap in ['admit1.apar', file+".apar", apar]:         # loop over 3 possible apar files, backup copy
         if ap != "" and os.path.isfile(ap):
-            print "Found parameter file ",ap
+            print "Found parameter file to cp:",ap
             os.system('cp %s %s' % (ap,adir))
 else:
     print "All done, we just read an existing admit.xml and it should do nothing"
@@ -385,6 +386,7 @@ if True:
     # @todo better sigma in csmom0??? 
     try:
         sfind1 = a.addtask(admit.SFind2D_AT(alias='csm'), [csmom0])
+        a[sfind1].setkey('numsigma',numsigma)
         a.run()
         ncs = len(a[sfind1][0])
         print "N sources in CSM:",ncs

@@ -14,5 +14,3 @@ Some branches on developers github pages:
 Documentation:
 * our own build: http://admit.astro.umd.edu
 * github pages: https://astroumd.github.io/admit (experimental) 
-
-

@@ -23,3 +23,4 @@
 2459.380101   [NII]         # 3P2-3P1
 3393.006244   [OIII]        # 3P1-3P0
 5785.879589   [OIII]        # 3P2-3P1
+# [NIII]   2P3/2-2P1/2   57.317000 um (!)  See  https://www.ipac.caltech.edu/iso/lws/atomic.html [from 1998!!!]

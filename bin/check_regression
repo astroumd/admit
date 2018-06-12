@@ -1,0 +1,21 @@
+#! /bin/csh -f
+#
+
+
+foreach log ($*)
+    set fits = $log:r
+    echo $fits
+    set apar1 = $ADMIT/etc/data/$fits.apar
+    set apar2 = $fits.apar
+    set rout1 = $ADMIT/etc/data/$fits.rout
+    set rout2 = /tmp/$fits.rout
+    if (-e $rout1) then
+       if (-e $apar1) then
+          echo $apar2 :
+	  diff $apar1 $apar2
+       endif
+       grep ^REGRESSION $log > $rout2
+       echo $rout2:t :
+       diff $rout1 $rout2
+    endif
+end

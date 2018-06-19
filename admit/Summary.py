@@ -1020,6 +1020,8 @@ class Summary():
             f.close()
 
     def _imageIsSVG(self,image):
+	if not image: return False
+	
         if image[len(image)-3:len(image)+1] == 'svg': 
             return True
         else:

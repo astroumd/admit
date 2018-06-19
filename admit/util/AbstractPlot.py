@@ -158,8 +158,9 @@ class AbstractPlot(object):
                 return self._thumbnailfiles[figno].replace(self._abspath,"")
             else:
                 return self._thumbnailfiles[figno]
-        except KeyError:
-            raise Exception, "Thumbnail for figure %d was not created by this %s ." % (figno,self.__class__.__name__)
+        except KeyError:	
+	    if self._plot_mode != PlotControl.NOPLOT:   
+		raise Exception, "Thumbnail for figure %d was not created by this %s ." % (figno,self.__class__.__name__)
 
     def getFigure(self,figno,relative):
         """Get the name of the figure file for given figure number
@@ -184,7 +185,8 @@ class AbstractPlot(object):
             else:
                 return self._figurefiles[figno]
         except KeyError:
-            raise Exception, "Figure %d was not created by this %s." % (figno, self.__class__.__name__ )
+	    if self._plot_mode != PlotControl.NOPLOT:
+		raise Exception, "Figure %d was not created by this %s." % (figno, self.__class__.__name__ )
 
     def figure(self,figno=1):
         """set the figure number. 

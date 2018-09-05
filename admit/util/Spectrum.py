@@ -21,6 +21,8 @@ class Spectrum(object):
         is also available to mask bad data points. The mask is common to
         all axes.
 
+        A spectrum needs to hold at least 2 channels.
+
         Parameters
         ----------
         spec : array like
@@ -622,7 +624,9 @@ class Spectrum(object):
 
     def calcdelta(self):
         if self._freq is None:
-            raise Exception("no freq given")
+            raise Exception("calcdelta: no freq set")
+        if len(self._freq) == 1:
+            raise Exception("calcdelta: frequency axis 1, continuum?")
         for f in range(len(self._freq) - 1):
             if not self._mask[f] and not self._mask[f + 1]:
                 self._delta = abs(self._freq[f] - self._freq[f + 1])

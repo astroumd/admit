@@ -130,7 +130,7 @@ class Moment_AT(AT):
             "zoom"     : 1,            # default map plot zoom ratio
         }
         AT.__init__(self, keys, keyval)
-        self._version = "1.1.0"
+        self._version = "1.1.1"
         # set input types
         self.set_bdp_in([(Image_BDP,     1, bt.REQUIRED),
                          (CubeStats_BDP, 1, bt.OPTIONAL)])
@@ -428,6 +428,18 @@ class Moment_AT(AT):
             title = 'Flux Spectrum (%g)' % flux0sum
             xlab = 'VLSR (km/s)'
             ylab = 'Flux (Jy)'
+            if True:
+                # flux spectrum
+                islash = infile.find('/')
+                if islash < 0:
+                    fluxtabname = self.dir("testFlux.tab")
+                else:
+                    fluxtabname = self.dir(infile[:islash] + "/testFlux.tab")
+                fluxfp = open(fluxtabname,"w")
+                for i in range(len(x)):
+                    fluxfp.write("%g %g\n" % (x[i],flux0[i]))
+                fluxfp.close()
+                    
             myplot.plotter(x,[flux0,flux1],title=title,figname=fluxname,xlab=xlab,ylab=ylab,histo=True)
             dt.tag("flux-spectrum")
             

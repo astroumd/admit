@@ -1,0 +1,19 @@
+This README.wsrt file will document ideas and plans for the wsrt branch
+
+In this branch we want to make admit easier to run to detect a single line (HI in this case) in a cube.
+This dates to an apertif cube with NGC 5033 with the following properties:
+
+- the noise is not constant in the field (no beamforming was used, and fields clearly show; plus the
+  noise towards the edge was about 3 mJy/beam where the best rms was 1.5 mJy/beam
+  Also there was no beam in the header, and had to be gleaned from the miriad history.
+
+- all emission is HI, which can be achieved by setting tier1width= to be the spectral cube width
+
+- Moment_AT will produce an HI "single dish" profile of the source (testFlux.tab for now), but see item
+  below to make this really useful
+
+- Need a tool like (or option in) LineCube that will split the cube in sources/lines, as defined by a
+  dilated mask from a smooth source detector.  The challenge will be the tiny source near the
+  center of N5033 that is well separated in velocity from N5033.
+  We have a good (?) dilation algorithm in the EDGE project code that was translated from IDL to python,
+  check with Tony Wong.

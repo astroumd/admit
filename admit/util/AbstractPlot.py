@@ -152,15 +152,23 @@ class AbstractPlot(object):
            -------
            str
               Thumbnail file name
+           None
+               If figno doesn't exist and plotmode is PlotControl.NOPLOT
+           Raises exception 
+               If figno doesn't exist and plotmode is not PlotControl.NOPLOT
         """
         try:
             if relative:
                 return self._thumbnailfiles[figno].replace(self._abspath,"")
             else:
                 return self._thumbnailfiles[figno]
-        except KeyError:	
-	    if self._plot_mode != PlotControl.NOPLOT:   
-		raise Exception, "Thumbnail for figure %d was not created by this %s ." % (figno,self.__class__.__name__)
+        except KeyError:    
+            # note: we don't put this return at the top of the method 
+            # because a figure may have been created and then plotmode
+            # changed, in which case a figure for figno may exist.
+            if self._plot_mode == PlotControl.NOPLOT:   
+                return None
+            raise Exception, "Thumbnail for figure %d was not created by this %s ." % (figno,self.__class__.__name__)
 
     def getFigure(self,figno,relative):
         """Get the name of the figure file for given figure number
@@ -178,6 +186,10 @@ class AbstractPlot(object):
            -------
            str
                Figure file name
+           None
+               If figno doesn't exist and plotmode is PlotControl.NOPLOT
+           Raises exception 
+               If figno doesn't exist and plotmode is not PlotControl.NOPLOT
         """
         try:
             if relative:
@@ -185,8 +197,12 @@ class AbstractPlot(object):
             else:
                 return self._figurefiles[figno]
         except KeyError:
-	    if self._plot_mode != PlotControl.NOPLOT:
-		raise Exception, "Figure %d was not created by this %s." % (figno, self.__class__.__name__ )
+            # note: we don't put this return at the top of the method 
+            # because a figure may have been created and then plotmode
+            # changed, in which case a figure for figno may exist.
+            if self._plot_mode == PlotControl.NOPLOT:
+                return None
+            raise Exception, "Figure %d was not created by this %s." % (figno, self.__class__.__name__ )
 
     def figure(self,figno=1):
         """set the figure number. 
@@ -221,6 +237,8 @@ class AbstractPlot(object):
            None
 
         """
+        if self._plot_mode == PlotControl.NOPLOT: return
+
         if figno:
            fno = figno
         else:

@@ -867,3 +867,4 @@ class Ingest_AT(AT):
             self._summary[k].setTaskname("Ingest_AT")
             self._summary[k].setTaskID(self.id(True))
             self._summary[k].setTaskArgs(taskargs)
+            self._summary[k].setNoPlot(True)

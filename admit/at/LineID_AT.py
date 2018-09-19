@@ -3101,7 +3101,11 @@ class LineID_AT(AT):
         self._plot_type = admit.util.PlotControl.SVG
 
         # instantiate a plotter for all plots made herein
-        myplot = APlot(ptype=self._plot_type, pmode=self._plot_mode, abspath=self.dir())
+        if self._plot_mode != PlotControl.NOPLOT:
+            noplot = False
+            myplot = APlot(ptype=self._plot_type, pmode=self._plot_mode, abspath=self.dir())
+        else:
+            noplot = True
 
         ############################################################################
         #  Smoothing and continuum (baseline) subtraction of input spectra         #
@@ -3254,65 +3258,80 @@ class LineID_AT(AT):
                 if i == 1:
                     mult = -1.
 #                print("MWP plot cutoff[%d] = %f, contin=%f" % (i, (spec.contin() + mult*(spec.noise() * self.getkey("numsigma")))[0], spec.contin()[0] ) )
-                myplot.segplotter(x=spec.freq(), y=spec.spec(csub=False),
-                                  title="Potential Line Locations", xlab=xlabel,
-                                  ylab=label[i], figname=imbase + "_statspec%i" % i, segments=freqs,
-                                  cutoff=(spec.contin() + mult * (spec.noise() * self.getkey("numsigma"))),
-                                  continuum=spec.contin(), thumbnail=True)
-                imname = myplot.getFigure(figno=myplot.figno, relative=True)
-                thumbnailname = myplot.getThumbnail(figno=myplot.figno, relative=True)
-                image = Image(images={bt.SVG: imname}, thumbnail=thumbnailname,
-                              thumbnailtype=bt.PNG, description=caption[i])
-                llbdp.image.addimage(image, "statspec%i" % i)
+                if self._plot_mode == PlotControl.NOPLOT:
+                    imname = "not created"
+                    thumbnailname = "not created"
+                    # leave captions unchanged for now
+                else:
+                    myplot.segplotter(x=spec.freq(), y=spec.spec(csub=False),
+                                      title="Potential Line Locations", xlab=xlabel,
+                                      ylab=label[i], figname=imbase + "_statspec%i" % i, segments=freqs,
+                                      cutoff=(spec.contin() + mult * (spec.noise() * self.getkey("numsigma"))),
+                                      continuum=spec.contin(), thumbnail=True)
+                    imname = myplot.getFigure(figno=myplot.figno, relative=True)
+                    thumbnailname = myplot.getThumbnail(figno=myplot.figno, relative=True)
+                    image = Image(images={bt.SVG: imname}, thumbnail=thumbnailname,
+                                  thumbnailtype=bt.PNG, description=caption[i])
+                    llbdp.image.addimage(image, "statspec%i" % i)
                 self.spec_description.append([llbdp.ra, llbdp.dec, "", xlabel, imname,
                                               thumbnailname, caption[i], self.infile])
 
             for i, spec in enumerate(self.specs):
                 freqs = []
+                _caption = "Potential lines overlaid on input spectrum #%i." % (i)
                 for ch in self.specseg[i]:
                     freqs.append([min(spec.freq()[ch[0]], spec.freq()[ch[1]]),
                                   max(spec.freq()[ch[0]], spec.freq()[ch[1]])])
-                myplot.segplotter(x=spec.freq(), y=spec.spec(csub=False),
-                                  title="Potential Line Locations", xlab=xlabel,
-                                  ylab="Intensity", figname=imbase + "_spec%03d" % i, segments=freqs,
-                                  cutoff=spec.contin() + (spec.noise() * self.getkey("numsigma")),
-                                  continuum=spec.contin(), thumbnail=True)
-                imname = myplot.getFigure(figno=myplot.figno, relative=True)
-                thumbnailname = myplot.getThumbnail(figno=myplot.figno,
-                                                    relative=True)
-                _caption = "Potential lines overlaid on input spectrum #%i." % (i)
-                image = Image(images={bt.SVG: imname}, thumbnail=thumbnailname,
-                              thumbnailtype=bt.PNG, description=_caption)
-                llbdp.image.addimage(image, "spec%03d" % i)
+                if self._plot_mode == PlotControl.NOPLOT:
+                    imname = "not created"
+                    thumbnailname = "not created"
+                else:
+                    myplot.segplotter(x=spec.freq(), y=spec.spec(csub=False),
+                                      title="Potential Line Locations", xlab=xlabel,
+                                      ylab="Intensity", figname=imbase + "_spec%03d" % i, segments=freqs,
+                                      cutoff=spec.contin() + (spec.noise() * self.getkey("numsigma")),
+                                      continuum=spec.contin(), thumbnail=True)
+                    imname = myplot.getFigure(figno=myplot.figno, relative=True)
+                    thumbnailname = myplot.getThumbnail(figno=myplot.figno,
+                                                        relative=True)
+                    image = Image(images={bt.SVG: imname}, thumbnail=thumbnailname,
+                                  thumbnailtype=bt.PNG, description=_caption)
+                    llbdp.image.addimage(image, "spec%03d" % i)
+
                 self.spec_description.append([llbdp.ra, llbdp.dec, "", xlabel, imname,
                                               thumbnailname, _caption, self.infile])
 
             if self.pvspec is not None:
                 freqs = []
+                _caption = "Potential lines overlaid on Correlation plot from PVCorr_BDP."
                 for ch in self.pvseg:
                     freqs.append([min(self.pvspec.freq()[ch[0]], self.pvspec.freq()[ch[1]]),
                                   max(self.pvspec.freq()[ch[0]], self.pvspec.freq()[ch[1]])])
 
-                myplot.segplotter(x=self.pvspec.freq(), y=self.pvspec.spec(csub=False),
-                                  title="Potential Line Locations", xlab=xlabel,
-                                  ylab="Corr. Coef.", figname=imbase + "_pvspec",
-                                  segments=freqs, cutoff=self.pvspec.noise() * self.getkey("numsigma"),
-                                  thumbnail=True)
-                imname = myplot.getFigure(figno=myplot.figno, relative=True)
-                thumbnailname = myplot.getThumbnail(figno=myplot.figno,
-                                                    relative=True)
-                _caption = "Potential lines overlaid on Correlation plot from PVCorr_BDP."
-                image = Image(images={bt.SVG: imname}, thumbnail=thumbnailname,
-                              thumbnailtype=bt.PNG, description=_caption)
-                llbdp.image.addimage(image, "pvspec")
+                if self._plot_mode == PlotControl.NOPLOT:
+                    imname = "not created"
+                    thumbnailname = "not created"
+                else:
+                    myplot.segplotter(x=self.pvspec.freq(), y=self.pvspec.spec(csub=False),
+                                      title="Potential Line Locations", xlab=xlabel,
+                                      ylab="Corr. Coef.", figname=imbase + "_pvspec",
+                                      segments=freqs, cutoff=self.pvspec.noise() * self.getkey("numsigma"),
+                                      thumbnail=True)
+                    imname = myplot.getFigure(figno=myplot.figno, relative=True)
+                    thumbnailname = myplot.getThumbnail(figno=myplot.figno,
+                                                            relative=True)
+                    image = Image(images={bt.SVG: imname}, thumbnail=thumbnailname,
+                                  thumbnailtype=bt.PNG, description=_caption)
+                    llbdp.image.addimage(image, "pvspec")
+
                 self.spec_description.append([llbdp.ra, llbdp.dec, "", xlabel,
                                               imname, thumbnailname, _caption,
                                               self.infile])
 
             self._summary["linelist"] = SummaryEntry(llbdp.table.serialize(), "LineID_AT",
-                                                     self.id(True), taskargs)
+                                                     self.id(True), taskargs,noplot=noplot)
             self._summary["spectra"] = [SummaryEntry(self.spec_description, "LineID_AT",
-                                                     self.id(True), taskargs)]
+                                                     self.id(True), taskargs,noplot=noplot)]
 
             self.addoutput(llbdp)
             self.dt.tag("done")

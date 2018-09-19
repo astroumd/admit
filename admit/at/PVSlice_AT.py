@@ -272,87 +272,97 @@ class PVSlice_AT(AT):
         logging.info("PV stats: mean/std/max %f %f %f" % (r_mean, r_std, r_max))
         logging.regression("PVSLICE: %f %f %f" % (r_mean, r_std, r_max))
 
-        myplot = APlot(ptype=self._plot_type,pmode=self._plot_mode,abspath=self.dir())
-
-        # hack to get a slice on a mom0map 
-        # @todo   if pmode is not png, can viewer handle this?
-        figname   = pvname + ".png"
-        slicename = self.dir(figname)
-        overlay   = pvname+"_overlay" 
-        if b11 != None:
-            f11 = b11.getimagefile(bt.CASA)
-            tb = taskinit.tbtool()
-            tb.open(self.dir(f11))
-            data = tb.getcol('map')
-            nx = data.shape[0]
-            ny = data.shape[1]
-            tb.close()
-            d1 = np.flipud(np.rot90 (data.reshape((nx,ny))))
-            if len(pvslice) == 4:
-              segm = [[pvslice[0],pvslice[2],pvslice[1],pvslice[3]]]
-              pa = np.arctan2(pvslice[2]-pvslice[0],pvslice[1]-pvslice[3])*180.0/np.pi
-              title = "PV Slice location : slice PA=%.1f" % pa
-              xcen = (pvslice[0]+pvslice[2])/2.0
-              ycen = (pvslice[1]+pvslice[3])/2.0
-            elif len(pvslit) == 4:
-              # can only do this now if using pixel coordinates
-              xcen = pvslit[0]
-              ycen = pvslit[1]
-              slen = pvslit[2]
-              pard = pvslit[3]*np.pi/180.0
-              cosp = np.cos(pard)
-              sinp = np.sin(pard)
-              halflen = 0.5*slen
-              segm = [[xcen-halflen*sinp,xcen+halflen*sinp,ycen+halflen*cosp,ycen-halflen*cosp]]
-              pa   = pvslit[3]
-              title = "PV Slice location : slit PA=%g" % pa
-            else:
-              # bogus, some error in pvslice
-              logging.warning("bogus segm since pvslice=%s" % str(pvslice))
-              segm = [[10,20,10,20]]
-              pa   = -999.999
-              title = "PV Slice location - bad PA"
-            logging.info("MAP1 segm %s %s" % (str(segm),str(pvslice)))
-            if d1.max() < clip:
-              logging.warning("datamax=%g,  clip=%g" % (d1.max(), clip))
-              title = title + ' (no signal over %g?)' % clip
-              myplot.map1(d1,title,overlay,segments=segm,thumbnail=True,
-                          zoom=self.getkey("zoom"),star=[xcen,ycen])
-            else:
-              myplot.map1(d1,title,overlay,segments=segm,range=[clip],thumbnail=True,
-                          zoom=self.getkey("zoom"),star=[xcen,ycen])
-            dt.tag("plot")
-            overlayname = myplot.getFigure(figno=myplot.figno,relative=True)
-            overlaythumbname = myplot.getThumbnail(figno=myplot.figno,relative=True)
-            Qover = True
+        pvcaption = "Position-velocity diagram through emission centroid"
+        if self._plot_mode == PlotControl.NOPLOT:
+            figname = "not created"
+            overlayname = "not created"
+            overlaythumbname = "not created"
+            overlaycaption = "not created"
+            thumbname = "not created"
+            noplot  = True
+            pvimage = Image(images={bt.CASA : pvname}, description=pvcaption)
         else:
-            Qover = False
+            noplot  = False
+            myplot = APlot(ptype=self._plot_type,pmode=self._plot_mode,abspath=self.dir())
 
-        implot = ImPlot(pmode=self._plot_mode,ptype=self._plot_type,abspath=self.dir())
-        implot.plotter(rasterfile=pvname, figname=pvname, colorwedge=True)
-        thumbname = implot.getThumbnail(figno=implot.figno,relative=True)
-        figname   = implot.getFigure(figno=implot.figno,relative=True)
-        if False:
-            # debug:
-            #
-            # @todo    tmp1 is ok, tmp2 is not displaying the whole thing
-            #          use casa_imview, not casa.imview - if this is enabled.
-            # old style:   viewer() seems to plot full image, but imview() wants square pixels?
-            casa.viewer(infile=self.dir(pvname), outfile=self.dir('tmp1.pv.png'), gui=False, outformat="png")
-            casa.imview(raster={'file':self.dir(pvname),  'colorwedge' : True, 'scaling':-1},
-                    axes={'y':'Declination'},
-                    out=self.dir('tmp2.pv.png'))
-            #
-            # -> this one works, axes= should be correct
-            # imview(raster={'file':'x.pv',  'colorwedge' : True, 'scaling':-1},axes={'y':'Frequency'})
-            #
-            # @TODO big fixme, we're going to reuse 'tmp1.pv.png' because implot give a broken view
-            figname = 'tmp1.pv.png'
+            # hack to get a slice on a mom0map 
+            # @todo   if pmode is not png, can viewer handle this?
+            overlay   = pvname+"_overlay" 
+
+            if b11 != None:
+                f11 = b11.getimagefile(bt.CASA)
+                tb = taskinit.tbtool()
+                tb.open(self.dir(f11))
+                data = tb.getcol('map')
+                nx = data.shape[0]
+                ny = data.shape[1]
+                tb.close()
+                d1 = np.flipud(np.rot90 (data.reshape((nx,ny))))
+                if len(pvslice) == 4:
+                  segm = [[pvslice[0],pvslice[2],pvslice[1],pvslice[3]]]
+                  pa = np.arctan2(pvslice[2]-pvslice[0],pvslice[1]-pvslice[3])*180.0/np.pi
+                  title = "PV Slice location : slice PA=%.1f" % pa
+                  xcen = (pvslice[0]+pvslice[2])/2.0
+                  ycen = (pvslice[1]+pvslice[3])/2.0
+                elif len(pvslit) == 4:
+                  # can only do this now if using pixel coordinates
+                  xcen = pvslit[0]
+                  ycen = pvslit[1]
+                  slen = pvslit[2]
+                  pard = pvslit[3]*np.pi/180.0
+                  cosp = np.cos(pard)
+                  sinp = np.sin(pard)
+                  halflen = 0.5*slen
+                  segm = [[xcen-halflen*sinp,xcen+halflen*sinp,ycen+halflen*cosp,ycen-halflen*cosp]]
+                  pa   = pvslit[3]
+                  title = "PV Slice location : slit PA=%g" % pa
+                else:
+                  # bogus, some error in pvslice
+                  logging.warning("bogus segm since pvslice=%s" % str(pvslice))
+                  segm = [[10,20,10,20]]
+                  pa   = -999.999
+                  title = "PV Slice location - bad PA"
+                logging.info("MAP1 segm %s %s" % (str(segm),str(pvslice)))
+                if d1.max() < clip:
+                  logging.warning("datamax=%g,  clip=%g" % (d1.max(), clip))
+                  title = title + ' (no signal over %g?)' % clip
+                  myplot.map1(d1,title,overlay,segments=segm,thumbnail=True,
+                              zoom=self.getkey("zoom"),star=[xcen,ycen])
+                else:
+                  myplot.map1(d1,title,overlay,segments=segm,range=[clip],thumbnail=True,
+                              zoom=self.getkey("zoom"),star=[xcen,ycen])
+                dt.tag("plot")
+                overlayname = myplot.getFigure(figno=myplot.figno,relative=True)
+                overlaythumbname = myplot.getThumbnail(figno=myplot.figno,relative=True)
+                Qover = True
+            else:
+                Qover = False
+
+            implot = ImPlot(pmode=self._plot_mode,ptype=self._plot_type,abspath=self.dir())
+            implot.plotter(rasterfile=pvname, figname=pvname, colorwedge=True)
+            thumbname = implot.getThumbnail(figno=implot.figno,relative=True)
+            figname   = implot.getFigure(figno=implot.figno,relative=True)
+            if False:
+                # debug:
+                #
+                # @todo    tmp1 is ok, tmp2 is not displaying the whole thing
+                #          use casa_imview, not casa.imview - if this is enabled.
+                # old style:   viewer() seems to plot full image, but imview() wants square pixels?
+                casa.viewer(infile=self.dir(pvname), outfile=self.dir('tmp1.pv.png'), gui=False, outformat="png")
+                casa.imview(raster={'file':self.dir(pvname),  'colorwedge' : True, 'scaling':-1},
+                        axes={'y':'Declination'},
+                        out=self.dir('tmp2.pv.png'))
+                #
+                # -> this one works, axes= should be correct
+                # imview(raster={'file':'x.pv',  'colorwedge' : True, 'scaling':-1},axes={'y':'Frequency'})
+                #
+                # @TODO big fixme, we're going to reuse 'tmp1.pv.png' because implot give a broken view
+                figname = 'tmp1.pv.png'
                     
         # @todo   technically we don't know what map it was overlay'd on.... CubeSum/Moment0
-        overlaycaption = "Location of position-velocity slice overlaid on a CubeSum map"
-        pvcaption = "Position-velocity diagram through emission centroid"
-        pvimage = Image(images={bt.CASA : pvname, bt.PNG : figname},thumbnail=thumbname,thumbnailtype=bt.PNG, description=pvcaption)
+            overlaycaption = "Location of position-velocity slice overlaid on a CubeSum map"
+            pvimage = Image(images={bt.CASA : pvname, bt.PNG : figname},thumbnail=thumbname,thumbnailtype=bt.PNG, description=pvcaption)
+
         b2.setkey("image",pvimage)
         b2.setkey("mean",float(r_mean))
         b2.setkey("sigma",float(r_std))
@@ -364,7 +374,7 @@ class PVSlice_AT(AT):
         # Yes, this is a nested list.  Against the day when PVSLICE can
         # compute multiple slices per map.
         pvslicesummary.append(thispvsummary)
-        self._summary["pvslices"] = SummaryEntry(pvslicesummary,"PVSlice_AT",self.id(True),taskargs)
+        self._summary["pvslices"] = SummaryEntry(pvslicesummary,"PVSlice_AT",self.id(True),taskargs,noplot=noplot)
 
         dt.tag("done")
         dt.end()

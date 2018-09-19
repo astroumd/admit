@@ -1156,7 +1156,11 @@ class Summary():
 
         if tlower == "cubespectrum_at":
            spectra = titems.get('spectra',None)
-           if (spectra) != None:
+           if spectra == None:
+               allspecs = "<br><h4>%s produced no output for image %s </h4>" % (taskname, casaimage)
+           elif spectra.getNoPlot():
+               allspecs = "<br><h4>%s created output for image %s but was told to create no PNGs for display.</h4>" % (taskname, casaimage)
+           else:
                count = 0
                # task arguments are the same in all entries.
                taskargs = spectra.taskargs
@@ -1183,8 +1187,6 @@ class Summary():
 
                banner = '<br><h4>%s output for image %s</h4>' % (taskname, casaimage)
                allspecs = banner + allspecs
-           else:
-               allspecs = "<br><h4>%s produced no output for image %s </h4>" % (taskname, casaimage)
 
            retval = header % (taskclass, tid,thetask.statusicons(),taskname,tid,taskargs,tid,allspecs,tid)
 
@@ -1666,7 +1668,11 @@ class Summary():
 
         if tlower == "generatespectrum_at":
            spectra = titems.get('spectra',None)
-           if (spectra) != None:
+           if spectra == None:
+                allspecs = "<br><h4>%s produced no output</h4>" % (taskname)
+           elif spectra.getNoPlot():
+                allspecs = "<br><h4>%s created output but was told to create no PNGs for display.</h4>" % (taskname)
+           else:
                count = 0
                # task arguments are the same in all entries.
                taskargs = spectra.taskargs
@@ -1690,8 +1696,6 @@ class Summary():
 
                banner = '<br><h4>%s output</h4>' % (taskname)
                allspecs = banner + allspecs
-           else:
-               allspecs = "<br><h4>%s produced no output</h4>" % (taskname)
 
            retval = header % (taskclass, tid,thetask.statusicons(),taskname,tid,taskargs,tid,allspecs,tid)
 
@@ -1863,10 +1867,9 @@ class Summary():
 
 class SummaryEntry:
     """ Defines a single 'row' of a Summary data entry.  A Summary key can refer to a list of SummaryEntry.
-        This class makes management of complicated data entries easier.  It was getting tough
-        to slice and unzip all those lists!
+        This class makes management of complicated data entries easier.
     """
-    def __init__(self,value=[],taskname="",taskid=-1,taskargs=""):
+    def __init__(self,value=[],taskname="",taskid=-1,taskargs="",noplot=False):
         if isinstance(value,list):
            self._value    = value
         else:
@@ -1875,6 +1878,8 @@ class SummaryEntry:
         self._taskid   = taskid
         self._taskargs = taskargs
         self._type     = bt.SUMMARYENTRY
+        # True if the task that created this entry did NOT create plots
+        self._noplot   = noplot
 
     def getValue(self):
         """Get the underlying data value from this SummaryEntry.  Value will be list
@@ -1932,8 +1937,6 @@ class SummaryEntry:
              The string task arguments"""
         return self._taskargs;
 
-
-
     def setTaskname(self,name):
         """Set the name of the task that created this SummaryEntry.
 
@@ -1976,6 +1979,31 @@ class SummaryEntry:
         """
         self._taskargs = args;
 
+    def getNoPlot(self):
+        """Discover if the task that created this SummaryEntry made plots.
+
+           Returns
+           -------
+              True if no plots were created
+              False otherwise
+        """
+        return self._noplot
+
+    def setNoPlot(self,noplot):
+        """Indicate if the task that created this SummaryEntry made plots.
+
+           Parameters
+           ----------
+           noplot: boolean
+              True if no plots were created
+
+           Returns
+           -------
+           None
+        """
+        self._noplot = noplot
+
+
     #-------------------------------
     # Make the internal data be well-behaved properties.
     # See e.g. http://www.programiz.com/python-programming/property
@@ -1983,6 +2011,7 @@ class SummaryEntry:
     taskname = property(getTaskname, setTaskname, None, 'The name of the task that created this SummaryEntry')
     taskid = property(getTaskID, setTaskID, None, 'The integer task ID that created this SummaryEntry')
     taskargs = property(getTaskArgs, setTaskArgs, None, 'The arguments of the task to display in the data browser web page.')
+    noplot   = property(getNoPlot,setNoPlot,None,'True if the task that created this SummaryEntry did NOT create plots')
     #-------------------------------
 
     def unset(self):
@@ -2012,7 +2041,7 @@ class SummaryEntry:
         """
         snode = et.SubElement(root,"summaryEntry")
         snode.set("type",bt.SUMMARYENTRY)
-        writer = XmlWriter.XmlWriter(self,["_value","_taskname","_taskid","_taskargs"],{"_value":bt.LIST,"_taskname":bt.STRING,"_taskid":bt.INT,"_taskargs":bt.STRING},snode,None)
+        writer = XmlWriter.XmlWriter(self,["_value","_taskname","_taskid","_taskargs","_noplot"],{"_value":bt.LIST,"_taskname":bt.STRING,"_taskid":bt.INT,"_taskargs":bt.STRING,"_noplot":bt.BOOL},snode,None)
 
     # Two SummaryEntrys are equal if their taskids are equal
     def __eq__(self,other):
@@ -2034,8 +2063,8 @@ class SummaryEntry:
         return self._taskid
 
     def __str__(self):
-        return "SummaryEntry(value=%s, taskname=%s, taskid=%d, taskargs=%s)" % \
-                (str(self._value), self._taskname, self._taskid,self._taskargs)
+        return "SummaryEntry(value=%s, taskname=%s, taskid=%d, taskargs=%s, noplot=%s)" % \
+                (str(self._value), self._taskname, self._taskid,self._taskargs,str(self._noplot))
  
     # ensure that printing a list of SummaryEntry will print the
     # individual values and not just addresses.  
@@ -2049,7 +2078,7 @@ if __name__ == "__main__":
     qq = SummaryEntry("Hqwl","AT1",1,"blah")
     rr = SummaryEntry("Hrwl","AT1",1,"blah")
     ss = SummaryEntry("FOOS","AT2",1,"blah")
-    tt = SummaryEntry("FOOT","AT3",2,"blah")
+    tt = SummaryEntry("FOOT","AT3",2,"blah",noplot=True)
     print "qq == rr (True?):" + str(qq == rr)
     print "qq == ss (True?):" + str(qq == ss)
     print "ss == tt (False?):" + str(qq == tt)

@@ -110,4 +110,4 @@ class BDPIngest_AT(AT):
             table.addRow(["Associated File",f])
         table.description = "Information about the ingested BDP"
         taskargs = "file=%s" % self.getkey('file')
-        self._summary["bdpingest"] = SummaryEntry(table.serialize(),"BDPIngest_AT",self.id(True),taskargs)
+        self._summary["bdpingest"] = SummaryEntry(table.serialize(),"BDPIngest_AT",self.id(True),taskargs,noplot=True)

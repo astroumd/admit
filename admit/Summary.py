@@ -1358,8 +1358,12 @@ class Summary():
 
         if tlower == "moment_at":
            moments = titems.get('moments',None)
-           allspecs = ""
-           if moments != None:
+           if moments == None:
+               allspecs = "<br><h4>No moments were computed for this cube</h4>"
+           elif moments.getNoPlot():
+               allspecs = "<br><h4>%s computed moments but was told not to create any images for display</h4>" % taskname
+           else:
+               allspecs = ""
                count = 0
                auximage = []
                auxthumb  = []
@@ -1379,19 +1383,20 @@ class Summary():
                    auximage.append(val[5])
                    auxthumb.append(val[6])
                    auxcaption.append(val[7])
+
+                   # @todo Put the buttons on even if no PNGs were created
                    casaimage = val[8]
                    casamoment = image[:-4] # remove '.png' to get name of moment CASA format image
                    button = utils.getButton(casamoment,"viewimage","View in CASA")
                    # can't have two buttons with same html ID, so add ".fits"
                    button2 = utils.getButton(casamoment+".fits","exportimage","Export to FITS")
+
                    specval = specval + (SPAN4VALB % ( image, thumb, caption, caption, caption, button,button2))
                    allspecs = allspecs + "\n" + specval
                    count = count + 1
 
-               banner = "<br><h4>%s output for %s</h4>" % (taskname, casaimage)
-               allspecs = banner + allspecs
-           else: 
-               allspecs = "<br><h4>No moments were computed for this cube</h4>"
+           banner = "<br><h4>%s output for %s</h4>" % (taskname, casaimage)
+           allspecs = banner + allspecs
 
            retval = header % (taskclass, tid,thetask.statusicons(),taskname,tid,taskargs,tid,allspecs,tid)
 

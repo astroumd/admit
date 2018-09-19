@@ -251,9 +251,9 @@ class Template_AT(admit.Task):
         #
         # Output data product (spectrum table).
         obdp3 = admit.Table_BDP(ospecstem)
-	obdp3.table.description = "Template 1-D Spectrum"
-	obdp3.table.columns = ["Channel", "Spectrum @ (%d, %d)" % specpos]
-	obdp3.table.setData(np.transpose(np.vstack([ochan, ospec])))
+        obdp3.table.description = "Template 1-D Spectrum"
+        obdp3.table.columns = ["Channel", "Spectrum @ (%d, %d)" % specpos]
+        obdp3.table.setData(np.transpose(np.vstack([ochan, ospec])))
         self.addoutput(obdp3)
 
 
@@ -286,6 +286,7 @@ class Template_AT(admit.Task):
            oimgstem+".png", oimgstem+"_thumb.png", oimgtitle, ocubeim],
           [specpos[0], specpos[1], "", "Channel",
            ospecstem+".png", ospecstem+"_thumb.png", ospectitle, ocubeim]]
+        # If no plots are produced by your task, change noplot to True
         self._summary["spectra"] = admit.SummaryEntry(spec_description,
                                                       "Template_AT",
-                                                      self.id(True), keys)
+                                                      self.id(True), keys, noplot=False)

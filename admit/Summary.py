@@ -1020,8 +1020,8 @@ class Summary():
             f.close()
 
     def _imageIsSVG(self,image):
-	if not image: return False
-	
+        if not image: return False
+        
         if image[len(image)-3:len(image)+1] == 'svg': 
             return True
         else:
@@ -1326,6 +1326,8 @@ class Summary():
            spectra = titems.get('spectra',None)
            if spectra == None:
                retval = header % (taskclass, tid, thetask.statusicons(),taskname, tid, the_item.taskargs, tid, bigstr, tid)
+           elif spectra.getNoPlot():
+               allspecs = "<h4>%s identified spectral lines but was told not to create images for display.</h4>" % taskname
            else:
                allspecs = ''
                count = 0
@@ -1353,8 +1355,10 @@ class Summary():
                        specval = specval + (SPAN4VAL % ( image, thumb, caption, caption, caption))
                    allspecs = allspecs + "\n" + specval
                    count = count + 1
-               bigstr = bigstr + STARTROW + allspecs + ENDROW
-               retval = header % (taskclass, tid, thetask.statusicons(),taskname, tid, the_item.taskargs, tid, tid, bigstr, tid)
+
+           bigstr = bigstr + STARTROW + allspecs + ENDROW
+
+           retval = header % (taskclass, tid, thetask.statusicons(),taskname, tid, the_item.taskargs, tid, tid, bigstr, tid)
 
         if tlower == "moment_at":
            moments = titems.get('moments',None)

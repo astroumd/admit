@@ -136,7 +136,10 @@ class PVCorr_AT(AT):
         b1 = self._bdp_in[0]                                # PVSlice_BDP
         fin = b1.getimagefile(bt.CASA)                      # CASA image
         data = casautil.getdata_raw(self.dir(fin))          # grab the data as a numpy array
-        self.myplot = APlot(ptype=self._plot_type,pmode=self._plot_mode,abspath=self.dir())
+        bdp_name = self.mkext(fin,"pvc")                    # output PVCorr_BDP
+        b3 = PVCorr_BDP(bdp_name)
+        self.addoutput(b3)
+
         #print 'DATA[0,0]:',data[0,0]
         #print 'pv shape: ',data.shape
         npos = data.shape[0]
@@ -189,9 +192,6 @@ class PVCorr_AT(AT):
             dt.tag("imstat")
 
         
-        bdp_name = self.mkext(fin,"pvc")                    # output PVCorr_BDP
-        b3 = PVCorr_BDP(bdp_name)
-        self.addoutput(b3)
 
         if ch0<0 or ch1>=nvel:
             # this probably only happens to small cubes (problematic for PVCorr)
@@ -255,22 +255,32 @@ class PVCorr_AT(AT):
             segp = []
             segp.append( [0,len(ch),0.0,0.0] )
             segp.append( [0,len(ch),3.0*rms, 3.0*rms] )
+
             # @todo:   in principle we know with given noise and  size of box, what the sigma in pvcorr should be
-            self.myplot.plotter(x,y,title,figname=p1,xlab=xlab,ylab=ylab,segments=segp, thumbnail=True)
+
+            taskargs = "numsigma=%.1f range=[%d,%d]" % (numsigma,ch0,ch1)
+
+            if self._plot_mode == PlotControl.NOPLOT:
+                thumbname = "not created"
+                figname   = "not created"
+                imcaption = "not created"
+                image = Image(description=imcaption)
+            else:
+                self.myplot = APlot(ptype=self._plot_type,pmode=self._plot_mode,abspath=self.dir())
+                self.myplot.plotter(x,y,title,figname=p1,xlab=xlab,ylab=ylab,segments=segp, thumbnail=True)
 
             #out1 = np.rot90 (data.reshape((nvel,npos)) )
             if mode > 1:
                 self.myplot.map1(data=out,title="testing PVCorr_AT:  mode%d"%mode,figname='testPVCorr', thumbnail=True)
 
-            taskargs = "numsigma=%.1f range=[%d,%d]" % (numsigma,ch0,ch1)
-            caption = "Position-velocity correlation plot"
-            thumbname = self.myplot.getThumbnail(figno=self.myplot.figno,relative=True)
-            figname   = self.myplot.getFigure(figno=self.myplot.figno,relative=True)
-            image = Image(images={bt.PNG: figname}, thumbnail=thumbname, thumbnailtype=bt.PNG,
-                description=caption)
+                imcaption = "Position-velocity correlation plot"
+                thumbname = self.myplot.getThumbnail(figno=self.myplot.figno,relative=True)
+                figname   = self.myplot.getFigure(figno=self.myplot.figno,relative=True)
+                image = Image(images={bt.PNG: figname}, thumbnail=thumbname, thumbnailtype=bt.PNG, description=imcaption)
+
             b3.image.addimage(image, "pvcorr")
 
-            self._summary["pvcorr"] = SummaryEntry([figname,thumbname,caption,fin],"PVCorr_AT",self.id(True),taskargs)
+            self._summary["pvcorr"] = SummaryEntry([figname,thumbname,imcaption,fin],"PVCorr_AT",self.id(True),taskargs,noplot=noplot)
         else:
             self._summary["pvcorr"] = None
             logging.warning("No summary")
@@ -304,7 +314,8 @@ class PVCorr_AT(AT):
         fmax = f.max()
         print "PVCorr mode3:",f1.sum(),'/',f0.sum(),'min/max',smin,fmax
         out =  scipy.signal.correlate2d(data,f,mode='same')
-        self.myplot.map1(data=f,title="PVCorr 2D Kernel",figname='PVCorrKernel', thumbnail=True)
+        if self._plot_mode != PlotControl.NOPLOT:
+            self.myplot.map1(data=f,title="PVCorr 2D Kernel",figname='PVCorrKernel', thumbnail=True)
 
         print 'PVCorr min/max:',out.min(),out.max()
         n1,m1,s1,n2,m2,s2 = stats.mystats(out.flatten())

@@ -1159,7 +1159,7 @@ class Summary():
            if spectra == None:
                allspecs = "<br><h4>%s produced no output for image %s </h4>" % (taskname, casaimage)
            elif spectra.getNoPlot():
-               allspecs = "<br><h4>%s created output for image %s but was told to create no PNGs for display.</h4>" % (taskname, casaimage)
+               allspecs = "<br><h4>%s created output for image %s but was told to create no images for display.</h4>" % (taskname, casaimage)
            else:
                count = 0
                # task arguments are the same in all entries.
@@ -1211,7 +1211,7 @@ class Summary():
            if cubesum == None:
                allspecs = "<br><h4>%s produced no output</h4>" % (taskname)
            elif cubesum.getNoPlot():
-               allspecs = "<br><h4>%s created output but was told to create no PNGs for display.</h4>" % (taskname)
+               allspecs = "<br><h4>%s created output but was told to create no images for display.</h4>" % (taskname)
            else:
                allspecs = ""
                taskargs = cubesum.taskargs
@@ -1400,7 +1400,7 @@ class Summary():
            if pvslices == None:
                specval = "<br><h4>No PV slices were computed for this cube</h4>"
            elif pvslices.getNoPlot():
-               specval = "<br><h4>%s created output but was told to create no PNGs for display.</h4>" % (taskname)
+               specval = "<br><h4>%s created output but was told to create no images for display.</h4>" % (taskname)
            else:
                for val in pvslices.value:
                    specval = STARTROW
@@ -1464,7 +1464,7 @@ class Summary():
            if the_item == None:
                specval = "<br><h4>No PV correlation diagrams were computed from the input cube</h4>"
            elif pvslices.getNoPlot():
-               specval = "<br><h4>%s created output but was told to create no PNGs for display.</h4>" % (taskname)
+               specval = "<br><h4>%s created output but was told to create no images for display.</h4>" % (taskname)
            else:
                val = the_item.getValue()
                image    = val[0]
@@ -1521,7 +1521,9 @@ class Summary():
 
         if tlower == "overlapintegral_at":
            the_item = titems.get('overlap',None)
-           if the_item != None:
+           if the_item == None:
+               tablestr = "<br><h4>%s produced no output.</h4>" % taskname
+           else:
                # summary info format:
                #[table,image,thumb,caption]
                summarydata = the_item.getValue()
@@ -1533,21 +1535,25 @@ class Summary():
                    if len(atable) == 0:
                        tablestr = "<br><h4>%s produced no output.</h4>" % taskname
                    else:
+                     tablestr = SPANXVAL % ("8",atable.html('class="table table-admit table-bordered table-striped"')) 
+                     if the_item.getNoPlot():
+                       imstr = "<br><h4>%s was told not to create any images for display</h4>" % taskname
+                     else:
                        image = summarydata[1]
                        thumb = summarydata[2]
                        caption = summarydata[3]
-                       tablestr = SPANXVAL % ("8",atable.html('class="table table-admit table-bordered table-striped"')) 
                        imstr = SPAN4VAL % (image, thumb, caption, caption, caption)
-                       tablestr = STARTROW + tablestr + imstr + ENDROW
-           else:
-               tablestr = "<br><h4>%s produced no output.</h4>" % taskname
+                   tablestr = STARTROW + tablestr + imstr + ENDROW
+
            retval = header % (taskclass, tid,thetask.statusicons(),taskname,tid,the_item.taskargs,tid,tablestr,tid)
 
         if tlower == "principalcomponent_at":
         # PCA returns two two tables in a list [[table1 h,u,d],[table2 h,u,d]].
            tablestr = ''
            the_item = titems.get('pca',None) #SummaryEntry
-           if the_item != None:
+           if the_item == None: 
+               tablestr = "<br><h4>%s produced no output</h4>" % taskname
+           else:
                summarydata = the_item.getValue()
                if summarydata == None or len(summarydata) == 0:
                    tablestr = "<br><h4>%s produced no output</h4>" % taskname
@@ -1559,9 +1565,9 @@ class Summary():
                          tablestr = tablestr + "<h3>No covariance data available for this summary. Try lowering <i>covarmin</i> in the PrincipalComponent_AT task arguments.</h3>"
                       else:
                           tablestr = tablestr + atable.html('class="table table-admit table-bordered table-striped"')+os.linesep+os.linesep
+               if the_item.getNoPlot():
+                   tablestr = tablestr + "<br><h4>%s was told not to create images for display</h4>" % taskname
 
-           else:
-               tablestr = "<br><h4>%s produced no output</h4>" % taskname
            retval = header % (taskclass, tid,thetask.statusicons(),taskname,tid,the_item.taskargs,tid,tablestr,tid)
 
         if tlower == "template_at":
@@ -1590,7 +1596,7 @@ class Summary():
            if spectra == None:
                allspecs = allspecs + "<br><h4>%s produced no spectral output</h4>" % (taskname)
            elif the_item.getNoPlot():
-               allspecs = allspecs + "<br><h4>%s created output but was told to create no PNGs for display.</h4>" % (taskname)
+               allspecs = allspecs + "<br><h4>%s created output but was told not to create images for display.</h4>" % (taskname)
            else:
                count = 0
                # task arguments are the same in all entries.
@@ -1687,7 +1693,7 @@ class Summary():
            if spectra == None:
                 allspecs = "<br><h4>%s produced no output</h4>" % (taskname)
            elif spectra.getNoPlot():
-                allspecs = "<br><h4>%s created output but was told to create no PNGs for display.</h4>" % (taskname)
+                allspecs = "<br><h4>%s created output but was told not to create images for display.</h4>" % (taskname)
            else:
                count = 0
                # task arguments are the same in all entries.

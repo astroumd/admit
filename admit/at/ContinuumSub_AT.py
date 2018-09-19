@@ -207,19 +207,28 @@ class ContinuumSub_AT(AT):
         rdata = casautil.getdata(self.dir(f3)).data
         logging.regression("CSUB: %f %f" % (rdata.min(),rdata.max()))
 
-        # Create two output images for html and their thumbnails, too
-        implot = ImPlot(ptype=self._plot_type,pmode=self._plot_mode,abspath=self.dir())
-        implot.plotter(rasterfile=f3,figname=f3,colorwedge=True)
-        figname   = implot.getFigure(figno=implot.figno,relative=True)
-        thumbname = implot.getThumbnail(figno=implot.figno,relative=True)
         b2.setkey("image", Image(images={bt.CASA:f2}))
-        b3.setkey("image", Image(images={bt.CASA:f3, bt.PNG : figname}))
+
+        # Create two output images for html and their thumbnails, too
+        if self._plot_mode == PlotControl.NOPLOT:
+            figname   = "not created"
+            thumbname = "not created"
+            imcaption = "not created"
+            b3.setkey("image", Image(images={bt.CASA:f3}))
+            noplot = True
+        else:
+            implot = ImPlot(ptype=self._plot_type,pmode=self._plot_mode,abspath=self.dir())
+            implot.plotter(rasterfile=f3,figname=f3,colorwedge=True)
+            figname   = implot.getFigure(figno=implot.figno,relative=True)
+            thumbname = implot.getThumbnail(figno=implot.figno,relative=True)
+            b3.setkey("image", Image(images={bt.CASA:f3, bt.PNG : figname}))
+            noplot = False
         dt.tag("implot")
 
         if len(ch) > 0:
           taskargs = "pad=%d fitorder=%d contsub=%s" % (pad,fitorder,str(contsub))
           imcaption = "Continuum map"
-          self._summary["continuumsub"] = SummaryEntry([figname,thumbname,imcaption],"ContinuumSub_AT",self.id(True),taskargs)
+          self._summary["continuumsub"] = SummaryEntry([figname,thumbname,imcaption],"ContinuumSub_AT",self.id(True),taskargs,noplot=noplot)
           
         dt.tag("done")
         dt.end()

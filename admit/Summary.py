@@ -1646,7 +1646,11 @@ class Summary():
            bigstr = '<br>' + STARTROW + tablestr + ENDROW
            spectra = titems.get('spectra',None)
            specval=""
-           if spectra != None:
+           if spectra == None:
+               allspecs = allspecs + "<br><h4>%s created no spectral output.</h4>" % (taskname)
+           elif the_item.getNoPlot():
+               allspecs = allspecs + "<br><h4>%s created spectral output but was told not to create images for display.</h4>" % (taskname)
+           else:
                allspecs = ''
                count = 0
                for val in spectra.value:
@@ -1673,8 +1677,9 @@ class Summary():
 
                    allspecs = allspecs + "\n" + specval
                    count = count + 1
-               bigstr = bigstr + STARTROW + allspecs + ENDROW
-               retval = header % (taskclass, tid, thetask.statusicons(),taskname, tid, the_item.taskargs, tid, bigstr, tid)
+
+           bigstr = bigstr + STARTROW + allspecs + ENDROW
+           retval = header % (taskclass, tid, thetask.statusicons(),taskname, tid, the_item.taskargs, tid, bigstr, tid)
 
         if tlower == "bdpingest_at":
            the_item = titems.get('bdpingest',None) #SummaryEntry

@@ -208,6 +208,7 @@ class GenerateSpectrum_AT(AT):
         nspectra = self.getkey("nspectra")
         taskargs = " contin=%f freq=%f delta=%f nspectra=%f " % (contin,f0,df,nspectra)
         spec = range(nspectra)
+        noplot = True       
         dt.tag("start")
         if self.getkey("file") != "":
             print "READING spectrum from",self.getkey("file") 
@@ -274,7 +275,7 @@ class GenerateSpectrum_AT(AT):
         images = {}                                      # png's accumulated
         for i in range(nspectra):
             sd = []
-            caption = "Generated Spectrum %d" % i
+            imcaption = "Generated Spectrum %d" % i
             # construct the Table for CubeSpectrum_BDP 
             # @todo note data needs to be a tuple, later to be column_stack'd
             labels = ["channel" ,"frequency" ,"flux" ]
@@ -291,20 +292,28 @@ class GenerateSpectrum_AT(AT):
             xlab  = 'Channel'
             y = [spec[i]]
             sd.append(xlab)
+            if self._plot_mode == PlotControl.NOPLOT:
+                figname   = "not created"
+                thumbname = "not created"
+                imcaption = "not created"
+                noplot = True
+            else:
 
-            myplot = APlot(ptype=self._plot_type,pmode=self._plot_mode, abspath=self.dir())
-            ylab  = 'Flux'
-            p1 = "%s_%d" % (bdp_name,i)
-            myplot.plotter(x,y,"",p1,xlab=xlab,ylab=ylab,thumbnail=True)
-            # Why not use p1 as the key?
-            ii = images["pos%d" % i] = myplot.getFigure(figno=myplot.figno,relative=True)
-            thumbname = myplot.getThumbnail(figno=myplot.figno,relative=True)
+                myplot = APlot(ptype=self._plot_type,pmode=self._plot_mode, abspath=self.dir())
+                ylab  = 'Flux'
+                p1 = "%s_%d" % (bdp_name,i)
+                myplot.plotter(x,y,"",p1,xlab=xlab,ylab=ylab,thumbnail=True)
+                # Why not use p1 as the key?
+                figname = images["pos%d" % i] = myplot.getFigure(figno=myplot.figno,relative=True)
+                thumbname = myplot.getThumbnail(figno=myplot.figno,relative=True)
 
-            image = Image(images=images, description="CubeSpectrum")
-            sd.extend([ii, thumbname, caption])
+                image = Image(images=images, description="CubeSpectrum")
+                noplot = False
+
+            sd.extend([figname, thumbname, imcaption])
             self.spec_description.append(sd)
 
-        self._summary["spectra"] = SummaryEntry(self.spec_description,"GenerateSpectrum_AT",self.id(True), taskargs)
+        self._summary["spectra"] = SummaryEntry(self.spec_description,"GenerateSpectrum_AT",self.id(True), taskargs, noplot=noplot)
         
 
         dt.tag("table")

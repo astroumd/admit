@@ -1397,7 +1397,11 @@ class Summary():
 
         if tlower == "pvslice_at":
            pvslices = titems.get('pvslices',None)
-           if pvslices != None:
+           if pvslices == None:
+               specval = "<br><h4>No PV slices were computed for this cube</h4>"
+           elif pvslices.getNoPlot():
+               specval = "<br><h4>%s created output but was told to create no PNGs for display.</h4>" % (taskname)
+           else:
                for val in pvslices.value:
                    specval = STARTROW
                    slicetype = val[0]
@@ -1423,8 +1427,7 @@ class Summary():
 
                banner = "<br><h4>%s output for %s</h4>" % (taskname, slicename)
                specval = banner + specval
-           else:
-               specval = "<br><h4>No PV slices were computed for this cube</h4>"
+
            retval = header % (taskclass, tid,thetask.statusicons(),taskname,tid,pvslices.taskargs,tid,specval,tid)
 
         if tlower == "linecube_at":
@@ -1458,7 +1461,11 @@ class Summary():
 
         if tlower == "pvcorr_at":
            the_item = titems.get('pvcorr',None)
-           if the_item != None:
+           if the_item == None:
+               specval = "<br><h4>No PV correlation diagrams were computed from the input cube</h4>"
+           elif pvslices.getNoPlot():
+               specval = "<br><h4>%s created output but was told to create no PNGs for display.</h4>" % (taskname)
+           else:
                val = the_item.getValue()
                image    = val[0]
                thumb    = val[1]
@@ -1467,8 +1474,7 @@ class Summary():
                specval = STARTROW + (SPAN4VAL % ( image, thumb, caption, caption, caption)) + ENDROW
                banner = "<br><h4>%s output for %s</h4>" % (taskname, pvcorrname)
                specval = banner + specval
-           else:
-               specval = "<br><h4>No PV correlation diagrams were computed from the input cube</h4>"
+
            retval = header % (taskclass, tid,thetask.statusicons(),taskname,tid,the_item.taskargs,tid,specval,tid)
 
         # @todo move table formatting to here.
@@ -1493,7 +1499,7 @@ class Summary():
            if the_item == None:
                tablestr = "<br><h4>%s identified no sources</h4>" % taskname
            elif the_item.getNoPlot():  # probably will never happen
-               tablestr = "<br><h4>%s created output for but was told to create no table for display.</h4>" % (taskname)
+               tablestr = "<br><h4>%s created output but was told to create no table for display.</h4>" % (taskname)
            else:
                summarydata = the_item.getValue()
                if summarydata == None or len(summarydata) == 0:
@@ -1564,7 +1570,7 @@ class Summary():
            if the_item == None:
                tablestr = "<br><h4>%s produced no table output</h4>" % (taskname)
            elif the_item.getNoPlot():  # probably will never happen
-               tablestr = "<br><h4>%s created output for but was told to create no table for display.</h4>" % (taskname)
+               tablestr = "<br><h4>%s created output but was told to create no table for display.</h4>" % (taskname)
            else:
                tablestr = ''
                summarydata = the_item.getValue()
@@ -1584,7 +1590,7 @@ class Summary():
            if spectra == None:
                allspecs = allspecs + "<br><h4>%s produced no spectral output</h4>" % (taskname)
            elif the_item.getNoPlot():
-               allspecs = allspecs + "<br><h4>%s created output for but was told to create no PNGs for display.</h4>" % (taskname)
+               allspecs = allspecs + "<br><h4>%s created output but was told to create no PNGs for display.</h4>" % (taskname)
            else:
                count = 0
                # task arguments are the same in all entries.

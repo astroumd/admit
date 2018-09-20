@@ -17,6 +17,7 @@ import admit.util.casautil as casautil
 from admit.bdp.CubeStats_BDP import CubeStats_BDP
 from admit.bdp.PVCorr_BDP import PVCorr_BDP
 from admit.bdp.Image_BDP import Image_BDP
+import admit.util.PlotControl as PlotControl
 from admit.util import APlot
 from admit.util import stats
 from admit.util.AdmitLogging import AdmitLogging as logging
@@ -261,17 +262,19 @@ class PVCorr_AT(AT):
             taskargs = "numsigma=%.1f range=[%d,%d]" % (numsigma,ch0,ch1)
 
             if self._plot_mode == PlotControl.NOPLOT:
+                noplot = True
                 thumbname = "not created"
                 figname   = "not created"
                 imcaption = "not created"
                 image = Image(description=imcaption)
             else:
+                noplot = False
                 self.myplot = APlot(ptype=self._plot_type,pmode=self._plot_mode,abspath=self.dir())
                 self.myplot.plotter(x,y,title,figname=p1,xlab=xlab,ylab=ylab,segments=segp, thumbnail=True)
 
-            #out1 = np.rot90 (data.reshape((nvel,npos)) )
-            if mode > 1:
-                self.myplot.map1(data=out,title="testing PVCorr_AT:  mode%d"%mode,figname='testPVCorr', thumbnail=True)
+                #out1 = np.rot90 (data.reshape((nvel,npos)) )
+                if mode > 1:
+                    self.myplot.map1(data=out,title="testing PVCorr_AT:  mode%d"%mode,figname='testPVCorr', thumbnail=True)
 
                 imcaption = "Position-velocity correlation plot"
                 thumbname = self.myplot.getThumbnail(figno=self.myplot.figno,relative=True)

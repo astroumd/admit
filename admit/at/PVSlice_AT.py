@@ -15,6 +15,7 @@ from admit.bdp.CubeStats_BDP import CubeStats_BDP
 
 
 from admit.util.Image import Image
+import admit.util.PlotControl as PlotControl
 from admit.util import APlot
 from admit.util import utils
 from admit.util import stats

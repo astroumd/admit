@@ -16,6 +16,7 @@ from admit.bdp.Image_BDP import Image_BDP
 from admit.bdp.CubeStats_BDP import CubeStats_BDP
 import admit.util.Image as Image
 import admit.util.Line as Line
+import admit.util.PlotControl as PlotControl
 import admit.util.ImPlot as ImPlot
 import admit.util.utils as utils
 import admit.util.casautil as casautil
@@ -336,6 +337,14 @@ class Moment_AT(AT):
             # object for the caption
             objectname = casa.imhead(imagename=self.dir(imagename), mode="get", hdkey="object")
 
+            if hasattr(self._bdp_in[0], "line"):   # SpwCube doesn't have Line
+                line = deepcopy(getattr(self._bdp_in[0], "line"))
+                if not isinstance(line, Line):
+                    line = Line(name="Unidentified")
+            else:
+                # fake a Line if there wasn't one
+                line = Line(name="Unidentified")
+
             # Make the histogram plot
             # Since we give abspath in the constructor, figname should be relative
             if self._plot_mode == PlotControl.NOPLOT:
@@ -362,13 +371,6 @@ class Moment_AT(AT):
                                   thumbnail = thumbname,
                                   thumbnailtype = thumbtype)
 
-            if hasattr(self._bdp_in[0], "line"):   # SpwCube doesn't have Line
-                line = deepcopy(getattr(self._bdp_in[0], "line"))
-                if not isinstance(line, Line):
-                    line = Line(name="Unidentified")
-            else:
-                # fake a Line if there wasn't one
-                line = Line(name="Unidentified")
             # add the BDP to the output array
             self.addoutput(Moment_BDP(xmlFile=imagename, moment=mom,
                            image=deepcopy(casaimage), line=line))

@@ -15,6 +15,7 @@ import admit.util.utils as utils
 from admit.util import APlot
 import admit.util.Image as Image
 from admit.util import SpectralLineSearch
+import admit.util.PlotControl as PlotControl
 from admit.Summary import SummaryEntry
 
 import os

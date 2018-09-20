@@ -11,6 +11,7 @@ from admit.Summary import SummaryEntry
 import admit.util.bdp_types as bt
 import admit.util.Table
 import admit.util.utils as utils
+import admit.util.PlotControl as PlotControl
 from admit.bdp.SpwCube_BDP import SpwCube_BDP
 import numpy as np
 import os as os

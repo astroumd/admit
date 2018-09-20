@@ -9,6 +9,7 @@ import matplotlib.mlab as mlab
 
 import admit
 import admit.util.bdp_types as bt
+import admit.util.PlotControl as PlotControl
 
 class PrincipalComponent_AT(admit.Task):
     """
@@ -254,10 +255,10 @@ class PrincipalComponent_AT(admit.Task):
           admit.casautil.putdata_raw(self.baseDir()+ofile+".im", img, ifile)
           oimg = admit.Image()
           oimg.addimage(admit.imagedescriptor(ofile+".im",  format=bt.CASA))
-          if self._plot_mode != admit.PlotControl.NOPLOT:
+          if self._plot_mode != PlotControl.NOPLOT:
               noplot = False
               aplot = admit.util.APlot(figno=inum, abspath=self.baseDir(),
-                                           ptype=admit.util.PlotControl.PNG)
+                                           ptype=PlotControl.PNG)
               aplot.map1(np.rot90(img), title=ofile, figname=ofile)
               aplot.final()
               oimg.addimage(admit.imagedescriptor(ofile+".png", format=bt.PNG))

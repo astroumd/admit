@@ -12,6 +12,7 @@ from admit.bdp import BDP
 import admit.util.utils as utils
 from admit.util.Table import Table
 from admit.Summary import SummaryEntry
+#import admit.util.PlotControl as PlotControl
 
 
 class BDPIngest_AT(AT):

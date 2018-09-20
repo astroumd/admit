@@ -19,6 +19,7 @@ from admit.util import stats
 from admit.util.segmentfinder import ADMITSegmentFinder
 from admit.Summary import SummaryEntry
 import admit.util.casautil as casautil
+import admit.util.PlotControl as PlotControl
 from admit.util.AdmitLogging import AdmitLogging as logging
 
 from copy import deepcopy

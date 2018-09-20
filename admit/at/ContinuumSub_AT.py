@@ -18,6 +18,7 @@ from admit.bdp.Image_BDP import Image_BDP
 from admit.bdp.LineList_BDP import LineList_BDP
 from admit.bdp.LineSegment_BDP import LineSegment_BDP
 import admit.util.utils as utils
+import admit.util.PlotControl as PlotControl
 import admit.util.filter.Filter1D as Filter1D
 from admit.util.AdmitLogging import AdmitLogging as logging
 import numpy as np

@@ -20,6 +20,7 @@ import admit.util.Table as Table
 import admit.util.Image as Image
 from admit.util import APlot
 import admit.util.utils as utils
+import admit.util.PlotControl as PlotControl
 from admit.util.AdmitLogging import AdmitLogging as logging
 
 from copy import deepcopy

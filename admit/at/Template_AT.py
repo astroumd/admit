@@ -10,6 +10,7 @@ import numpy as np
 
 import admit
 import admit.util.bdp_types as bt
+import admit.util.PlotControl as PlotControl
 
 class Template_AT(admit.Task):
     """
@@ -211,8 +212,8 @@ class Template_AT(admit.Task):
         # Image data must be rotated to match matplotlib axis order.
         oimgtitle="Template Image Slice @ channel %d" % imgslice
         aplot = admit.APlot(figno=1, abspath=self.baseDir(),
-                            pmode=admit.PlotControl.BATCH,
-                            ptype=admit.PlotControl.PNG)
+                            pmode=PlotControl.BATCH,
+                            ptype=PlotControl.PNG)
         aplot.map1(np.rot90(oimg),
                    xlab="R.A. (pixels)", ylab="Dec (pixels)",
                    title=oimgtitle, figname=oimgstem)
@@ -242,7 +243,7 @@ class Template_AT(admit.Task):
         # Create a PNG plot (standalone).
         ospectitle = "Template Spectrum @ position %s" % str(specpos)
         aplot = admit.APlot(figno=2, abspath=self.baseDir(),
-                            pmode=admit.PlotControl.BATCH,
+                            pmode=PlotControl.BATCH,
                             ptype=admit.PlotControl.PNG)
         aplot.plotter(x=ochan, y=[ospec],
                       xlab="Channel", ylab="Intensity",

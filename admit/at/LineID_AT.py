@@ -22,6 +22,7 @@ from admit.bdp.LineList_BDP import LineList_BDP
 from admit.bdp.CubeSpectrum_BDP import CubeSpectrum_BDP
 from admit.bdp.CubeStats_BDP import CubeStats_BDP
 from admit.bdp.PVCorr_BDP import PVCorr_BDP
+import admit.util.PlotControl as PlotControl
 import admit.util.filter.Filter1D as Filter1D
 from admit.util import APlot
 from admit.util.Image import Image

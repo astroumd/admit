@@ -18,6 +18,7 @@ import admit.util.bdp_types as bt
 from admit.bdp.LineSegment_BDP import LineSegment_BDP
 from admit.bdp.CubeSpectrum_BDP import CubeSpectrum_BDP
 from admit.bdp.CubeStats_BDP import CubeStats_BDP
+import admit.util.PlotControl as PlotControl
 from admit.util import APlot
 from admit.util.Image import Image
 from admit.util.AdmitLogging import AdmitLogging as logging
@@ -330,16 +331,16 @@ class LineSegment_AT(AT):
             if i == 1:
                 mult = -1.
 #            print("MWP statspec plot cutoff[%d] = %f, contin=%f" % (i, (statspec[i].contin() + mult*(statspec[i].noise() * self.getkey("numsigma")))[0], statspec[i].contin()[0] ) )
-            myplot.segplotter(spec.freq(), spec.spec(csub=False),
-                              title="Detected Line Segments", xlab=xlabel,
-                              ylab=label[i], figname=imbase + "_statspec%i" % i,
-                              segments=freqs, cutoff= (spec.contin() + mult*(spec.noise() * self.getkey("numsigma"))),
-                              continuum=spec.contin(), thumbnail=True)
             if self._plot_mode == PlotControl.NOPLOT:
                 imname = "not created"
                 thumbnailname = "not created"
                 # leave captions unchanged for now
             else:
+                myplot.segplotter(spec.freq(), spec.spec(csub=False),
+                                  title="Detected Line Segments", xlab=xlabel,
+                                  ylab=label[i], figname=imbase + "_statspec%i" % i,
+                                  segments=freqs, cutoff= (spec.contin() + mult*(spec.noise() * self.getkey("numsigma"))),
+                                  continuum=spec.contin(), thumbnail=True)
                 imname = myplot.getFigure(figno=myplot.figno, relative=True)
                 thumbnailname = myplot.getThumbnail(figno=myplot.figno, relative=True)
                 image = Image(images={bt.SVG: imname}, thumbnail=thumbnailname,

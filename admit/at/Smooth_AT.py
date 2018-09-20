@@ -10,6 +10,7 @@ from admit.Summary import SummaryEntry
 import admit.util.bdp_types as bt
 import admit.util.Image as Image
 import admit.util.utils as utils
+import admit.util.PlotControl as PlotControl
 import admit.util.Line as Line
 from admit.bdp.SpwCube_BDP import SpwCube_BDP
 from admit.util.AdmitLogging import AdmitLogging as logging

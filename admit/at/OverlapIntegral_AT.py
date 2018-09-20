@@ -21,6 +21,7 @@ from admit.util.Image import Image
 import admit.util.utils as utils
 import admit.util.APlot as APlot
 import admit.util.Line as Line
+import admit.util.PlotControl as PlotControl
 import admit.util.ImPlot as ImPlot
 import admit.util.Table
 from admit.bdp.Image_BDP import Image_BDP

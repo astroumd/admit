@@ -1472,7 +1472,7 @@ class Summary():
            the_item = titems.get('pvcorr',None)
            if the_item == None:
                specval = "<br><h4>No PV correlation diagrams were computed from the input cube</h4>"
-           elif pvslices.getNoPlot():
+           elif the_item.getNoPlot():
                specval = "<br><h4>%s created output but was told to create no images for display.</h4>" % (taskname)
            else:
                val = the_item.getValue()

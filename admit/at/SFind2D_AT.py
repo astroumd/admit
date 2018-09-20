@@ -13,6 +13,7 @@ from admit.bdp.SourceList_BDP import SourceList_BDP
 import admit.util.casautil as casautil
 import admit.util.Image as Image
 import admit.util.Line as Line
+import admit.util.PlotControl as PlotControl
 import admit.util.ImPlot as ImPlot
 from admit.bdp.Image_BDP import Image_BDP
 from admit.bdp.CubeStats_BDP import CubeStats_BDP

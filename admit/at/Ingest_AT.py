@@ -15,6 +15,7 @@ from admit.util.Image import Image
 import admit.util.utils as utils
 import admit.util.casautil as casautil
 import admit.util.ImPlot  as ImPlot
+import admit.util.PlotControl as PlotControl
 from admit.bdp.SpwCube_BDP import SpwCube_BDP
 from admit.bdp.Image_BDP   import Image_BDP
 from admit.util.AdmitLogging import AdmitLogging as logging

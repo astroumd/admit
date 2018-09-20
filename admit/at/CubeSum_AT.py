@@ -352,6 +352,7 @@ class CubeSum_AT(AT):
             figname    = "not created"
             thumbname  = "not created"
             imcaption  = "not created"
+            auxname    = "not created"
             auxcaption = "not created"
             auxthumb   = "not created"
             images = {bt.CASA : bdp_name}

@@ -1159,7 +1159,7 @@ class Summary():
            if spectra == None:
                allspecs = "<br><h4>%s produced no output for image %s </h4>" % (taskname, casaimage)
            elif spectra.getNoPlot():
-               allspecs = "<br><h4>%s created output for image %s but was told to create no images for display.</h4>" % (taskname, casaimage)
+               allspecs = "<br><h4>%s created output but was told to create no images for display.</h4>" % (taskname)
            else:
                count = 0
                # task arguments are the same in all entries.
@@ -1650,12 +1650,12 @@ class Summary():
            bigstr = '<br>' + STARTROW + tablestr + ENDROW
            spectra = titems.get('spectra',None)
            specval=""
+           allspecs = ''
            if spectra == None:
                allspecs = allspecs + "<br><h4>%s created no spectral output.</h4>" % (taskname)
            elif the_item.getNoPlot():
                allspecs = allspecs + "<br><h4>%s created spectral output but was told not to create images for display.</h4>" % (taskname)
            else:
-               allspecs = ''
                count = 0
                for val in spectra.value:
                    # default bootstrap width is 12 columns. We are using 'span4' so

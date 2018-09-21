@@ -1159,7 +1159,7 @@ class Summary():
            if spectra == None:
                allspecs = "<br><h4>%s produced no output for image %s </h4>" % (taskname, casaimage)
            elif spectra.getNoPlot():
-               allspecs = "<br><h4>%s created output but was told to create no images for display.</h4>" % (taskname)
+               allspecs = "<br><h4>%s created output but was told not to create images for display.</h4>" % (taskname)
            else:
                count = 0
                # task arguments are the same in all entries.
@@ -1211,7 +1211,7 @@ class Summary():
            if cubesum == None:
                allspecs = "<br><h4>%s produced no output</h4>" % (taskname)
            elif cubesum.getNoPlot():
-               allspecs = "<br><h4>%s created output but was told to create no images for display.</h4>" % (taskname)
+               allspecs = "<br><h4>%s created output but was told not to create images for display.</h4>" % (taskname)
            else:
                allspecs = ""
                taskargs = cubesum.taskargs
@@ -1235,7 +1235,12 @@ class Summary():
            
         if tlower == "continuumsub_at":
            continuumsub = titems.get('continuumsub',None)
-           if continuumsub != None:
+           if continuumsub == None:
+               allspecs = "<h4>%s produced no continuum subtraction for the input image</h4>" % taskname
+
+           elif continuumsub.getNoPlot():
+               allspecs = "<h4>%s subtracted continuum from the input image but was told not to create any images for display</h4>" % taskname
+           else:
                allspecs = ""
                taskargs = continuumsub.taskargs
                val = continuumsub.getValue()
@@ -1251,8 +1256,6 @@ class Summary():
                banner = "<br><h4>%s output for %s</h4>" % (taskname, "casaimage")
                #banner = "<br><h4>%s output for %s</h4>" % (taskname, casaimage)
                allspecs = banner + allspecs + "\n" + specval
-           else:
-               allspecs = "<h4>%s no continuum subtracted for the input image</h4>" % taskname
            retval = header % (taskclass,tid,thetask.statusicons(),taskname,tid,taskargs,tid,allspecs,tid)
                
         if tlower == "cubestats_at":
@@ -1285,8 +1288,14 @@ class Summary():
            else:
               datamean = '%.3E' % sumentry.value[0]
 
+           specval = ""
+
            sumentry = titems.get('spectra',None)
-           if sumentry != None:
+           if sumentry == None:
+               specval = specval + "<h4>%s did not create an emission summary for this cube</h4>" % taskname
+           elif sumentry.getNoPlot():
+               specval = specval + "<h4>%s created output but was told not to create an emission summary for this cube</h4>" % taskname
+           else:
                val = sumentry.getValue()
                #@todo do something with position and box?
                position = "(%s,%s)" % ( str(val[0]),str(val[1]) )
@@ -1298,7 +1307,11 @@ class Summary():
                specval = specval + (SPAN4VAL % ( image, thumb, caption, caption, caption))
 
            sumentry = titems.get('peakpnt',None)
-           if sumentry != None:
+           if sumentry == None:
+               specval = specval + "<h4>%s did not create a peak point plot for this cube</h4>" % taskname
+           elif sumentry.getNoPlot():
+               specval = specval + "<h4>%s created output but was told not to create a peak point plot for this cube</h4>" % taskname
+           else:
                val = sumentry.getValue()
                image   = val[0]
                thumb   = val[1]
@@ -1327,7 +1340,7 @@ class Summary():
            if spectra == None:
                retval = header % (taskclass, tid, thetask.statusicons(),taskname, tid, the_item.taskargs, tid, bigstr, tid)
            elif spectra.getNoPlot():
-               allspecs = "<h4>%s identified spectral lines but was told not to create images for display.</h4>" % taskname
+               allspecs = "<h4>%s identified spectral lines but was told to no create images for display.</h4>" % taskname
            else:
                allspecs = ''
                count = 0
@@ -1365,7 +1378,7 @@ class Summary():
            if moments == None:
                allspecs = "<br><h4>No moments were computed for this cube</h4>"
            elif moments.getNoPlot():
-               allspecs = "<br><h4>%s computed moments but was told not to create any images for display</h4>" % taskname
+               allspecs = "<br><h4>%s computed moments but was told not to create images for display</h4>" % taskname
            else:
                allspecs = ""
                count = 0
@@ -1409,7 +1422,7 @@ class Summary():
            if pvslices == None:
                specval = "<br><h4>No PV slices were computed for this cube</h4>"
            elif pvslices.getNoPlot():
-               specval = "<br><h4>%s created output but was told to create no images for display.</h4>" % (taskname)
+               specval = "<br><h4>%s created output but was told not to create images for display.</h4>" % (taskname)
            else:
                for val in pvslices.value:
                    specval = STARTROW
@@ -1473,7 +1486,7 @@ class Summary():
            if the_item == None:
                specval = "<br><h4>No PV correlation diagrams were computed from the input cube</h4>"
            elif the_item.getNoPlot():
-               specval = "<br><h4>%s created output but was told to create no images for display.</h4>" % (taskname)
+               specval = "<br><h4>%s created output but was told not to create images for display.</h4>" % (taskname)
            else:
                val = the_item.getValue()
                image    = val[0]
@@ -1508,7 +1521,7 @@ class Summary():
            if the_item == None:
                tablestr = "<br><h4>%s identified no sources</h4>" % taskname
            elif the_item.getNoPlot():  # probably will never happen
-               tablestr = "<br><h4>%s created output but was told to create no table for display.</h4>" % (taskname)
+               tablestr = "<br><h4>%s created output but was told not to create a table for display.</h4>" % (taskname)
            else:
                summarydata = the_item.getValue()
                if summarydata == None or len(summarydata) == 0:
@@ -1585,7 +1598,7 @@ class Summary():
            if the_item == None:
                tablestr = "<br><h4>%s produced no table output</h4>" % (taskname)
            elif the_item.getNoPlot():  # probably will never happen
-               tablestr = "<br><h4>%s created output but was told to create no table for display.</h4>" % (taskname)
+               tablestr = "<br><h4>%s created output but was told not to create a table for display.</h4>" % (taskname)
            else:
                tablestr = ''
                summarydata = the_item.getValue()

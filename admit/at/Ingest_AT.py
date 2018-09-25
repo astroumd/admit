@@ -239,7 +239,7 @@ class Ingest_AT(AT):
             # 'cbeam'   : 0.5,     # channel beam variation allowed in terms of pixel size to use median beam
         }
         AT.__init__(self,keys,keyval)
-        self._version = "1.1.4"
+        self._version = "1.1.5"
         self.set_bdp_in()                            # no input BDP
         self.set_bdp_out([(SpwCube_BDP, 1),          # one or two output BDPs
                           (Image_BDP,   0),          # optional PB if there was an pb= input
@@ -479,8 +479,9 @@ class Ingest_AT(AT):
             if len(s['shape']) != 4:
                 logging.warning("Adding dummy STOKES-I axis")
                 fnot = fno + '_4'
-                ia.adddegaxes(stokes='I',outfile=fnot)
+                ia2=ia.adddegaxes(stokes='I',outfile=fnot)
                 ia.close()
+                ia2.close()
                 #@todo use safer ia.rename() here.
                 # https://casa.nrao.edu/docs/CasaRef/image.rename.html
                 utils.rename(fnot,fno)

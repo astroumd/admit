@@ -64,6 +64,10 @@ class CubeSpectrum_AT(AT):
         selects all. Normally the SourceList is ordered by total flux.
         Default : [0]
 
+      **size** : int
+        Size of the box (in pixels) around the source used in averaging the spectrum.
+        Default: 1
+
       **xaxis**: string
         Select the X axis plotting style:  channel number (the default),
         frequency (in GHz), or velocity (for this the restfreq needs to be in the image header).
@@ -134,10 +138,11 @@ class CubeSpectrum_AT(AT):
     def __init__(self,**keyval):
         keys = {"pos"     : [],    # one or more pairs of int's or ra/dec strings
                 "sources" : [0],   # select which sources from a SourceList
+                "size"    : 1,     # box size (in pixels) around sources
                 "xaxis"   : "",    # currently still ignored
         }
         AT.__init__(self,keys,keyval)
-        self._version       = "1.1.0"
+        self._version       = "1.1.1"
         self.set_bdp_in( [(Image_BDP,       1,bt.REQUIRED),     # 0: cube: SpwCube or LineCube allowed
                           (CubeStats_BDP,   1,bt.OPTIONAL),     # 1: stats, uses maxpos
                           (Moment_BDP,      1,bt.OPTIONAL),     # 2: map, uses the max in this image as pos=
@@ -172,6 +177,8 @@ class CubeSpectrum_AT(AT):
             use_vel = True
         else:
             use_vel = False
+
+        size = self.getkey("size")
 
         sources = self.getkey("sources")
         pos = []                     # blank it first, then try and grab it from the optional bdp_in's
@@ -292,9 +299,15 @@ class CubeSpectrum_AT(AT):
                     # work around that CAS-7648 bug 
                     # another approach is the ia.getprofile(), see CubeStats, this will
                     # also integrate over regions, imval will not (!!!)
-                    region = 'centerbox[[%dpix,%dpix],[1pix,1pix]]' % (xpos,ypos)
-                    imcaption = "Average Spectrum at %s" % region
-                    imval[i] = casa.imval(self.dir(fin),region=region)
+                    if size == 1:
+                      region = 'centerbox[[%dpix,%dpix],[1pix,1pix]]' % (xpos,ypos)
+                      imcaption = "Average Spectrum at %s" % region
+                      imval[i] = casa.imval(self.dir(fin),region=region)
+                    else:
+                      print "PJT average"
+                      region = 'centerbox[[%dpix,%dpix],[%dpix,%dpix]]' % (xpos,ypos,size,size)
+                      imcaption = "Average Spectrum at %s size %d" % (region,size)
+                      imval[i] = casa.imval(self.dir(fin),region=region)
             elif type(xpos)==str:
                 # this is tricky, to stay under 1 pixel , or you get a 2x2 back.
                 region = 'centerbox[[%s,%s],[1pix,1pix]]' % (xpos,ypos)
@@ -310,6 +323,8 @@ class CubeSpectrum_AT(AT):
             if len(flux.shape) > 1:     # rare case if we step on a boundary between cells?
                 logging.warning("source %d has spectrum shape %s: averaging the spectra" % (i,repr(flux.shape)))
                 flux = np.average(flux,axis=0)
+                if len(flux.shape) > 1: # if size > 1 we need another average
+                  flux = np.average(flux,axis=0)
             logging.debug('minmax: %f %f %d' % (flux.min(),flux.max(),len(flux)))
             smax.append(flux.max())
             if i==0:                                              # for first point record few extra things
@@ -317,6 +332,8 @@ class CubeSpectrum_AT(AT):
                     freqs = imval[i]['coords'].transpose()[2]/1e9        # convert to GHz  @todo: input units ok?
                 elif len(imval[i]['coords'].shape) == 3:                 # rare case if > 1 point in imval()
                     freqs = imval[i]['coords'][0].transpose()[2]/1e9     # convert to GHz  @todo: input units ok?
+                elif len(imval[i]['coords'].shape) == 4:                 # case if size > 1 
+                    freqs = imval[i]['coords'][0][0].transpose()[2]/1e9  # convert to GHz  @todo: input units ok?
                 else:
                     logging.fatal("bad shape %s in freq return from imval - SHOULD NEVER HAPPEN" % imval[i]['coords'].shape)
                 chans = np.arange(len(freqs))                     # channels 0..nchans-1

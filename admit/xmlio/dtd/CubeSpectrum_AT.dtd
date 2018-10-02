@@ -36,7 +36,7 @@
 <!ATTLIST _taskid type (INT) #REQUIRED>
 <!ELEMENT _enabled		(#PCDATA)>
 <!ATTLIST _enabled type (BOOL) #REQUIRED>
-<!ELEMENT _keys	(xaxis,sources,pos)>
+<!ELEMENT _keys	(xaxis,sources,pos,size)>
 <!ATTLIST _keys type (DICT) #REQUIRED>
 <!ELEMENT sources		(#PCDATA)>
 <!ATTLIST sources ndarray (STRING) #REQUIRED>
@@ -48,3 +48,5 @@
 <!ATTLIST pos type (LIST) #REQUIRED>
 <!ELEMENT xaxis		(#PCDATA)>
 <!ATTLIST xaxis type (STRING) #REQUIRED>
+<!ELEMENT size		(#PCDATA)>
+<!ATTLIST size type (INT) #REQUIRED>

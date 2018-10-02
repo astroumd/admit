@@ -1020,6 +1020,8 @@ class Summary():
             f.close()
 
     def _imageIsSVG(self,image):
+        if not image: return False
+        
         if image[len(image)-3:len(image)+1] == 'svg': 
             return True
         else:
@@ -1154,7 +1156,11 @@ class Summary():
 
         if tlower == "cubespectrum_at":
            spectra = titems.get('spectra',None)
-           if (spectra) != None:
+           if spectra == None:
+               allspecs = "<br><h4>%s produced no output for image %s </h4>" % (taskname, casaimage)
+           elif spectra.getNoPlot():
+               allspecs = "<br><h4>%s created output but was told not to create images for display.</h4>" % (taskname)
+           else:
                count = 0
                # task arguments are the same in all entries.
                taskargs = spectra.taskargs
@@ -1181,8 +1187,6 @@ class Summary():
 
                banner = '<br><h4>%s output for image %s</h4>' % (taskname, casaimage)
                allspecs = banner + allspecs
-           else:
-               allspecs = "<br><h4>%s produced no output for image %s </h4>" % (taskname, casaimage)
 
            retval = header % (taskclass, tid,thetask.statusicons(),taskname,tid,taskargs,tid,allspecs,tid)
 
@@ -1204,7 +1208,11 @@ class Summary():
          
         if tlower == "cubesum_at":
            cubesum = titems.get('cubesum',None)
-           if cubesum != None:
+           if cubesum == None:
+               allspecs = "<br><h4>%s produced no output</h4>" % (taskname)
+           elif cubesum.getNoPlot():
+               allspecs = "<br><h4>%s created output but was told not to create images for display.</h4>" % (taskname)
+           else:
                allspecs = ""
                taskargs = cubesum.taskargs
                val = cubesum.getValue()
@@ -1222,13 +1230,17 @@ class Summary():
                specval = SPAN4VALB % (image, thumb, caption, caption, caption,button,button2)
                banner = "<br><h4>%s output for %s</h4>" % (taskname, casaimage)
                allspecs = banner + allspecs + "\n" + specval
-           else:
-               allspecs = "<h4>%s computed nothing for the input image</h4>" % taskname
+
            retval = header % (taskclass, tid,thetask.statusicons(),taskname,tid,taskargs,tid,allspecs,tid)
            
         if tlower == "continuumsub_at":
            continuumsub = titems.get('continuumsub',None)
-           if continuumsub != None:
+           if continuumsub == None:
+               allspecs = "<h4>%s produced no continuum subtraction for the input image</h4>" % taskname
+
+           elif continuumsub.getNoPlot():
+               allspecs = "<h4>%s subtracted continuum from the input image but was told not to create any images for display</h4>" % taskname
+           else:
                allspecs = ""
                taskargs = continuumsub.taskargs
                val = continuumsub.getValue()
@@ -1244,8 +1256,6 @@ class Summary():
                banner = "<br><h4>%s output for %s</h4>" % (taskname, "casaimage")
                #banner = "<br><h4>%s output for %s</h4>" % (taskname, casaimage)
                allspecs = banner + allspecs + "\n" + specval
-           else:
-               allspecs = "<h4>%s no continuum subtracted for the input image</h4>" % taskname
            retval = header % (taskclass,tid,thetask.statusicons(),taskname,tid,taskargs,tid,allspecs,tid)
                
         if tlower == "cubestats_at":
@@ -1278,8 +1288,14 @@ class Summary():
            else:
               datamean = '%.3E' % sumentry.value[0]
 
+           specval = ""
+
            sumentry = titems.get('spectra',None)
-           if sumentry != None:
+           if sumentry == None:
+               specval = specval + "<h4>%s did not create an emission summary for this cube</h4>" % taskname
+           elif sumentry.getNoPlot():
+               specval = specval + "<h4>%s created output but was told not to create an emission summary for this cube</h4>" % taskname
+           else:
                val = sumentry.getValue()
                #@todo do something with position and box?
                position = "(%s,%s)" % ( str(val[0]),str(val[1]) )
@@ -1291,7 +1307,11 @@ class Summary():
                specval = specval + (SPAN4VAL % ( image, thumb, caption, caption, caption))
 
            sumentry = titems.get('peakpnt',None)
-           if sumentry != None:
+           if sumentry == None:
+               specval = specval + "<h4>%s did not create a peak point plot for this cube</h4>" % taskname
+           elif sumentry.getNoPlot():
+               specval = specval + "<h4>%s created output but was told not to create a peak point plot for this cube</h4>" % taskname
+           else:
                val = sumentry.getValue()
                image   = val[0]
                thumb   = val[1]
@@ -1319,6 +1339,8 @@ class Summary():
            spectra = titems.get('spectra',None)
            if spectra == None:
                retval = header % (taskclass, tid, thetask.statusicons(),taskname, tid, the_item.taskargs, tid, bigstr, tid)
+           elif spectra.getNoPlot():
+               allspecs = "<h4>%s identified spectral lines but was told to no create images for display.</h4>" % taskname
            else:
                allspecs = ''
                count = 0
@@ -1346,13 +1368,19 @@ class Summary():
                        specval = specval + (SPAN4VAL % ( image, thumb, caption, caption, caption))
                    allspecs = allspecs + "\n" + specval
                    count = count + 1
-               bigstr = bigstr + STARTROW + allspecs + ENDROW
-               retval = header % (taskclass, tid, thetask.statusicons(),taskname, tid, the_item.taskargs, tid, tid, bigstr, tid)
+
+           bigstr = bigstr + STARTROW + allspecs + ENDROW
+
+           retval = header % (taskclass, tid, thetask.statusicons(),taskname, tid, the_item.taskargs, tid, tid, bigstr, tid)
 
         if tlower == "moment_at":
            moments = titems.get('moments',None)
-           allspecs = ""
-           if moments != None:
+           if moments == None:
+               allspecs = "<br><h4>No moments were computed for this cube</h4>"
+           elif moments.getNoPlot():
+               allspecs = "<br><h4>%s computed moments but was told not to create images for display</h4>" % taskname
+           else:
+               allspecs = ""
                count = 0
                auximage = []
                auxthumb  = []
@@ -1372,25 +1400,30 @@ class Summary():
                    auximage.append(val[5])
                    auxthumb.append(val[6])
                    auxcaption.append(val[7])
+
+                   # @todo Put the buttons on even if no PNGs were created
                    casaimage = val[8]
                    casamoment = image[:-4] # remove '.png' to get name of moment CASA format image
                    button = utils.getButton(casamoment,"viewimage","View in CASA")
                    # can't have two buttons with same html ID, so add ".fits"
                    button2 = utils.getButton(casamoment+".fits","exportimage","Export to FITS")
+
                    specval = specval + (SPAN4VALB % ( image, thumb, caption, caption, caption, button,button2))
                    allspecs = allspecs + "\n" + specval
                    count = count + 1
 
-               banner = "<br><h4>%s output for %s</h4>" % (taskname, casaimage)
-               allspecs = banner + allspecs
-           else: 
-               allspecs = "<br><h4>No moments were computed for this cube</h4>"
+           banner = "<br><h4>%s output for %s</h4>" % (taskname, casaimage)
+           allspecs = banner + allspecs
 
            retval = header % (taskclass, tid,thetask.statusicons(),taskname,tid,taskargs,tid,allspecs,tid)
 
         if tlower == "pvslice_at":
            pvslices = titems.get('pvslices',None)
-           if pvslices != None:
+           if pvslices == None:
+               specval = "<br><h4>No PV slices were computed for this cube</h4>"
+           elif pvslices.getNoPlot():
+               specval = "<br><h4>%s created output but was told not to create images for display.</h4>" % (taskname)
+           else:
                for val in pvslices.value:
                    specval = STARTROW
                    slicetype = val[0]
@@ -1416,8 +1449,7 @@ class Summary():
 
                banner = "<br><h4>%s output for %s</h4>" % (taskname, slicename)
                specval = banner + specval
-           else:
-               specval = "<br><h4>No PV slices were computed for this cube</h4>"
+
            retval = header % (taskclass, tid,thetask.statusicons(),taskname,tid,pvslices.taskargs,tid,specval,tid)
 
         if tlower == "linecube_at":
@@ -1451,7 +1483,11 @@ class Summary():
 
         if tlower == "pvcorr_at":
            the_item = titems.get('pvcorr',None)
-           if the_item != None:
+           if the_item == None:
+               specval = "<br><h4>No PV correlation diagrams were computed from the input cube</h4>"
+           elif the_item.getNoPlot():
+               specval = "<br><h4>%s created output but was told not to create images for display.</h4>" % (taskname)
+           else:
                val = the_item.getValue()
                image    = val[0]
                thumb    = val[1]
@@ -1460,8 +1496,7 @@ class Summary():
                specval = STARTROW + (SPAN4VAL % ( image, thumb, caption, caption, caption)) + ENDROW
                banner = "<br><h4>%s output for %s</h4>" % (taskname, pvcorrname)
                specval = banner + specval
-           else:
-               specval = "<br><h4>No PV correlation diagrams were computed from the input cube</h4>"
+
            retval = header % (taskclass, tid,thetask.statusicons(),taskname,tid,the_item.taskargs,tid,specval,tid)
 
         # @todo move table formatting to here.
@@ -1483,7 +1518,11 @@ class Summary():
 
         if tlower == "sfind2d_at":
            the_item = titems.get('sources',None) #SummaryEntry
-           if the_item != None:
+           if the_item == None:
+               tablestr = "<br><h4>%s identified no sources</h4>" % taskname
+           elif the_item.getNoPlot():  # probably will never happen
+               tablestr = "<br><h4>%s created output but was told not to create a table for display.</h4>" % (taskname)
+           else:
                summarydata = the_item.getValue()
                if summarydata == None or len(summarydata) == 0:
                    tablestr = "<br><h4>%s identified no sources</h4>" % taskname
@@ -1499,13 +1538,14 @@ class Summary():
                        tablestr = "<br><h4>%s identified no sources</h4><br>%s" % (taskname,imstr)
                    else:
                        tablestr = STARTROW + imstr + (SPANXVAL % ("8",atable.html('class="table table-admit table-bordered table-striped"'))) + ENDROW
-           else:
-               tablestr = "<br><h4>%s identified no sources</h4>" % taskname
+
            retval = header % (taskclass, tid,thetask.statusicons(),taskname,tid,the_item.taskargs,tid,tablestr,tid)
 
         if tlower == "overlapintegral_at":
            the_item = titems.get('overlap',None)
-           if the_item != None:
+           if the_item == None:
+               tablestr = "<br><h4>%s produced no output.</h4>" % taskname
+           else:
                # summary info format:
                #[table,image,thumb,caption]
                summarydata = the_item.getValue()
@@ -1517,21 +1557,25 @@ class Summary():
                    if len(atable) == 0:
                        tablestr = "<br><h4>%s produced no output.</h4>" % taskname
                    else:
+                     tablestr = SPANXVAL % ("8",atable.html('class="table table-admit table-bordered table-striped"')) 
+                     if the_item.getNoPlot():
+                       imstr = "<br><h4>%s was told not to create any images for display</h4>" % taskname
+                     else:
                        image = summarydata[1]
                        thumb = summarydata[2]
                        caption = summarydata[3]
-                       tablestr = SPANXVAL % ("8",atable.html('class="table table-admit table-bordered table-striped"')) 
                        imstr = SPAN4VAL % (image, thumb, caption, caption, caption)
-                       tablestr = STARTROW + tablestr + imstr + ENDROW
-           else:
-               tablestr = "<br><h4>%s produced no output.</h4>" % taskname
+                   tablestr = STARTROW + tablestr + imstr + ENDROW
+
            retval = header % (taskclass, tid,thetask.statusicons(),taskname,tid,the_item.taskargs,tid,tablestr,tid)
 
         if tlower == "principalcomponent_at":
         # PCA returns two two tables in a list [[table1 h,u,d],[table2 h,u,d]].
            tablestr = ''
            the_item = titems.get('pca',None) #SummaryEntry
-           if the_item != None:
+           if the_item == None: 
+               tablestr = "<br><h4>%s produced no output</h4>" % taskname
+           else:
                summarydata = the_item.getValue()
                if summarydata == None or len(summarydata) == 0:
                    tablestr = "<br><h4>%s produced no output</h4>" % taskname
@@ -1543,19 +1587,23 @@ class Summary():
                          tablestr = tablestr + "<h3>No covariance data available for this summary. Try lowering <i>covarmin</i> in the PrincipalComponent_AT task arguments.</h3>"
                       else:
                           tablestr = tablestr + atable.html('class="table table-admit table-bordered table-striped"')+os.linesep+os.linesep
+               if the_item.getNoPlot():
+                   tablestr = tablestr + "<br><h4>%s was told not to create images for display</h4>" % taskname
 
-           else:
-               tablestr = "<br><h4>%s produced no output</h4>" % taskname
            retval = header % (taskclass, tid,thetask.statusicons(),taskname,tid,the_item.taskargs,tid,tablestr,tid)
 
         if tlower == "template_at":
         # Template returns one table (in a list) and two plots.
            the_item = titems.get('template',None) #SummaryEntry
-           tablestr = ''
-           if the_item != None:
+           if the_item == None:
+               tablestr = "<br><h4>%s produced no table output</h4>" % (taskname)
+           elif the_item.getNoPlot():  # probably will never happen
+               tablestr = "<br><h4>%s created output but was told not to create a table for display.</h4>" % (taskname)
+           else:
+               tablestr = ''
                summarydata = the_item.getValue()
-               if summarydata == None or len(summarydata) == 0:
-                   tablestr = "<br><h4>%s produced no output</h4>" % taskname
+               if summarydata == None or len(summarydata) == 0:  
+                   tablestr = "<br><h4>%s produced no table output</h4>" % taskname
                else:
                    atable = admit.util.Table()
                    atable.deserialize(summarydata[0])
@@ -1563,13 +1611,15 @@ class Summary():
                      tablestr = tablestr + "<h3>No data available for this summary.</h3>"
                    else:
                      tablestr = tablestr + atable.html('class="table table-admit table-bordered table-striped"')+os.linesep+os.linesep
-           else:
-               tablestr = "<br><h4>%s produced no output</h4>" % taskname
 
            # Output plots.
            allspecs = tablestr + "\n"
            spectra = titems.get('spectra',None)
-           if (spectra) != None:
+           if spectra == None:
+               allspecs = allspecs + "<br><h4>%s produced no spectral output</h4>" % (taskname)
+           elif the_item.getNoPlot():
+               allspecs = allspecs + "<br><h4>%s created output but was told not to create images for display.</h4>" % (taskname)
+           else:
                count = 0
                # task arguments are the same in all entries.
                taskargs = spectra.taskargs
@@ -1595,8 +1645,6 @@ class Summary():
 
                banner = '<br><h4>%s output for %s</h4>' % (taskname, casaimage)
                allspecs = banner + allspecs
-           else:
-               allspecs = allspecs + "<br><h4>No spectra were produced by %s</h4>" % taskname
 
            retval = header % (taskclass, tid,thetask.statusicons(),taskname,tid,taskargs,tid,allspecs,tid)
 
@@ -1615,8 +1663,12 @@ class Summary():
            bigstr = '<br>' + STARTROW + tablestr + ENDROW
            spectra = titems.get('spectra',None)
            specval=""
-           if spectra != None:
-               allspecs = ''
+           allspecs = ''
+           if spectra == None:
+               allspecs = allspecs + "<br><h4>%s created no spectral output.</h4>" % (taskname)
+           elif the_item.getNoPlot():
+               allspecs = allspecs + "<br><h4>%s created spectral output but was told not to create images for display.</h4>" % (taskname)
+           else:
                count = 0
                for val in spectra.value:
                    # default bootstrap width is 12 columns. We are using 'span4' so
@@ -1642,8 +1694,9 @@ class Summary():
 
                    allspecs = allspecs + "\n" + specval
                    count = count + 1
-               bigstr = bigstr + STARTROW + allspecs + ENDROW
-               retval = header % (taskclass, tid, thetask.statusicons(),taskname, tid, the_item.taskargs, tid, bigstr, tid)
+
+           bigstr = bigstr + STARTROW + allspecs + ENDROW
+           retval = header % (taskclass, tid, thetask.statusicons(),taskname, tid, the_item.taskargs, tid, bigstr, tid)
 
         if tlower == "bdpingest_at":
            the_item = titems.get('bdpingest',None) #SummaryEntry
@@ -1664,7 +1717,11 @@ class Summary():
 
         if tlower == "generatespectrum_at":
            spectra = titems.get('spectra',None)
-           if (spectra) != None:
+           if spectra == None:
+                allspecs = "<br><h4>%s produced no output</h4>" % (taskname)
+           elif spectra.getNoPlot():
+                allspecs = "<br><h4>%s created output but was told not to create images for display.</h4>" % (taskname)
+           else:
                count = 0
                # task arguments are the same in all entries.
                taskargs = spectra.taskargs
@@ -1688,8 +1745,6 @@ class Summary():
 
                banner = '<br><h4>%s output</h4>' % (taskname)
                allspecs = banner + allspecs
-           else:
-               allspecs = "<br><h4>%s produced no output</h4>" % (taskname)
 
            retval = header % (taskclass, tid,thetask.statusicons(),taskname,tid,taskargs,tid,allspecs,tid)
 
@@ -1861,10 +1916,9 @@ class Summary():
 
 class SummaryEntry:
     """ Defines a single 'row' of a Summary data entry.  A Summary key can refer to a list of SummaryEntry.
-        This class makes management of complicated data entries easier.  It was getting tough
-        to slice and unzip all those lists!
+        This class makes management of complicated data entries easier.
     """
-    def __init__(self,value=[],taskname="",taskid=-1,taskargs=""):
+    def __init__(self,value=[],taskname="",taskid=-1,taskargs="",noplot=False):
         if isinstance(value,list):
            self._value    = value
         else:
@@ -1873,6 +1927,8 @@ class SummaryEntry:
         self._taskid   = taskid
         self._taskargs = taskargs
         self._type     = bt.SUMMARYENTRY
+        # True if the task that created this entry did NOT create plots
+        self._noplot   = noplot
 
     def getValue(self):
         """Get the underlying data value from this SummaryEntry.  Value will be list
@@ -1930,8 +1986,6 @@ class SummaryEntry:
              The string task arguments"""
         return self._taskargs;
 
-
-
     def setTaskname(self,name):
         """Set the name of the task that created this SummaryEntry.
 
@@ -1974,6 +2028,31 @@ class SummaryEntry:
         """
         self._taskargs = args;
 
+    def getNoPlot(self):
+        """Discover if the task that created this SummaryEntry made plots.
+
+           Returns
+           -------
+              True if no plots were created
+              False otherwise
+        """
+        return self._noplot
+
+    def setNoPlot(self,noplot):
+        """Indicate if the task that created this SummaryEntry made plots.
+
+           Parameters
+           ----------
+           noplot: boolean
+              True if no plots were created
+
+           Returns
+           -------
+           None
+        """
+        self._noplot = noplot
+
+
     #-------------------------------
     # Make the internal data be well-behaved properties.
     # See e.g. http://www.programiz.com/python-programming/property
@@ -1981,6 +2060,7 @@ class SummaryEntry:
     taskname = property(getTaskname, setTaskname, None, 'The name of the task that created this SummaryEntry')
     taskid = property(getTaskID, setTaskID, None, 'The integer task ID that created this SummaryEntry')
     taskargs = property(getTaskArgs, setTaskArgs, None, 'The arguments of the task to display in the data browser web page.')
+    noplot   = property(getNoPlot,setNoPlot,None,'True if the task that created this SummaryEntry did NOT create plots')
     #-------------------------------
 
     def unset(self):
@@ -2010,7 +2090,7 @@ class SummaryEntry:
         """
         snode = et.SubElement(root,"summaryEntry")
         snode.set("type",bt.SUMMARYENTRY)
-        writer = XmlWriter.XmlWriter(self,["_value","_taskname","_taskid","_taskargs"],{"_value":bt.LIST,"_taskname":bt.STRING,"_taskid":bt.INT,"_taskargs":bt.STRING},snode,None)
+        writer = XmlWriter.XmlWriter(self,["_value","_taskname","_taskid","_taskargs","_noplot"],{"_value":bt.LIST,"_taskname":bt.STRING,"_taskid":bt.INT,"_taskargs":bt.STRING,"_noplot":bt.BOOL},snode,None)
 
     # Two SummaryEntrys are equal if their taskids are equal
     def __eq__(self,other):
@@ -2032,8 +2112,8 @@ class SummaryEntry:
         return self._taskid
 
     def __str__(self):
-        return "SummaryEntry(value=%s, taskname=%s, taskid=%d, taskargs=%s)" % \
-                (str(self._value), self._taskname, self._taskid,self._taskargs)
+        return "SummaryEntry(value=%s, taskname=%s, taskid=%d, taskargs=%s, noplot=%s)" % \
+                (str(self._value), self._taskname, self._taskid,self._taskargs,str(self._noplot))
  
     # ensure that printing a list of SummaryEntry will print the
     # individual values and not just addresses.  
@@ -2047,7 +2127,7 @@ if __name__ == "__main__":
     qq = SummaryEntry("Hqwl","AT1",1,"blah")
     rr = SummaryEntry("Hrwl","AT1",1,"blah")
     ss = SummaryEntry("FOOS","AT2",1,"blah")
-    tt = SummaryEntry("FOOT","AT3",2,"blah")
+    tt = SummaryEntry("FOOT","AT3",2,"blah",noplot=True)
     print "qq == rr (True?):" + str(qq == rr)
     print "qq == ss (True?):" + str(qq == ss)
     print "ss == tt (False?):" + str(qq == tt)

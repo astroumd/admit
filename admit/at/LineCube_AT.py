@@ -16,6 +16,7 @@ from admit.util.Line import Line
 from admit.util.Image import Image
 import admit.util.Table
 import admit.util.utils as utils
+import admit.util.PlotControl as PlotControl
 from admit.util.AdmitLogging import AdmitLogging as logging
 
 

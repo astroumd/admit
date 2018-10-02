@@ -16,6 +16,7 @@ from admit.bdp.Image_BDP import Image_BDP
 from admit.bdp.CubeStats_BDP import CubeStats_BDP
 import admit.util.Image as Image
 import admit.util.Line as Line
+import admit.util.PlotControl as PlotControl
 import admit.util.ImPlot as ImPlot
 import admit.util.utils as utils
 import admit.util.casautil as casautil
@@ -283,8 +284,12 @@ class Moment_AT(AT):
         # loop over moments to rename them to _0, _1, _2 etc.
         # apply a mask as well for proper histogram creation
         map = {}
-        myplot = APlot(pmode=self._plot_mode,ptype=self._plot_type,abspath=self.dir())
-        implot = ImPlot(pmode=self._plot_mode,ptype=self._plot_type,abspath=self.dir())
+        if self._plot_mode != PlotControl.NOPLOT:
+            myplot = APlot(pmode=self._plot_mode,ptype=self._plot_type,abspath=self.dir())
+            implot = ImPlot(pmode=self._plot_mode,ptype=self._plot_type,abspath=self.dir())
+            noplot = False
+        else:
+            noplot = True
 
         for mom in moments:
             figname = imagename = "%s_%i" % (basename, mom)
@@ -305,13 +310,20 @@ class Moment_AT(AT):
                 dt.tag("makemask")
             if mom == 0:
                 beamarea = nppb(self.dir(imagename))
-            implot.plotter(rasterfile=imagename,figname=figname,
-                           colorwedge=True,zoom=self.getkey("zoom"))
-            imagepng  = implot.getFigure(figno=implot.figno,relative=True)
-            thumbname = implot.getThumbnail(figno=implot.figno,relative=True)
-            images = {bt.CASA : imagename, bt.PNG  : imagepng}
-            thumbtype=bt.PNG
-            dt.tag("implot")
+            if self._plot_mode == PlotControl.NOPLOT:
+                figname   = "not created"
+                imagepng  = "not created"
+                thumbname = "not created"
+                imcaption = "not created"
+                images = {bt.CASA : imagename}
+            else:
+                implot.plotter(rasterfile=imagename,figname=figname,
+                          colorwedge=True,zoom=self.getkey("zoom"))
+                imagepng  = implot.getFigure(figno=implot.figno,relative=True)
+                thumbname = implot.getThumbnail(figno=implot.figno,relative=True)
+                images = {bt.CASA : imagename, bt.PNG  : imagepng}
+                thumbtype=bt.PNG
+                dt.tag("implot")
 
             # get the data for a histogram (ia access is about 1000-2000 faster than imval())
             map[mom] = casautil.getdata(self.dir(imagename))
@@ -325,24 +337,6 @@ class Moment_AT(AT):
             # object for the caption
             objectname = casa.imhead(imagename=self.dir(imagename), mode="get", hdkey="object")
 
-            # Make the histogram plot
-            # Since we give abspath in the constructor, figname should be relative
-            auxname = imagename + '_histo'
-            auxtype = bt.PNG
-            myplot.histogram(columns = data,
-                             figname = auxname,
-                             xlab    = bunit,
-                             ylab    = "Count",
-                             title   = "Histogram of Moment %d: %s" % (mom, imagename), thumbnail=True)
-
-            casaimage = Image(images    = images,
-                                    auxiliary = auxname,
-                                    auxtype   = auxtype,
-                                    thumbnail = thumbname,
-                                    thumbnailtype = thumbtype)
-            auxname = myplot.getFigure(figno=myplot.figno,relative=True)
-            auxthumb = myplot.getThumbnail(figno=myplot.figno,relative=True)
-
             if hasattr(self._bdp_in[0], "line"):   # SpwCube doesn't have Line
                 line = deepcopy(getattr(self._bdp_in[0], "line"))
                 if not isinstance(line, Line):
@@ -350,13 +344,38 @@ class Moment_AT(AT):
             else:
                 # fake a Line if there wasn't one
                 line = Line(name="Unidentified")
+
+            # Make the histogram plot
+            # Since we give abspath in the constructor, figname should be relative
+            if self._plot_mode == PlotControl.NOPLOT:
+                auxname   = "not created"
+                auxthumb  = "not created"
+                auxcaption = "not created"
+                casaimage = Image(images = images)
+            else:
+                auxname = imagename + '_histo'
+                auxtype = bt.PNG
+                myplot.histogram(columns = data,
+                                 figname = auxname,
+                                 xlab    = bunit,
+                                 ylab    = "Count",
+                                 title   = "Histogram of Moment %d: %s" % (mom, imagename), thumbnail=True)
+                auxname = myplot.getFigure(figno=myplot.figno,relative=True)
+                auxthumb = myplot.getThumbnail(figno=myplot.figno,relative=True)
+                imcaption = "%s Moment %d map of Source %s" % (line.name, mom, objectname)
+                auxcaption = "Histogram of %s Moment %d of Source %s" % (line.name, mom, objectname)
+
+                casaimage = Image(images    = images,
+                                  auxiliary = auxname,
+                                  auxtype   = auxtype,
+                                  thumbnail = thumbname,
+                                  thumbnailtype = thumbtype)
+
             # add the BDP to the output array
             self.addoutput(Moment_BDP(xmlFile=imagename, moment=mom,
                            image=deepcopy(casaimage), line=line))
             dt.tag("ren+mask_%d" % mom)
 
-            imcaption = "%s Moment %d map of Source %s" % (line.name, mom, objectname)
-            auxcaption = "Histogram of %s Moment %d of Source %s" % (line.name, mom, objectname)
             thismomentsummary = [line.name, mom, imagepng, thumbname, imcaption,
                                  auxname, auxthumb, auxcaption, infile]
             momentsummary.append(thismomentsummary)
@@ -408,6 +427,9 @@ class Moment_AT(AT):
 
             # create a histogram of flux per channel
 
+            # NOTE THERE IS NO BDP ASSOCIATED WITH THIS!
+            # Run it anyway even if noplot==True.
+
             # grab the X coordinates for the histogram, we want them in km/s
             # restfreq should also be in summary
             restfreq = casa.imhead(self.dir(infile),mode="get",hdkey="restfreq")['value']/1e9    # in GHz
@@ -425,10 +447,11 @@ class Moment_AT(AT):
             # @todo   make a flux1 with fluxes derived from a good mask
             flux1 = flux0 
             # construct histogram
-            title = 'Flux Spectrum (%g)' % flux0sum
-            xlab = 'VLSR (km/s)'
-            ylab = 'Flux (Jy)'
-            myplot.plotter(x,[flux0,flux1],title=title,figname=fluxname,xlab=xlab,ylab=ylab,histo=True)
+            if self._plot_mode != PlotControl.NOPLOT:
+                title = 'Flux Spectrum (%g)' % flux0sum
+                xlab = 'VLSR (km/s)'
+                ylab = 'Flux (Jy)'
+                myplot.plotter(x,[flux0,flux1],title=title,figname=fluxname,xlab=xlab,ylab=ylab,histo=True)
             dt.tag("flux-spectrum")
             
         self._summary["moments"] = SummaryEntry(momentsummary, "Moment_AT", 

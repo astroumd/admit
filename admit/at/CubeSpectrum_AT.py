@@ -20,6 +20,7 @@ import admit.util.Table as Table
 import admit.util.Image as Image
 from admit.util import APlot
 import admit.util.utils as utils
+import admit.util.PlotControl as PlotControl
 from admit.util.AdmitLogging import AdmitLogging as logging
 
 from copy import deepcopy
@@ -267,9 +268,10 @@ class CubeSpectrum_AT(AT):
         planes = range(npos)                             # labels for the tables (placeholder)
         images = {}                                      # png's accumulated
 
+        noplot = True       
         for i in range(npos):                            # loop over pos, they can have mixed types now
             sd = []
-            caption = "Spectrum"
+            imcaption = "Spectrum"
             xpos = pos[i][0]
             ypos = pos[i][1]
             if type(xpos) != type(ypos):
@@ -282,7 +284,7 @@ class CubeSpectrum_AT(AT):
                 cbox = '(%d,%d,%d,%d)' % (xpos,ypos,xpos,ypos)
                 # use extend here, not append, we want individual values in a list
                 sd.extend([xpos,ypos,cbox])
-                caption = "Average Spectrum at %s" % cbox
+                imcaption = "Average Spectrum at %s" % cbox
                 if False:
                     # this will fail on 3D cubes (see CAS-7648)
                     imval[i] = casa.imval(self.dir(fin),box=box)
@@ -291,12 +293,12 @@ class CubeSpectrum_AT(AT):
                     # another approach is the ia.getprofile(), see CubeStats, this will
                     # also integrate over regions, imval will not (!!!)
                     region = 'centerbox[[%dpix,%dpix],[1pix,1pix]]' % (xpos,ypos)
-                    caption = "Average Spectrum at %s" % region
+                    imcaption = "Average Spectrum at %s" % region
                     imval[i] = casa.imval(self.dir(fin),region=region)
             elif type(xpos)==str:
                 # this is tricky, to stay under 1 pixel , or you get a 2x2 back.
                 region = 'centerbox[[%s,%s],[1pix,1pix]]' % (xpos,ypos)
-                caption = "Average Spectrum at %s" % region
+                imcaption = "Average Spectrum at %s" % region
                 sd.extend([xpos,ypos,region])
                 imval[i] = casa.imval(self.dir(fin),region=region)
             else:
@@ -354,14 +356,22 @@ class CubeSpectrum_AT(AT):
             else:
                 title = '%s %d @ %s,%s' % (bdp_name,i,xpos,ypos)       # or use box, once we allow non-points
 
-            myplot = APlot(ptype=self._plot_type,pmode=self._plot_mode, abspath=self.dir())
-            ylab  = 'Flux (%s)' % unit
-            p1 = "%s_%d" % (bdp_name,i)
-            myplot.plotter(x,y,title,p1,xlab=xlab,ylab=ylab,thumbnail=True)
-            # Why not use p1 as the key?
-            ii = images["pos%d" % i] = myplot.getFigure(figno=myplot.figno,relative=True)
-            thumbname = myplot.getThumbnail(figno=myplot.figno,relative=True)
-            sd.extend([ii, thumbname, caption, fin])
+            if self._plot_mode == PlotControl.NOPLOT:
+                figname   = "not created"
+                thumbname = "not created"
+                imcaption = "not created"
+                noplot = True
+            else:
+                myplot = APlot(ptype=self._plot_type,pmode=self._plot_mode, abspath=self.dir())
+                ylab  = 'Flux (%s)' % unit
+                p1 = "%s_%d" % (bdp_name,i)
+                myplot.plotter(x,y,title,p1,xlab=xlab,ylab=ylab,thumbnail=True)
+                # Why not use p1 as the key?
+                figname = images["pos%d" % i] = myplot.getFigure(figno=myplot.figno,relative=True)
+                thumbname = myplot.getThumbnail(figno=myplot.figno,relative=True)
+                noplot = False
+
+            sd.extend([figname, thumbname, imcaption, fin])
             self.spec_description.append(sd)
 
         logging.regression("CSP: %s" % str(smax))
@@ -385,7 +395,11 @@ class CubeSpectrum_AT(AT):
         # SummaryEntry([[data for spec1]], "CubeSpectrum_AT",taskid)
         # For multiple spectra this is
         # SummaryEntry([[data for spec1],[data for spec2],...], "CubeSpectrum_AT",taskid)
-        self._summary["spectra"] = SummaryEntry(self.spec_description,"CubeSpectrum_AT",self.id(True))
+
+        # @todo if range(npos) is [] don't create a summary entry
+        # so that check against None in Summary.py does the right thing,
+        # although len(npos) == 0 is trapped earlier so perhaps not necessary
+        self._summary["spectra"] = SummaryEntry(self.spec_description, "CubeSpectrum_AT", self.id(True), noplot=noplot)
         taskargs = "pos="+str(pos)
         taskargs += '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; <span style="background-color:white">&nbsp;' + fin.split('/')[0] + '&nbsp;</span>'
         for v in self._summary:

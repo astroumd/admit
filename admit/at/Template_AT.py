@@ -10,6 +10,7 @@ import numpy as np
 
 import admit
 import admit.util.bdp_types as bt
+import admit.util.PlotControl as PlotControl
 
 class Template_AT(admit.Task):
     """
@@ -211,8 +212,8 @@ class Template_AT(admit.Task):
         # Image data must be rotated to match matplotlib axis order.
         oimgtitle="Template Image Slice @ channel %d" % imgslice
         aplot = admit.APlot(figno=1, abspath=self.baseDir(),
-                            pmode=admit.PlotControl.BATCH,
-                            ptype=admit.PlotControl.PNG)
+                            pmode=PlotControl.BATCH,
+                            ptype=PlotControl.PNG)
         aplot.map1(np.rot90(oimg),
                    xlab="R.A. (pixels)", ylab="Dec (pixels)",
                    title=oimgtitle, figname=oimgstem)
@@ -242,7 +243,7 @@ class Template_AT(admit.Task):
         # Create a PNG plot (standalone).
         ospectitle = "Template Spectrum @ position %s" % str(specpos)
         aplot = admit.APlot(figno=2, abspath=self.baseDir(),
-                            pmode=admit.PlotControl.BATCH,
+                            pmode=PlotControl.BATCH,
                             ptype=admit.PlotControl.PNG)
         aplot.plotter(x=ochan, y=[ospec],
                       xlab="Channel", ylab="Intensity",
@@ -251,9 +252,9 @@ class Template_AT(admit.Task):
         #
         # Output data product (spectrum table).
         obdp3 = admit.Table_BDP(ospecstem)
-	obdp3.table.description = "Template 1-D Spectrum"
-	obdp3.table.columns = ["Channel", "Spectrum @ (%d, %d)" % specpos]
-	obdp3.table.setData(np.transpose(np.vstack([ochan, ospec])))
+        obdp3.table.description = "Template 1-D Spectrum"
+        obdp3.table.columns = ["Channel", "Spectrum @ (%d, %d)" % specpos]
+        obdp3.table.setData(np.transpose(np.vstack([ochan, ospec])))
         self.addoutput(obdp3)
 
 
@@ -286,6 +287,7 @@ class Template_AT(admit.Task):
            oimgstem+".png", oimgstem+"_thumb.png", oimgtitle, ocubeim],
           [specpos[0], specpos[1], "", "Channel",
            ospecstem+".png", ospecstem+"_thumb.png", ospectitle, ocubeim]]
+        # If no plots are produced by your task, change noplot to True
         self._summary["spectra"] = admit.SummaryEntry(spec_description,
                                                       "Template_AT",
-                                                      self.id(True), keys)
+                                                      self.id(True), keys, noplot=False)

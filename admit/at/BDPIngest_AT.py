@@ -12,6 +12,7 @@ from admit.bdp import BDP
 import admit.util.utils as utils
 from admit.util.Table import Table
 from admit.Summary import SummaryEntry
+#import admit.util.PlotControl as PlotControl
 
 
 class BDPIngest_AT(AT):
@@ -110,4 +111,4 @@ class BDPIngest_AT(AT):
             table.addRow(["Associated File",f])
         table.description = "Information about the ingested BDP"
         taskargs = "file=%s" % self.getkey('file')
-        self._summary["bdpingest"] = SummaryEntry(table.serialize(),"BDPIngest_AT",self.id(True),taskargs)
+        self._summary["bdpingest"] = SummaryEntry(table.serialize(),"BDPIngest_AT",self.id(True),taskargs,noplot=True)

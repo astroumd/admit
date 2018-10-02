@@ -19,6 +19,7 @@ from admit.util import stats
 from admit.util.segmentfinder import ADMITSegmentFinder
 from admit.Summary import SummaryEntry
 import admit.util.casautil as casautil
+import admit.util.PlotControl as PlotControl
 from admit.util.AdmitLogging import AdmitLogging as logging
 
 from copy import deepcopy
@@ -400,24 +401,34 @@ class CubeStats_AT(AT):
                 y4 = np.zeros(len(minval))
             y5 = y1-y4
             y = [y1,y2,y3,y4]
-            title = 'CubeStats: ' + bdp_name+'_0'
-            xlab  = 'Channel'
-            ylab  = 'log(Peak,Noise,Peak/Noise)'
-            labels = ['log(peak)','log(rms noise)','log(peak/noise)','log(|minval|)']
-            myplot = APlot(ptype=self._plot_type,pmode=self._plot_mode,abspath=self.dir())
-            segp = [[chans[0],chans[nchan-1],math.log10(sigma0),math.log10(sigma0)]]
-            myplot.plotter(chans,y,title,bdp_name+"_0",xlab=xlab,ylab=ylab,segments=segp,labels=labels,thumbnail=True)
-            imfile = myplot.getFigure(figno=myplot.figno,relative=True)
-            thumbfile = myplot.getThumbnail(figno=myplot.figno,relative=True)
+            if self._plot_mode == PlotControl.NOPLOT:
+                noplot = True
+                imfile = "not created"
+                thumbfile = "not created"
+            else:
+                noplot = False
+                title = 'CubeStats: ' + bdp_name+'_0'
+                xlab  = 'Channel'
+                ylab  = 'log(Peak,Noise,Peak/Noise)'
+                labels = ['log(peak)','log(rms noise)','log(peak/noise)','log(|minval|)']
+                myplot = APlot(ptype=self._plot_type,pmode=self._plot_mode,abspath=self.dir())
+                segp = [[chans[0],chans[nchan-1],math.log10(sigma0),math.log10(sigma0)]]
+                myplot.plotter(chans,y,title,bdp_name+"_0",xlab=xlab,ylab=ylab,segments=segp,labels=labels,thumbnail=True)
+                imfile = myplot.getFigure(figno=myplot.figno,relative=True)
+                thumbfile = myplot.getThumbnail(figno=myplot.figno,relative=True)
 
-            image0 = Image(images={bt.PNG:imfile},thumbnail=thumbfile,thumbnailtype=bt.PNG,description="CubeStats_0")
-            b2.addimage(image0,"im0")
+                image0 = Image(images={bt.PNG:imfile},thumbnail=thumbfile,thumbnailtype=bt.PNG,description="CubeStats_0")
+                b2.addimage(image0,"im0")
 
             if use_ppp:
-                # new trial for Lee
-                title = 'PeakSum: (numsigma=%.1f)' % (numsigma)
-                ylab = 'Jy*N_ppb'
-                myplot.plotter(chans,[peaksum],title,bdp_name+"_00",xlab=xlab,ylab=ylab,thumbnail=False)
+                if self._plot_mode == PlotControl.NOPLOT:
+                    noplot = True
+                else:
+                    noplot = False
+                    # new trial for Lee
+                    title = 'PeakSum: (numsigma=%.1f)' % (numsigma)
+                    ylab = 'Jy*N_ppb'
+                    myplot.plotter(chans,[peaksum],title,bdp_name+"_00",xlab=xlab,ylab=ylab,thumbnail=False)
 
             if True:
                 # hack ascii table
@@ -441,24 +452,29 @@ class CubeStats_AT(AT):
             caption += " green: noise per channel,"
             caption += " blue: peak value per channel,"
             caption += " red: peak/noise per channel)."
-            self._summary["spectra"] = SummaryEntry([0, 0, str(specbox), 'Channel', imfile, thumbfile , caption, fin], "CubeStats_AT", self.id(True))
-            self._summary["chanrms"] = SummaryEntry([float(sigma0), fin], "CubeStats_AT", self.id(True))
+            self._summary["spectra"] = SummaryEntry([0, 0, str(specbox), 'Channel', imfile, thumbfile , caption, fin], "CubeStats_AT", self.id(True),noplot=noplot)
+
+            self._summary["chanrms"] = SummaryEntry([float(sigma0), fin], "CubeStats_AT", self.id(True),noplot=noplot)
 
             # @todo Will imstat["max"][0] always be equal to s['datamax']?  If not, why not?
             if 'datamax' in s:
-                self._summary["dynrange"] = SummaryEntry([float(s['datamax']/sigma0), fin], "CubeStats_AT", self.id(True))
+                self._summary["dynrange"] = SummaryEntry([float(s['datamax']/sigma0), fin], "CubeStats_AT", self.id(True),noplot=noplot)
             else:
                 self._summary["dynrange"] = SummaryEntry([float(imstat0["max"][0]/sigma0), fin], "CubeStats_AT", self.id(True))
-            self._summary["datamean"] = SummaryEntry([imstat0["mean"][0], fin], "CubeStats_AT", self.id(True))
+            self._summary["datamean"] = SummaryEntry([imstat0["mean"][0], fin], "CubeStats_AT", self.id(True),noplot=noplot)
 
-            title = bdp_name + "_1"
-            xlab =  'log(Peak,Noise,P/N)'
-            myplot.histogram([y1,y2,y3],title,bdp_name+"_1",xlab=xlab,thumbnail=True)
+            if self._plot_mode == PlotControl.NOPLOT:
+                noplot = True
+            else:
+                noplot = False
+                title = bdp_name + "_1"
+                xlab =  'log(Peak,Noise,P/N)'
+                myplot.histogram([y1,y2,y3],title,bdp_name+"_1",xlab=xlab,thumbnail=True)
 
-            imfile = myplot.getFigure(figno=myplot.figno,relative=True)
-            thumbfile = myplot.getThumbnail(figno=myplot.figno,relative=True)
-            image1 = Image(images={bt.PNG:imfile},thumbnail=thumbfile,thumbnailtype=bt.PNG,description="CubeStats_1")
-            b2.addimage(image1,"im1")
+                imfile = myplot.getFigure(figno=myplot.figno,relative=True)
+                thumbfile = myplot.getThumbnail(figno=myplot.figno,relative=True)
+                image1 = Image(images={bt.PNG:imfile},thumbnail=thumbfile,thumbnailtype=bt.PNG,description="CubeStats_1")
+                b2.addimage(image1,"im1")
 
             # note that the 'y2' can have been clipped, which can throw off stats.robust()
             # @todo  should set a mask for those.
@@ -470,7 +486,11 @@ class CubeStats_AT(AT):
             y2_mean = ry2.mean()
             y2_std  = ry2.std()
             if n>9: logging.debug("NORMALTEST2: %s" % str(scipy.stats.normaltest(ry2)))
-            myplot.hisplot(y2,title,bdp_name+"_2",xlab=xlab,gauss=[y2_mean,y2_std],thumbnail=True)
+            if self._plot_mode == PlotControl.NOPLOT:
+                noplot = True
+            else:
+                noplot = False
+                myplot.hisplot(y2,title,bdp_name+"_2",xlab=xlab,gauss=[y2_mean,y2_std],thumbnail=True)
 
             title = bdp_name + "_3"
             xlab = 'log(diff[Noise])'
@@ -481,7 +501,11 @@ class CubeStats_AT(AT):
             dy2_mean = rdy2.mean()
             dy2_std  = rdy2.std()
             if n>9: logging.debug("NORMALTEST3: %s" % str(scipy.stats.normaltest(rdy2)))
-            myplot.hisplot(dy2,title,bdp_name+"_3",xlab=xlab,gauss=[dy2_mean,dy2_std],thumbnail=True)
+            if self._plot_mode == PlotControl.NOPLOT:
+                noplot = True
+            else:
+                noplot = False
+                myplot.hisplot(dy2,title,bdp_name+"_3",xlab=xlab,gauss=[dy2_mean,dy2_std],thumbnail=True)
 
 
             title = bdp_name + "_4"
@@ -491,7 +515,11 @@ class CubeStats_AT(AT):
             y3_mean = ry3.mean()
             y3_std  = ry3.std()
             if n>9: logging.debug("NORMALTEST4: %s" % str(scipy.stats.normaltest(ry3)))
-            myplot.hisplot(y3,title,bdp_name+"_4",xlab=xlab,gauss=[y3_mean,y3_std],thumbnail=True)
+            if self._plot_mode == PlotControl.NOPLOT:
+                noplot = True
+            else:
+                noplot = False
+                myplot.hisplot(y3,title,bdp_name+"_4",xlab=xlab,gauss=[y3_mean,y3_std],thumbnail=True)
 
             title = bdp_name + "_5"
             xlab = 'log(diff[Signal/Noise)])'
@@ -501,7 +529,11 @@ class CubeStats_AT(AT):
             dy3_mean = rdy3.mean()
             dy3_std  = rdy3.std()
             if n>9: logging.debug("NORMALTEST5: %s" % str(scipy.stats.normaltest(rdy3)))
-            myplot.hisplot(dy3,title,bdp_name+"_5",xlab=xlab,gauss=[dy3_mean,dy3_std],thumbnail=True)
+            if self._plot_mode == PlotControl.NOPLOT:
+                noplot = True
+            else:
+                noplot = False
+                myplot.hisplot(dy3,title,bdp_name+"_5",xlab=xlab,gauss=[dy3_mean,dy3_std],thumbnail=True)
 
 
             title = bdp_name + "_6"
@@ -511,7 +543,11 @@ class CubeStats_AT(AT):
             y5_mean = ry5.mean()
             y5_std  = ry5.std()
             if n>9: logging.debug("NORMALTEST6: %s" % str(scipy.stats.normaltest(ry5)))
-            myplot.hisplot(y5,title,bdp_name+"_6",xlab=xlab,gauss=[y5_mean,y5_std],thumbnail=True)
+            if self._plot_mode == PlotControl.NOPLOT:
+                noplot = True
+            else:
+                noplot = False
+                myplot.hisplot(y5,title,bdp_name+"_6",xlab=xlab,gauss=[y5_mean,y5_std],thumbnail=True)
 
             logging.debug("LogPeak: m,s= %f %f min/max %f %f" % (y1.mean(),y1.std(),y1.min(),y1.max()))
             logging.debug("LogNoise: m,s= %f %f %f %f min/max %f %f" % (y2.mean(),y2.std(),y2_mean,y2_std,y2.min(),y2.max()))
@@ -534,12 +570,18 @@ class CubeStats_AT(AT):
             s = np.pi * ( smax * (z0**gamma) )**2
             cmds = ["grid", "axis equal"]
             title = "Peak Points per channel"
-            pppimage = bdp_name + '_ppp'
-            myplot.scatter(xpos,ypos,title=title,figname=pppimage,size=s,color=chans,cmds=cmds,thumbnail=True)
-            pppimage     = myplot.getFigure(figno=myplot.figno,relative=True)
-            pppthumbnail = myplot.getThumbnail(figno=myplot.figno,relative=True)
             caption = "Peak point plot: Locations of per-channel peaks in the image cube " + fin
-            self._summary["peakpnt"] = SummaryEntry([pppimage, pppthumbnail, caption, fin], "CubeStats_AT", self.id(True))
+            if self._plot_mode == PlotControl.NOPLOT:
+                noplot = True
+                pppimage = "not created"
+                pppthumbnail = "not created"
+            else:
+                noplot = False
+                pppimage = bdp_name + '_ppp'
+                myplot.scatter(xpos,ypos,title=title,figname=pppimage,size=s,color=chans,cmds=cmds,thumbnail=True)
+                pppimage     = myplot.getFigure(figno=myplot.figno,relative=True)
+                pppthumbnail = myplot.getThumbnail(figno=myplot.figno,relative=True)
+            self._summary["peakpnt"] = SummaryEntry([pppimage, pppthumbnail, caption, fin], "CubeStats_AT", self.id(True),noplot=noplot)
         dt.tag("plotting")
 
         # making PeakStats plot
@@ -552,7 +594,11 @@ class CubeStats_AT(AT):
             ylab = 'FWHM (channels)'
             pppimage = bdp_name + '_peakstats'
             cval = mval
-            myplot.scatter(pval,wval,title=title,xlab=xlab,ylab=ylab,color=cval,figname=pppimage,thumbnail=False)
+            if self._plot_mode == PlotControl.NOPLOT:
+                noplot = True
+                pppimage = "not created"
+            else:
+                myplot.scatter(pval,wval,title=title,xlab=xlab,ylab=ylab,color=cval,figname=pppimage,thumbnail=False)
             dt.tag("peakstats")
             
 

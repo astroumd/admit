@@ -477,7 +477,21 @@ class Ingest_AT(AT):
                 ia.open(fno)
 
             s = ia.summary()
-            if len(s['shape']) == 3:
+            if len(s['shape']) == 4:
+                nz = s['shape'][2]
+                np = s['shape'][3]
+                if nz==1 and np>1:
+                    logging.warning("Flipping axis ordering [hack]")
+                    if True:
+                        ia.close()
+                        fnot = fno + ".trans"
+                        utils.rename(fno,fnot)
+                        imtrans(fnot,fno,"0132")
+                        utils.remove(fnot)
+                        ia.open(fno)
+                    else:
+                        print "use ia.transpose()"
+            elif len(s['shape']) == 3:
                 logging.warning("Adding dummy STOKES-I axis")
                 fnot = fno + '_4'
                 ia2=ia.adddegaxes(stokes='I',outfile=fnot)
@@ -500,7 +514,7 @@ class Ingest_AT(AT):
                 ia.open(fno)
                 dt.tag("adddegaxes-2")
             else:
-                logging.info("SHAPE: %s" % str(s['shape']))
+                logging.info("SHAPE: %s is unexpected" % str(s['shape']))
         s = ia.summary()
         dt.tag("summary-0")
         if s['hasmask'] and create_mask:
@@ -517,6 +531,7 @@ class Ingest_AT(AT):
             nx = s['shape'][0]
             ny = s['shape'][1]
             nz = s['shape'][2]
+                
             logging.info("box=%s edge=%s processing with SHAPE: %s" % (str(box),str(edge),str(s['shape'])))
                                                                                                  
             if len(box) == 2:

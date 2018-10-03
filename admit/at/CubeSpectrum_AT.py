@@ -369,7 +369,7 @@ class CubeSpectrum_AT(AT):
                 h = casa.imstat(self.dir(fin),box=box)
                 ra  = h['blcf'].split(',')[0]
                 dec = h['blcf'].split(',')[1]
-                title = '%s %d @ %d,%d = %s,%s' % (bdp_name,i,xpos,ypos,ra,dec)
+                title = '%s %d @ %d,%d [%dx%d] = %s,%s' % (bdp_name,i,xpos,ypos,size,size,ra,dec)
             else:
                 title = '%s %d @ %s,%s' % (bdp_name,i,xpos,ypos)       # or use box, once we allow non-points
 

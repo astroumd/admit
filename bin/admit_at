@@ -1,0 +1,45 @@
+#! /usr/bin/env casarun
+#-*- mode: python -*-
+#
+#   report all AT's and their version number
+
+version  = '10-oct-2018'
+
+
+# =================================================================================================================
+# python system modules
+import sys
+import admit.util.utils as util
+
+try:
+  import taskinit
+  import casa
+  import admit
+except:
+  print "WARNING: No admit"
+  sys.exit(1)
+  
+
+
+argv = util.casa_argv(sys.argv)
+
+total = len(argv)-1
+
+if total==0:
+  ats0 = dir(admit.at)
+  ats = []
+  for at in ats0:
+    if at[-3:] == '_AT':
+      ats.append(at)
+else:
+  ats = argv[1:]
+
+for at in ats:
+  if at[-3:] != '_AT':
+    at = at + '_AT'
+  cmd = "v = admit.at.%s()._version" % at
+  try:
+    exec(cmd)
+    print v,at
+  except:
+    print '-.-.-',at,' (not found)'

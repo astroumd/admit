@@ -245,6 +245,10 @@ class CubeStats_AT(AT):
         else:
             # old imval method 
             #imval0 = casa.imval(self.dir(fin),box='0,0,0,0')     # this fails on 3D
+            if True:
+                print("PATCH cube for imval to ensure reference pixel is inside")
+                casa.imhead(self.dir(fin),mode='put',hdkey='crpix1',hdvalue=1.0)
+                casa.imhead(self.dir(fin),mode='put',hdkey='crpix2',hdvalue=1.0)                
             imval0 = casa.imval(self.dir(fin))
             freqs = imval0['coords'].transpose()[2]/1e9
             dt.tag("imval")

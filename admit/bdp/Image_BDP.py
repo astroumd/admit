@@ -105,4 +105,11 @@ class Image_BDP(BDP):
             String containing the image name, or None if it does not exist
 
         """
-        return self.image.getimage(imtype, name).file
+        try:
+            retimage = self.image.getimage(imtype, name)
+        except KeyError:
+            return None
+        if retimage != None:
+            return retimage.file
+        else:
+            return None

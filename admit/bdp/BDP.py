@@ -126,10 +126,11 @@ class BDP(object):
         files = []
         for i in self.__dict__:
             if isinstance(getattr(self, i), Image):
-                #print getattr(self, i).images
                 for key in getattr(self, i).images:
                     files.append(getattr(self, i).images[key])
-                #files.append(getattr(self, i).fileName)
+            if isinstance(getattr(self, i), MultiImage):
+                for key in getattr(self, i).mimages:
+                    files.append(getattr(self, i).mimages[key])
         return files
 
     def show(self):

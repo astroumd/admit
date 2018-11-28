@@ -130,7 +130,7 @@ class BDP(object):
                     files.append(getattr(self, i).images[key])
             if isinstance(getattr(self, i), MultiImage):
                 for key in getattr(self, i).mimages:
-                    files.append(getattr(self, i).mimages[key])
+                    files.append(getattr(self, i).mimages[key].getimagefile(bt.CASA))
         return files
 
     def show(self):

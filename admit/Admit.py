@@ -1271,6 +1271,35 @@ class Admit(object):
                 flist.append(filename)
         return flist
 
+    def find_images(self,input=False):
+        """Find the image names in the input or output BDPs of this Project.
+        Default is to use output BDPs.
+           
+        Parameters
+        ----------
+        input: boolean
+            Find image names in input BDPs. Default:False
+
+        Returns: dict
+            A dictionary where the key is the task id and the value
+            is a list of input/output images in that task id.  If a task has
+            no input/output images, it will not be in the dictionary.
+        """
+        mydict = {}
+        for z in self.fm._tasks:
+            if input == True:
+                searchme = self.fm[z]._bdp_in
+            else:
+                searchme = self.fm[z]._bdp_out
+            for b in searchme:
+              if b != None:
+                ifile = b.getimagefile()
+                if ifile != None:
+                   mydict.setdefault(z, []).append(ifile)
+                   #print(z,ifile)
+        return mydict
+
+
     def setdir(self, dirname, create=True):
         """
         Changes current working directory. The directory is

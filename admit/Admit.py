@@ -164,7 +164,7 @@ class Admit(object):
         # baseDir  : should be a directory, always needed
         # name     : some ID, deprecate?
         # basefile : should be admit.xml, why change it?
-        # create   : create any new directory that's needed
+
 
         # global ID
         # [KPR] This doesn't actually work as the ID is "global" only to
@@ -984,9 +984,15 @@ class Admit(object):
         # If we're processing only one FITS cube, let the user specify a
         # different one on the command line.
         tcube = []
-        for tid in self.fm._depsmap[0]:
-          if self[tid]._type == 'Ingest_AT': tcube.append(tid)
 
+        # check that there is at least on task instantiated otherwise
+        # accessing fm._depsmap[0] will result in a KeyError
+        if self.fm._taskid != 0:
+            for tid in self.fm._depsmap[0]:
+              if self[tid]._type == 'Ingest_AT': tcube.append(tid)
+
+        # @todo can probably move if len(tcube)==1 section into the 
+        # the _taskid check above and eliminate this test.
         if len(tcube) == 1:
           tcube = tcube[0]
           py.write("# This flow processes a single data cube. "

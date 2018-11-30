@@ -1277,7 +1277,7 @@ class Admit(object):
                 flist.append(filename)
         return flist
 
-    def find_images(self,input=False):
+    def find_images(self,input=False,fullpath=False):
         """Find the image names in the input or output BDPs of this Project.
         Default is to use output BDPs.
            
@@ -1285,6 +1285,8 @@ class Admit(object):
         ----------
         input: boolean
             Find image names in input BDPs. Default:False
+        fullpath: boolean
+            Return full path to image names rather than relative path
 
         Returns: dict
             A dictionary where the key is the task id and the value
@@ -1301,7 +1303,9 @@ class Admit(object):
               if b != None:
                 ifile = b.getimagefile()
                 if ifile != None:
-                   mydict.setdefault(z, []).append(ifile)
+                    if fullpath:
+                       ifile = self.baseDir+ifile
+                    mydict.setdefault(z, []).append(ifile)
                    #print(z,ifile)
         return mydict
 

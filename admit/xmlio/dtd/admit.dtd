@@ -28,8 +28,6 @@
 <!ATTLIST _taskid type (INT) #REQUIRED>
 <!ELEMENT _taskargs (#PCDATA)>
 <!ATTLIST _taskargs type (STRING) #REQUIRED>
-<!ELEMENT _noplot (#PCDATA)>
-<!ATTLIST _noplot type (BOOL) #REQUIRED>
 <!ELEMENT _datatype (#PCDATA)>
 <!ATTLIST _datatype type (DICT) #REQUIRED>
 <!ATTLIST _datatype ndarray (STRING) #REQUIRED>

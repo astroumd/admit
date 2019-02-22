@@ -1,0 +1,39 @@
+#!/bin/csh -f
+# Check for failed ADMIT runs in the current working directory.
+# This script finds all index.html and then greps for the HTML icons in 
+# each that indicate OK, failure, warning, disabled
+# It will print a table with a report of what it finds.
+
+
+set dirs = ( ` find . -name index.html -exec dirname {} \; `)
+
+printf "Directory\t\t\t#-tasks   #-OK   #-FAIL    #-Warn  #-Disabled\n"
+foreach d ( $dirs )
+  # total number of icons in the file 
+  @ numtasks = `grep -c "icon-" $d/index.html`
+
+  # subtract the number of icons in the legend to get number of tasks
+  @ numtasks -= 5 
+
+  # number of tasks run successfully
+  @ numok = `grep -c "icon-ok" $d/index.html`
+  # subtract the number in the legend
+  @ numok--
+
+  # number of tasks needing re-run
+  @ numwarn = `grep -c "icon-warning-sign" $d/index.html`
+  # subtract the number in the legend
+  @ numwarn--
+ 
+  # number of tasks failed
+  @ numfail = `grep -c "icon-fire" $d/index.html`
+  # subtract the number in the legend
+  @ numfail--
+
+  # number of tasks disabled
+  @ numdisable = `grep -c "icon-ban-circle" $d/index.html`
+  # subtract the number in the legend
+  @ numdisable--
+
+  printf "%-30s    %2d        %2d      %2d       %2d      %2d\n" $d $numtasks $numok $numfail  $numwarn  $numdisable
+end

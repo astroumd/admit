@@ -4,7 +4,8 @@
 #  file how to 'display' a file
 #
 #  On linux the following equivalents can be useful
-#  gnome-open   kde-open    xdg-open
+#  gnome-open   kde-open    xdg-open    'gio open'
+#  
 #
 #  Original version:     ~2010     Peter Teuben
 #
@@ -12,7 +13,8 @@
 #  $BROWSER              the default browser
 #
 #  Issues:
-#  - on a lustre file system nautilus is known to be unstable (and just die)
+#  - on the NRAO lustre file system nautilus is known to be unstable (and just die),
+#    dolphin works better
 
 
 if (-e /usr/bin/nemo) then

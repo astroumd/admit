@@ -45,9 +45,11 @@ foreach base ($*)
   #         longname.{cube,cont,mfs}.I.{pbcor,pb}.fits
   #         <---     basename    ---->
   #         but also catch when basename is the full name
-  set im = $base.pbcor.fits
-  set pb = $base.pb.fits
+  set im  = $base.pbcor.fits
+  set pb  = $base.pb.fits
+  set pbz = $base.pb.fits.gz
   set log = $base.log
+  if (-e $pbz) set pb = $pbz
   if (-e $im && -e $pb) then
     listfitsa $im
     echo $a  --pb $pb --basename x $im

@@ -270,14 +270,14 @@ class AT(object):
         self._bdp_out[index] = bdp
 
     def __str__(self):
-        print bt.format.BOLD + bt.color.GREEN + "\nAT :" + bt.format.END + bt.format.BOLD + self._type + bt.format.END
+        print(bt.format.BOLD + bt.color.GREEN + "\nAT :" + bt.format.END + bt.format.BOLD + self._type + bt.format.END)
         for i, j in self.__dict__.iteritems():
             if isinstance(j, BDP):
-                print str(j)
+                print(str(j))
                 continue
-            print bt.format.BOLD + i + ": " + bt.format.END + str(j)
+            print(bt.format.BOLD + i + ": " + bt.format.END + str(j))
         for bdp in self._bdp_out:
-            print bdp
+            print(bdp)
         return "\n"
 
     def isAutoAlias(self, withEmpty=True, compat=None):
@@ -781,7 +781,7 @@ class AT(object):
                     # replace alias
                     return "%s-%s.%s" % (base[:loc2], alias, ext)
             # should never come here
-            raise Exception,"mkext: no code path here"
+            raise Exception("mkext: no code path here")
 
     def mkdir(self, dirname):
         """Make a directory in the ADMIT hierarchy.
@@ -993,7 +993,7 @@ class AT(object):
             #2
             # check that the key is valid and not changing data type
             if not self.haskey(name):
-                print "valid keys: ", self._keys
+                print("valid keys: ", self._keys)
                 raise Exception("%s is not a valid key for %s." % (name, self._type))
             if type(self._keys[name]) != type(value):
                 if isinstance(self._keys[name], float) and isinstance(value, int):

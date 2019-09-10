@@ -6,6 +6,7 @@
 #           tab<PID>_0
 #
 #   @todo   Since integration tests also need to clean, better have something in python
+#
 
 # see also https://open-jira.nrao.edu/browse/CAS-11030
 set dirs = (_immath __tmp_fromTFmask __tmp_outputmask __tmp_frominmask _tmp_copy___tmp_frominmask)
@@ -20,6 +21,7 @@ if ($#argv == 0) then
   echo '     and casapy*.log ipython-*.log files'
   echo 'Use any argument to clean local directory.'
   echo 'Use -r for recursive clean of log files.'
+  echo 'Use -x to clean up your Xvfb instances.'
   exit 0
 endif
 
@@ -43,6 +45,10 @@ set temp=(`getopt -s csh -o r -- $argv:q`)
 eval set argv=\($temp:q\)
 
 switch ($1:q)
+    case -x:
+      echo "Clean up Xvbf instances (linux only)"
+      killall Xvfb
+      breaksw
     case -r:
       echo "recursive clean"
       find . -name casapy-\*.log -exec rm {} \;

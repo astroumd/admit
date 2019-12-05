@@ -720,6 +720,9 @@ class Ingest_AT(AT):
             casa.imhead(fno,mode="put",hdkey="object",hdvalue=srcname)
             h['object'] = srcname
         logging.info('TELESCOPE: %s' % telescope)
+        if telescope == 'UNKNOWN':
+            msg = 'Ingest_AT: warning, an UNKNOWN telescope often results in ADMIT failing'
+            logging.warning(msg)
         logging.info('OBJECT: %s' % srcname)
         logging.info('REFFREQTYPE: %s' % h['reffreqtype'])
         if h['reffreqtype'].find('TOPO')>=0:

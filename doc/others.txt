@@ -2,3 +2,7 @@ Other software packages that could be used to replace some AT's in the ADMIT flo
 
 GoFish    Fishing for molecular line detections in protoplanetary disks.
           https://github.com/richteague/gofish
+
+
+SLIM:     Spectral Line Identification and Modelling (SLIM) in the MAdrid Data CUBe Analysis (MADCUBA) package: An interactive software for data cube analysis
+	  https://arxiv.org/abs/1909.02147

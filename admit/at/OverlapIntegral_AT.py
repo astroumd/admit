@@ -10,6 +10,8 @@
 
 import numpy as np
 import numpy.ma as ma
+import scipy
+import scipy.signal
 from copy import deepcopy
 import types
 import os
@@ -28,8 +30,6 @@ from admit.util.AdmitLogging import AdmitLogging as logging
 import admit.util.casautil as casautil
 
 try:
-  import scipy
-  import scipy.signal
   import casa
   import taskinit
 except:

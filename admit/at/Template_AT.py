@@ -21,7 +21,7 @@ class Template_AT(admit.Task):
     template demonstrates the following transformations:
 
     - scale the intensity at all points in the cube by a specified value
-    - extract a 2-D position-position image from the (scaled) cube at a 
+    - extract a 2-D position-position image from the (scaled) cube at a
       specified frequency (channel number)
     - extract a 1-D spectrum from the (scaled) cube at the specified spatial
       position (pixel coordinates)
@@ -77,7 +77,7 @@ class Template_AT(admit.Task):
     changes, the __init__ method must be updated accordingly.
     """
     def __init__(self, **keyval):
-        keys = {"cubescale" : 2.0, "imgslice" : 0, "specpos" : (0,0)}   
+        keys = {"cubescale" : 2.0, "imgslice" : 0, "specpos" : (0,0)}
         admit.Task.__init__(self, keys, keyval)
         self._version   = "1.0.0"
         self.set_bdp_in ([(admit.SpwCube_BDP, 1, bt.REQUIRED)])
@@ -101,7 +101,7 @@ class Template_AT(admit.Task):
            | template | table    | Template data product statistics. |
            +----------+----------+-----------------------------------+
 
-        
+
         Parameters
         ----------
         None
@@ -123,12 +123,12 @@ class Template_AT(admit.Task):
         Parameters
         ----------
         None
-        
+
         Returns
         -------
         dict
             The user data dictionary from the AT, for merging into the ADMIT
-            user data object.  
+            user data object.
         """
         if hasattr(self,"_userdata"):
             return self._userdata
@@ -148,7 +148,7 @@ class Template_AT(admit.Task):
         Parameters
         ----------
         None
-        
+
         Returns
         -------
         None
@@ -183,7 +183,7 @@ class Template_AT(admit.Task):
         #
         # Create a CASA ouput image (no mask information).
         admit.casautil.putdata_raw(ocubefile+".im", ocube, ifile)
-        # 
+        #
         # Output the result as a new SpwCube.
         image = admit.Image(description="Template 3-D Cube")
         image.addimage(admit.imagedescriptor(ocubefile+".im", format=bt.CASA))
@@ -251,9 +251,9 @@ class Template_AT(admit.Task):
         #
         # Output data product (spectrum table).
         obdp3 = admit.Table_BDP(ospecstem)
-	obdp3.table.description = "Template 1-D Spectrum"
-	obdp3.table.columns = ["Channel", "Spectrum @ (%d, %d)" % specpos]
-	obdp3.table.setData(np.transpose(np.vstack([ochan, ospec])))
+        obdp3.table.description = "Template 1-D Spectrum"
+        obdp3.table.columns = ["Channel", "Spectrum @ (%d, %d)" % specpos]
+        obdp3.table.setData(np.transpose(np.vstack([ochan, ospec])))
         self.addoutput(obdp3)
 
 

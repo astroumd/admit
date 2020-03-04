@@ -2,7 +2,7 @@
     An example of inheriting from Table_BDP
 """
 
-from Table_BDP import Table_BDP
+from .Table_BDP import Table_BDP
 import admit.util.bdp_types as bt
 
 class Table_inherit_BDP(Table_BDP):    

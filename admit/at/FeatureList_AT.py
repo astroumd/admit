@@ -19,7 +19,7 @@ try:
   import taskinit
   import casa
 except:
-  print "WARNING: No CASA; FeatureList task cannot function."
+  print("WARNING: No CASA; FeatureList task cannot function.")
 
 class FeatureList_AT(AT):
     """Find features in a map.

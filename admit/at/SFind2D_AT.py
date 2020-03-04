@@ -28,7 +28,7 @@ try:
     import casa
     import taskinit
 except:
-    print "WARNING: No CASA; SFind2D task cannot function."
+    print("WARNING: No CASA; SFind2D task cannot function.")
 
 class SFind2D_AT(AT):
     """
@@ -221,16 +221,16 @@ class SFind2D_AT(AT):
 
         # check if there is a 2nd image (which will be a PB)
         for i in range(len(self._bdp_in)):
-            print 'BDP',i,type(self._bdp_in[i])
+            print('BDP',i,type(self._bdp_in[i]))
 
         if self._bdp_in[2] != None:
             bdpin_pb  = self._bdp_in[1]            
             bdpin_cst = self._bdp_in[2]
-            print "Need to process PB"
+            print("Need to process PB")
         else:
             bdpin_pb  = None
             bdpin_cst = self._bdp_in[1]
-            print "No PB given"
+            print("No PB given")
             
 
         # get the output bdp basename
@@ -238,7 +238,7 @@ class SFind2D_AT(AT):
 
         # make sure it's a 2D map
         if not casautil.mapdim(self.dir(infile),2):
-            raise Exception,"Input map dimension not 2: %s" % infile
+            raise Exception("Input map dimension not 2: %s" % infile)
 
         # arguments for imstat call if required
         args = {"imagename" : self.dir(infile)}
@@ -319,7 +319,7 @@ class SFind2D_AT(AT):
             logging.debug("%s" % str(atab['component0']['shape']))
             logging.info("Right Ascen.  Declination   X(pix)   Y(pix)      Peak       Flux    Major   Minor    PA    SNR")
             funits = atab['component0']['flux']['unit']
-            if atab['component0']['shape'].has_key('majoraxis'):
+            if 'majoraxis' in atab['component0']['shape']:
                 sunits = atab['component0']['shape']['majoraxis']['unit']
                 aunits = atab['component0']['shape']['positionangle']['unit']
             else:
@@ -348,7 +348,7 @@ class SFind2D_AT(AT):
                 dec = rd['string'][1][:12]
                 flux = atab[c]['flux']['value'][0]
                 sumflux = sumflux + flux
-                if atab[c]['shape'].has_key('majoraxis'):
+                if 'majoraxis' in atab[c]['shape']:
                     smajor = atab[c]['shape']['majoraxis']['value']
                     sminor = atab[c]['shape']['minoraxis']['value']
                     sangle = atab[c]['shape']['positionangle']['value']

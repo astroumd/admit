@@ -29,7 +29,7 @@ try:
   import casa
   import taskinit
 except:
-  print "WARNING: No CASA; Export task cannot function."
+  print("WARNING: No CASA; Export task cannot function.")
 
 class Export_AT(AT):
     """Creates a FITS file from an image BDP.

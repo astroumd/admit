@@ -97,8 +97,8 @@ def _run(argv):
         KEYS["numsigma"] = float(KEYS["numsigma"])
         KEYS["pad"]      = int(KEYS["pad"])
         KEYS["cutoff"]   = ast.literal_eval(str(KEYS["cutoff"]))
-    except Exception, e:
-        print("Exception converting keyword value to number:",e)
+    except Exception as e:
+        print(("Exception converting keyword value to number:",e))
         return
     #
     # Set-up all ADMIT Flow tasks for execution including their aliases and connections

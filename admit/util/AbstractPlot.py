@@ -13,8 +13,8 @@ import os
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-import PlotControl
-import utils
+from . import PlotControl
+from . import utils
 import sys
 
 class AbstractPlot(object):
@@ -71,10 +71,10 @@ class AbstractPlot(object):
     def show(self):
         """show internals for debugging 
         """
-        print "%s:  plotmode=%s plottype=%s current figno=%d" % ( self.__class__.__name__, PlotControl.plotmode(self._plot_mode), PlotControl.plottype(self._plot_type), self.figno)
-        print "abspath = %s " % self._abspath
-        print "Figure files created by this Aplot: "    + str(self._figurefiles)
-        print "Thumbnail files created by this Aplot: " + str(self._thumbnailfiles)
+        print("%s:  plotmode=%s plottype=%s current figno=%d" % ( self.__class__.__name__, PlotControl.plotmode(self._plot_mode), PlotControl.plottype(self._plot_type), self.figno))
+        print("abspath = %s " % self._abspath)
+        print("Figure files created by this Aplot: "    + str(self._figurefiles))
+        print("Thumbnail files created by this Aplot: " + str(self._thumbnailfiles))
 
     @property
     def plotmode(self):
@@ -159,7 +159,7 @@ class AbstractPlot(object):
             else:
                 return self._thumbnailfiles[figno]
         except KeyError:
-            raise Exception, "Thumbnail for figure %d was not created by this %s ." % (figno,self.__class__.__name__)
+            raise Exception("Thumbnail for figure %d was not created by this %s ." % (figno,self.__class__.__name__))
 
     def getFigure(self,figno,relative):
         """Get the name of the figure file for given figure number
@@ -184,7 +184,7 @@ class AbstractPlot(object):
             else:
                 return self._figurefiles[figno]
         except KeyError:
-            raise Exception, "Figure %d was not created by this %s." % (figno, self.__class__.__name__ )
+            raise Exception("Figure %d was not created by this %s." % (figno, self.__class__.__name__ ))
 
     def figure(self,figno=1):
         """set the figure number. 
@@ -230,7 +230,7 @@ class AbstractPlot(object):
         filename, file_extension = os.path.splitext(pngfile)
         if self._plot_type != PlotControl.PNG:
            if fig is None:
-             raise Exception, "Thumbnails for plot types other than PNG require specifying fig="
+             raise Exception("Thumbnails for plot types other than PNG require specifying fig=")
            else:
              pngfile = filename + ".png"
              fig.savefig(pngfile, format='png', dpi=fig.get_dpi())
@@ -263,10 +263,10 @@ class AbstractPlot(object):
     def backend(self,thebackend):
         #try:
         global plt
-        print "started with %s" % plt.get_backend()
+        print("started with %s" % plt.get_backend())
         plt.switch_backend(thebackend)
     #except Exception, e:
-        print "changing matplotlib backend the hard way"
+        print("changing matplotlib backend the hard way")
         # See http://stackoverflow.com/questions/3285193/how-to-switch-backends-in-matplotlib-python
 
         modules = []
@@ -281,5 +281,5 @@ class AbstractPlot(object):
         matplotlib.use(thebackend)
         import matplotlib.pyplot as plt
 
-        print "ended with %s" % plt.get_backend()
+        print("ended with %s" % plt.get_backend())
 

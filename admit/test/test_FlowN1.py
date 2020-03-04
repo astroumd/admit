@@ -31,7 +31,7 @@ if __name__ == '__main__':
         # use the current directory
         a = admit.Admit()
 
-    print 'FlowN1:  new admit?',a.new
+    print('FlowN1:  new admit?',a.new)
 
     a1 = File_AT()
     i1 = a.addtask(a1)

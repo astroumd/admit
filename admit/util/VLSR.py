@@ -14,7 +14,7 @@ import numpy as np
 from admit.util.AdmitLogging import AdmitLogging as logging
 
 try:
-    import utils
+    from . import utils
     have_ADMIT = True
 except:
     have_ADMIT = False
@@ -72,7 +72,7 @@ class VLSR(object):
             src = src.strip(quote1)
         if src[0] == quote2:
             src = src.strip(quote2)
-        if self.cat.has_key(src):
+        if src in self.cat:
             return self.cat[src]
         else:
             return 0.0
@@ -81,26 +81,26 @@ class VLSR(object):
         """ experimental Simbad/NED
         """
         if have_SB:
-            print "Trying SIMBAD..."
+            print("Trying SIMBAD...")
             try:
                 t1 = Simbad.query_object(name)
-                print t1.colnames
-                print t1
+                print(t1.colnames)
+                print(t1)
             except:
                 pass
         else:
-            print "No SIMBAD"
+            print("No SIMBAD")
         if have_NED:
-            print "Trying NED..."
+            print("Trying NED...")
             try:
                 t2 = Ned.query_object(name)
-                print t2.colnames
-                print t2
-                print 'VLSR=',t2['Velocity'].item()
+                print(t2.colnames)
+                print(t2)
+                print('VLSR=',t2['Velocity'].item())
             except:
                 pass
         else:
-            print "No NED"
+            print("No NED")
 
     def try_SB(self,name):
         return 0.0
@@ -135,7 +135,7 @@ def read_vlsr(filename, upper=True):
         elif line[0] == quote1:
             loc = line[1:].find(quote1) + 1
             if loc==0: 
-                print "VLSR: Skipping bad line",line.strip()," in ",filename
+                print("VLSR: Skipping bad line",line.strip()," in ",filename)
                 continue
             src = line[1:loc]       # sourcename without the quotes
             if upper:
@@ -144,7 +144,7 @@ def read_vlsr(filename, upper=True):
         elif line[0] == quote2:
             loc = line[1:].find(quote2) + 1
             if loc==0: 
-                print "VLSR: Skipping bad line",line.strip()," in ",filename
+                print("VLSR: Skipping bad line",line.strip()," in ",filename)
                 continue
             src = line[1:loc]       # sourcename without the quotes
             if upper:
@@ -160,10 +160,10 @@ def read_vlsr(filename, upper=True):
 if __name__ == "__main__":
 
     vq = VLSR()
-    print vq.vlsr("NGC6503")    # should print 25.0
-    print vq.vlsr("ngc6503")    # should print 25.0
-    print vq.vlsr("foobar")     # should print 0.0
-    print vq.vlsr("L1551 NE")   # should print 7.0
-    print vq.vlsr("'L1551 NE'") # should print 7.0 
+    print(vq.vlsr("NGC6503"))    # should print 25.0
+    print(vq.vlsr("ngc6503"))    # should print 25.0
+    print(vq.vlsr("foobar"))     # should print 0.0
+    print(vq.vlsr("L1551 NE"))   # should print 7.0
+    print(vq.vlsr("'L1551 NE'")) # should print 7.0 
     vq.vlsr2("NGC6503")
     

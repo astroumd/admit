@@ -31,7 +31,7 @@ class TestTier1DB(unittest.TestCase):
         self.db.close()
 
     def test_AAAwhoami(self):
-        print "\n==== %s ====" % self.testName
+        print("\n==== %s ====" % self.testName)
 
     # test searchtransitions() and getone()
     def test_transitions(self):
@@ -63,9 +63,9 @@ class TestTier1DB(unittest.TestCase):
         ret = self.db.getone()
 
         if(self.verbose):
-            print "\nTier1 Database Transitions Tbale Query result:"
+            print("\nTier1 Database Transitions Tbale Query result:")
             for i in range(len(ret)):
-                print ret[i]
+                print(ret[i])
 
         engy = ret.getkey('energies')
         self.assertEqual('CCH', ret.getkey('formula'))
@@ -108,9 +108,9 @@ class TestTier1DB(unittest.TestCase):
         # row #1
         ret = rows[0]
         if(self.verbose):
-            print "\nTier1 Database HFS Table Row 1 Query result:"
+            print("\nTier1 Database HFS Table Row 1 Query result:")
             for i in range(len(ret)):
-                print ret[i]
+                print(ret[i])
 
         engy = ret.getkey('energies')
         self.assertEqual(873.09954, ret.getkey('frequency'))
@@ -122,9 +122,9 @@ class TestTier1DB(unittest.TestCase):
         # row #2
         ret = rows[1]
         if(self.verbose):
-            print "\nTier1 Database HFS Table Row 2 Query result:"
+            print("\nTier1 Database HFS Table Row 2 Query result:")
             for i in range(len(ret)):
-                print ret[i]
+                print(ret[i])
 
         engy = ret.getkey('energies')
         self.assertEqual(873.11769, ret.getkey('frequency'))
@@ -148,9 +148,9 @@ class TestTier1DB(unittest.TestCase):
         # the list should have only one row
         ret = rows[0]
         if(self.verbose):
-            print "\nTier1 Database Query result:"
+            print("\nTier1 Database Query result:")
             for i in range(len(ret)):
-                print ret[i]
+                print(ret[i])
 
         self.assertEqual('CCH', ret[0])
         self.assertEqual('Ethynyl', ret[1])

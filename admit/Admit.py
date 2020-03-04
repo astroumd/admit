@@ -215,9 +215,9 @@ class Admit(object):
             baseDir = os.path.abspath(self.currDir + os.sep)
             #print "Local ADMIT"
         #print "ADMIT(%s): CWD=%s" % (baseDir, self.currDir)
-        print "ADMIT basedir   = %s" % (baseDir)
-        print "ADMIT root      = %s" % (utils.admit_root())
-        print "ADMIT version   = %s" % (self.version())
+        print("ADMIT basedir   = %s" % (baseDir))
+        print("ADMIT root      = %s" % (utils.admit_root()))
+        print("ADMIT version   = %s" % (self.version()))
 
         self._loggername = baseDir.replace("/", ".")
         if self._loggername.startswith("."):
@@ -317,16 +317,16 @@ class Admit(object):
         signal.signal(signal.SIGUSR1, self._signal_handler)
         self._pid = os.getpid()
 
-        if self.userData.has_key('flowcount'):
+        if 'flowcount' in self.userData:
             self.count = self.userData['flowcount'] + 1
         else:
             self.count = 1
         self.userData['flowcount'] = self.count
-        print "ADMIT flowcount = %d stale = %d" % (self.count,self.astale)
+        print("ADMIT flowcount = %d stale = %d" % (self.count,self.astale))
 
     def __str__(self):
-        print bt.format.BOLD + bt.color.GREEN + "ADMIT :" + bt.format.END
-        print self.fm
+        print(bt.format.BOLD + bt.color.GREEN + "ADMIT :" + bt.format.END)
+        print(self.fm)
         return ""
 
     def __del__(self):
@@ -707,7 +707,7 @@ class Admit(object):
             # Remove orphaned BDPs attached to any remaining unmatched tasks.
             # These tasks are gone from the flow.
             for tid0 in self._fm0:
-              if not self._fm0._twins.has_key(tid0):
+              if tid0 not in self._fm0._twins:
                 task = self._fm0[tid0]
                 logging.warning("Task %s - '%s' no longer in flow; deleting "
                                 "associated BDP data:" %
@@ -732,7 +732,7 @@ class Admit(object):
 #        print "******************DONE RUN IN THREADPOOL*************************"
 
     def _signal_handler(self,num,stack):
-        print 'Received signal %d in %s' % (num, threading.currentThread())
+        print('Received signal %d in %s' % (num, threading.currentThread()))
         sys.stdout.flush()
         sys.stderr.flush()
         self.run()
@@ -820,7 +820,7 @@ class Admit(object):
            -------
            None
         """
-        print "############## SUMMARY DATA ###############"
+        print("############## SUMMARY DATA ###############")
         self.summaryData.show()
 
     def userdata(self):
@@ -947,8 +947,8 @@ class Admit(object):
             with open(outfile,"w") as f:
                 f.write(template % (basedir, basedir, logtext, datetime.datetime.now()) )
                 f.close()
-        except Exception, e:
-            print e
+        except Exception as e:
+            print(e)
             return
 
 
@@ -1038,14 +1038,14 @@ class Admit(object):
             -----
             Currently only display FlowManager contents.
         """
-        print "==== ADMIT(%s) ====" % (self.name)
+        print("==== ADMIT(%s) ====" % (self.name))
         self.fm.show()
 
     def browse(self):
         """Open a web browser tab with the URL of this admit project"""
         try:
             webbrowser.open_new_tab(url=self._data_url)
-        except Exception, e:
+        except Exception as e:
             logging.warning("Couldn't open URL '%s' because %s" % (self._data_url,e))
 
     def showsetkey(self, outfile=None):
@@ -1112,7 +1112,7 @@ class Admit(object):
         if key in self.userData:
             return self.userData[key]
         else:
-            print "ADMIT: %s not a valid userData key" % key
+            print("ADMIT: %s not a valid userData key" % key)
 
     def has(self, key):
         """Query if a global user key exists for this admit project.
@@ -1141,11 +1141,11 @@ class Admit(object):
             None
 
         """
-        print '\n* Methods *'
+        print('\n* Methods *')
         for names in dir(self):
             attr = getattr(self, names)
             if callable(attr):
-                print names, ':', attr.__doc__
+                print(names, ':', attr.__doc__)
 
     def print_attributes(self):
         """ Print all the attributes of this object and their value(s).
@@ -1158,11 +1158,11 @@ class Admit(object):
             -------
             None
         """
-        print '* Attributes *'
+        print('* Attributes *')
         for names in dir(self):
             attr = getattr(self, names)
             if not callable(attr):
-                print names, ':', attr
+                print(names, ':', attr)
 
     def print_all(self):
         """ Calls all the methods of this object.
@@ -1196,8 +1196,8 @@ class Admit(object):
            list
                Search results.
         """
-        print "query_dir() and find_files() are the worker functions"
-        print "discover not implemented yet"
+        print("query_dir() and find_files() are the worker functions")
+        print("discover not implemented yet")
         pp = []
         return pp
 
@@ -1370,7 +1370,7 @@ class Admit(object):
         -----
         Not implemented.
         """
-        print "Export: ", mode
+        print("Export: ", mode)
 
 
     def write(self):
@@ -1419,7 +1419,7 @@ class Admit(object):
         nd = []
         st = []
         attr = copy.deepcopy(self.userData)
-        for k, v in attr.iteritems():
+        for k, v in attr.items():
             if isinstance(v, np.ndarray):
                 nd.append(k)
                 attr[k] = np.ndarray.tolist(v)
@@ -1559,7 +1559,7 @@ class Admit(object):
         """
         files = utils.getFiles(self.dir())
 
-        for task in self.fm._tasks.values():
+        for task in list(self.fm._tasks.values()):
             delfiles = []
             for bdp in task._bdp_out:
                 if bdp is None:
@@ -1574,7 +1574,7 @@ class Admit(object):
 
         for file in files:
             bdp = utils.getBDP(file)
-            print "DELETING",bdp.xmlFile
+            print("DELETING",bdp.xmlFile)
             bdp.delete()
             del bdp
 
@@ -1596,7 +1596,7 @@ class Admit(object):
            None
         """
         if self._server != None:
-            print "A data server for this Admit object is already running on localhost:%d" % self._data_browser_port
+            print("A data server for this Admit object is already running on localhost:%d" % self._data_browser_port)
             return
 
         server_address = ("localhost", self._data_browser_port)
@@ -1604,7 +1604,7 @@ class Admit(object):
             self._server = admit.util.AdmitHTTP.AdmitHTTPServer(server_address, docroot=self.baseDir, postcallback = self._onpost )
             self._data_browser_port = self._server.server_address[1]
         except:
-            print "Failed to get a port for the data browser."
+            print("Failed to get a port for the data browser.")
             return
 
         threadName = "%s:%d" % (self.baseDir, self._data_browser_port)
@@ -1613,7 +1613,7 @@ class Admit(object):
         thread.start()
         # create the attribute but we don't wish to save it in admit.xml
         self._data_url = 'http://localhost:%d' % self._data_browser_port
-        print "Your data server is started on %s. Attempting to open a browser page with that URL. \nThe data server will halt when you quit your CASA session or otherwise destroy this ADMIT object." % self._data_url
+        print("Your data server is started on %s. Attempting to open a browser page with that URL. \nThe data server will halt when you quit your CASA session or otherwise destroy this ADMIT object." % self._data_url)
         # open page in new tab if possible
         self.browse()
 
@@ -1703,14 +1703,14 @@ class Admit(object):
                        else:
                            #print "AST key=%s, val=%s" % (key,ast.literal_eval(t[key]) )
                            self.fm[taskid].setkey(key,ast.literal_eval(t[key]))
-            except Exception, e:
-               print "Bummer, got exception %s" % e
+            except Exception as e:
+               print("Bummer, got exception %s" % e)
                traceback.print_exc()
                return
             
             try:
                logging.info("Re-running admit...")
-               print "[you may have hit return here]"
+               print("[you may have hit return here]")
                #self.queue.put(self.run)
                #self.runqueue()
                os.kill(self._pid,signal.SIGUSR1)
@@ -1722,8 +1722,8 @@ class Admit(object):
                    formurl = self._data_url+"/form.html"
                    webbrowser.open(url=formurl,new=0)
                return
-            except Exception, e:
-               print "got exception on run %s" % e
+            except Exception as e:
+               print("got exception on run %s" % e)
                traceback.print_exc()
 
         elif command == "dryrun":
@@ -1746,8 +1746,8 @@ class Admit(object):
             # update all downstream stale flags, so that they
             # get marked in the HTML file.
                        self.fm.connectInputs()
-            except Exception, e:
-               print "Bummer, got exception %s" % e
+            except Exception as e:
+               print("Bummer, got exception %s" % e)
                traceback.print_exc()
                return
             
@@ -1759,8 +1759,8 @@ class Admit(object):
                     formurl = self._data_url+"/form.html"
                     webbrowser.open(url=formurl,new=0)
                 return
-            except Exception, e:
-                print "got exception on dryrun %s" % e
+            except Exception as e:
+                print("got exception on dryrun %s" % e)
                 traceback.print_exc()
                 return
 
@@ -1811,8 +1811,8 @@ class Admit(object):
             
                 self.write()
 
-            except Exception, e:
-                print "got exception on LineList_BDP write: %s" % e
+            except Exception as e:
+                print("got exception on LineList_BDP write: %s" % e)
                 traceback.print_exc()
                 return
         elif command == "view":
@@ -1823,8 +1823,8 @@ class Admit(object):
                 import casa
                 axes = {'x':'x','y':'y','z':'z'}
                 casa.imview(raster=fullpath,axes=axes)
-            except Exception, e:
-                print "got exception on viewer launch: %s" % e
+            except Exception as e:
+                print("got exception on viewer launch: %s" % e)
                 traceback.print_exc()
                 return
 
@@ -1890,13 +1890,13 @@ class Admit(object):
                 #http://stackoverflow.com/questions/11235206/twitter-bootstrap-form-file-element-upload-button
                 import casa
                 casa.exportfits(casaimage,fitsimage,overwrite=False)
-            except Exception, e:
-                print "got exception on exportfits: %s" % e
+            except Exception as e:
+                print("got exception on exportfits: %s" % e)
                 traceback.print_exc()
                 return
 
         else:
-            print "Unrecognized command %s" % command
+            print("Unrecognized command %s" % command)
 
 
     def _dotdiagram(self):
@@ -1950,7 +1950,7 @@ class Admit(object):
         
         @todo This is a patch solution for admit 1.1 - general solution needed
         """
-        cnt0 = len(self.fm._tasks.keys())
+        cnt0 = len(list(self.fm._tasks.keys()))
         cnt1 = 0  # stale
         cnt2 = 0  # running? (if it did, those crashed)
         cnt3 = 0  # enabled
@@ -1964,10 +1964,10 @@ class Admit(object):
                 self.old[t] = self[t].isstale()
             
         if dryrun:
-            print "ADMIT_STALE: %d/%d were stale ; %d running, %d enabled, current setting is %d" % (cnt1,cnt0,cnt2,cnt3,self.astale)
+            print("ADMIT_STALE: %d/%d were stale ; %d running, %d enabled, current setting is %d" % (cnt1,cnt0,cnt2,cnt3,self.astale))
             return
         if verbose:
-            print "ADMIT_STALE: %d/%d were stale ; setting to %d" % (cnt1,cnt0,astale)
+            print("ADMIT_STALE: %d/%d were stale ; setting to %d" % (cnt1,cnt0,astale))
         if astale:
             self.astale = 1
             for t in self:
@@ -1981,4 +1981,4 @@ class Admit(object):
                     self[t].markUpToDate()
 
 if __name__ == "__main__":
-    print "MAIN not active yet, but this is where it will go"
+    print("MAIN not active yet, but this is where it will go")

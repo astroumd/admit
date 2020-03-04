@@ -6,7 +6,7 @@
     This module defines the SpwCube_BDP class.
 """
 
-from Image_BDP import Image_BDP
+from .Image_BDP import Image_BDP
 
 class SpwCube_BDP(Image_BDP):
     """Generic data cube product.

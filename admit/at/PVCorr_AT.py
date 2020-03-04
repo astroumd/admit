@@ -27,11 +27,11 @@ try:
     import scipy
     import scipy.signal
 except:
-    print "WARNING: No scipy; PVCorr task cannot function."
+    print("WARNING: No scipy; PVCorr task cannot function.")
 try:
     import casa
 except:
-    print "WARNING: No CASA; PVCorr task cannot function."
+    print("WARNING: No CASA; PVCorr task cannot function.")
 
 #
 # Some discussion/code on https://github.com/keflavich/image_registration
@@ -152,7 +152,7 @@ class PVCorr_AT(AT):
         if len(chans) > 0:
             if len(chans) != 2:
                 logging.fatal("range=%s" % chans)
-                raise Exception,"range= needs two values, left and right (inclusive) channel"
+                raise Exception("range= needs two values, left and right (inclusive) channel")
             ch0 = chans[0]
             ch1 = chans[1]
         else:
@@ -223,10 +223,10 @@ class PVCorr_AT(AT):
         # print "PVCORR SHAPE ",corr.shape," mode", mode
         if len(corr) > 0:
             # print "SHAPE out:",out.shape,corr.shape,npos/2
-            ch  = range(len(corr))
+            ch  = list(range(len(corr)))
             if len(corr) != len(freq):
                 logging.fatal("ch (%d) and freq (%d) do not have same size" % (len(corr),len(freq)))
-                raise Exception,"ch and freq do not have same dimension"
+                raise Exception("ch and freq do not have same dimension")
             dt.tag("mode")
             labels = ["channel",   "frequency",  "pvcorr"]
             units  = ["number",    "GHz",        "N/A"]
@@ -285,7 +285,7 @@ class PVCorr_AT(AT):
             @todo the frequency axis is not properly calibrated here
             @todo a full 2D is slow, we only need the 1D version
         """
-        print "PVCorr mode3: v0,1=",v0,v1
+        print("PVCorr mode3: v0,1=",v0,v1)
         smin = data.min()
         #s = data[v0:v1+1,:]
         s = data[:,v0:v1+1]
@@ -302,13 +302,13 @@ class PVCorr_AT(AT):
         f0 = np.where(s>smin,1,0)
         f1 = np.where(s>dmin,1,0)
         fmax = f.max()
-        print "PVCorr mode3:",f1.sum(),'/',f0.sum(),'min/max',smin,fmax
+        print("PVCorr mode3:",f1.sum(),'/',f0.sum(),'min/max',smin,fmax)
         out =  scipy.signal.correlate2d(data,f,mode='same')
         self.myplot.map1(data=f,title="PVCorr 2D Kernel",figname='PVCorrKernel', thumbnail=True)
 
-        print 'PVCorr min/max:',out.min(),out.max()
+        print('PVCorr min/max:',out.min(),out.max())
         n1,m1,s1,n2,m2,s2 = stats.mystats(out.flatten())
-        print "PVCorr stats", n1,m1,s1,n2,m2,s2
+        print("PVCorr stats", n1,m1,s1,n2,m2,s2)
         rms_est = s2/np.sqrt(f1.sum())
         return out,rms_est
 
@@ -387,7 +387,7 @@ def mode2(data,v0,v1, dmin=0.0):
         @todo the frequency axis is not properly calibrated here
         @todo a full 2D is slow, we only need the 1D version
     """
-    print "PVCorr mode2: v0,1=",v0,v1,"dmin=",dmin
+    print("PVCorr mode2: v0,1=",v0,v1,"dmin=",dmin)
     smin = data.min()
     s = data[:,v0:v1+1]
     if dmin==0.0:
@@ -395,15 +395,15 @@ def mode2(data,v0,v1, dmin=0.0):
         f = s
     else:
         f = np.where(s>dmin,s,0)
-    print "PVCorr dmin:",dmin
+    print("PVCorr dmin:",dmin)
     f0 = np.where(s>smin,1,0)
     f1 = np.where(s>dmin,1,0)
     fmax = f.max()
     ffsum = (f*f).sum()
-    print "PVCorr mode2:",f1.sum(),'/',f0.sum(),'min/max',smin,fmax
+    print("PVCorr mode2:",f1.sum(),'/',f0.sum(),'min/max',smin,fmax)
     out =  scipy.signal.correlate2d(data,f,mode='same')/ffsum
-    print 'PVCorr min/max:',out.min(),out.max()
+    print('PVCorr min/max:',out.min(),out.max())
     n1,m1,s1,n2,m2,s2 = stats.mystats(out.flatten())
-    print "PVCorr stats", n1,m1,s1,n2,m2,s2
+    print("PVCorr stats", n1,m1,s1,n2,m2,s2)
     rms_est = s2/np.sqrt(f1.sum())
     return out,rms_est

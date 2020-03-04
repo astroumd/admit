@@ -44,7 +44,7 @@ if __name__ == '__main__':
     else:                                 # or else the current directory
         a = admit.Admit()
 
-    print 'Flow11:  new admit?',a.new
+    print('Flow11:  new admit?',a.new)
 
     a1 = File_AT()
     i1 = a.addtask(a1)
@@ -62,8 +62,8 @@ if __name__ == '__main__':
         from admit.at.Flow11_AT  import Flow11_AT
         a.run()            # need to run the flow, otherwise #BDP's unknown
         n1 = len(a2)       # of course n1 = n, but we don't know this
-        a3 = range(n1)     # a list of AT's
-        i3 = range(n1)     # a list of ATID's
+        a3 = list(range(n1))     # a list of AT's
+        i3 = list(range(n1))     # a list of ATID's
         for i in range(n1):
             a3[i] = Flow11_AT()
             i3[i] = a.addtask(a3[i], [(i2,i)])

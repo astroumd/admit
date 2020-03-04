@@ -32,7 +32,7 @@ try:
   import casa
   import taskinit
 except:
-  print "WARNING: No CASA; PVSlice task cannot function."
+  print("WARNING: No CASA; PVSlice task cannot function.")
 
 class PVSlice_AT(AT):
     """Create a PV Slice through a cube.
@@ -212,7 +212,7 @@ class PVSlice_AT(AT):
             maxposx = b12.table.getColumnByName("maxposx")
             maxposy = b12.table.getColumnByName("maxposy")
             if maxposx == None:
-              raise Exception,"PPP was not enabled in your CubeStats"
+              raise Exception("PPP was not enabled in your CubeStats")
             (pvslice,clip) = tab_to_slit([maxposx,maxposy,max],clip=clip,gamma=gamma)
         sliceargs = deepcopy(pvslice)
         if len(sliceargs)==0:
@@ -246,7 +246,7 @@ class PVSlice_AT(AT):
                 pa = pvslit[3]
             impv(self.dir(fin), self.dir(pvname),"length",center=center,length=length,pa=pa,width=width,overwrite=True)
         else:
-            raise Exception,"no valid input  slit= or slice= or bad Moment_BDP input"
+            raise Exception("no valid input  slit= or slice= or bad Moment_BDP input")
         sliceargs.append(width)
         taskargs = taskargs + " width=%d" % width
         dt.tag("impv")
@@ -547,8 +547,8 @@ def expand_line(x0,y0,x1,y1,nx,ny,edge=6):
     y_e = yc + a*(edge-xc)
     x_n = xc + (ny-edge-1-yc)/a
     y_n = yc + a*(nx-edge-1-xc)
-    print "x,y(0)  x,y(1):",x0,y0,x1,y1
-    print "x,y(e)  x,y(n):",x_e,y_e,x_n,y_n
+    print("x,y(0)  x,y(1):",x0,y0,x1,y1)
+    print("x,y(e)  x,y(n):",x_e,y_e,x_n,y_n)
     e = []
     if inside(x_e,edge,nx):  
         e.append(x_e)
@@ -565,7 +565,7 @@ def expand_line(x0,y0,x1,y1,nx,ny,edge=6):
     if len(e) != 4:
         # can happen for small maps?
         msg = "Math Error in expand_line: ",e
-        raise Exception,msg
+        raise Exception(msg)
     return e
 
 

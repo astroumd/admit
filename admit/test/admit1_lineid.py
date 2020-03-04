@@ -26,26 +26,26 @@ a = admit.Admit()
 if a.new:
     m1 = "Cannot continue, there is no ADMIT project here. "
     m2 = "You need to run this from within the .admit directory"
-    raise Exception,m1+m2
+    raise Exception(m1+m2)
 
 #  to find the correct "lid", run admit1 on the foobar.admit directory
 ats = a.fm.find(lambda at: at._type in valid_ats)
 if len(ats) == 1:
     lid = ats[0].id()
-    print "Found %s with taskid = %d" % (ats[0]._type, lid)
+    print("Found %s with taskid = %d" % (ats[0]._type, lid))
 else:
-    print "Could not find an AT in your flow with names",valid_ats
+    print("Could not find an AT in your flow with names",valid_ats)
     a.exit(1)
 
 if not a.has("test_lineid"):
     first_time = True
     # first time: remove below LineID, stale the AT itself
-    print "First time running, preparing to clean the flow for regression in",a.get("admit_dir")
+    print("First time running, preparing to clean the flow for regression in",a.get("admit_dir"))
     a.set(test_lineid=0)
     a.fm.remove(lid,True)
     a.fm.stale(lid)
     cmd = "find . -type d -exec rm -rf '{}' \;"
-    print "CMD-1:",cmd
+    print("CMD-1:",cmd)
     os.system(cmd)
 else:
     # mark it stale again, so it's always running
@@ -82,7 +82,7 @@ if True:
     a.run()
     a.write()
 else:
-    print "Doesn't work yet"
+    print("Doesn't work yet")
     #a[lid].execute() -> bug
     #a[lid].run()
 
@@ -93,8 +93,8 @@ if first_time:
     aname = a.get('admit_dir')
     if aname.find('/') >= 0:
         # both /foo/bar.fits and foo/bar.fits won't work in this schema
-        print "no support for subdirectories yet",aname
+        print("no support for subdirectories yet",aname)
         a.exit(1)
     cmd   = 'cd ..;tar cf %s.tar %s' % (aname,aname)
-    print 'CMD-2:',cmd
+    print('CMD-2:',cmd)
     os.system(cmd)

@@ -72,11 +72,11 @@ class AdmitLogging(object):
             fhandler.setFormatter(logging.Formatter(fmt))
             fhandler.setLevel(level)
             logger.addHandler(fhandler)
-        except Exception, msg:
-            print "WARNING"
-            print "WARNING   Cannot write to log file: %s" % (msg)
-            print "WARNING   File logging disabled, logging will only appear on screen."
-            print "WARNING"
+        except Exception as msg:
+            print("WARNING")
+            print("WARNING   Cannot write to log file: %s" % (msg))
+            print("WARNING   File logging disabled, logging will only appear on screen.")
+            print("WARNING")
         handler = logging.StreamHandler(sys.stdout)
         handler.setLevel(level)
         handler.setFormatter(logging.Formatter(fmt))
@@ -109,7 +109,7 @@ class AdmitLogging(object):
             msg = fl[fl.rfind("/") + 1:] + " : " + message
         # if there is no logger then just print to the screen
         if logger is None:
-            print "WARNING : " + msg
+            print("WARNING : " + msg)
         else:
             logger.warning(msg)
 
@@ -138,7 +138,7 @@ class AdmitLogging(object):
             msg = fl[fl.rfind("/") + 1:] + " : " + message
         # if there is no logger then just print to the screen
         if logger is None:
-            print "INFO : " + msg
+            print("INFO : " + msg)
         else:
             logger.info(msg)
 
@@ -168,7 +168,7 @@ class AdmitLogging(object):
             msg = fl[fl.rfind("/") + 1:] + " : " + message
         # if there is no logger then just print to the screen
         if logger is None:
-            print "ERROR : " + msg
+            print("ERROR : " + msg)
         else:
             logger.error(msg)
 
@@ -197,7 +197,7 @@ class AdmitLogging(object):
             msg = fl[fl.rfind("/") + 1:] + " : " + message
         # if there is no logger then just print to the screen
         if logger is None:
-            print "CRITICAL : " + msg
+            print("CRITICAL : " + msg)
         else:
             logger.critical(msg)
 
@@ -226,7 +226,7 @@ class AdmitLogging(object):
             msg = fl[fl.rfind("/") + 1:] + " : " + message
         # if there is no logger then just print to the screen
         if logger is None:
-            print "DEBUG : " + msg
+            print("DEBUG : " + msg)
         else:
             logger.debug(msg)
 
@@ -258,7 +258,7 @@ class AdmitLogging(object):
             msg = fl[fl.rfind("/") + 1:] + " : " + message
         # if there is no logger then just print to the screen
         if logger is None:
-            print "LOG : " + msg
+            print("LOG : " + msg)
         else:
             logger.log(level, msg)
 
@@ -330,7 +330,7 @@ class AdmitLogging(object):
             # look for either AT.py or Admit.py in the stack
             if "Admit.py" in i[1] or "AT.py" in i[1]:
                 # when found, get the class instance
-                for k in getargvalues(i[0]).locals.keys():
+                for k in list(getargvalues(i[0]).locals.keys()):
                     if 'self' == k:
                         aclass = getargvalues(i[0]).locals[k]
                         break
@@ -410,7 +410,7 @@ class AdmitLogging(object):
         if logger is None:
             return
         logger.info("  Run using the following settings:")
-        for k, v in kw.iteritems():
+        for k, v in kw.items():
             logger.info("    %s :  %s" % (k, str(v)))
         logger.info("")
 

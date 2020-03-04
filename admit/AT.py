@@ -170,17 +170,17 @@ class AT(object):
         self._keys.update(keys)
 
         # Task alias.
-        if keyvals.has_key('alias'):
+        if 'alias' in keyvals:
             self._keys['alias'] = keyvals.pop('alias')
         self._alias = self._keys.pop('alias')
 
         # Task ID.
-        if keyvals.has_key('taskid'):
+        if 'taskid' in keyvals:
             self._keys['taskid'] = keyvals.pop('taskid')
         self._taskid = self._keys.pop('taskid')
 
         # Variflow support.
-        if keyvals.has_key('variflow'):
+        if 'variflow' in keyvals:
             self._keys['variflow'] = keyvals.pop('variflow')
         self._variflow = self._keys.pop('variflow')
 
@@ -270,12 +270,12 @@ class AT(object):
         self._bdp_out[index] = bdp
 
     def __str__(self):
-        print(bt.format.BOLD + bt.color.GREEN + "\nAT :" + bt.format.END + bt.format.BOLD + self._type + bt.format.END)
-        for i, j in self.__dict__.iteritems():
+        print((bt.format.BOLD + bt.color.GREEN + "\nAT :" + bt.format.END + bt.format.BOLD + self._type + bt.format.END))
+        for i, j in self.__dict__.items():
             if isinstance(j, BDP):
-                print(str(j))
+                print((str(j)))
                 continue
-            print(bt.format.BOLD + i + ": " + bt.format.END + str(j))
+            print((bt.format.BOLD + i + ": " + bt.format.END + str(j)))
         for bdp in self._bdp_out:
             print(bdp)
         return "\n"
@@ -544,7 +544,7 @@ class AT(object):
            None
         """
         self._stale = False
-        for i,bdp in zip(range(len(self._bdp_out)),self._bdp_out):
+        for i,bdp in zip(list(range(len(self._bdp_out))),self._bdp_out):
             if bdp is not None:
                 logging.info("BDP_OUT[%d] = %s %s" % (i,str(bdp._type),bdp.xmlFile))
             else:
@@ -993,7 +993,7 @@ class AT(object):
             #2
             # check that the key is valid and not changing data type
             if not self.haskey(name):
-                print("valid keys: ", self._keys)
+                print(("valid keys: ", self._keys))
                 raise Exception("%s is not a valid key for %s." % (name, self._type))
             if type(self._keys[name]) != type(value):
                 if isinstance(self._keys[name], float) and isinstance(value, int):

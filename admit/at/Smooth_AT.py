@@ -21,7 +21,7 @@ try:
   import casa
   import taskinit
 except:
-  print "WARNING: No CASA; Smooth task cannot function."
+  print("WARNING: No CASA; Smooth task cannot function.")
 
 class Smooth_AT(AT):
     """Creates a smoothed version of a datacube.
@@ -234,7 +234,7 @@ class Smooth_AT(AT):
                 # than Hz). MUST smooth in 2+ dimensions if you want this to work.
 
                 if(velres['value'] < vel_scale):
-                    raise Exception,"Desired velocity resolution %g less than pixel scale %g" % (velres['value'],vel_scale)
+                    raise Exception("Desired velocity resolution %g less than pixel scale %g" % (velres['value'],vel_scale))
                 image_tmp = self.dir('tmp.smooth')
                 im2=ia.sepconvolve(outfile=image_tmp,axes=[0,1,2], types=["boxcar","boxcar","gauss"],\
                                               widths=['1pix','1pix',freq_res], overwrite=True)
@@ -283,7 +283,7 @@ class Smooth_AT(AT):
                     logging.error("Warning: Could not convolve to requested resolution of "\
                             +str(bmaj['value']) + " by " + str(bmin['value']) + \
                             " at a PA of "+ str(bpa['value']))
-                    raise Exception,"Could not convolve to beam given!"
+                    raise Exception("Could not convolve to beam given!")
             dt.tag("convolve2d-1")
 
             if convolve_to_min_beam:
@@ -295,10 +295,10 @@ class Smooth_AT(AT):
 
                 # if there's one beam, apparently the beams keyword does not exist
                 if 'beams' in restoring_beams: 
-                    print "Smoothing cube to a resolution of "+  \
+                    print("Smoothing cube to a resolution of "+  \
                          str(commonbeam['major']['value']) +" by "+ \
                          str(commonbeam['minor']['value'])+" at a PA of "\
-                        +str(commonbeam['pa']['value'])  
+                        +str(commonbeam['pa']['value']))  
                     target_res = commonbeam
                     im2=ia.convolve2d(outfile=image_out,major=commonbeam['major'],\
                                                minor=commonbeam['minor'],\
@@ -308,7 +308,7 @@ class Smooth_AT(AT):
                     achieved_res = commonbeam
                     dt.tag("convolve2d-2")
                 else:
-                    print "One beam for all planes. Smoothing to common beam redundant."
+                    print("One beam for all planes. Smoothing to common beam redundant.")
                     achieved_res = commonbeam 
                     if velres['value'] < 0:
                         ia.fromimage(outfile=image_out, infile=image_in)

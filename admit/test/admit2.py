@@ -108,13 +108,13 @@ admit.utils.assert_files([file,pb])                # this will halt the script i
 #------------------------------------------------------- start of script -----------------------------------------------
 
 #  announce version
-print 'ADMIT2: Version ',version
+print('ADMIT2: Version ',version)
 
 #  do the work in a proper ".admit" directory
 adir =  admit.utils.admit_dir(file,out)
 #   dirty method, it really should check if adir is an admit directory
 if doClean and adir != file:
-    print "Removing previous results from ",adir
+    print("Removing previous results from ",adir)
     os.system('rm -rf %s' % adir)
     create=True
 else:
@@ -122,28 +122,28 @@ else:
 
 for ap1 in ['admit2.apar', file+".apar", apar]:         # loop over 3 possible apar files
     if ap1 != "" and os.path.isfile(ap1):
-        print "Found parameter file to execfile:",ap1
-        execfile(ap1)
+        print("Found parameter file to execfile:",ap1)
+        exec(compile(open(ap1, "rb").read(), ap1, 'exec'))
     else:
-        print "Skipping ",ap1
+        print("Skipping ",ap1)
         
     
 # open admit
 a = admit.Project(adir,name='Testing ADMIT2 style pipeline - version %s' % version,create=create,loglevel=loglevel)
 
 if a.new:
-    print "Starting a new ADMIT using ",file
+    print("Starting a new ADMIT using ",file)
     cmd = 'cp -a %s %s' % (sys.argv[0],adir)
     os.system(cmd)
     a.set(admit_dir=adir)
     #
     for ap1 in ['admit2.apar', file+".apar", apar]:         # loop over 3 possible apar files
         if ap1 != "" and os.path.isfile(ap1):
-            print "Found parameter file to cp:",ap1
+            print("Found parameter file to cp:",ap1)
             os.system('cp %s %s' % (ap1,adir))
 else:
-    print "All done, we just read an existing admit.xml and it should do nothing"
-    print "Use admit0.py to re-run inside of your admit directory"
+    print("All done, we just read an existing admit.xml and it should do nothing")
+    print("Use admit0.py to re-run inside of your admit directory")
     #
     a.fm.diagram(a.dir()+'admit.dot')
     a.show()
@@ -205,7 +205,7 @@ else:
 a[sfind1].setkey('numsigma',numsigma)
 
 if repeat:
-    print "REPEAT mode on:"
+    print("REPEAT mode on:")
     # smooth the noise-flat map
 
     if len(smooth2) == 0:

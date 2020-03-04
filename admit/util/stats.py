@@ -147,15 +147,15 @@ if __name__ == "__main__":
     f = 1.5
     if False:
         a = np.random.normal(0.0,1.0,n)     # gaussian
-        print "normal(0.0,1.0,%d)" % n
+        print("normal(0.0,1.0,%d)" % n)
     else:
         a = np.random.random(n)             # uniform
-        print "random(%d)" % n
+        print("random(%d)" % n)
     a1 = rejecto1(a,f)
-    print "rejecto1: ",len(a1)
+    print("rejecto1: ",len(a1))
     a2 = rejecto2(a,f)
-    print "rejecto2: ",len(a2)
-    print "mystats:",mystats(a)
+    print("rejecto2: ",len(a2))
+    print("mystats:",mystats(a))
     ar = robust(a,f)
     #print "robust: ",len(ar),ar
-    print "robust: len=",len(ar)
+    print("robust: len=",len(ar))

@@ -47,12 +47,12 @@ def usage(progname,REQARGS,OPTARGS,KEYS,KEYDESC):
             usagestr = usagestr + k+"= "
         usagestr = usagestr + "] "
      
-    print("Usage: %s " % usagestr)
+    print(("Usage: %s " % usagestr))
     print("\t If you supply any optional keyless argument, you must supply them all\n")
     for k in KEYDESC:
-        print("\t %s - %s" % (k,KEYDESC[k]))
+        print(("\t %s - %s" % (k,KEYDESC[k])))
 
-    print("For detailed help, type '%s help'" % progname)
+    print(("For detailed help, type '%s help'" % progname))
   
 def _processargs(argv,REQARGS,OPTARGS,KEYS,KEYDESC,docstr):
     """Check command arguments and keywords, and possibly print a 

@@ -103,11 +103,11 @@ def get_vlsr(source, vlsr=None):
     if vlsr != None : return vlsr
 
     # if it was in our cute catalog, return that
-    if vcat.has_key(source): return vcat[source]
+    if source in vcat: return vcat[source]
 
     # if all else fails, return 0, or go hunt down NED or SIMBAD (astroquery?)
-    print "GET_VLSR: unknown source %s, using vlsr=0.0" % source
-    print "Known sources are: ",vcat.keys()
+    print("GET_VLSR: unknown source %s, using vlsr=0.0" % source)
+    print("Known sources are: ",list(vcat.keys()))
     return 0.0
 
 def admit_dir(file):
@@ -122,7 +122,7 @@ def admit_dir(file):
         return file + ext
     else:
         if file[loc:] == ext:
-            print "Warning: assuming a re-run on existing ",file
+            print("Warning: assuming a re-run on existing ",file)
             return file
         return file[:loc] + ext
 
@@ -130,20 +130,20 @@ def get_admit_vars(module_name):
     module = globals().get(module_name, None)
     book = {}
     if module:
-        book = {key: value for key, value in module.__dict__.iteritems() if not (key.startswith('__') or key.startswith('_'))}
+        book = {key: value for key, value in module.__dict__.items() if not (key.startswith('__') or key.startswith('_'))}
     return book
 
 # Before command line parsing, attempt to find 'admit_vars.py' with variables to override the admit vars here
 # this doesn't work yet, since CASA modifies the python environment
 try:
-    print 'Trying admit_vars'
+    print('Trying admit_vars')
     import admit_vars
     book = get_admit_vars('admit_vars')
-    for key,val in book.iteritems():
+    for key,val in book.items():
         # print "ADMIT_VAR: ",key,val,type(key),type(val)
         exec(key + '=' + repr(val))
 except:
-    print "No admit_vars.py found, and that's ok."
+    print("No admit_vars.py found, and that's ok.")
 
 
 # allow a command line argument to be the fits file name
@@ -163,13 +163,13 @@ if len(argv) > 3:
 #------------------------------------------------------- start of script -----------------------------------------------
 
 #  announce version
-print 'ADMIT1: Version ',version
+print('ADMIT1: Version ',version)
 
 #  do the work in a proper ".admit" directory
 adir = admit_dir(file)
 #   dirty method, it really should check if adir is an admit directory
 if clean and adir != file:
-    print "Removing previous results from ",adir
+    print("Removing previous results from ",adir)
     os.system('rm -rf %s' % adir)
     create=True
 else:
@@ -178,11 +178,11 @@ else:
 a = admit.Admit(adir,name='Testing ADMIT1 style pipeline - version %s' % version,create=create,loglevel=loglevel)
 
 if a.new:
-    print "Starting a new ADMIT using ",argv[0]
+    print("Starting a new ADMIT using ",argv[0])
     os.system('cp -a %s %s' % (argv[0],adir))
 else:
-    print "All done, we just read an existing admit.xml and it should do nothing"
-    print "Use admit0.py to re-run inside of your admit directory"
+    print("All done, we just read an existing admit.xml and it should do nothing")
+    print("Use admit0.py to re-run inside of your admit directory")
     #
     a.show()
     a.showsetkey()
@@ -248,9 +248,9 @@ pvcorr1 = (corr1,0)
 
 a.run()     # run now, LineID_AT needs the VLSR here
 a.write()
-print "OBJECT 1:", a.summaryData.get('object')
+print("OBJECT 1:", a.summaryData.get('object'))
 vlsr = get_vlsr(a.summaryData.get('object')[0].getValue()[0],vlsr)
-print "VLSR = ",vlsr
+print("VLSR = ",vlsr)
 
 if useUID:
     lineid4 = a.addtask(LineUID_AT(vlsr=vlsr,method=2), [csttab1]) 
@@ -267,7 +267,7 @@ a.run()   # run now, we need nlines
 a.write()
 
 nlines = len(a[lltab1[0]][0])
-print "nlines=",nlines
+print("nlines=",nlines)
 
 # LineCube
 linecube1 = a.addtask(LineCube_AT(), [bandcube1,lltab1])
@@ -276,9 +276,9 @@ a.run()    # run again, we need to find out how many cubes created
 a.write()
 
 nlines = len(a[linecube1])
-print "Found %d lines during runtime" % nlines
+print("Found %d lines during runtime" % nlines)
 
-x = range(nlines)    # place holder to contain mol/line
+x = list(range(nlines))    # place holder to contain mol/line
 m = {}               # task id for moment on this mol/line
 sp= {}               # task id for cubespectrum on this mol/line
 st= {}               # task id for cubestats
@@ -286,11 +286,11 @@ st= {}               # task id for cubestats
 # loop over all lines  ; produce linecubes, moments and spectra
 for i in range(nlines):
     x[i] = a[linecube1][i].getimagefile(bt.CASA)
-    print "LineDir:", i, x[i]
+    print("LineDir:", i, x[i])
     # Moment maps from the LineCube
     linecubei = (linecube1,i)
     m[x[i]] = a.addtask(Moment_AT(),[linecubei,csttab1])
-    print "MOMENT_AT:",m[x[i]]
+    print("MOMENT_AT:",m[x[i]])
     a[m[x[i]]].setkey('moments',[0,1,2])
     #a[m[x[i]]].setkey('cutoff',[2.0,3.0,3.0])
     a[m[x[i]]].setkey('numsigma',[2.0])
@@ -325,9 +325,9 @@ a.run()
 a.write()
 
 linelist = a.summaryData.getLinelist()
-print "LINES FOUND: " 
+print("LINES FOUND: ") 
 for line in linelist[0]:
-    print line
+    print(line)
 
 # symlink resources and write out index.html
 a.updateHTML()

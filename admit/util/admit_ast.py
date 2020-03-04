@@ -57,7 +57,7 @@ def literal_eval(node_or_string):
                    '-inf': float('-inf'),
                    '-Inf': float('-inf'),
                    '-INF': float('-inf')}
-    if isinstance(node_or_string, basestring):
+    if isinstance(node_or_string, str):
         node_or_string = parse(node_or_string, mode='eval')
     if isinstance(node_or_string, Expression):
         node_or_string = node_or_string.body
@@ -81,7 +81,7 @@ def literal_eval(node_or_string):
              isinstance(node.right, Num) and \
              isinstance(node.right.n, complex) and \
              isinstance(node.left, Num) and \
-             isinstance(node.left.n, (int, long, float)):
+             isinstance(node.left.n, (int, float)):
             left = node.left.n
             right = node.right.n
             if isinstance(node.op, Add):

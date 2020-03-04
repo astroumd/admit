@@ -25,7 +25,7 @@ try:
     from imrebin import imrebin
     from casa import imhead
 except:
-    print "WARNING: No CASA; LineCube task cannot function."
+    print("WARNING: No CASA; LineCube task cannot function.")
 
 # system imports
 import os
@@ -204,7 +204,7 @@ class LineCube_AT(AT):
             uid1.append(row.getkey("uid"))
         uid2 = set(uid1)
         if len(uid1) != len(uid2):
-            print "LineList:",uid1
+            print("LineList:",uid1)
             logging.warning("There are duplicate names in the LineList")
             #raise Exception,"There are duplicate names in the LineList"
 

@@ -501,7 +501,7 @@ class LineID_AT(AT):
                     clusters[diff] = dlist
         # get the actual peak points rather then just indexes
         clens = {}
-        for k, v in clusters.iteritems():
+        for k, v in clusters.items():
             tl = []
             for i in v:
                 tl.append([points[i[0]], points[i[1]]])
@@ -545,7 +545,7 @@ class LineID_AT(AT):
         # remove any that appear multiple times
         counts = {}
         multi = {}
-        for k, v in clusters.iteritems():
+        for k, v in clusters.items():
             for i in v:
                 if i[0] in counts:
                     multi[i[0]].append(i)
@@ -557,7 +557,7 @@ class LineID_AT(AT):
                 else:
                     counts[i[1]] = 1
                     multi[i[1]] = [i]
-        for k, v in multi.iteritems():
+        for k, v in multi.items():
             ratios = {}
             r = []
             if len(v) > 1:
@@ -567,9 +567,9 @@ class LineID_AT(AT):
                     r.append(temp)
                     ratios[tuple(i)] = temp
                 best = min(r, key=lambda x: abs(x - 1.0))
-                for k1, v1 in ratios.iteritems():
+                for k1, v1 in ratios.items():
                     if best != v1:
-                        for k2 in clusters.keys():
+                        for k2 in list(clusters.keys()):
                             try:
                                 clusters[k2].remove(list(k1))
                             except ValueError:
@@ -578,13 +578,13 @@ class LineID_AT(AT):
         remove = []
         newcounts = {}
         counts = set()
-        for k, v in clusters.iteritems():
+        for k, v in clusters.items():
             counts.add(len(v))
         if len(counts) > 0:
             counts = sorted(counts)
             counts.reverse()
             counts = counts[0:min(2, len(counts))]
-        for k, v in clusters.iteritems():
+        for k, v in clusters.items():
             if not len(v) in counts:
                 remove.append(k)
                 continue
@@ -600,8 +600,8 @@ class LineID_AT(AT):
         for i in remove:
             del clusters[i]
         # report the results
-        if len(clusters.keys()) > 0:
-            if len(clusters.keys()) > 1:
+        if len(list(clusters.keys())) > 0:
+            if len(list(clusters.keys())) > 1:
                 exp = "s"
                 pre = ""
             else:
@@ -609,7 +609,7 @@ class LineID_AT(AT):
                 pre = " a"
             msg = "Found %s potential pattern%s with%s separation%s of" % (len(clusters), exp, pre, exp)
             summary = ""
-            for k in clusters.keys():
+            for k in list(clusters.keys()):
                 summary += " %.1f," % (2. * abs(utils.freqtovel(spec.freq()[len(spec)/2], spec.freq()[len(spec)/2] - spec.freq()[len(spec)/2 - k])))
             summary = summary[:-1] + " km/s"
             logging.info(msg + summary)
@@ -737,7 +737,7 @@ class LineID_AT(AT):
                     results.append(res)
         elif isinstance(lines, dict):
             results = {}
-            for freq, res in lines.iteritems():
+            for freq, res in lines.items():
                 if isinstance(res, list):
                     tempr = []
                     for r in res:
@@ -803,7 +803,7 @@ class LineID_AT(AT):
 
         results = self.checkreject(results)
         for r in results:
-            print "PJT",r
+            print("PJT",r)
         return results
 
     def gettier1(self):
@@ -1025,7 +1025,7 @@ class LineID_AT(AT):
             hi = max(rng)
             found = False
             # now look for matches in clusters
-            for chan in chfc.values():
+            for chan in list(chfc.values()):
                 if low <= chan[0][0] <= hi or low <= chan[0][1] <= hi or \
                     chan[0][0] <= low <= chan[0][1]:
                     count += 1
@@ -1035,7 +1035,7 @@ class LineID_AT(AT):
             if found:
                 continue
             # now search the single lines
-            for chan in shfc.values():
+            for chan in list(shfc.values()):
                 if low <= chan[0][0] <= hi or low <= chan[0][1] <= hi or \
                     chan[0][0] <= low <= chan[0][1]:
                     count += 1
@@ -1089,7 +1089,7 @@ class LineID_AT(AT):
             low = min(rng)
             hi = max(rng)
             # look to see if any match, if one does add it to the dictionary
-            for freq, chan in combhfc.iteritems():
+            for freq, chan in combhfc.items():
                 if low < chan[0][0] <= hi or low <= chan[0][1] <= hi or \
                     chan[0][0] <= low <= chan[0][1]:
                     hfline = copy.deepcopy(hfl)
@@ -1102,7 +1102,7 @@ class LineID_AT(AT):
         # need to find where main line belongs
         fc = set()
         fs = set()
-        for freq, ident in possibleblends.iteritems():
+        for freq, ident in possibleblends.items():
             # if there is only 1 line then just add it to the identifications
             if len(ident) == 1:
                 hfline = copy.deepcopy(ident[0])
@@ -1160,7 +1160,7 @@ class LineID_AT(AT):
                     blends.append(hfline)
                 self.blendcount += 1
             # remove any identified lines from the peaks instance
-            for f, v in peak.fcenters.iteritems():
+            for f, v in peak.fcenters.items():
                 for idn in ident:
                     if idn.getfstart() <= f <= idn.getfend():
                         fc.add(f)
@@ -1168,7 +1168,7 @@ class LineID_AT(AT):
                         v[1][0] = 0.0
                     if idn.getfstart() <= v[1][1] <= idn.getfend():
                         v[1][1] = 0.0
-            for f, v in peak.fcenters.iteritems():
+            for f, v in peak.fcenters.items():
                 if v[1][0] == 0.0:
                     if v[1][1] != 0.0:
                         peak.fsingles.append(v[1][1])
@@ -1433,7 +1433,7 @@ class LineID_AT(AT):
                 # first generate channel ranges for all lines and clusters
                 chfc = {}
                 shfc = {}
-                for freq, v in peaks.fcenters.iteritems():
+                for freq, v in peaks.fcenters.items():
                     parameters = {0: [0, 0, 0, [100000, -1000000]],
                                   1: [0, 0, 0, []],
                                   2: [0, 0, 0, []]}
@@ -1500,7 +1500,7 @@ class LineID_AT(AT):
                     peak = peaks.getspecs()[peaks.getchan(freq)]
                     if st==en:
                         fwidth = abs(peaks.getfreqs()[st]-peaks.getfreqs()[st+1])
-                        print "PJT1",fwidth
+                        print("PJT1",fwidth)
 
                     popt, pcov = utils.fitgauss1D(peaks.getfreqs()[st:en + 1] - freq,
                                                   peaks.getspecs()[st:en + 1], par=[peak, 0.0,
@@ -1520,14 +1520,14 @@ class LineID_AT(AT):
                 width = self.getkey("tier1width")
             fwidth = utils.veltofreq(width, peaks.centerfreq())
             # go through each possible transition and see if we have a line that is a possibility
-            for trans, t1 in tier1.iteritems():
+            for trans, t1 in tier1.items():
                 todel = set()
                 found = False
                 # go through all detected clusters
                 skip = []
                 noskip = {}
                 doskip = False
-                for k in peaks.fcenters.keys():
+                for k in list(peaks.fcenters.keys()):
                     if t1.getkey("frequency") - fwidth < k < t1.getkey("frequency") + fwidth:
                         doskip = True
                         noskip[abs(k - t1.getkey("frequency"))] = k
@@ -1535,11 +1535,11 @@ class LineID_AT(AT):
                         skip.append(k)
                 if len(noskip) > 1:
                     minval = noskip[min(noskip.keys())]
-                    for i in noskip.values():
+                    for i in list(noskip.values()):
                         if i != minval:
                             skip.append(i)
                 # search though the clusters first
-                for k in peaks.fcenters.keys():
+                for k in list(peaks.fcenters.keys()):
                     if k not in peaks.fcenters or (doskip and k in skip):
                         continue
                     v = peaks.fcenters[k]
@@ -1610,7 +1610,7 @@ class LineID_AT(AT):
                     # check the center frequency first
                     closest = -1.
                     distance = 100000.
-                    for frq in peaks.fcenters.keys():
+                    for frq in list(peaks.fcenters.keys()):
                         if t1.getkey("frequency") - fwidth <= frq <= t1.getkey("frequency") + fwidth:
                             if abs(t1.getkey("frequency") - frq) < distance:
                                 closest = frq
@@ -1813,7 +1813,7 @@ class LineID_AT(AT):
                     # wing 0
                     closest = -1.0
                     distance = 100000.
-                    for frq, val in peaks.fcenters.iteritems():
+                    for frq, val in peaks.fcenters.items():
                         wng = val[1]
                         if t1.getkey("frequency") - fwidth <= wng[0] <= t1.getkey("frequency") + fwidth:
                             if abs(t1.getkey("frequency") - wng[0]) < distance:
@@ -1944,7 +1944,7 @@ class LineID_AT(AT):
 
                     closest = -1.0
                     distance = 100000.
-                    for frq, val in peaks.fcenters.iteritems():
+                    for frq, val in peaks.fcenters.items():
                         wng = val[1]
                         if t1.getkey("frequency") - fwidth <= wng[1] <= t1.getkey("frequency") + fwidth:
                             if abs(t1.getkey("frequency") - wng[1]) < distance:
@@ -2011,34 +2011,34 @@ class LineID_AT(AT):
                         if len(cent["lines"]) >= len(right["lines"]) and len(cent["lines"]) >= len(left["lines"]):
                             if len(cent["lines"]) != 0:
                                 identifications.update(cent["lines"])
-                                for val in cent["lines"].values():
+                                for val in list(cent["lines"].values()):
                                     self.tier1list.append(val)
-                                self.tier1chans.append(cent["lines"].values()[0].getkey("chans"))
-                                frq = [peaks.getfreq(cent["lines"].values()[0].getstart()),
-                                       peaks.getfreq(cent["lines"].values()[0].getend())]
+                                self.tier1chans.append(list(cent["lines"].values())[0].getkey("chans"))
+                                frq = [peaks.getfreq(list(cent["lines"].values())[0].getstart()),
+                                       peaks.getfreq(list(cent["lines"].values())[0].getend())]
                                 self.tier1freq.append([min(frq), max(frq)])
                                 blends += cent["blend"]
                         elif len(left["lines"]) >= len(right["lines"]):
                             identifications.update(left["lines"])
-                            for val in left["lines"].values():
+                            for val in list(left["lines"].values()):
                                 self.tier1list.append(val)
-                            self.tier1chans.append(left["lines"].values()[0].getkey("chans"))
-                            frq = [peaks.getfreq(left["lines"].values()[0].getstart()),
-                                   peaks.getfreq(left["lines"].values()[0].getend())]
+                            self.tier1chans.append(list(left["lines"].values())[0].getkey("chans"))
+                            frq = [peaks.getfreq(list(left["lines"].values())[0].getstart()),
+                                   peaks.getfreq(list(left["lines"].values())[0].getend())]
                             self.tier1freq.append([min(frq), max(frq)])
                             blends += left["blend"]
                         else:
                             identifications.update(right["lines"])
-                            for val in right["lines"].values():
+                            for val in list(right["lines"].values()):
                                 self.tier1list.append(val)
-                            self.tier1chans.append(right["lines"].values()[0].getkey("chans"))
-                            frq = [peaks.getfreq(right["lines"].values()[0].getstart()),
-                                   peaks.getfreq(right["lines"].values()[0].getend())]
+                            self.tier1chans.append(list(right["lines"].values())[0].getkey("chans"))
+                            frq = [peaks.getfreq(list(right["lines"].values())[0].getstart()),
+                                   peaks.getfreq(list(right["lines"].values())[0].getend())]
                             self.tier1freq.append([min(frq), max(frq)])
                             blends += right["blend"]
 
                     chanrange = {}
-                    freqs = identifications.keys()
+                    freqs = list(identifications.keys())
                     chans = []
                     for f in freqs:
                         chans.append(peaks.getchan(f))
@@ -2056,8 +2056,8 @@ class LineID_AT(AT):
                         identifications[f].setkey("freqs", [self.freq[self.chan.index(identifications[f].getstart())],
                                                             self.freq[self.chan.index(identifications[f].getend())]])
                     delcent = []
-                    for f in peaks.fcenters.keys():
-                        for ch, vals in chanrange.iteritems():
+                    for f in list(peaks.fcenters.keys()):
+                        for ch, vals in chanrange.items():
                             if vals[0] <= f <= vals[1]:
                                 delcent.append(f)
                                 break
@@ -2067,7 +2067,7 @@ class LineID_AT(AT):
                             continue
                         if peaks.fsingles[i] == 0:
                             delsingle.append(i)
-                        for ch, vals in chanrange.iteritems():
+                        for ch, vals in chanrange.items():
                             if vals[0] <= peaks.fsingles[i] <= vals[1]:
                                 delsingle.append(i)
                     delsingle.reverse()
@@ -2117,14 +2117,14 @@ class LineID_AT(AT):
                                 tempid, tblend = self.taghfclines(chfc, shfc, peaks, 0.0, offset,
                                                                   hflines + [t1])
                                 identifications.update(tempid)
-                                for val in tempid.values():
+                                for val in list(tempid.values()):
                                     self.tier1list.append(val)
 
                                 if len(tempid) == 0:
                                     continue
-                                self.tier1chans.append(tempid.values()[0].getkey("chans"))
-                                frq = [peaks.getfreq(tempid.values()[0].getstart()),
-                                       peaks.getfreq(tempid.values()[0].getend())]
+                                self.tier1chans.append(list(tempid.values())[0].getkey("chans"))
+                                frq = [peaks.getfreq(list(tempid.values())[0].getstart()),
+                                       peaks.getfreq(list(tempid.values())[0].getend())]
                                 self.tier1freq.append([min(frq), max(frq)])
                                 peaks.fsingles[closest] = 0.0
                                 blends += tblend
@@ -2173,7 +2173,7 @@ class LineID_AT(AT):
                                 self.tier1freq.append([min(frq), max(frq)])
                                 peaks.fsingles[closest] = 0.0
                         chanrange = {}
-                        freqs = identifications.keys()
+                        freqs = list(identifications.keys())
                         chans = []
                         for f in freqs:
                             chans.append(peaks.getchan(f))
@@ -2193,12 +2193,12 @@ class LineID_AT(AT):
                     else:
                         break
                 delcent = []
-                freqs = identifications.keys()
+                freqs = list(identifications.keys())
                 chanrange = {}
-                for f in peaks.fcenters.keys():
+                for f in list(peaks.fcenters.keys()):
                     if f in freqs:
                         continue
-                    for ch, vals in chanrange.iteritems():
+                    for ch, vals in chanrange.items():
                         if vals[0] <= f <= vals[1]:
                             delcent.append(f)
                             break
@@ -2208,7 +2208,7 @@ class LineID_AT(AT):
                         continue
                     if peaks.fsingles[i] == 0:
                         delsingle.append(i)
-                    for ch, vals in chanrange.iteritems():
+                    for ch, vals in chanrange.items():
                         if vals[0] <= peaks.fsingles[i] <= vals[1]:
                             delsingle.append(i)
                 delsingle.reverse()
@@ -2223,7 +2223,7 @@ class LineID_AT(AT):
         slen = len(peaks.fsingles)
         # now process anything that is not Tier 1
         # start with the complex sets
-        for freq, v in peaks.fcenters.iteritems():
+        for freq, v in peaks.fcenters.items():
             # central frequency and channel spacing
             parameters = {0: [0, 0, 0, [10000, 0]],
                           1: [0, 0, 0, []],
@@ -2813,7 +2813,7 @@ class LineID_AT(AT):
         badblends = []
         for i, blend in enumerate(blends):
             found = False
-            for ident in identifications.values():
+            for ident in list(identifications.values()):
                 if ident.blend == blend.blend:
                     found = True
             if not found:
@@ -2823,7 +2823,7 @@ class LineID_AT(AT):
             del blends[b]
 
         for b in blends:
-            for line in identifications.values():
+            for line in list(identifications.values()):
                 if b.blend == line.blend:
                     b.setkey("chans", line.getkey("chans"))
                     b.setkey("freqs", line.getkey("freqs"))
@@ -2886,7 +2886,7 @@ class LineID_AT(AT):
                 elif points[1] > spk > sid:
                     points[1] = int((sid + spk) / 2)
             # do the same for the clusters
-            for chan, v in peaks.centers.iteritems():
+            for chan, v in peaks.centers.items():
                 if v[0]:
                     if points[0] < chan < sid:
                         points[0] = int((sid + chan) / 2)
@@ -2918,7 +2918,7 @@ class LineID_AT(AT):
                 elif points[1] > spk > cid:
                     points[1] = int((cid + spk) / 2)
             # do the same for the clusters
-            for chan, v in peaks.centers.iteritems():
+            for chan, v in peaks.centers.items():
                 if v[0]:
                     if chan == cid:
                         break
@@ -3323,7 +3323,7 @@ class LineID_AT(AT):
         # do the peak finding
         spnoise = []
         # loop over all of the requested methods
-        for method, margs in self.getkey("method").iteritems():
+        for method, margs in self.getkey("method").items():
             logging.info("Searching for spectral peaks with method: %s" % (method))
             tpeaks[method] = {"stats" : [],
                               "specs" : [],
@@ -3372,7 +3372,7 @@ class LineID_AT(AT):
         for i in range(len(self.statspec)):
             fullstats = set()
             statlist = []
-            for v in tpeaks.values():
+            for v in list(tpeaks.values()):
                 statlist.append(v["stats"][i])
             target = 0   # add everything that is unique
 
@@ -3403,7 +3403,7 @@ class LineID_AT(AT):
             for row in range(len(self.specs)):
                 fullspec = set()
                 speclist = []
-                for v in tpeaks.values():
+                for v in list(tpeaks.values()):
                     speclist.append(v["specs"][row])
                 if "ALL" in mode:
                     target = len(speclist)
@@ -3425,7 +3425,7 @@ class LineID_AT(AT):
         if self.pvspec is not None:
             fullpvc = set()
             pvclist = []
-            for spec, v in tpeaks.iteritems():
+            for spec, v in tpeaks.items():
                 pvclist.append(v["pvc"])
             target = 0   # add everything that is unique
 
@@ -3594,7 +3594,7 @@ class LineID_AT(AT):
             # if at least 1 line was found, apply the results to the other spectra
             if len(peaks["stats"][i].linelist) > 0:
                 foundsomething = True
-            for k, v in peaks["stats"][i].linelist.iteritems():
+            for k, v in peaks["stats"][i].linelist.items():
                 if v.getstart() <= self.getkey("minchan")/2 and k < peaks["stats"][i].getfreq(v.getstart()):
                     drop.append(k)
                 elif v.getend() >= (len(peaks["stats"][i].spec) - self.getkey("minchan")/2) and \
@@ -3611,7 +3611,7 @@ class LineID_AT(AT):
                 foundsomething = True
             drop = []
 
-            for k, v in peaks["specs"][i].linelist.iteritems():
+            for k, v in peaks["specs"][i].linelist.items():
                 if v.getstart() <= self.getkey("minchan") / 4 and \
                    k < min(peaks["specs"][i].getfreq(v.getstart()),
                            peaks["specs"][i].getfreq(v.getend())):
@@ -3637,9 +3637,9 @@ class LineID_AT(AT):
         while not done and loopcount < 3:
             done = True
             for i, spec in enumerate(peaks["specs"]):
-                for line in spec.linelist.values():
+                for line in list(spec.linelist.values()):
                     for j in range(i + 1, len(peaks["specs"])):
-                        for sline in peaks["specs"][j].linelist.values():
+                        for sline in list(peaks["specs"][j].linelist.values()):
                             lo = False
                             ro = False
                             env = False
@@ -3691,7 +3691,7 @@ class LineID_AT(AT):
                                 sline.setkey(data)
 
                     for stat in peaks["stats"]:
-                        for ll, sline in stat.linelist.iteritems():
+                        for ll, sline in stat.linelist.items():
                             lo = False
                             ro = False
                             env = False
@@ -3742,7 +3742,7 @@ class LineID_AT(AT):
                                        }
                                 sline.setkey(data)
                     if peaks["pvc"] is not None:
-                        for sline in peaks["pvc"].linelist.values():
+                        for sline in list(peaks["pvc"].linelist.values()):
                             lo = False
                             ro = False
                             env = False
@@ -3793,9 +3793,9 @@ class LineID_AT(AT):
                                        }
                                 sline.setkey(data)
             for spec in peaks["stats"]:
-                for line in spec.linelist.values():
+                for line in list(spec.linelist.values()):
                     for j in range(i + 1, len(peaks["specs"])):
-                        for sline in peaks["specs"][j].linelist.values():
+                        for sline in list(peaks["specs"][j].linelist.values()):
                             lo = False
                             ro = False
                             env = False
@@ -3847,7 +3847,7 @@ class LineID_AT(AT):
                                 sline.setkey(data)
 
                     for stat in peaks["specs"]:
-                        for sline in stat.linelist.values():
+                        for sline in list(stat.linelist.values()):
                             lo = False
                             ro = False
                             env = False
@@ -3899,7 +3899,7 @@ class LineID_AT(AT):
                                 sline.setkey(data)
 
                     if peaks["pvc"] is not None:
-                        for sline in peaks["pvc"].linelist.values():
+                        for sline in list(peaks["pvc"].linelist.values()):
                             lo = False
                             ro = False
                             env = False
@@ -3950,7 +3950,7 @@ class LineID_AT(AT):
             ulist = []
             mlist = []
 
-            for v in peaks["stats"][i].linelist.values():
+            for v in list(peaks["stats"][i].linelist.values()):
                 v.setkey("peakrms", float(np.max(self.statspec[i].spec()[v.getstart():v.getend() + 1])))
                 v.setkey("peakintensity", float(v.getkey("peakrms") * self.statspec[i].noise()))
                 if "Ukn" in v.getkey("name"):
@@ -4010,7 +4010,7 @@ class LineID_AT(AT):
             ulist = []
             mlist = []
 
-            for v in peaks["specs"][i].linelist.values():
+            for v in list(peaks["specs"][i].linelist.values()):
                 v.setkey("peakintensity", float(np.max(self.specs[i].spec()[v.getstart():v.getend() + 1])))
                 v.setkey("peakrms", float(v.getkey("peakintensity") / self.specs[i].noise()))
 
@@ -4068,7 +4068,7 @@ class LineID_AT(AT):
         if self.pvspec is not None:
             ulist = []
             mlist = []
-            for v in peaks["pvc"].linelist.values():
+            for v in list(peaks["pvc"].linelist.values()):
                 v.setkey("peakintensity", float(np.max(self.pvspec.spec()[v.getstart():v.getend()+1])))
                 v.setkey("peakrms", float(v.getkey("peakintensity") / self.pvspec.noise()))
                 if "Ukn" in v.getkey("name"):
@@ -4123,7 +4123,7 @@ class LineID_AT(AT):
         llist = []
         # merge the results into a single list
         for s in range(len(self.statspec)):
-            keylist = peaks["stats"][s].linelist.keys()
+            keylist = list(peaks["stats"][s].linelist.keys())
             keylist.sort()
             for key in keylist:
 
@@ -4159,7 +4159,7 @@ class LineID_AT(AT):
                     llist.append(item)
         for ps in peaks["specs"]:
             blendcheck = {}
-            for freq, v in ps.linelist.iteritems():
+            for freq, v in ps.linelist.items():
                 place = False
                 for i in range(len(llist)):
                     if (v.getkey("frequency") == llist[i].getkey("frequency") and \
@@ -4201,7 +4201,7 @@ class LineID_AT(AT):
                             bqn = ""
                             frq = 0.0
                             bls = blend.getkey("linestrength")
-                            for j in ps.linelist.keys():
+                            for j in list(ps.linelist.keys()):
                                 if ps.linelist[j].getkey("blend") == blend.getkey("blend") and \
                                    ps.linelist[j].getkey("linestrength") > bls:
                                     bqn = ps.linelist[j].getkey("transition")
@@ -4237,7 +4237,7 @@ class LineID_AT(AT):
                             bqn = ""
                             bls = blend.getkey("linestrength")
                             # get the strongest one in the blend
-                            for j in ps.linelist.keys():
+                            for j in list(ps.linelist.keys()):
                                 if ps.linelist[j].getkey("blend") == blend.getkey("blend") and \
                                    ps.linelist[j].getkey("linestrength") > bls:
                                     bqn = ps.linelist[j].getkey("transition")
@@ -4264,7 +4264,7 @@ class LineID_AT(AT):
                     llist.append(blend)
         if peaks["pvc"] is not None:
             blendcheck = {}
-            for freq, v in peaks["pvc"].linelist.iteritems():
+            for freq, v in peaks["pvc"].linelist.items():
                 place = False
                 for i in range(len(llist)):
                     if (v.getkey("frequency") == llist[i].getkey("frequency") and \
@@ -4308,7 +4308,7 @@ class LineID_AT(AT):
                             bqn = ""
                             bls = blend.getkey("linestrength")
                             # get the strongest one in the blend
-                            for j in peaks["pvc"].linelist.keys():
+                            for j in list(peaks["pvc"].linelist.keys()):
                                 if peaks["pvc"].linelist[j].getkey("blend") == blend.getkey("blend") and \
                                    peaks["pvc"].linelist[j].getkey("linestrength") > bls:
                                     bqn = peaks["pvc"].linelist[j].getkey("transition")
@@ -4341,7 +4341,7 @@ class LineID_AT(AT):
                             bqn = ""
                             bls = blend.getkey("linestrength")
                             # get the strongest one in the blend
-                            for j in peaks["pvc"].linelist.keys():
+                            for j in list(peaks["pvc"].linelist.keys()):
                                 if peaks["pvc"].linelist[j].getkey("blend") == blend.getkey("blend") and \
                                    peaks["pvc"].linelist[j].getkey("linestrength") > bls:
                                     bqn = peaks["pvc"].linelist[j].getkey("transition")
@@ -4524,19 +4524,19 @@ class Peaks(object):
         self.segments = []
         self.fsegments = []
         #self.chans = []
-        for kw, arg in kwargs.iteritems():
+        for kw, arg in kwargs.items():
             setattr(self, kw, arg)
 
     def __str__(self):
-        print "CENTERS", self.centers
-        print "FCENTERS", self.fcenters
-        print "SINGLES", self.singles
-        print "FSINGLES", self.fsingles
-        print "PAIRS", self.pairs
-        print "LINELIST", self.linelist
-        print "OFFSETS", self.offsets
-        print "SEGMENTS", self.segments
-        print "FSEGMENTS", self.fsegments
+        print("CENTERS", self.centers)
+        print("FCENTERS", self.fcenters)
+        print("SINGLES", self.singles)
+        print("FSINGLES", self.fsingles)
+        print("PAIRS", self.pairs)
+        print("LINELIST", self.linelist)
+        print("OFFSETS", self.offsets)
+        print("SEGMENTS", self.segments)
+        print("FSEGMENTS", self.fsegments)
         return ""
 
     @staticmethod
@@ -4580,7 +4580,7 @@ class Peaks(object):
         """
         remove = set()
         for center in self.fcenters:
-            for freq, v in data.linelist.iteritems():
+            for freq, v in data.linelist.items():
                 if center - tol / 2.0 < freq < center + tol / 2.0:
                     remove.add(center)
                     self.linelist[center] = v
@@ -4588,7 +4588,7 @@ class Peaks(object):
             del self.fcenters[rem]
         remove = set()
         for single in self.fsingles:
-            for freq, v in data.linelist.iteritems():
+            for freq, v in data.linelist.items():
                 if single - tol / 2.0 < freq < single + tol / 2.0:
                     remove.add(single)
                     self.linelist[single] = v
@@ -4612,7 +4612,7 @@ class Peaks(object):
         mpattern = []
 
         p1 = copy.deepcopy(self.pairs)
-        for o in self.pairs.keys():
+        for o in list(self.pairs.keys()):
             isnew = True
             for pattern in mpattern:
                 if pattern - tol / 2.0 < o < pattern + tol / 2.0:
@@ -4788,11 +4788,11 @@ class Peaks(object):
         retpattern = {"stats" : {},
                       "specs" : {}}
         stat = pattern["stats"]
-        for freq, wings in stat.iteritems():
+        for freq, wings in stat.items():
             stat[freq] = self.pairsort(wings)
         retpattern["stats"] = stat
         spec = pattern["specs"]
-        for freq, wings in spec.iteritems():
+        for freq, wings in spec.items():
             spec[freq] = self.pairsort(wings)
         retpattern["specs"] = spec
         return retpattern
@@ -4842,7 +4842,7 @@ class Peaks(object):
         for single in self.singles:
             self.fsingles.append(self.getfreq(single))
 
-        for wings in self.centers.values():
+        for wings in list(self.centers.values()):
             v1 = [self.getfreq(wings[1][0]), self.getfreq(wings[1][1])]
             v1.sort()
             self.fcenters[self.getfreq(abs(wings[1][0] + wings[1][1]) / 2.0)] = \
@@ -4862,7 +4862,7 @@ class Peaks(object):
 
         """
         drop = []
-        for f, line in self.linelist.iteritems():
+        for f, line in self.linelist.items():
             low = line.getstart()
             hi = line.getend()
             flow = False

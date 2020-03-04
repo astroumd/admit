@@ -88,8 +88,8 @@ def _run(argv):
     try:
         KEYS["numsigma"] = float(KEYS["numsigma"])
         KEYS["snmax"]   = float(KEYS["snmax"])
-    except Exception, e:
-        print("Exception converting keyword value to number:",e)
+    except Exception as e:
+        print(("Exception converting keyword value to number:",e))
         return
     #
     # Set-up all ADMIT Flow tasks for execution including their aliases and connections

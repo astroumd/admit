@@ -64,7 +64,7 @@ def admit_dir(file):
         return file + ext
     else:
         if file[loc:] == ext:
-            print "Warning: assuming a re-run on existing ",file
+            print("Warning: assuming a re-run on existing ",file)
             return file
         return file[:loc] + ext
 
@@ -72,7 +72,7 @@ def admit_dir(file):
 # allow a command line argument to be the fits file name, unless you have foobar.fits ;-)
 argv = admit.utils.casa_argv(sys.argv)
 if len(argv) < 3:
-    raise Exception,"Need an admit project name, followed by one or more fits files"
+    raise Exception("Need an admit project name, followed by one or more fits files")
 file = argv[1]
 
 if plot == "f": 
@@ -82,13 +82,13 @@ if plot == "f":
 #------------------------------------------------------- start of script -----------------------------------------------
 
 #  announce version
-print 'ADMIT3: Version ',version
+print('ADMIT3: Version ',version)
 
 #  do the work in a proper ".admit" directory
 adir = admit_dir(file)
 #   dirty method, it really should check if adir is an admit directory
 if clean and adir != file:
-    print "Removing previous results from ",adir
+    print("Removing previous results from ",adir)
     os.system('rm -rf %s' % adir)
     create=True
 else:
@@ -97,12 +97,12 @@ else:
 a = admit.Project(adir,name='Testing ADMIT3 style pipeline - version %s' % version,create=create,loglevel=loglevel)
 
 if a.new:
-    print "Starting a new ADMIT using ",argv[0]
+    print("Starting a new ADMIT using ",argv[0])
     os.system('cp -a %s %s' % (argv[0],adir))
     a.set(admit_dir=adir)
 else:
-    print "All done, we just read an existing admit.xml and it should do nothing"
-    print "Use admit0.py to re-run inside of your admit directory"
+    print("All done, we just read an existing admit.xml and it should do nothing")
+    print("Use admit0.py to re-run inside of your admit directory")
     #
     a.fm.diagram(a.dir()+'admit.dot')
     a.show()
@@ -119,15 +119,15 @@ bdps = []
 for ap in argv[2:]:                            # loop over projects
     _p = pm.addProject(ap)
     ats = pm.findTask(_p, lambda at: type(at) == type(admit.Moment_AT()))
-    print "Found %d Moment_AT's in %s" % (len(ats),ap)
+    print("Found %d Moment_AT's in %s" % (len(ats),ap))
     for at in ats:
         tid = a.addtask(at)                    # add the AT to the 
         bdps.append((tid,0))                   # for now, assume '0' was the mom0
-        print "Moment_AT ",ap,tid,0
+        print("Moment_AT ",ap,tid,0)
 
-print "ADIR:",argv[2:]
-print "Found %d BDP's" % len(bdps)
-print "BDPs:",bdps
+print("ADIR:",argv[2:])
+print("Found %d BDP's" % len(bdps))
+print("BDPs:",bdps)
 
 
 #oi1 = a.addtask(admit.OverlapIntegral_AT(),bdps)

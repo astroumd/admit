@@ -7,7 +7,7 @@
 """
 
 # get the main BDP base class
-from BDP import BDP
+from .BDP import BDP
 
 # get the table base class
 from admit.util.Table import Table

@@ -30,7 +30,7 @@ try:
   import casa
   import taskinit
 except:
-  print "WARNING: No CASA; ContinuumSub task cannot function."
+  print("WARNING: No CASA; ContinuumSub task cannot function.")
 
 class ContinuumSub_AT(AT):
     """Continuum subtraction from a cube. Produces a line cube and continuum map.
@@ -172,13 +172,13 @@ class ContinuumSub_AT(AT):
                 s = Segments(ch0,ch1,nchan=nchan)
                 ch = s.getchannels(True)     # take the complement of lines as the continuum
             else:
-                ch = range(nchan)            # no lines?  take everything as continuum (probably bad)
+                ch = list(range(nchan))            # no lines?  take everything as continuum (probably bad)
                 logging.warning("All channels taken as continuum. Are you sure?")
         elif len(contsub) > 0:               # else if contsub[] was supplied manually
             s = Segments(contsub,nchan=nchan)
             ch = s.getchannels()
         else:
-            raise Exception,"No contsub= or input LineList given"
+            raise Exception("No contsub= or input LineList given")
             
         if len(ch) > 0:
             ia.open(self.dir(f1))
@@ -192,7 +192,7 @@ class ContinuumSub_AT(AT):
                 # this option is now deprecated (see above, by setting b1b = None), no user option allowed
                 # there is likely a mis-match in the beam, given how they are produced. So it's safer to
                 # remove this here, and force the flow to smooth manually
-                print "Adding back in a continuum map"
+                print("Adding back in a continuum map")
                 f1b = b1b.getimagefile(bt.CASA)
                 f1c = self.mkext(f1,'sum')
                 # @todo   notice we are not checking for conforming mapsize and WCS
@@ -201,7 +201,7 @@ class ContinuumSub_AT(AT):
                 utils.rename(self.dir(f1c),self.dir(f3))
                 dt.tag("immath")
         else:
-            raise Exception,"No channels left to determine continuum. pad=%d too large?" % pad
+            raise Exception("No channels left to determine continuum. pad=%d too large?" % pad)
 
         # regression
         rdata = casautil.getdata(self.dir(f3)).data

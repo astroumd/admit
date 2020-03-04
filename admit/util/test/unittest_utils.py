@@ -44,14 +44,14 @@ class TestUtils(unittest.TestCase):
         pass
 
     def test_AAAwhoami(self):
-        print "\n==== %s ====" % self.testName
+        print("\n==== %s ====" % self.testName)
 
     # test getting admit-root directory with utils.admitroot
     def test_admitroot(self):
         root1 = os.getenv("ADMIT")
         root2 = admit.utils.admit_root()
         if(self.verbose):
-            print "\nAdmit Root:", root1
+            print("\nAdmit Root:", root1)
 
         self.assertEqual(root1, root2)
 
@@ -60,7 +60,7 @@ class TestUtils(unittest.TestCase):
         global speed
         v = admit.utils.freqtovel(103.22, 3.69)
         if(self.verbose):
-            print "\nVelocity:", v
+            print("\nVelocity:", v)
 
         self.assertAlmostEqual(v, 10717.2463672)
 
@@ -69,7 +69,7 @@ class TestUtils(unittest.TestCase):
         global speed
         f = admit.utils.veltofreq(10717.0, 103.22)
         if(self.verbose):
-            print "\nFrequency:", f
+            print("\nFrequency:", f)
 
         self.assertAlmostEqual(f, 3.68991517)
 
@@ -78,7 +78,7 @@ class TestUtils(unittest.TestCase):
         global speed
         f = admit.utils.undoppler(103.22,10717.0)
         if(self.verbose):
-            print "\nSource Rest Frequency:", f
+            print("\nSource Rest Frequency:", f)
 
         self.assertAlmostEqual(f, 107.04671274)
 
@@ -90,8 +90,8 @@ class TestUtils(unittest.TestCase):
         admit.utils.rmdir(dir)
         after = os.path.exists(dir)
         if(self.verbose):
-            print "\nDirectory exists:", before
-            print "After utils.rmdir", after
+            print("\nDirectory exists:", before)
+            print("After utils.rmdir", after)
 
         self.assertEqual(before, True)
         self.assertEqual(after, False)
@@ -113,8 +113,8 @@ class TestUtils(unittest.TestCase):
 
         after = os.path.exists(fname)
         if(self.verbose):
-            print "\nFile exists:", test
-            print "After utils.rm", after
+            print("\nFile exists:", test)
+            print("After utils.rm", after)
 
         self.assertEqual(test, True)
         self.assertEqual(after, False)
@@ -132,8 +132,8 @@ class TestUtils(unittest.TestCase):
 
         after = os.path.exists(name) and os.path.isfile(name)
         if(self.verbose):
-            print "\nutils.remove: file exists:", test
-            print "After utils.remove", after
+            print("\nutils.remove: file exists:", test)
+            print("After utils.remove", after)
 
         self.assertEqual(test, True)
         self.assertEqual(after, False)
@@ -146,8 +146,8 @@ class TestUtils(unittest.TestCase):
 
         after = os.path.exists(dir) and os.path.isdir(dir)
         if(self.verbose):
-            print "utils.remove: directory exists:", test
-            print "After utils.remove", after
+            print("utils.remove: directory exists:", test)
+            print("After utils.remove", after)
 
         self.assertEqual(test, True)
         self.assertEqual(after, False)
@@ -160,7 +160,7 @@ class TestUtils(unittest.TestCase):
         tmp2 = tmp1.replace('test_file', 'replaced')
 
         if(self.verbose):
-            print tmp1, tmp2
+            print(tmp1, tmp2)
 
         test1 = os.path.exists(tmp1)
         test2 = os.path.exists(tmp2)
@@ -185,12 +185,12 @@ class TestUtils(unittest.TestCase):
         tmp2 = tempfile.NamedTemporaryFile(suffix='_test_test_test', dir='/tmp')
 
         if(self.verbose):
-                print "temp files", tmp1.name, tmp2.name
+                print("temp files", tmp1.name, tmp2.name)
         names = []
         flist = admit.utils.find_files('/tmp', '*test_test_test*')
         for file in flist:
             if(self.verbose):
-                print "\nFound:", file
+                print("\nFound:", file)
  
             if file == tmp1.name or file == tmp2.name :
                 names.append(file)
@@ -213,10 +213,10 @@ class TestUtils(unittest.TestCase):
         ret = admit.utils.interpolatespectrum(spec, 1.0, 1.0)
 
         if(self.verbose):
-            print "\n1:", ret[0]
-            print "\n5:", ret[4]
-            print "\n11:", ret[10]
-            print "\n12:", ret[11]
+            print("\n1:", ret[0])
+            print("\n5:", ret[4])
+            print("\n11:", ret[10])
+            print("\n12:", ret[11])
 
         self.assertEqual(ret[0], 1.0)
         self.assertEqual(ret[11], 1.0)
@@ -237,7 +237,7 @@ class TestUtils(unittest.TestCase):
         after = "a/b/c/file.y"
         ret = admit.utils.rreplace(before, 'x', 'y')
 
-        self.assertEquals(after, ret)
+        self.assertEqual(after, ret)
 
     # test get_plain()
     def test_getplain(self):
@@ -254,9 +254,9 @@ class TestUtils(unittest.TestCase):
         form3 = "SO"
         ret3 = admit.utils.getplain(str)
 
-        self.assertEquals(form1, ret1)
-        self.assertEquals(form2, ret2)
-        self.assertEquals(form3, ret3)
+        self.assertEqual(form1, ret1)
+        self.assertEqual(form2, ret2)
+        self.assertEqual(form3, ret3)
 
     # test formatting a chemical formula for display
     def test_format_chem(self):
@@ -264,16 +264,16 @@ class TestUtils(unittest.TestCase):
         exp1 = "C$_4$H$_5$Cl"
         out1 = admit.utils.format_chem(str1)
         if(self.verbose):
-            print "\nformatted formula:", out1
+            print("\nformatted formula:", out1)
 
         str2 = "H13CO+"
         exp2 = "H$^{13}$CO+"
         out2 = admit.utils.format_chem(str2)
         if(self.verbose):
-            print "\nformatted formula:", out2
+            print("\nformatted formula:", out2)
 
-        self.assertEquals(exp1, out1)
-        self.assertEquals(exp2, out2)
+        self.assertEqual(exp1, out1)
+        self.assertEqual(exp2, out2)
 
     # test isotopecount in a molecule
     def test_isotopecount(self):
@@ -281,17 +281,17 @@ class TestUtils(unittest.TestCase):
         num1 = 0
         out1 = admit.utils.isotopecount(str1)
         if(self.verbose):
-            print "\nFormatted formula:", out1
+            print("\nFormatted formula:", out1)
 
         str2 = "H13CO+"
         num2 = 1
         out2 = admit.utils.isotopecount(str2)
 
         if(self.verbose):
-            print "\nFormatted formula:", out2
+            print("\nFormatted formula:", out2)
 
-        self.assertEquals(num1, out1)
-        self.assertEquals(num2, out2)
+        self.assertEqual(num1, out1)
+        self.assertEqual(num2, out2)
 
     # test getmass (the rough mass of a molecule)
     def test_getmass(self):
@@ -299,9 +299,9 @@ class TestUtils(unittest.TestCase):
         mass1 = 28
         out1 = admit.utils.getmass(str1)
         if(self.verbose):
-            print "\nMolecule Mass:", out1
+            print("\nMolecule Mass:", out1)
 
-        self.assertEquals(mass1, out1)
+        self.assertEqual(mass1, out1)
 
 #         str2 = "SiO"
 #         mass2 = 44
@@ -332,9 +332,9 @@ class TestUtils(unittest.TestCase):
         str = ['admit1.py', 'data.fits', 'x']
         ret = admit.utils.casa_argv(arg)
         if(self.verbose):
-            print "\nArguments:", str
+            print("\nArguments:", str)
 
-        self.assertEquals(str, ret)
+        self.assertEqual(str, ret)
 
 #----------------------------------------------------------------------
 # To run on commandline, using either "python unittest_utils.py" 

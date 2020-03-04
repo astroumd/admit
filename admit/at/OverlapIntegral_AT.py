@@ -33,7 +33,7 @@ try:
   import casa
   import taskinit
 except:
-  print "WARNING: No scipy or casa; OverlapIntegral task cannot function."
+  print("WARNING: No scipy or casa; OverlapIntegral task cannot function.")
 
 
 class OverlapIntegral_AT(AT):
@@ -146,10 +146,10 @@ class OverlapIntegral_AT(AT):
  
         n = len(self._bdp_in)
         if n==0:
-            raise Exception,"Need at least 1 input Image_BDP "
+            raise Exception("Need at least 1 input Image_BDP ")
         logging.debug("Processing %d input maps" % n)
-        data = range(n)     # array in which each element is placeholder for the data
-        mdata = range(n)    # array to hold the max in each array
+        data = list(range(n))     # array in which each element is placeholder for the data
+        mdata = list(range(n))    # array to hold the max in each array
         summarytable = admit.util.Table()
         summarytable.columns = ["File name","Spectral Line ID"]
         summarytable.description = "Images used in Overlap Integral"
@@ -169,13 +169,13 @@ class OverlapIntegral_AT(AT):
                 outfile = self.mkext("testOI","oi")
             else:
                 if shape != data[i].shape:
-                    raise Exception,"Shapes not the same, cannot overlap them"
+                    raise Exception("Shapes not the same, cannot overlap them")
             # collect the file names and line identifications for the summary
             summarytable.addRow([bdpfile,lineid])
         logging.regression("OI: %s" % str(mdata))
                     
         if len(shape)>2 and shape[2] > 1:
-            raise Exception,"Cannot handle 3D cubes yet"
+            raise Exception("Cannot handle 3D cubes yet")
 
         if doCross:
             # debug: produce all cross-corr's of the N input maps (expensive!)
@@ -265,7 +265,7 @@ def crossn(data, myplot):
     n = len(data)
     nx = data[0].shape[0]
     ny = data[0].shape[1]
-    auto = range(n)         # place holder for the auto's
+    auto = list(range(n))         # place holder for the auto's
     for i in range(n):
         idata = data[i].data.squeeze()
         out = scipy.signal.correlate2d(idata,idata,mode='same')

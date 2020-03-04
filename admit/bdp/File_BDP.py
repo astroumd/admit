@@ -4,7 +4,7 @@
    This module defines the File_BDP class.
 """
 import os
-from BDP import BDP
+from .BDP import BDP
 
 class File_BDP(BDP):
     """
@@ -27,7 +27,7 @@ class File_BDP(BDP):
         """ 
         testing Overriding the baseclass SHOW
         """
-        print "File_BDP.show() ran..."
+        print("File_BDP.show() ran...")
 
     def getfiles(self):
 	""" returns a list of file names. 
@@ -52,9 +52,9 @@ class File_BDP(BDP):
         """
         fname = self.baseDir() + self.filename
         if not os.path.exists(fname):
-            raise Exception,'File_BDP: file %s does not exist' % fname
+            raise Exception('File_BDP: file %s does not exist' % fname)
         else:
-            print "File_BDP: file %s exists" % fname
+            print("File_BDP: file %s exists" % fname)
 
     def touch(self):
         """
@@ -71,7 +71,7 @@ class File_BDP(BDP):
         None
         """
         fname = self.baseDir() + self.filename
-        print "File_BDP: touching", fname
+        print("File_BDP: touching", fname)
 
         if os.path.exists(fname):
             os.utime(fname,None)

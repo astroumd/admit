@@ -115,19 +115,19 @@ class Test_AT(AT):
                 if(found == 0) :
                     valid[count] = False
                     line = ""
-                    for k,v in key[1].iteritems() :
+                    for k,v in key[1].items() :
                         line += " %s:%s or" % (k().type,v().type)
                     line = line[:-3]
                     results.append("Missing BDP pair:%s" % line)
                 elif(found > 1) :
                     valid[count] = False
                     line = ""
-                    for k,v in key[1].iteritems() :
+                    for k,v in key[1].items() :
                         line += " %s:%s or" % (k().type,v().type)
                     line = line[:-3]
                     results.append("Only 1 BDP pair allowed:%s" % line)
             else :
-                raise Exception,"Improperly formatted valid_BDP"
+                raise Exception("Improperly formatted valid_BDP")
             count += 1
         if(not all(counted)) :
             valid[0] = False
@@ -145,56 +145,56 @@ class Test_AT(AT):
         self.valid_BDP = [(Image_BDP,1, bt.OPTIONAL),
                           (Table_BDP,3, bt.OPTIONAL),
                           (Line_BDP, 0, bt.OPTIONAL)]
-        print self.validateinput(True),"\n"                  # PASS
+        print(self.validateinput(True),"\n")                  # PASS
         self.bdp_in = [Image_BDP]
-        print self.validateinput(True),"\n"                  # PASS
+        print(self.validateinput(True),"\n")                  # PASS
         self.bdp_in = [Image_BDP,Image_BDP]
-        print self.validateinput(True),"\n"                  # FAIL
+        print(self.validateinput(True),"\n")                  # FAIL
         self.bdp_in = [Image_BDP,Table_BDP]
-        print self.validateinput(True),"\n"                  # FAIL
+        print(self.validateinput(True),"\n")                  # FAIL
         self.bdp_in = [Image_BDP,Table_BDP,Table_BDP,Table_BDP]
-        print self.validateinput(True),"\n"                  # PASS
+        print(self.validateinput(True),"\n")                  # PASS
         self.bdp_in = [PVCorr_BDP,PVCorr_BDP,PVCorr_BDP,PVCorr_BDP,PVCorr_BDP]
-        print self.validateinput(True),"\n"                  # FAIL
+        print(self.validateinput(True),"\n")                  # FAIL
         self.bdp_in = [PVCorr_BDP,Moment_BDP,PVCorr_BDP,PVCorr_BDP,PVCorr_BDP,PVCorr_BDP]
-        print self.validateinput(True),"\n"                  # FAIL
+        print(self.validateinput(True),"\n")                  # FAIL
     
     def test2(self):  # required
         self.valid_BDP = [(Image_BDP,1, bt.REQUIRED),
                           (Table_BDP,3, bt.REQUIRED),
                           (Line_BDP, 0, bt.REQUIRED)]
-        print self.validateinput(True),"\n"                 # FAIL
+        print(self.validateinput(True),"\n")                 # FAIL
         self.bdp_in = [Image_BDP]
-        print self.validateinput(True),"\n"                 # FAIL
+        print(self.validateinput(True),"\n")                 # FAIL
         self.bdp_in = [Image_BDP,Image_BDP]
-        print self.validateinput(True),"\n"                 # FAIL
+        print(self.validateinput(True),"\n")                 # FAIL
         self.bdp_in = [Image_BDP,Table_BDP]
-        print self.validateinput(True),"\n"                 # FAIL
+        print(self.validateinput(True),"\n")                 # FAIL
         self.bdp_in = [Image_BDP,Table_BDP,Table_BDP,Table_BDP]
-        print self.validateinput(True),"\n"                 # FAIL
+        print(self.validateinput(True),"\n")                 # FAIL
         self.bdp_in = [Line_BDP,Line_BDP,Line_BDP,Line_BDP,Line_BDP]
-        print self.validateinput(True),"\n"                 # FAIL
+        print(self.validateinput(True),"\n")                 # FAIL
         self.bdp_in = [Image_BDP,Table_BDP,Table_BDP,Table_BDP,Line_BDP,Line_BDP]
-        print self.validateinput(True),"\n"                 # PASS
+        print(self.validateinput(True),"\n")                 # PASS
    
     def test3(self):  # if then
         self.valid_BDP = [(bt.IF_THEN, {Moment_BDP: Image_BDP,
                                        Table_BDP:CubeStats_BDP})]
-        print self.validateinput(True),"\n"                 # FAIL
+        print(self.validateinput(True),"\n")                 # FAIL
         self.bdp_in = [Image_BDP]
-        print self.validateinput(True),"\n"                 # FAIL
+        print(self.validateinput(True),"\n")                 # FAIL
         self.bdp_in = [Image_BDP,Moment_BDP]
-        print self.validateinput(True),"\n"                 # PASS
+        print(self.validateinput(True),"\n")                 # PASS
         self.bdp_in = [Image_BDP,Moment_BDP,CubeStats_BDP]
-        print self.validateinput(True),"\n"                 # FAIL
+        print(self.validateinput(True),"\n")                 # FAIL
 
         
     def test4(self):  # one of
         self.valid_BDP = [(bt.ONE_OF, [Line_BDP,Image_BDP,Table_BDP])]
-        print self.validateinput(True),"\n"                 # FAIL
+        print(self.validateinput(True),"\n")                 # FAIL
         self.bdp_in = [Image_BDP]
-        print self.validateinput(True),"\n"                 # PASS
+        print(self.validateinput(True),"\n")                 # PASS
         self.bdp_in = [Image_BDP,Line_BDP]
-        print self.validateinput(True),"\n"                 # FAIL
+        print(self.validateinput(True),"\n")                 # FAIL
 
 

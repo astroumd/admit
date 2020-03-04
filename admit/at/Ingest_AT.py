@@ -28,7 +28,7 @@ try:
     from impbcor import impbcor
     from imtrans import imtrans
 except:
-    print "WARNING: No CASA; Ingest task cannot function."
+    print("WARNING: No CASA; Ingest task cannot function.")
 
 import random
 
@@ -316,7 +316,7 @@ class Ingest_AT(AT):
             fitsfile = os.path.abspath(os.getcwd() + os.sep + fitsfile)
         logging.debug('FILE=%s' % fitsfile)
         if fitsfile[0] != os.sep:
-            raise Exception,"Bad file=%s, expected absolute name",fitsfile
+            raise Exception("Bad file=%s, expected absolute name").with_traceback(fitsfile)
 
         # now determine if it could have been a CASA (or MIRIAD) image already 
         # which we'll assume if it's a directory; this is natively supported by CASA
@@ -354,11 +354,11 @@ class Ingest_AT(AT):
             # this also takes care of the behind the scenes alias= substitution
             bdpfile = self.mkext(basename,"im")
             if bdpfile == basename:
-                raise Exception,"basename and bdpfile are the same, Ingest_AT needs a fix for this"
+                raise Exception("basename and bdpfile are the same, Ingest_AT needs a fix for this")
             b1  = SpwCube_BDP(bdpfile)
             self.addoutput(b1)
             if do_pb:
-                print "doing the PB"
+                print("doing the PB")
                 bdpfile2 = self.mkext(basename,"pb")
                 b2 = Image_BDP(bdpfile2)
                 self.addoutput(b2)
@@ -425,7 +425,7 @@ class Ingest_AT(AT):
             elif do_pb and not use_pb:
                 # cheat case: PB was given, but not meant to be used
                 # not implemented yet
-                print "cheat case dummy PB not implemented yet"
+                print("cheat case dummy PB not implemented yet")
             else:
                 # no PB given
                 if False:
@@ -499,7 +499,7 @@ class Ingest_AT(AT):
         # this however complicates PB correction later on
         if len(box) > 0 or len(edge) > 0:
             if readonly:
-                raise Exception,"Cannot use box= or edge=, data is read-only, or use an basename/alias"
+                raise Exception("Cannot use box= or edge=, data is read-only, or use an basename/alias")
             if len(edge) == 1:  edge.append(edge[0])
 
             nx = s['shape'][0]
@@ -510,7 +510,7 @@ class Ingest_AT(AT):
             if len(box) == 2:
                 # select zrange
                 if len(edge)>0:
-                    raise Exception,"Cannot use edge= when box=[z1,z2] is used"
+                    raise Exception("Cannot use edge= when box=[z1,z2] is used")
                 r1 = rg.box([0,0,box[0]] , [nx-1,ny-1,box[1]])
             elif len(box) == 4:
                 if len(edge) == 0:
@@ -520,7 +520,7 @@ class Ingest_AT(AT):
                     # select an XY box, but remove some edge channels
                     r1 = rg.box([box[0],box[1],edge[0]] , [box[2],box[3],nz-edge[1]-1])
                 else:
-                    raise Exception,"Bad edge= for len(box)=4"
+                    raise Exception("Bad edge= for len(box)=4")
             elif len(box) == 6:
                 # select an XYZ box
                 r1 = rg.box([box[0],box[1],box[2]] , [box[3],box[4],box[5]])
@@ -528,7 +528,7 @@ class Ingest_AT(AT):
                 # remove some edge channels, but keep the whole XY box
                 r1 = rg.box([0,0,edge[0]] , [nx-1,ny-1,nz-edge[1]-1])
             else:
-                raise Exception,"box=%s illegal" % box
+                raise Exception("box=%s illegal" % box)
             logging.debug("BOX/EDGE selection: %s %s" % (str(r1['blc']),str(r1['trc']))) 
             #if taskinit.ia.isopen(): taskinit.ia.close()
 
@@ -544,7 +544,7 @@ class Ingest_AT(AT):
         else:
             # the whole cube is passed onto ADMIT
             if readonly and create_mask:
-                raise Exception,"Cannot use mask=True, data read-only, or use an alias"
+                raise Exception("Cannot use mask=True, data read-only, or use an alias")
             if file_is_casa and not readonly:
                 # @todo a miriad file - which should be read only - will also create a useless copy here if no alias used
                 ia.subimage(overwrite=True,outfile=fno)
@@ -554,7 +554,7 @@ class Ingest_AT(AT):
 
         if create_mask:
             if readonly:
-                raise Exception,"Cannot create mask, data read-only, or use an alias"
+                raise Exception("Cannot create mask, data read-only, or use an alias")
             # also check out the 'fromfits::zeroblanks = False'
             # calcmask() will overwrite any previous pixelmask
             #taskinit.ia.calcmask('mask("%s") && "%s" != 0.0' % (fno,fno))
@@ -568,7 +568,7 @@ class Ingest_AT(AT):
         s0 = ia.statistics()
         dt.tag("statistics")
         if len(s0['npts']) == 0:
-            raise Exception,"No statistics possible, are there valid data in this cube?"
+            raise Exception("No statistics possible, are there valid data in this cube?")
         # There may be multiple beams per plane so we can't
         # rely on the BEAM's 'major', 'minor', 'positionangle' being present.
         # ia.commonbeam() is guaranteed to return beam parameters
@@ -656,7 +656,7 @@ class Ingest_AT(AT):
                 if nz > 1:
                     msg = 'Ingest_AT: cannot deal with real 4D cubes yet'
                     logging.critical(msg)
-                    raise Exception,msg
+                    raise Exception(msg)
                 else:
                     # @todo this is not working yet when the input was a casa image, but ok when fits. go figure.
                     fnot = fno + ".trans"
@@ -689,7 +689,7 @@ class Ingest_AT(AT):
             # NO: when NAXIS=3 but various AXIS4's are present, that works. But not if it's pure 3D
             # @todo  box=
             logging.warning("patching up a 3D to 4D cube")
-            raise Exception,"SHOULD NEVER GET HERE"
+            raise Exception("SHOULD NEVER GET HERE")
             fnot = fno + ".trans"
             casa.importfits(fni,fnot,defaultaxes=True,defaultaxesvalues=['', '', '', 'I'])
             utils.remove(fno)        # ieck
@@ -768,7 +768,7 @@ class Ingest_AT(AT):
             else:
                 fr = fc
             fw = df*float(shape[2])
-            print "PJT:",fr/1e9,fc/1e9,fw/1e9
+            print("PJT:",fr/1e9,fc/1e9,fw/1e9)
             dv = -df/fr*ckms
                 
             logging.info("Freq Axis 3: %g %g %g" % (h['crval3']/1e9,h['cdelt3']/1e9,h['crpix3']))
@@ -799,7 +799,7 @@ class Ingest_AT(AT):
                     logging.warning("Warning: No VLSR found, substituting VLSRc = %f" % vlsrc)
         else:
             msg = 'Ingest_AT: missing RESTFREQ'
-            print msg
+            print(msg)
         # @todo   LINTRN  is the ALMA keyword that designates the expected line transition in a spw
 
         self._summarize(fitsfile, bdpfile, h, shape, taskargs)

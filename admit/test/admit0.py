@@ -37,7 +37,7 @@ a = admit.Admit()
 if a.new:
     m1 = "Cannot continue, there is no ADMIT project here. "
     m2 = "You need to run this from within the .admit directory"
-    raise Exception,m1+m2
+    raise Exception(m1+m2)
 
 # test
 #print "OBJECT:", a.summaryData['object']
@@ -52,7 +52,7 @@ a.plotparams(PlotControl.BATCH,PlotControl.PNG)
 
 for ap in ['admit.apar']:
     if ap != "" and os.path.isfile(ap):
-        print "Found parameter file ",ap
+        print("Found parameter file ",ap)
         lines = open(ap).readlines()
         for line in lines:
             exec(line.strip())
@@ -60,5 +60,5 @@ for ap in ['admit.apar']:
 try:
     a.run()
 except:
-    print "some run/write error"
+    print("some run/write error")
 

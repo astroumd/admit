@@ -6,15 +6,15 @@
   This module defines the APlot class.
 """
 
-from AbstractPlot import AbstractPlot
+from .AbstractPlot import AbstractPlot
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from   matplotlib.widgets import RadioButtons
-import PlotControl
+from . import PlotControl
 import numpy.ma as ma
-import utils
+from . import utils
 from admit.util.AdmitLogging import AdmitLogging as logging
 # import mpld3      # needs matplotlib 1.3
 
@@ -60,7 +60,7 @@ class APlot(AbstractPlot):
             elif line=='axis equal':
                 plt.axis('equal')
             else:
-                print "Skipping unknown APlot command: %s" % line
+                print("Skipping unknown APlot command: %s" % line)
 
     #@todo how is this actually used?  a plot instance must know when
     # to call final() ?!?
@@ -627,7 +627,7 @@ class APlot(AbstractPlot):
                 s = gauss[1]    # std
                 a = max(h[0])   # match peak value in histogram
             else:
-                print "bad gauss estimator"
+                print("bad gauss estimator")
                 s = -1.0
             #print "PJT: GaussPlot(%g,%g,%g)" % (m,s,a)
             d = s/10.0
@@ -1029,7 +1029,7 @@ class APlot(AbstractPlot):
         maxlab = 500
         tickcolor = 'g'
         if chan is None:
-          chan = range(len(x))
+          chan = list(range(len(x)))
           tickcolor = 'r'
         locstride = (len(chan)+maxloc-1)/maxloc
         labstride = (locstride*maxloc)/maxlab
@@ -1117,7 +1117,7 @@ class APlot(AbstractPlot):
         first = True
         seglines = []
         axtexts = []
-        if isinstance(lines,dict): lines = lines.values()
+        if isinstance(lines,dict): lines = list(lines.values())
         for l in lines:
             extra = ""
             # label
@@ -1161,7 +1161,7 @@ class APlot(AbstractPlot):
             # done
 
         # Add references
-        for f in references.keys():
+        for f in list(references.keys()):
             if f<fmin or f>fmax: continue
             r = references[f]
             seglines += ax1.plot([f,f],[2.0*place-step,2.0*place+step],'k-')
@@ -1316,13 +1316,13 @@ class APlot(AbstractPlot):
 
 
 if __name__ == "__main__":
-    import PlotControl
+    from . import PlotControl
     x = np.arange(0,1,0.1)
     psize = x*200 # vary the point size for scatter plot
     y = x*x
     z = y-x
 
-    print "a1"
+    print("a1")
     a1 = APlot(pmode=PlotControl.INTERACTIVE,ptype=PlotControl.PNG,figno=10,abspath="/tmp")
     #a1.backend('agg')
     a1.plotter(x,[y],figname="figone")
@@ -1330,7 +1330,7 @@ if __name__ == "__main__":
     a1.plotter(x,[y,z])
     a1.show()
 
-    print "a2"
+    print("a2")
     a2 = APlot(pmode=PlotControl.INTERACTIVE,ptype=PlotControl.PNG,figno=20)
     a2.backend('agg')
     #a2.histogram([x,y])
@@ -1340,12 +1340,12 @@ if __name__ == "__main__":
     a2.scatter(y,x,figname="scatter",color='red',size=psize, cmds=['grid'])
     a2.show()
 
-    print "a3"
+    print("a3")
     a3 = APlot(pmode=PlotControl.BATCH,ptype=PlotControl.PNG,figno=29)
     a3.histogram([x,y],figname="histo")
     a3.plotter(x,[y],figname="plot")
     a3.show()
-    print "A3 plotmode: %d" % a3.plotmode
-    print "Abs,AP figno %d,%d" % (AbstractPlot.figno, APlot.figno)
+    print("A3 plotmode: %d" % a3.plotmode)
+    print("Abs,AP figno %d,%d" % (AbstractPlot.figno, APlot.figno))
     if a3.plotmode == PlotControl.BATCH:
-       print "BATCH"
+       print("BATCH")

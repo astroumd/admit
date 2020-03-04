@@ -32,7 +32,7 @@ if True:
       try:
           a = admit.Admit(ff)
       except ValueError:
-          print "Could not execute admit.Admit()."
+          print("Could not execute admit.Admit().")
           continue
       obj = a.summaryData.get('object')[0].getValue()[0]
       nx  = a.summaryData.get('naxis1')[0].getValue()[0]
@@ -41,12 +41,12 @@ if True:
       #lns = a.summaryData.get('linelist')[0].getValue()
       lns = a.summaryData.getLinenames()
       if verbose:
-          print "file = {0}".format(fi)
-          print "object = {0}".format(obj)
-          print "nx, ny, nz = {0}, {1}, {2}".format(nx,ny,nz)
-          print "#lines = {0}".format(len(lns))
-          print "line names = {0}".format(lns)
+          print("file = {0}".format(fi))
+          print("object = {0}".format(obj))
+          print("nx, ny, nz = {0}, {1}, {2}".format(nx,ny,nz))
+          print("#lines = {0}".format(len(lns)))
+          print("line names = {0}".format(lns))
       else:
-          print "{0} {1} {2} {3} {4} {5}".format(fi,obj,nx,ny,nz,len(lns))
-      print ""
+          print("{0} {1} {2} {3} {4} {5}".format(fi,obj,nx,ny,nz,len(lns)))
+      print("")
     

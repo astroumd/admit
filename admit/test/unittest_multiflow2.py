@@ -23,7 +23,7 @@ class TestClone(unittest.TestCase):
     6. Execute the resulting flow.
     """
     def test_AAAwhoami(self):
-        print "\n==== Clone Unit Test ====\n"
+        print("\n==== Clone Unit Test ====\n")
 
     def setUp(self):
         self.outputDir = "mflowclonetest"
@@ -80,15 +80,15 @@ class TestClone(unittest.TestCase):
         except:
           # Clean up aborted clone() (since we're ignoring the failure here).
           # This is highly volatile code users should never imitate!
-          p1.fm.remove(p1.fm._tasklevs.keys()[-1])
+          p1.fm.remove(list(p1.fm._tasklevs.keys())[-1])
         else:
-          raise Exception, "Non-autonomous clone() unexpectedly succeeded"
+          raise Exception("Non-autonomous clone() unexpectedly succeeded")
 
         # Non-autonomous sub-flows are ok if all dependencies are explicit.
         try:
           p1.fm.clone(tid2, (p2.fm, tid4), {tid3:tid1})
         except:
-          raise Exception, "Non-autonomous clone() unexpectedly failed"
+          raise Exception("Non-autonomous clone() unexpectedly failed")
 
         assert len(p1) == 5
 
@@ -116,7 +116,7 @@ class TestMultiflow2(unittest.TestCase):
     be performed on the projects directly.
     """
     def test_AAAwhoami(self):
-        print "\n==== Multiflow (Type 2) Unit Test ====\n"
+        print("\n==== Multiflow (Type 2) Unit Test ====\n")
 
     def setUp(self):
         self.outputDir = "mflow2test"

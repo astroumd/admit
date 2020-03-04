@@ -13,7 +13,7 @@ import math
 
 # ADMIT imports
 from admit.util.AdmitLogging import AdmitLogging as logging
-import utils
+from . import utils
 
 class Spectrum(object):
     """ Class for holding a spectrum. It holds entries for the spectrum,
@@ -730,7 +730,7 @@ class Spectrum(object):
         else:
            if chanrange[0] < 0 or chanrange[0] > chupper or chanrange[1] < 0 or chanrange[1] > chupper:
               msg = "Bad input channel range %s. Available range is [0,%d]" % (chanrange,chupper)
-              raise Exception, msg
+              raise Exception(msg)
         return chanrange
 
     def momenti(self,chanrange=None,p=1):

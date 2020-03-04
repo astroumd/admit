@@ -1,5 +1,5 @@
-from Image_BDP import Image_BDP
-from Table_BDP import Table_BDP
+from .Image_BDP import Image_BDP
+from .Table_BDP import Table_BDP
 from admit.util.Line import Line
 import admit.util.bdp_types as bt
 

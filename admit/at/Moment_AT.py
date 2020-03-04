@@ -28,7 +28,7 @@ try:
     import casa
     from makemask import makemask
 except:
-    print "WARNING: No CASA; Moment task cannot function."
+    print("WARNING: No CASA; Moment task cannot function.")
 
 # system imports
 import math
@@ -361,8 +361,8 @@ class Moment_AT(AT):
                                  auxname, auxthumb, auxcaption, infile]
             momentsummary.append(thismomentsummary)
 
-        if map.has_key(0) and map.has_key(1) and map.has_key(2):
-            logging.debug("MAPs present: %s" % (map.keys()))
+        if 0 in map and 1 in map and 2 in map:
+            logging.debug("MAPs present: %s" % (list(map.keys())))
 
             # m0 needs a new mask, inherited from the more restricted m1 (and m2)
             m0 = ma.masked_where(map[1].mask,map[0])
@@ -417,7 +417,7 @@ class Moment_AT(AT):
             x = (1-freqs/restfreq)*utils.c
             # 
             h = casa.imstat(self.dir(infile), axes=[0,1])
-            if h.has_key('flux'):
+            if 'flux' in h:
                 flux0 = h['flux']
             else:
                 flux0 = h['sum']/beamarea
@@ -446,7 +446,7 @@ def nppb(image):
         # more expensive, but works for non-ALMA data
         # needs to be done on the MOM0 map
         s = casa.imstat(image)
-        if s.has_key('flux'):
+        if 'flux' in s:
             beamarea = s['sum'][0]/s['flux'][0]
         else:
             beamarea = 1.0

@@ -54,7 +54,7 @@ if __name__ == '__main__':
         # use the current directory
         a = admit.Admit()
 
-    print 'FlowMN:  new admit?',a.new
+    print('FlowMN:  new admit?',a.new)
 
     if two_step:
         # this will use Flow1N_AT and FlowN1_AT
@@ -76,7 +76,7 @@ if __name__ == '__main__':
         # get a list of BDP's for the next step, but we need to run the flow first
         a.run()
         n = len(a2)
-        if n != m: print "BAD"
+        if n != m: print("BAD")
         bdps=[]
         for i in range(n):
             bdps.append( (i2,i) )
@@ -115,4 +115,4 @@ if __name__ == '__main__':
     a.write()
 
     #
-    print "All done. We actually used m=%d n=%d with two_step=%s" % (m,n,two_step)
+    print("All done. We actually used m=%d n=%d with two_step=%s" % (m,n,two_step))

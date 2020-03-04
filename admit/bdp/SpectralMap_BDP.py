@@ -1,4 +1,4 @@
-from Table_BDP import Table_BDP
+from .Table_BDP import Table_BDP
 import admit.util.bdp_types as bt
 
 class SpectralMap_BDP(Table_BDP):

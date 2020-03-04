@@ -32,7 +32,7 @@
 class __PlotControl:
 
      _NUM_SUPPORTED_TYPES = 8
-     PLOTTYPE_NONE, PLOTTYPE_EPS, PLOTTYPE_GIF, PLOTTYPE_JPG, PLOTTYPE_PDF, PLOTTYPE_PNG, PLOTTYPE_PS, PLOTTYPE_SVG = range(_NUM_SUPPORTED_TYPES)
+     PLOTTYPE_NONE, PLOTTYPE_EPS, PLOTTYPE_GIF, PLOTTYPE_JPG, PLOTTYPE_PDF, PLOTTYPE_PNG, PLOTTYPE_PS, PLOTTYPE_SVG = list(range(_NUM_SUPPORTED_TYPES))
 
      # xbm, xpm, ppm?  - imview supports these. what about matlab?
      PLOTMODE_NOPLOT         =  -1 
@@ -59,7 +59,7 @@ class __PlotControl:
 
          """
          if plottype == self.PLOTTYPE_NONE:
-             raise Exception, "PlotControl.NONE has no file extension!"
+             raise Exception("PlotControl.NONE has no file extension!")
          if plottype == self.PLOTTYPE_GIF:
              ext = "gif"
          elif plottype == self.PLOTTYPE_JPG:
@@ -73,7 +73,7 @@ class __PlotControl:
          elif plottype == self.PLOTTYPE_SVG:
              ext = "svg"
          else:
-            raise Exception, "Unrecognized input plot type: %s. Expecting PlotControl enumeration" % str(plottype)
+            raise Exception("Unrecognized input plot type: %s. Expecting PlotControl enumeration" % str(plottype))
 
          if with_dot == True:
             return "." + ext

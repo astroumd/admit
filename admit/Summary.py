@@ -518,16 +518,16 @@ class Summary():
             try:
                 self._metadata[k] = value
             except KeyError:
-                raise Exception,"Key %s does not exist" % k 
+                raise Exception("Key %s does not exist" % k) 
         else:
             if isinstance(value, SummaryEntry):
 #                print "setting " + k + "/" + str(value._taskid) + "/" + str(value) + "/" + str(len(self._metadata[k]))
                 try:
                     self._metadata[k] = [value]
                 except KeyError:
-                    raise Exception,"Key %s does not exist" % k 
+                    raise Exception("Key %s does not exist" % k) 
             else:
-                raise Exception, "Input value is not an instance of SummaryEntry"
+                raise Exception("Input value is not an instance of SummaryEntry")
 
     def isTable(self,key):
         """ Return True if this key corresponds to an item that is
@@ -589,7 +589,7 @@ class Summary():
                 self._metadata[k] = list(currentset)
                 return
             except KeyError:
-                raise Exception,"Key %s does not exist" % k 
+                raise Exception("Key %s does not exist" % k) 
         else:
             if isinstance(value, SummaryEntry):
                 currentset = set(self.get(k))
@@ -605,7 +605,7 @@ class Summary():
 #              #  print "appending " + k + "/" + str(value._taskid) + "/" + str(value) + "/" + str(len(self._metadata[k]))
                # self._metadata[k].append(value)
             else:
-                raise Exception, "Input value does not contain instance of SummaryEntry"
+                raise Exception("Input value does not contain instance of SummaryEntry")
             
     def show(self, showunset=False):
         """Display the all entries [key, values, description].
@@ -624,7 +624,7 @@ class Summary():
                 if self.unset(key) and not showunset:
                     continue
                 else:
-                    print "key = %s entry = [%s] desc=%s" % (key, v, self.getDescription(key))
+                    print("key = %s entry = [%s] desc=%s" % (key, v, self.getDescription(key)))
                 #print "key = %s entry = [%s] LEN=%d" % (key, v, len(self._metadata[key]) )
 
     def unset(self,key):
@@ -775,7 +775,7 @@ class Summary():
         """
         snode = et.SubElement(root,"summaryData")
         snode.set("type",bt.SUMMARY)
-        for k,v in self._metadata.iteritems():
+        for k,v in self._metadata.items():
             mnode = et.SubElement(snode,"metadata")
             mnode.set("type",bt.METADATA)
             mnode.set("name",k)
@@ -895,7 +895,7 @@ class Summary():
         # so use the flowmanager list instead
         #taskids = self.getAllTaskIDs()  
         #------------------------------------------------------------------
-        taskids = flowmanager._tasks.keys()
+        taskids = list(flowmanager._tasks.keys())
         for tid in taskids:
             #tname = self.getTasknameForTaskID(tid) # see above
             tname = flowmanager[tid].__class__.__name__
@@ -1696,17 +1696,17 @@ class Summary():
         return topval + retval + botval
 
     def __str__(self):
-        print "Summary\n  metadata"
-        for k,v in self._metadata.iteritems():
-            print k
+        print("Summary\n  metadata")
+        for k,v in self._metadata.items():
+            print(k)
             for i in v:
-                print str(i)
-        print "\n  datatype\n"
-        for k,v in self._datatype.iteritems():
-            print k,v
-        print "\n  description\n"
-        for k,v in self._description.iteritems():
-            print k,v
+                print(str(i))
+        print("\n  datatype\n")
+        for k,v in self._datatype.items():
+            print(k,v)
+        print("\n  description\n")
+        for k,v in self._description.items():
+            print(k,v)
         return ""
 
     def _initialize(self, key, value):
@@ -1722,12 +1722,12 @@ class Summary():
         """
         k = key.lower()
         if k in self._metadata:
-            raise Exception,"key %s already exists" % k
+            raise Exception("key %s already exists" % k)
         else:
             if isinstance(value, SummaryEntry):
                 self._metadata[key.lower()] = [value]
             else:
-                raise Exception, "Input value does not contain instance of SummaryEntry"
+                raise Exception("Input value does not contain instance of SummaryEntry")
 
     def _checklist(self,value):
         """Check that a list contains only SummaryEntrys. If not,
@@ -1739,7 +1739,7 @@ class Summary():
               badlist.append(i)
                
         if len(badlist) != 0:
-             raise Exception, "Input value at index %s is not an instance of SummaryEntry" % str(badlist)
+             raise Exception("Input value at index %s is not an instance of SummaryEntry" % str(badlist))
 
 
     def _startup(self):
@@ -1789,15 +1789,15 @@ class Summary():
 
             mid = self.getTaskID("moments")
             if mid[0] != tid:
-               raise Exception, "Expected MOMENT taskid %d, got %d " % (tid,mid[0])
+               raise Exception("Expected MOMENT taskid %d, got %d " % (tid,mid[0]))
             # should throw exception: not an instance of SummaryEntry
             try :
                 self._initialize("FOOBAR",["foo.fits","hey",200])
-            except Exception, ex:  
-               print "## Couldn't add FOOBAR:" + str(ex) + " (It's OK, this is expected)"
+            except Exception as ex:  
+               print("## Couldn't add FOOBAR:" + str(ex) + " (It's OK, this is expected)")
             tn = self.getTaskname("fitsname")[0]
             if tn != 'Ingest_AT':
-               raise Exception, "Expected taskname Ingest_AT, got %s " % tn
+               raise Exception("Expected taskname Ingest_AT, got %s " % tn)
 
             tid +=1
             self.set("chanrms",SummaryEntry([0.10, 'foobar.im'], 'CubeStats_AT', taskid=tid, taskargs=""))
@@ -1847,11 +1847,11 @@ class Summary():
                      'H2CCCHCN_103.60365',
                      '(CH2OH)2_103.64586']
             if testnames != linenames:
-               raise Exception,"Expected line names did not match."
+               raise Exception("Expected line names did not match.")
             return True
-            print s.getLinefluxes()
-        except Exception, ex:
-            print str(ex)
+            print(s.getLinefluxes())
+        except Exception as ex:
+            print(str(ex))
             return False
 
 ###############################################################################
@@ -2048,20 +2048,20 @@ if __name__ == "__main__":
     rr = SummaryEntry("Hrwl","AT1",1,"blah")
     ss = SummaryEntry("FOOS","AT2",1,"blah")
     tt = SummaryEntry("FOOT","AT3",2,"blah")
-    print "qq == rr (True?):" + str(qq == rr)
-    print "qq == ss (True?):" + str(qq == ss)
-    print "ss == tt (False?):" + str(qq == tt)
+    print("qq == rr (True?):" + str(qq == rr))
+    print("qq == ss (True?):" + str(qq == ss))
+    print("ss == tt (False?):" + str(qq == tt))
     S1= set([qq,rr,tt])
     S2= set([ss,tt])
-    print "S1=" + str(S1)
-    print "S2=" + str(S2)
+    print("S1=" + str(S1))
+    print("S2=" + str(S2))
     if ss in S1:
         S1.remove(ss)
         S1.add(ss)
-    print "S1u=" + str(S1)
+    print("S1u=" + str(S1))
     S3 = S1.union(S2)
-    print "union=" + str(S3)
-    print list(S3)
-    print list(S3).sort()
-    print s.getAllTaskIDs()
-    print s.getTasknameForTaskID(120)
+    print("union=" + str(S3))
+    print(list(S3))
+    print(list(S3).sort())
+    print(s.getAllTaskIDs())
+    print(s.getTasknameForTaskID(120))

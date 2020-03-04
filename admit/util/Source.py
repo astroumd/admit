@@ -9,8 +9,8 @@
 import xml.etree.cElementTree as et
 
 # ADMIT imports
-import bdp_types as bt
-from UtilBase import UtilBase
+from . import bdp_types as bt
+from .UtilBase import UtilBase
 
 
 class Source(UtilBase):
@@ -61,9 +61,9 @@ class Source(UtilBase):
         UtilBase.__init__(self, **keyval)
 
     def __str__(self):
-        print bt.format.BOLD + bt.color.GREEN + "Source :" + bt.format.END
-        for i, j in self.__dict__.iteritems():
-            print bt.format.BOLD + i + ": " + bt.format.END + str(j)
+        print(bt.format.BOLD + bt.color.GREEN + "Source :" + bt.format.END)
+        for i, j in self.__dict__.items():
+            print(bt.format.BOLD + i + ": " + bt.format.END + str(j))
         return ""
 
     def isequal(self, source):

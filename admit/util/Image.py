@@ -9,13 +9,13 @@
 
 # system imports
 import xml.etree.cElementTree as et
-import utils
+from . import utils
 import ast
 import os
 
 # ADMIT imports
-import bdp_types as bt
-from UtilBase import UtilBase
+from . import bdp_types as bt
+from .UtilBase import UtilBase
 
 
 class Image(UtilBase):
@@ -66,7 +66,7 @@ class Image(UtilBase):
 
     def __str__(self):
         retstr = bt.format.BOLD + bt.color.GREEN + "Image :" + bt.format.END + os.linesep
-        for i, j in self.__dict__.iteritems():
+        for i, j in self.__dict__.items():
             retstr = retstr + bt.format.BOLD + i + ": " + bt.format.END + str(j) + os.linesep
         return retstr
 
@@ -135,9 +135,9 @@ class Image(UtilBase):
             None
         """
         if isinstance(name, dict):
-            for k, v in name.iteritems():
+            for k, v in name.items():
                 if k == "images" and isinstance(v, dict):
-                    for k1, v1 in v.iteritems():
+                    for k1, v1 in v.items():
                         if k1 == bt.THUMB or k1 == bt.AUX:
                             raise Exception("Thumnails and auxiliary files cannot be added as part of the images item, they must be added under the thumbnail or auxiliary item.")
                 if hasattr(self, k):
@@ -149,7 +149,7 @@ class Image(UtilBase):
                     raise Exception("Invalid key given to Image class: %s" % (k))
         elif not name == "":
             if name == "images" and isinstance(value, dict):
-                for k, v in value.iteritems():
+                for k, v in value.items():
                     if k == bt.THUMB or k == bt.AUX:
                         raise Exception("Thumnails and auxiliary files cannot be added as part of the images item, they must be added under the thumbnail or auxiliary item.")
             if hasattr(self, name):
@@ -256,7 +256,7 @@ class Image(UtilBase):
             if(type in self.images):
                 return imagedescriptor(self.images[type], type, bt.DATA)
         except:
-            print "NOT FOUND"
+            print("NOT FOUND")
             return None
         return None
 
@@ -317,9 +317,9 @@ class Image(UtilBase):
         elif(typ in bt.image_types and typ in self.images):
             if(delete):
                 utils.remove(basedir + os.sep + self.images[typ])
-        elif(typ in self.images.values()):
+        elif(typ in list(self.images.values())):
             k = None
-            for key, val in self.images.iteritems():
+            for key, val in self.images.items():
                 if(typ == val):
                     k = key
             if(delete) :
@@ -341,7 +341,7 @@ class Image(UtilBase):
             -------
             None
         """
-        for f, v in self.images.iteritems():
+        for f, v in self.images.items():
             self.removeimage(f, basedir, delfile)
         self.images = {}
         if(self.thumbnail != ""):
@@ -395,7 +395,7 @@ class Image(UtilBase):
             for i in self.__dict__:
                 if cmp(getattr(self, i), getattr(img, i)) != 0:
                     return False
-        except Exception, e:
+        except Exception as e:
             return False
         return True
 

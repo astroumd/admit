@@ -15,12 +15,12 @@ class TestSummary(unittest.TestCase):
         self.testName = "Summary Unit Test"
 
     def test_AAAwhoami(self):
-        print "==== %s ====\n" % self.testName
+        print("==== %s ====\n" % self.testName)
 
     def test_summary(self):
         # Test insertion of tasks (FM method: add(at, stuples, dtuples))
         if (self.verbose) : 
-            print "\n------- Test Insertion ------------"
+            print("\n------- Test Insertion ------------")
         s = admit.Summary()
         self.assertEqual(s._test(),True)
 

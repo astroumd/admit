@@ -22,7 +22,7 @@ class TestImage(unittest.TestCase):
         pass
 
     def test_AAAwhoami(self):
-        print "\n==== %s ====" % self.testName
+        print("\n==== %s ====" % self.testName)
 
     def testSerialization(self):
         self.image.images = {admit.bdp_types.FITS:"myimage.fits",admit.bdp_types.CASA:"myimage.casa"}

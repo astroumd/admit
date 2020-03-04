@@ -7,7 +7,7 @@
    This module defines the Line_BDP class.
 """
 # get the main BDP base class
-from BDP import BDP
+from .BDP import BDP
 
 # get the line base class
 from admit.util.Line import Line

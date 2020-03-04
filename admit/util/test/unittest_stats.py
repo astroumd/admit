@@ -24,7 +24,7 @@ class TestStats(unittest.TestCase):
         pass
 
     def test_AAAwhoami(self):
-        print "\n==== %s ====" % self.testName
+        print("\n==== %s ====" % self.testName)
 
     # test stats.rejecto1() and stats.rejecto2()
     def test_reject(self):
@@ -36,7 +36,7 @@ class TestStats(unittest.TestCase):
         l1 = len(ret1)
 
         if(self.verbose):
-            print "\nStats rejecto1:", ret1
+            print("\nStats rejecto1:", ret1)
 
         # rejecto1 should remove 241.0302 from the original data set
         t1 = [0.0716, 0.2586, 105.0, 37.0, -0.2861]
@@ -47,7 +47,7 @@ class TestStats(unittest.TestCase):
         l2 = len(ret2)
 
         if(self.verbose):
-            print "\nStats rejecto2:", ret2
+            print("\nStats rejecto2:", ret2)
 
         # rejecto2 should remove 241.0302, 105.0, and -0.2861
         t2 = np.array([0.0716, 0.2586, 37.0])
@@ -72,11 +72,11 @@ class TestStats(unittest.TestCase):
             model.append(sample)
 
             if(self.verbose):
-                print m, sample
+                print(m, sample)
 
         ret = admit.stats.reducedchisquared(data, model, 3)
         if(self.verbose):
-            print ret
+            print(ret)
 
         self.assertGreater(ret, 0.0)
         self.assertLess(ret, 2.0)
@@ -90,7 +90,7 @@ class TestStats(unittest.TestCase):
 
         l = len(ret)   # 241.03 is the outlier and removed but the length is still 6
         if(self.verbose):
-            print ret
+            print(ret)
 
         self.assertEqual(l, 6)
 

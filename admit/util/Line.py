@@ -9,8 +9,8 @@
 import xml.etree.cElementTree as et
 
 # ADMIT imports
-import bdp_types as bt
-from UtilBase import UtilBase
+from . import bdp_types as bt
+from .UtilBase import UtilBase
 
 
 class Line(UtilBase):
@@ -174,7 +174,7 @@ class Line(UtilBase):
             None
         """
         if isinstance(name, dict):
-            for k, v in name.iteritems():
+            for k, v in name.items():
                 if hasattr(self, k):
                     if type(v) == type(getattr(self, k)):
                         if k == "energies" and not isinstance(v, list) and len(v) != 2:

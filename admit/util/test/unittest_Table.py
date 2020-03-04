@@ -46,7 +46,7 @@ class TestTable(unittest.TestCase):
         pass
 
     def test_AAAwhoami(self):
-        print "\n==== %s ====" % self.testName
+        print("\n==== %s ====" % self.testName)
 
     # test Table.setkey() and Table.exportTable()
     def test_case1(self):
@@ -80,7 +80,7 @@ class TestTable(unittest.TestCase):
                     new.append(float(item))
 
                 if(self.verbose):
-                    print "\nRow:", i, new
+                    print("\nRow:", i, new)
 
                 self.assertEqual(new, rows[i])
 
@@ -108,8 +108,8 @@ class TestTable(unittest.TestCase):
         new_data = np.array([[0.0, 0.0, 2.0], [1.0, 1.0, 2.0]])
 
         if(self.verbose):
-            print self.table.columns
-            print self.table.data
+            print(self.table.columns)
+            print(self.table.data)
 
         equal = (new_data == self.table.data).all()
         self.assertTrue(equal)
@@ -128,14 +128,14 @@ class TestTable(unittest.TestCase):
         new_data = np.array([[0.0, 0.0], [1.0, 1.0], [2.0, 2.0]])
 
         if(self.verbose):
-            print self.table.data
+            print(self.table.data)
 
         self.assertTrue((new_data == self.table.data).all())
 
         # getRow()
         row2 = self.table.getRow(2)
         if(self.verbose):
-            print row2
+            print(row2)
 
         self.assertTrue((row2 == row).all())
 
@@ -160,9 +160,9 @@ class TestTable(unittest.TestCase):
         ret3 = self.table.getPlane(1)
         
         if(self.verbose):
-            print self.table.planes
-            print "Plane1\n", ret2
-            print "Plane2\n", ret3
+            print(self.table.planes)
+            print("Plane1\n", ret2)
+            print("Plane2\n", ret3)
 
         self.assertEqual(ret1, shape)
         self.assertTrue((ret2 == plane1).all())
@@ -189,7 +189,7 @@ class TestTable(unittest.TestCase):
         # test getColumn()
         column = self.table.getColumn(0)
         if(self.verbose):
-            print "getColumn", column
+            print("getColumn", column)
 
         self.assertTrue((column == np.array([0.0, 1.0])).all())
 
@@ -197,8 +197,8 @@ class TestTable(unittest.TestCase):
         ret1 = self.table.getColumnByName(name='sigma')
         ret2 = self.table.getColumnByName(name='test')
         if(self.verbose):
-            print "getColumnByName", ret1
-            print "getColumnByName", ret2
+            print("getColumnByName", ret1)
+            print("getColumnByName", ret2)
 
         self.assertTrue((ret1 == np.array([0.07, 0.08])).all())
         self.assertTrue(ret2 == None)
@@ -206,37 +206,37 @@ class TestTable(unittest.TestCase):
         # test getFullColumnByName()
         fc = self.table.getFullColumnByName('channel')
         if(self.verbose):
-            print "getFullColumnByName", fc
+            print("getFullColumnByName", fc)
 
         self.assertTrue((fc == np.array([0.0, 1.0])).all())
 
         # test getHeader()
         header = self.table.getHeader()
         if(self.verbose):
-            print "getHeader", header
+            print("getHeader", header)
 
         self.assertEqual(header, cols)
 
         # test getUnits()
         u = self.table.getUnits()
         if(self.verbose):
-            print "getUnits", u
+            print("getUnits", u)
 
         self.assertEqual(u, unit)
 
         # test next()
-        row1 = self.table.next()
-        row2 = self.table.next()
+        row1 = next(self.table)
+        row2 = next(self.table)
         if(self.verbose):
-            print "getNext", row1
-            print "getNext", row2
+            print("getNext", row1)
+            print("getNext", row2)
 
         self.assertTrue((row1 == np.array(rows[0])).all())
         self.assertTrue((row2 == np.array(rows[1])).all())
 
         # test rewind()
         self.table.rewind()
-        row = self.table.next()
+        row = next(self.table)
         self.assertTrue((row == np.array(rows[0])).all())
 
     # test Table.serialize() and Table.deserialize()
@@ -254,7 +254,7 @@ class TestTable(unittest.TestCase):
         myTable = admit.Table()
         myTable.deserialize(out)
         if(self.verbose):
-            print myTable.html('class="table table-bordered table-striped"')
+            print(myTable.html('class="table table-bordered table-striped"'))
         self.assertEqual(self.table,myTable)
         self.planes = ['plane1','plane2','plane3']
         plane1 = [[0.0, 241.320, -0.0011, 0.0716, 0.2586, 105.0, 37.0, -0.2861], 
@@ -277,11 +277,11 @@ class TestTable(unittest.TestCase):
         self.assertEqual(self.table,myTable)
         self.assertEqual(len(myTable),len(plane1))
         if(self.verbose):
-            print myTable.html()
-        x = self.table.getRowAsDict(0).keys()
+            print(myTable.html())
+        x = list(self.table.getRowAsDict(0).keys())
         x.sort()
         self.assertEqual(['channel', 'frequency', 'mean', 'sigma'], x)
-        print self.table.getRowAsDict(0)
+        print(self.table.getRowAsDict(0))
 
         # 2D table test (4x9)
         myTable2 = admit.Table()

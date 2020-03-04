@@ -7,7 +7,7 @@
     This module defines the UtilBase class.
 """
 
-import bdp_types as bt
+from . import bdp_types as bt
 import xml.etree.cElementTree as et
 
 
@@ -42,9 +42,9 @@ class UtilBase(object):
             self._order.append(i)
 
     def __str__(self):
-        print bt.format.BOLD + bt.color.GREEN + " " + self._type + ":" + bt.format.END
-        for i, j in self.__dict__.iteritems():
-            print bt.format.BOLD + i + ": " + bt.format.END + str(j)
+        print(bt.format.BOLD + bt.color.GREEN + " " + self._type + ":" + bt.format.END)
+        for i, j in self.__dict__.items():
+            print(bt.format.BOLD + i + ": " + bt.format.END + str(j))
         return ""
 
     def getkey(self, key):
@@ -90,7 +90,7 @@ class UtilBase(object):
             None
         """
         if isinstance(name, dict):
-            for k, v in name.iteritems():
+            for k, v in name.items():
                 if hasattr(self, k):
                     if type(v) == type(getattr(self, k)):
                         setattr(self, k, v)

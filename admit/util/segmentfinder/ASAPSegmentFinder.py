@@ -38,7 +38,7 @@ try:
     import asap
     from asap.asaplinefind import linefinder
 except:
-    print "WARNING: No ASAP; ASAPLineFinder cannot function."
+    print("WARNING: No ASAP; ASAPLineFinder cannot function.")
     class linefinder(object):
         def __init__(self):
             pass
@@ -221,7 +221,7 @@ class ASAPSegmentFinder(linefinder):
 
         self.lines_merged = []
         merge = []
-        for i in xrange(nlines - 1):
+        for i in range(nlines - 1):
             width = min((lines[2 * i + 1] - lines[2 * i]), 
                         (lines[2 * i + 3] - lines[2 * i + 2]))
             sep = lines[2 * i + 2] - lines[2 * i + 1]
@@ -235,7 +235,7 @@ class ASAPSegmentFinder(linefinder):
             return nlines
         else:
             self.lines_merged.append(lines[0])
-            for i in xrange(len(merge)):
+            for i in range(len(merge)):
                 if merge[i]:
                     continue
                 else:

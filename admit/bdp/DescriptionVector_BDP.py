@@ -1,4 +1,4 @@
-from BDP import BDP
+from .BDP import BDP
 import admit.util.bdp_types as bt
 
 class DescriptionVector_BDP(BDP):

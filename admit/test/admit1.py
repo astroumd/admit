@@ -239,13 +239,13 @@ admit.utils.assert_files([file,pb,cont])                # this will halt the scr
 #------------------------------------------------------- start of script -----------------------------------------------
 
 #  announce version
-print 'ADMIT1: Version ',version,'loglevel ',loglevel
+print('ADMIT1: Version ',version,'loglevel ',loglevel)
 
 #  do the work in a proper ".admit" directory
 adir = admit.utils.admit_dir(file,out)
 #  dirty method, it really should check if adir is an admit directory
 if doClean and adir != file:
-    print "Removing previous results from ",adir
+    print("Removing previous results from ",adir)
     os.system('rm -rf %s' % adir)
     create=True
 else:
@@ -257,27 +257,27 @@ if admit0:
 # parse apar file(s) first, overwriting local apar variables
 for ap1 in ['admit1.apar', file+".apar", apar]:         # loop over 3 possible apar files, set parameters
     if ap1 != "" and os.path.isfile(ap1):
-        print "Found parameter file to execfile",ap1
-        execfile(ap1)
+        print("Found parameter file to execfile",ap1)
+        exec(compile(open(ap1, "rb").read(), ap1, 'exec'))
     else:
-        print "Skipping ",ap1
+        print("Skipping ",ap1)
 
 # open admit
 a = admit.Project(adir,name='Testing ADMIT1 style pipeline - version %s' % version,create=create,loglevel=loglevel)
 
 if a.new:
-    print "Starting a new ADMIT using",file
+    print("Starting a new ADMIT using",file)
     cmd = 'cp -a %s %s' % (sys.argv[0],adir)               # copy the script into the admit directory (@todo is that right one?)
     os.system(cmd)
     a.set(admit_dir=adir)                                  # why was this again?
     #
     for ap in ['admit1.apar', file+".apar", apar]:         # loop over 3 possible apar files, backup copy
         if ap != "" and os.path.isfile(ap):
-            print "Found parameter file to cp:",ap
+            print("Found parameter file to cp:",ap)
             os.system('cp %s %s' % (ap,adir))
 else:
-    print "All done, we just read an existing admit.xml and it should do nothing"
-    print "Use admit0.py to re-run inside of your admit directory"
+    print("All done, we just read an existing admit.xml and it should do nothing")
+    print("Use admit0.py to re-run inside of your admit directory")
     #
     a.fm.diagram(a.dir()+'admit.dot')
     a.show()
@@ -350,7 +350,7 @@ if cont != '':
     cslist = (sfind2,0)
     a.run()
     ncs = len(a[cslist[0]][0])
-    print "N Cont sources in ingested contmap :",ncs
+    print("N Cont sources in ingested contmap :",ncs)
     if ncs == 0:
         cslist = ()
 else:
@@ -389,11 +389,11 @@ if True:
         a[sfind1].setkey('numsigma',numsigma)
         a.run()
         ncs = len(a[sfind1][0])
-        print "N sources in CSM:",ncs
+        print("N sources in CSM:",ncs)
         if ncs > 0:
             cslist = (sfind1,0)
     except:
-        print "SFind2D failed on the CSM map... Continuing on"
+        print("SFind2D failed on the CSM map... Continuing on")
     # PJT testing
     # a.exit(1)
 
@@ -438,7 +438,7 @@ if lineSEG:
     a.run()
 
     nsegments = len(a[lstab1[0]][0])
-    print "Found %d segments in LineSegment" % nsegments
+    print("Found %d segments in LineSegment" % nsegments)
     
     if stop == 'linesegments':  a.exit(1)    
 else:
@@ -447,7 +447,7 @@ else:
 
 # ContinuumSub 
 if (len(contsub)>0 and contsub[0]==None) or nsegments == 0:
-    print "No ContinuumSub needed"
+    print("No ContinuumSub needed")
 else:
     bdp_in = [bandcube1]
     if len(contsub) == 0:
@@ -470,7 +470,7 @@ else:
         cslist = (sfind2,0)
         a.run()
         ncs = len(a[cslist[0]][0])
-        print "N Cont sources in contmap :",ncs
+        print("N Cont sources in contmap :",ncs)
         if ncs == 0:
             cslist = ()
 
@@ -505,7 +505,7 @@ else:
         a[moment1b].setkey('pad',pad)
     else:
         # @todo   cubesum needs 
-        print "No test maps produced since no segments were found"
+        print("No test maps produced since no segments were found")
 
 
     # new CubeSpectrum
@@ -552,7 +552,7 @@ if usePV:
 
 a.run()
 source = a.summaryData.get('object')[0].getValue()[0]
-print "OBJECT = ", source
+print("OBJECT = ", source)
 
 # lineID  
 bdp_in = []
@@ -593,11 +593,11 @@ a.run()
 if stop == 'lineid':  a.exit(1)    
 
 nlines = len(a[lltab1[0]][0])
-print "Found %d lines in LineID" % nlines
+print("Found %d lines in LineID" % nlines)
 
 # special case, exit here if you don't want any linecubes
 if maxlines == 0:
-    print "maxlines=0; no linecube's will be produced - end of admit1"
+    print("maxlines=0; no linecube's will be produced - end of admit1")
     a.exit(1)
 
 #
@@ -614,12 +614,12 @@ a[linecube1].setkey('pad',pad)         # +growth on either side
 a.run()
 
 nlines = len(a[linecube1])
-print "Found %d lines in LineCube" % nlines
+print("Found %d lines in LineCube" % nlines)
 
 if stop == 'linecube':  a.exit(1)    
 
 
-x = range(nlines)    # place holder to contain mol/line
+x = list(range(nlines))    # place holder to contain mol/line
 m = {}               # task id for moment on this mol/line
 sp= {}               # task id for cubespectrum on this mol/line
 st= {}               # task id for cubestats
@@ -628,11 +628,11 @@ st= {}               # task id for cubestats
 # produce moments and spectra from the linecubes just created
 for i in range(nlines):
     x[i] = a[linecube1][i].getimagefile()
-    print "LineDir:", i, x[i]
+    print("LineDir:", i, x[i])
     # Moment maps from the LineCube
     linecubei = (linecube1,i)
     m[x[i]] = a.addtask(admit.Moment_AT(),[linecubei,csttab1])
-    print "MOMENT_AT:",m[x[i]]
+    print("MOMENT_AT:",m[x[i]])
     a[m[x[i]]].setkey('moments',[0,1,2])
     #a[m[x[i]]].setkey('moments',[0])
     #a[m[x[i]]].setkey('cutoff',[2.0,3.0,3.0])
@@ -672,25 +672,25 @@ if useMOM:
 
 # OverlapIntegral and PrincipalComponent
 if minOI > 0 and  nlines >= minOI:
-    print "Testing OverlapIntegral, just take the strongest 3 lines"
+    print("Testing OverlapIntegral, just take the strongest 3 lines")
     fluxlist = a.summaryData.getLinefluxes()
-    print "GOT %d FLUXES IN LIST" % len(fluxlist)
+    print("GOT %d FLUXES IN LIST" % len(fluxlist))
     fluxes = []
     for line in fluxlist:
         fluxes.append((fluxlist[line],line))
-    print "FLUXES0::",fluxes
+    print("FLUXES0::",fluxes)
     fluxes = sorted(fluxes,reverse=True)
-    print "FLUXES1::",fluxes
-    print fluxes[0]
-    print fluxes[1]
-    print fluxes[2]
+    print("FLUXES1::",fluxes)
+    print(fluxes[0])
+    print(fluxes[1])
+    print(fluxes[2])
     r = (m[fluxes[0][1]],0)
     g = (m[fluxes[1][1]],0)
     b = (m[fluxes[2][1]],0)
     oi1 = a.addtask(admit.OverlapIntegral_AT(),[r,g,b])
     pca1 = a.addtask(admit.PrincipalComponent_AT(),[r,g,b])
 elif minOI > 0:
-    print "Only found %d lines, need %d for OverlapIntegral" % (nlines,minOI)
+    print("Only found %d lines, need %d for OverlapIntegral" % (nlines,minOI))
 
 
 # final run and save
@@ -699,5 +699,5 @@ a.run()
 #a.showsetkey(adir+'/admit.apar')
 
 if admit0:
-    print "RE-RUN: ",run_admit0
+    print("RE-RUN: ",run_admit0)
     os.system(run_admit0)

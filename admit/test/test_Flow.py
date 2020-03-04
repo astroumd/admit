@@ -52,13 +52,13 @@ if __name__ == '__main__':
     else:
         a = admit.Admit()
 
-    print 'Flow11:  new admit?',a.new
+    print('Flow11:  new admit?',a.new)
     if rerun and not a.new:
-        print 'LEN:',len(a)
+        print('LEN:',len(a))
         # with Parser.py version 1.26 the following lines are wrong
         # with                   1.28 it's fixed
-        print "a[0]._keys:",a[0]._keys
-        print "a[1]._keys:",a[1]._keys
+        print("a[0]._keys:",a[0]._keys)
+        print("a[1]._keys:",a[1]._keys)
         a.run()
         #
         #   for a True/False combo below this will fail
@@ -67,14 +67,14 @@ if __name__ == '__main__':
         #   so lets fix the addinput() reporting error first
         if True:
             a[0].setkey('file','Flow11-0a.dat')
-            print "a[0]._keys:",a[0]._keys
+            print("a[0]._keys:",a[0]._keys)
         if False:
             a[1].setkey('file','Flow11-1a.dat')
-            print "a[1]._keys:",a[1]._keys
+            print("a[1]._keys:",a[1]._keys)
         a.run()
-        print 'LEN:',len(a)
+        print('LEN:',len(a))
         a.write()
-        print "USERDATA: ", a.userData
+        print("USERDATA: ", a.userData)
         sys.exit(0)
 
     a1 = File_AT()
@@ -84,7 +84,7 @@ if __name__ == '__main__':
     a1.setkey('file','Flow11-0.dat')
     a1.setkey('touch',True)
     a1.setkey('exist',False)
-    print "a1._keys:",a1._keys
+    print("a1._keys:",a1._keys)
 
     a2 = Flow11_AT()
     i2 = a.addtask(a2, [(i1,0)])
@@ -107,14 +107,14 @@ if __name__ == '__main__':
     #
     a.run()
     a.run()
-    print "a1.len2=",a1.len2()
-    print "a2.len2=",a2.len2()
+    print("a1.len2=",a1.len2())
+    print("a2.len2=",a2.len2())
     #
     a.write()
-    print "USERDATA: " , a.userData
+    print("USERDATA: " , a.userData)
     #
     # these are the same:
     #print "a1=",a1
     #print "a.fm[0]=",a.fm[0]
 
-    print "Final waving from ",a.dir()
+    print("Final waving from ",a.dir())

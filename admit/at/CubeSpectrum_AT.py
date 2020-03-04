@@ -31,7 +31,7 @@ try:
   import taskinit
   import casa
 except:
-  print "WARNING: No CASA; CubeSpectrum task cannot function."
+  print("WARNING: No CASA; CubeSpectrum task cannot function.")
 
 class CubeSpectrum_AT(AT):
     """ Define one (or more) spectra through a cube.
@@ -185,7 +185,7 @@ class CubeSpectrum_AT(AT):
         if self._bdp_in[1] != None:                                      # check if CubeStats_BDP
             #print "BDP[1] type: ",self._bdp_in[1]._type
             if self._bdp_in[1]._type != bt.CUBESTATS_BDP:
-                raise Exception,"bdp_in[1] not a CubeStats_BDP, should never happen"
+                raise Exception("bdp_in[1] not a CubeStats_BDP, should never happen")
             # a table (cubestats)
             b1s = self._bdp_in[1]
             pos.append(b1s.maxpos[0])
@@ -198,7 +198,7 @@ class CubeSpectrum_AT(AT):
         if self._bdp_in[2] != None:                                      # check if Moment_BDP (probably from CubeSum)
             # print "BDP[2] type: ",self._bdp_in[2]._type
             if self._bdp_in[2]._type != bt.MOMENT_BDP:
-                raise Exception,"bdp_in[2] not a Moment_BDP, should never happen"
+                raise Exception("bdp_in[2] not a Moment_BDP, should never happen")
             b1m = self._bdp_in[2]
             fim = b1m.getimagefile(bt.CASA)
             pos1,maxval = self.maxpos_im(self.dir(fim))     # compute maxpos, since it is not in bdp (yet)
@@ -250,7 +250,7 @@ class CubeSpectrum_AT(AT):
 
         # exhausted all sources where pos[] can be set; if still zero, bail out
         if len(pos) == 0:
-            raise Exception,"No positions found from input BDP's or pos="
+            raise Exception("No positions found from input BDP's or pos=")
 
         # convert this regular list to a list of tuples with duplicates removed
         # sadly the order is lost.
@@ -263,8 +263,8 @@ class CubeSpectrum_AT(AT):
         b2 = CubeSpectrum_BDP(bdp_name)
         self.addoutput(b2)
 
-        imval  = range(npos)                             # spectra, one for each pos (placeholder)
-        planes = range(npos)                             # labels for the tables (placeholder)
+        imval  = list(range(npos))                             # spectra, one for each pos (placeholder)
+        planes = list(range(npos))                             # labels for the tables (placeholder)
         images = {}                                      # png's accumulated
 
         for i in range(npos):                            # loop over pos, they can have mixed types now
@@ -273,8 +273,8 @@ class CubeSpectrum_AT(AT):
             xpos = pos[i][0]
             ypos = pos[i][1]
             if type(xpos) != type(ypos):
-                print "POS:",xpos,ypos
-                raise Exception,"position pair not of the same type"
+                print("POS:",xpos,ypos)
+                raise Exception("position pair not of the same type")
             if type(xpos)==int:
                 # for integers, boxes are allowed, even multiple
                 box = '%d,%d,%d,%d' % (xpos,ypos,xpos,ypos)
@@ -300,8 +300,8 @@ class CubeSpectrum_AT(AT):
                 sd.extend([xpos,ypos,region])
                 imval[i] = casa.imval(self.dir(fin),region=region)
             else:
-                print "Data type: ",type(xpos)
-                raise Exception,"Data type for region not handled"
+                print("Data type: ",type(xpos))
+                raise Exception("Data type for region not handled")
             dt.tag("imval")
 
             flux  = imval[i]['data']

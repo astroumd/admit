@@ -31,7 +31,7 @@ try:
   import casa
   import taskinit
 except:
-  print "WARNING: No CASA; CubeSum task cannot function."
+  print("WARNING: No CASA; CubeSum task cannot function.")
 
 class CubeSum_AT(AT):
     """Creates a moment-0 map of a cube, with optional channel segment selection.
@@ -231,7 +231,7 @@ class CubeSum_AT(AT):
         sig_const = False                        # figure out if sigma is taken as constant in the cube
         if b1a == None:                          # if no 2nd BDP was given, sigma needs to be specified 
             if sigma <= 0.0:
-                raise Exception,"Neither user-supplied sigma nor CubeStats_BDP input given. One is required."
+                raise Exception("Neither user-supplied sigma nor CubeStats_BDP input given. One is required.")
             else:
                 sig_const = True                 # and is constant
         else:
@@ -339,7 +339,7 @@ class CubeSum_AT(AT):
         # report that flux, but there's no way to get the units from casa it seems
         # ia.summary()['unit'] is usually 'Jy/beam.km/s' for ALMA
         # imstat() does seem to know it.
-        if st.has_key('flux'):
+        if 'flux' in st:
             rdata = [st['flux'][0],st['sum'][0]]
             logging.info("Total flux: %f (sum=%f)" % (st['flux'],st['sum']))
         else:

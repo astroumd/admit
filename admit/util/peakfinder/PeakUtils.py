@@ -29,8 +29,8 @@
 # THE SOFTWARE.
 
 
-from __future__ import division
-from __future__ import absolute_import
+
+
 import numpy as np
 import math
 import types
@@ -39,7 +39,7 @@ try:
   from scipy import optimize
   import scipy.linalg as LA
 except:
-  print "WARNING: No scipy; PeakUtils utility cannot function."
+  print("WARNING: No scipy; PeakUtils utility cannot function.")
 
 
 
@@ -112,22 +112,22 @@ class PeakUtils(object):
     basetol = 1e-3
     dobase = False
     def __init__(self,spec,x = None,**kwarg):
-        if type(spec) == types.ListType:
+        if type(spec) == list:
             self.spec = np.array(spec,dtype=float)
         else:
             self.spec = spec.astype(float)
         if x == None:
             self.x = np.arange(float(spec.shape[0]))
         else:
-            if type(x) == types.ListType:
+            if type(x) == list:
                 self.x = np.array(x,dtype=float)
             else:
                 self.x = x.astype(float)
-        for k,v, in kwarg.iteritems():
+        for k,v, in kwarg.items():
             # ingore any attributes we don't have
             if hasattr(self,k):
                 if type(getattr(self,k)) != type(v):
-                    raise Exception,"Cannot change the type of a variable in PeakUtils. %s is of type %s, not %s." % (k,type(getattr(self,k)),type(v))
+                    raise Exception("Cannot change the type of a variable in PeakUtils. %s is of type %s, not %s." % (k,type(getattr(self,k)),type(v)))
                 setattr(self,k,v)
         #print self.min_dist
 
@@ -404,7 +404,7 @@ class PeakUtils(object):
         vander = np.vander(x, order)
         vander_pinv = LA.pinv2(vander)
 
-        for _ in xrange(max_it):
+        for _ in range(max_it):
             coeffs_new = np.dot(vander_pinv, self.spec)
 
             if LA.norm(coeffs_new-coeffs) / LA.norm(coeffs) < tol:

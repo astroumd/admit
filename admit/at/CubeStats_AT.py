@@ -32,7 +32,7 @@ try:
     import casa
     import taskinit
 except:
-    print "WARNING: No CASA; CubeStats task cannot function."
+    print("WARNING: No CASA; CubeStats task cannot function.")
 
 class CubeStats_AT(AT):
     """Compute image-plane based statistics for a cube.
@@ -613,7 +613,7 @@ def peakstats(image, freq, sigma, nsigma, minchan, maxgap, psample, peakfit = Fa
             for s in f:
                 if False:
                     for i in range(s[0],s[1]+1):
-                        print "# ",x,y,i,spec[i]
+                        print("# ",x,y,i,spec[i])
                 ## area preserving and peak are correlated, 18% difference
                 ## fitgauss1Dm was about 5"
                 ## with fitgauss1D was about 30", and still bad fits

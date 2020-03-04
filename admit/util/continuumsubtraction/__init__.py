@@ -4,4 +4,4 @@
    This package houses various continuum subtraction algorithms.
 """
 #from spectral import *
-import spectral
+from . import spectral

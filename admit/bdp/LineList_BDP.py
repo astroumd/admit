@@ -113,7 +113,7 @@ class LineList_BDP(Table_BDP, Image_BDP):
         # see if a plane already exists with the given name
         if name in self.spectra.planes:
             if replace:
-                print "NOT IMPLEMENTED YET"
+                print("NOT IMPLEMENTED YET")
                 #self.spectra.replace(name, spectrum)
                 return
             else:
@@ -180,11 +180,11 @@ class LineList_BDP(Table_BDP, Image_BDP):
             aps[:, 2] = 0.0
             aps[:, 3] = True
             aps[:, 4] = 0.0
-            for sname, values in spec.iteritems():
+            for sname, values in spec.items():
                 finaldata[sname] = np.vstack((pps, values, aps))
 
         # put it all together
-        for pname, plane in finaldata.iteritems():
+        for pname, plane in finaldata.items():
             self.spectra.addPlane(plane, pname)
 
     def getSpectraNames(self):

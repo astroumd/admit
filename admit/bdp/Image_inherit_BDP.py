@@ -1,7 +1,7 @@
 """
     An example of how to inherit from the Image_BDP
 """
-from Image_BDP import Image_BDP
+from .Image_BDP import Image_BDP
 import admit.util.bdp_types as bt
 
 class Image_inherit_BDP(Image_BDP):    

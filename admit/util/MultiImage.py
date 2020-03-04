@@ -12,9 +12,9 @@ import ast
 import os
 
 # ADMIT imports
-import bdp_types as bt
-from Image import Image
-from UtilBase import UtilBase
+from . import bdp_types as bt
+from .Image import Image
+from .UtilBase import UtilBase
 
 
 class MultiImage(UtilBase):
@@ -39,8 +39,8 @@ class MultiImage(UtilBase):
         UtilBase.__init__(self, **{})
 
     def __str__(self):
-        for k, v in self.mimages.iteritems():
-            print "\n" + str(v)
+        for k, v in self.mimages.items():
+            print("\n" + str(v))
         return ""
 
     def addimage(self, image, name=""):
@@ -164,18 +164,18 @@ class MultiImage(UtilBase):
             None
 
         """
-        for k, v in self.mimages.iteritems():
+        for k, v in self.mimages.items():
             v.delete(basedir, delfiles)
 
     def serialize(self):
         imlist = dict()
-        for k,v in self.mimages.iteritems():
+        for k,v in self.mimages.items():
             imlist[k] = v.serialize()
         return str(imlist)
 
     def deserialize(self,serial):
         imlist = ast.literal_eval(serial)
-        for k,v in imlist.iteritems():
+        for k,v in imlist.items():
             #print "deserializing: %s" % k
             image = Image()
             image.deserialize(v)
@@ -193,7 +193,7 @@ class MultiImage(UtilBase):
             for k in self.mimages:
                 if not self.mimages[k] == other.mimages[k]:
                     return False
-        except Exception, e:
+        except Exception as e:
              return False
         return True
 

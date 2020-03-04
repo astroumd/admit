@@ -104,7 +104,7 @@ class Filter1D(object):
         self.len = self.spec.shape[0]
         # keywords for the different algorithms
         self.method = self.checkmethod(method)
-        for k, v in keyval.iteritems():
+        for k, v in keyval.items():
             try:
                 a = getattr(self, method + "_args")[k]
             except:
@@ -374,7 +374,7 @@ class Filter1D(object):
             raise TypeError("window_size size must be a positive odd number")
         if window_size < order + 2:
             raise TypeError("window_size is too small for the polynomials order")
-        order_range = range(order + 1)
+        order_range = list(range(order + 1))
         half_window = (window_size - 1) // 2
         # precompute coefficients
         b = np.mat([[k ** i for i in order_range] for k in range(-half_window,
@@ -411,7 +411,7 @@ class Filter1D(object):
             raise Exception("The smoothing method %s is not known, it must be one of: %s" % 
                             (args[0], str(Filter1D.methods)))
         keyval = deepcopy(getattr(Filter1D, args[0] + "_args"))
-        keys = keyval.keys()
+        keys = list(keyval.keys())
         for i, arg in enumerate(args):
             if i == 0:
                 continue
@@ -447,17 +447,17 @@ def getargs(method=None):
 
     """
     if method is None:
-        print "     arg           Default"
+        print("     arg           Default")
         for m in Filter1D.methods:
-            print m
-            for k, v in getattr(Filter1D, m + "_args").iteritems():
-                print "    %s   %s" % (k.ljust(14), str(v))
+            print(m)
+            for k, v in getattr(Filter1D, m + "_args").items():
+                print("    %s   %s" % (k.ljust(14), str(v)))
         return
     if method in Filter1D.methods:
-        print "     arg           Default"
-        for k, v in getattr(Filter1D, method + "_args").iteritems():
-            print "     %s   %s" % (k.ljust(14), str(v))
+        print("     arg           Default")
+        for k, v in getattr(Filter1D, method + "_args").items():
+            print("     %s   %s" % (k.ljust(14), str(v)))
         return
-    print "Method %s is not known. Available methods are: %s" % (method, Filter1D.methods)
+    print("Method %s is not known. Available methods are: %s" % (method, Filter1D.methods))
 
 

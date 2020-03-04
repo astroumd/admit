@@ -216,7 +216,7 @@ class FlowManager():
         int
             Task ID number.
         """
-        if type(index) == types.StringType:
+        if type(index) == bytes:
           matches = self.find(lambda at: at._alias == index)
           if not matches or (len(matches) > 1 and unique):
             raise Exception("Found %d matches for alias '%s' in flow" %
@@ -324,8 +324,8 @@ class FlowManager():
         self._tasks.__delitem__(self._find_id(index))
 
     def __str__(self):
-        for k,v in self._tasks.iteritems():
-            print v
+        for k,v in self._tasks.items():
+            print(v)
         return ""
 
     def run(self, dryrun=False):
@@ -349,7 +349,7 @@ class FlowManager():
         """
         if dryrun: self.dryrun()
 
-        for dl in self._depsmap.values():
+        for dl in list(self._depsmap.values()):
           # Tasks at each level are independent and could be run in parallel.
           # For now, run them in task ID order for the sake of predictability.
           dl = list(dl)
@@ -394,7 +394,7 @@ class FlowManager():
                           for tid in self.downstream(di):
                             self[tid].enabled(sp < eport)
 
-                for sp in vm[si].keys():
+                for sp in list(vm[si].keys()):
                   if sp > 0 and sp >= eport: del vm[si][sp]
 
                 # Clone new sub-flows onto dangling output ports.
@@ -460,7 +460,7 @@ class FlowManager():
         -------
         None
         """
-        for dl in self._depsmap.values():
+        for dl in list(self._depsmap.values()):
           for d in dl:
             # Set BDP input arguments (if available).
             task = self._tasks[d]
@@ -488,12 +488,12 @@ class FlowManager():
         counter = 0
         for t in self._tasks:
             at = self._tasks[t]
-            print 'AT', counter, "(id %d)" % t, "=", at._type
+            print('AT', counter, "(id %d)" % t, "=", at._type)
             for bin in at._bdp_in:
-                print "BDP input:", bin._type
+                print("BDP input:", bin._type)
             for bout in at._bdp_out:
-                print "BDP output:", bout._type
-            print
+                print("BDP output:", bout._type)
+            print()
             counter = counter + 1
 
 
@@ -590,15 +590,15 @@ class FlowManager():
         def norm_tuples(tuples):
           rtn = []
           for t in tuples:
-            if type(t) == types.TupleType:
-              t0 = self[t[0]].id() if type(t[0]) == types.StringType else t[0]
+            if type(t) == tuple:
+              t0 = self[t[0]].id() if type(t[0]) == bytes else t[0]
               if len(t) == 2:
                 rtn.append((t0, t[1]))
               else:          
-                t2 = self[t[2]].id() if type(t[2]) == types.StringType else t[2]
+                t2 = self[t[2]].id() if type(t[2]) == bytes else t[2]
                 rtn.append((t0, t[1], t2, t[3]))
             else:
-              if type(t) == types.StringType: t = self[t].id()
+              if type(t) == bytes: t = self[t].id()
               rtn.append((t, 0))
 
           return rtn
@@ -624,12 +624,12 @@ class FlowManager():
 
             # Check source task is valid.
             if not si in self:
-              print errstr, "no source task %d." % si
+              print(errstr, "no source task %d." % si)
               return -1
 
             # This sequence reliably populates the triple-nested dictionary.
-            if not cm.has_key(si): cm[si] = {}
-            if not cm[si].has_key(di): cm[si][di] = {}
+            if si not in cm: cm[si] = {}
+            if di not in cm[si]: cm[si][di] = {}
             cm[si][di][dp] = (si, sp, di, dp)
             dp += 1
 
@@ -643,7 +643,7 @@ class FlowManager():
         self._tasks[a._taskid] = a
 
         # Set dependency level.
-        if not dm.has_key(lv): dm[lv] = set()
+        if lv not in dm: dm[lv] = set()
         dm[lv].add(di)
         tl[di] = lv
 
@@ -719,7 +719,7 @@ class FlowManager():
         leaf = set()
         for t in dtuples: leaf.add(t[2])
         if not self.downstream(di, leaf):
-          print errstr, "task", di, "introduces recursion."
+          print(errstr, "task", di, "introduces recursion.")
           return -1
 
         # Loop over dtuples (the destinations of BDP outputs from this task).
@@ -728,7 +728,7 @@ class FlowManager():
 
             # Check destination task is valid.
             if di not in self:
-              print errstr, "no destination task %d." % di
+              print(errstr, "no destination task %d." % di)
               return -1
 
             # Remove existing connection.
@@ -738,8 +738,8 @@ class FlowManager():
             if not len(cm[si0][di]): cm[si0].pop(di)
 
             # Add new connection.
-            if not cm.has_key(si): cm[si] = {}
-            if not cm[si].has_key(di): cm[si][di] = {}
+            if si not in cm: cm[si] = {}
+            if di not in cm[si]: cm[si][di] = {}
             cm[si][di][dp] = t
             bm[di][dp] = (si, sp)
 
@@ -754,7 +754,7 @@ class FlowManager():
                     # Increment dependency level.
                     l1 = l0 + 1
                     tl[tid] = l1
-                    if not dm.has_key(l1): dm[l1] = set()
+                    if l1 not in dm: dm[l1] = set()
                     dm[l1].add(tid)
 
         return a._taskid
@@ -806,7 +806,7 @@ class FlowManager():
             # Remove task as BDP connection destination.
             for t in bm[si]:
                 si0 = t[0]
-                if cm.has_key(si0):
+                if si0 in cm:
                     cm[si0].pop(si, None)
                     if not len(cm[si0]): cm.pop(si0)
 
@@ -861,9 +861,9 @@ class FlowManager():
 
         # Form new destination connections list.
         dtuples = []
-        if self._connmap.has_key(id):
-          for di in self._connmap[id].keys():
-            for t in self._connmap[id][di].values():
+        if id in self._connmap:
+          for di in list(self._connmap[id].keys()):
+            for t in list(self._connmap[id][di].values()):
               dtuples.append( (a._taskid, t[1], t[2], t[3]) )
 
         # Add the new task, then remove the old one.
@@ -931,7 +931,7 @@ class FlowManager():
           for si in root:
             if si in dups: continue
 
-            if cm.has_key(si): leaf.update(cm[si].keys())
+            if si in cm: leaf.update(list(cm[si].keys()))
 
             # Create cloned source BDP map.
             # Only source IDs present in idmap require updating.
@@ -943,7 +943,7 @@ class FlowManager():
               else:
                 # BDP input lies outside of the (external) sub-flow.
                 if fid[0] is not self and si != fid[1]:
-                  raise Exception, "clone: input sub-flow is not autonomous"
+                  raise Exception("clone: input sub-flow is not autonomous")
 
               stuples.append(t)
 
@@ -1037,7 +1037,7 @@ class FlowManager():
             flow.update(root)
 
             for si in root:
-              if cm.has_key(si): leaf.update(cm[si].keys())
+              if si in cm: leaf.update(list(cm[si].keys()))
 
             if id in leaf: return []  # Recursion through id.
             root = leaf
@@ -1056,26 +1056,26 @@ class FlowManager():
            -------
            None
         """
-        print "\n======== Begin FlowManager State ========"
-        print "\n---- Connection map ----"
+        print("\n======== Begin FlowManager State ========")
+        print("\n---- Connection map ----")
         for si in self._connmap:
             for di in self._connmap[si]:
-                print "Task %d => %d:" % (si, di), self._connmap[si][di]
+                print("Task %d => %d:" % (si, di), self._connmap[si][di])
 
-        print "\n---- BDP map ----"
+        print("\n---- BDP map ----")
         for id in self._bdpmap:
-            print "Task %d:" % id, self._bdpmap[id]
+            print("Task %d:" % id, self._bdpmap[id])
 
-        print "\n---- Dependency map ----"
+        print("\n---- Dependency map ----")
         for i in self._depsmap:
-            print "Level %d:" % i, self._depsmap[i]
+            print("Level %d:" % i, self._depsmap[i])
 
-        print "\n---- Variflow map ----"
+        print("\n---- Variflow map ----")
         for si in self._varimap:
           for sp in self._varimap[si]:
-            print "Task %d port %d:" % (si, sp), self._varimap[si][sp]
+            print("Task %d port %d:" % (si, sp), self._varimap[si][sp])
 
-        print "\n---- Tasks (level) ----"
+        print("\n---- Tasks (level) ----")
         for tid in self:
             task = self[tid]
             attr = "[stale" if task.isstale() else ""
@@ -1084,19 +1084,19 @@ class FlowManager():
             if task.id() in self._varimap:
               attr += ("[" if not attr else ",") + "variadic"
             if attr: attr += "]"
-            print "Task %d (%d):" % (tid, self._tasklevs[tid]), \
-                  self[tid]._type, "- '%s' " % self[tid]._alias, attr
-            print "  BDP  in:    map =", task._bdp_in_map
+            print("Task %d (%d):" % (tid, self._tasklevs[tid]), \
+                  self[tid]._type, "- '%s' " % self[tid]._alias, attr)
+            print("  BDP  in:    map =", task._bdp_in_map)
             for bdp in self[tid]._bdp_in:
                 if bdp != None:
-                    print "    [Name: %s Type: %s Uid: %d Tid: %d]" % (bdp.show(), bdp._type, bdp._uid, bdp._taskid)
-            print "  BDP out:    map =", task._bdp_out_map
+                    print("    [Name: %s Type: %s Uid: %d Tid: %d]" % (bdp.show(), bdp._type, bdp._uid, bdp._taskid))
+            print("  BDP out:    map =", task._bdp_out_map)
             for bdp in self[tid]._bdp_out:
                 if bdp != None:
-                    print "    [Name: %s Type: %s Uid: %d Tid: %d]" % (bdp.show(), bdp._type, bdp._uid, bdp._taskid)
-            print
+                    print("    [Name: %s Type: %s Uid: %d Tid: %d]" % (bdp.show(), bdp._type, bdp._uid, bdp._taskid))
+            print()
 
-        print "======== End FlowManager State ========"
+        print("======== End FlowManager State ========")
 
 
     def showsetkey(self,outfile=None):
@@ -1110,7 +1110,7 @@ class FlowManager():
             stale ="[stale]" if self[tid].isstale() else "" 
             fp.write("### Task %d (%d): %s %s\n" % (tid,  self._tasklevs[tid], self[tid]._type,stale))
             fp.write("#   BDP name info could be displayed here too....\n\n")
-            for key in self[tid]._keys.keys():
+            for key in list(self[tid]._keys.keys()):
                 val = self[tid]._keys[key]
                 if type(val) == type('str'):
                     if len(val) == 0:  val = "''"
@@ -1142,53 +1142,53 @@ class FlowManager():
         # Check tasks exist precisely once in the dependency map and levels.
         # This will detect cyclic flows among other things.
         nTasks = 0
-        for dl in dm.values(): nTasks += len(dl)
+        for dl in list(dm.values()): nTasks += len(dl)
         if nTasks != len(self._tasks) or nTasks != len(tl):
-          print errstr, "Task count mismatch: " \
+          print(errstr, "Task count mismatch: " \
                 "%d tasks, %d in _depsmap, %d in _tasklevs." \
-                % (len(self._tasks), nTasks, len(tl))
+                % (len(self._tasks), nTasks, len(tl)))
           ok = False
 
         for id in self._tasks:
           if id != self._tasks[id]._taskid:
-            print errstr, "Task ID mismatch: " \
-                  "tasks[%d] ID is %d."  % (id, self._tasks[id]._taskid)
+            print(errstr, "Task ID mismatch: " \
+                  "tasks[%d] ID is %d."  % (id, self._tasks[id]._taskid))
             ok = False
 
-          if not tl.has_key(id):
-            print errstr, "Task %d is not in _tasklevs." % id
+          if id not in tl:
+            print(errstr, "Task %d is not in _tasklevs." % id)
             ok = False
             continue
 
           if not id in dm[tl[id]]:
-            print errstr, "Task %d is not in _depsmap level %d." % (id, tl[id])
+            print(errstr, "Task %d is not in _depsmap level %d." % (id, tl[id]))
             ok = False
 
         # Check consistency of _connmap and _bdpmap.
         for di in bm:
           dp = 0
           for si, sp in bm[di]:
-            if not cm.has_key(si):
-              print errstr, "Task %d is not a source in _connmap." % si
+            if si not in cm:
+              print(errstr, "Task %d is not a source in _connmap." % si)
               ok = False
               continue
 
-            if not cm[si].has_key(di):
-              print errstr, "Task %d is not a destination of %d in _connmap." \
-                    % (di, si)
+            if di not in cm[si]:
+              print(errstr, "Task %d is not a destination of %d in _connmap." \
+                    % (di, si))
               ok = False
               continue
 
-            if not cm[si][di].has_key(dp):
-              print errstr, "Task %d input %d is not a destination" \
-                    "of %d in _connmap." % (di, dp, si)
+            if dp not in cm[si][di]:
+              print(errstr, "Task %d input %d is not a destination" \
+                    "of %d in _connmap." % (di, dp, si))
               ok = False
               continue
 
             conn = (si, sp, di, dp)
             if cm[si][di][dp] != conn:
-              print errstr, "Connection mismatch: found %s, expected %s." \
-                    % (cm[si][di][dp], conn)
+              print(errstr, "Connection mismatch: found %s, expected %s." \
+                    % (cm[si][di][dp], conn))
               ok = False
 
             dp += 1
@@ -1199,21 +1199,21 @@ class FlowManager():
               t = cm[si][di][dp]
               sp = t[1]
               if t[0] != si or t[2] != di or t[3] != dp:
-                print errstr, "Connection mismatch: found %s, expected %s." \
-                      % (t, (si, sp, di, dp))
+                print(errstr, "Connection mismatch: found %s, expected %s." \
+                      % (t, (si, sp, di, dp)))
                 ok = False
 
-              if not (bm.has_key(di) and len(bm[di]) > dp):
-                print errstr, "BDP connection %s not found." % ((di, dp),)
+              if not (di in bm and len(bm[di]) > dp):
+                print(errstr, "BDP connection %s not found." % ((di, dp),))
                 ok = False
               else:
                 if bm[di][dp] != (si, sp):
-                  print errstr, "BDP connection %s mismatch: " \
+                  print(errstr, "BDP connection %s mismatch: " \
                         "found %s, expected %s." \
-                        % ((di, dp), bm[di][dp], (si, sp))
+                        % ((di, dp), bm[di][dp], (si, sp)))
                   ok = False
 
-        if ok : print "FlowManager.verify(): okayed %d tasks." % nTasks
+        if ok : print("FlowManager.verify(): okayed %d tasks." % nTasks)
         return ok
 
 
@@ -1238,7 +1238,7 @@ class FlowManager():
             None
         """
         if direct:
-            if self._connmap.has_key(id): flow = self._connmap[id].keys()
+            if id in self._connmap: flow = list(self._connmap[id].keys())
             else:                         flow = []
             flow.append(id)
         else:                             flow = self.downstream(id)
@@ -1263,7 +1263,7 @@ class FlowManager():
 
         # Loop over tasks in dependency order and connect them in the diagram.
         # The loop logic is similar to that in run().
-        for dl in self._depsmap.values():
+        for dl in list(self._depsmap.values()):
           # Try to improve repeatability by sorting IDs.
           dl = list(dl)
           dl.sort(key=lambda tid0: self._tasklevs[tid0])
@@ -1336,7 +1336,7 @@ class FlowManager():
         # The loop logic is similar to that in run().
         idmap = {}
         n = 0
-        for dl in self._depsmap.values():
+        for dl in list(self._depsmap.values()):
           # To increase regularity, order by ID number.
           dl = list(dl)
           dl.sort()
@@ -1347,7 +1347,7 @@ class FlowManager():
 
             # Determine non-default keywords.
             exec("at = admit.%s()" % task._type)
-            keys = at._keys.keys()
+            keys = list(at._keys.keys())
             keys.sort()
             if task.isAutoAlias():
               args= "" 
@@ -1485,7 +1485,7 @@ class FlowManager():
         if level in flow0._depsmap:
           match = None
           for tid0 in flow0._depsmap[level]:
-            if not twins.has_key(tid0):
+            if tid0 not in twins:
               # Find all tasks with same ancestors; return the closest match.
               if self.sameLineage(tid, tid0, flow0, twins, match):
                 match = tid0
@@ -1539,7 +1539,7 @@ class FlowManager():
             entries = summary0.getItemsByTaskID(tid0)
             for key in entries:
               value = entries[key]
-              if type(value) == types.ListType:
+              if type(value) == list:
                 for entry in value:
                   entry = copy.copy(entry)
                   if entry.taskid == tid0:
@@ -1556,7 +1556,7 @@ class FlowManager():
             tid0 = self.findTwin(tid, flow0, twins)
 
             if tid0 is not None:
-              if not twins.has_key(tid0):
+              if tid0 not in twins:
                 task.merge(flow0[tid0], self._aliases)
                 twins[tid0] = tid
                 addSummary(tid0, task.id(True))
@@ -1611,7 +1611,7 @@ class FlowManager():
                   tids.sort(key=lambda tid0: flow0._tasklevs[tid0])
 
                   for tid0 in tids:
-                    if not twins.has_key(tid0):
+                    if tid0 not in twins:
                       if not sp:
                         # Missing tasks from the prototype flow? The user
                         # deleted them. To be safe, mark the root stale so the
@@ -1622,7 +1622,7 @@ class FlowManager():
                         # Reintroduce task iff all required inputs exist.
                         stuples = []
                         for stuple0 in flow0._bdpmap[tid0]:
-                          if twins.has_key(stuple0[0]):
+                          if stuple0[0] in twins:
                             # Translate input to new flow.
                             stuples.append((twins[stuple0[0]], stuple0[1]))
                           else:

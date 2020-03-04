@@ -8,8 +8,8 @@
 """
 
 
-from Image_BDP import Image_BDP
-from Table_BDP import Table_BDP
+from .Image_BDP import Image_BDP
+from .Table_BDP import Table_BDP
 #import admit.util.bdp_types as bt
 
 class PVCorr_BDP(Table_BDP, Image_BDP):

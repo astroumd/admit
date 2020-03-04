@@ -75,9 +75,9 @@ class FlowMN_AT(AT):
     def run(self):
         exist = self.getkey('exist')
         m = len(self._bdp_in)
-        print "FlowMN_AT.run():  Found %d input bdps with the following filenames:" % m
+        print("FlowMN_AT.run():  Found %d input bdps with the following filenames:" % m)
         for b in self._bdp_in:
-            print "MN_in: ",b.filename        # this works because we know it's a File_BDP, getfiles() otherwise
+            print("MN_in: ",b.filename)        # this works because we know it's a File_BDP, getfiles() otherwise
             if exist: b.checkfiles()
 
         filename = self.getkey('file')
@@ -86,7 +86,7 @@ class FlowMN_AT(AT):
           filename = self._bdp_in[0].filename + ('-'+alias if alias else '_MN')
 
         if self.haskey('junk'):
-            print "Impossible"
+            print("Impossible")
 
         # Although for practical purposes 'n' is defined here, other
         # AT's computed what 'n' should be (e.g. LineID/LineCube
@@ -96,7 +96,7 @@ class FlowMN_AT(AT):
         # that creates between 0 and n BDP outs
 
         # bdps will be the list of BDPs in the loop below
-        bdps = range(n)
+        bdps = list(range(n))
 
         # create the output BDPs
         self.clearoutput()

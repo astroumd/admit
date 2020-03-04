@@ -32,7 +32,7 @@ class TestVariflow(unittest.TestCase):
         os.system(cmd)
 
     def test_AAAwhoami(self):
-        print "==== %s ====\n" % self.testName
+        print("==== %s ====\n" % self.testName)
 
     def test_variflow(self):
         p = admit.Project(self.outputDir)

@@ -249,7 +249,7 @@ def getdata_raw(imgname):
        array 
            data in a 2D numpy array
     """
-    tb = taskinit.tbtool()
+    tb = tbtool()
     tb.open(imgname)
     data=tb.getcol('map')
     tb.close()
@@ -288,7 +288,7 @@ def putdata_raw(imgname, data, clone=None):
         bigim = ia.imageconcat(outfile=imgname, infiles=infiles, axis=2, relax=T, tempclose=F, overwrite=T)
         bigim.close()
     else:
-        tb = taskinit.tbtool()
+        tb = tbtool()
         tb.open(imgname,nomodify=False)
         d = tb.getcol('map')
         pdata = ma.getdata(data).reshape(d.shape)

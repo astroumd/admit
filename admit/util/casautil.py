@@ -126,7 +126,7 @@ def implot(rasterfile, figname, contourfile=None, plottype=PlotControl.PNG,
     axes = {'x':'x','y':'y','z':'z'}
 
     # work around this axis labeling problem?
-    ia = taskinit.iatool()
+    ia = iatool()
     ia.open(rasterfile)
     h = ia.summary()
     ia.close()
@@ -168,7 +168,7 @@ def getdata(imgname, chans=[], zeromask=False):
        array 
            data in a masked numpy array
     """
-    ia = taskinit.iatool()    
+    ia = iatool()    
     ia.open(imgname)
     if len(chans) == 0:
         d = ia.getchunk(blc=[0,0,0,0],trc=[-1,-1,-1,0],getmask=False).squeeze()
@@ -216,7 +216,7 @@ def getdata1(imgname):
        array 
           data in a 1D numpy array
     """
-    ia = taskinit.iatool()
+    ia = iatool()
     ia.open(imgname)
     d = ia.getchunk(blc=[0,0,0,0],trc=[-1,-1,0,0],getmask=False)
     m = ia.getchunk(blc=[0,0,0,0],trc=[-1,-1,0,0],getmask=True)
@@ -277,7 +277,7 @@ def putdata_raw(imgname, data, clone=None):
            for output. It needs to be an absolute filename.
   
     """
-    ia = taskinit.iatool()    
+    ia = iatool()    
     if clone != None:
         ia.fromimage(infile=clone,outfile=imgname,overwrite=True) 
         ia.close()
@@ -312,7 +312,7 @@ def mapdim(imgname, dim=None):
      dim : integer (or None)
 
      """
-     ia = taskinit.iatool()     
+     ia = iatool()     
      ia.open(imgname)
      s = ia.summary()
      shape = s['shape']

@@ -22,13 +22,24 @@ from admit.util.AdmitLogging import AdmitLogging as logging
 import numpy as np
 import math
 try:
-    import taskinit
     import casa
     from specsmooth import specsmooth
     from impbcor import impbcor
     from imtrans import imtrans
+    from taskinit import iatool as iatool
+    from taskinit import rgtool as rgtool
+    from taskinit import qatool as qatool
 except:
-    print("WARNING: No CASA; Ingest task cannot function.")
+    try:
+        import casatasks as casa
+        from casatasks import impbcor
+        from casatasks import imtrans
+        from casatasks import specsmooth
+        from casatools import image         as iatool
+        from casatools import regionmanager as rgtool
+        from casatools import quanta        as qatool
+    except:
+        print("WARNING: No CASA; Ingest task cannot function.")
 
 import random
 
@@ -373,8 +384,8 @@ class Ingest_AT(AT):
         if do_pb: fno2 = self.dir(bdpfile2)
         dt.tag("start")
 
-        ia = taskinit.iatool()
-        rg = taskinit.rgtool()
+        ia = iatool()
+        rg = rgtool()
         
         if file_is_casa:
             ia.open(fni)
@@ -854,7 +865,7 @@ class Ingest_AT(AT):
         # so we have to munge them
 
         # convert beam parameters
-        qa = taskinit.qatool()
+        qa = qatool()
         if 'beampa' in header:
             self._summary['bpa']  = SummaryEntry(qa.convert(header['beampa'],'deg')['value'])
         if 'beammajor' in header:

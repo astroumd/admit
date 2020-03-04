@@ -11,7 +11,7 @@ from admit.util.filter import Filter1D
 from . import bdp_types as bt
 from . import utils
 from .segmentfinder import SegmentFinder
-import admit.util.continuumsubtraction.spectral.ContinuumSubtraction
+import continuumsubtraction.spectral.ContinuumSubtraction
 from admit.util import LineData
 import copy
 

@@ -28,7 +28,10 @@
     :license: Python License.
 """
 from _ast import *
-from _ast import __version__
+try:
+    from _ast import __version__
+except:
+    print("_ast has no __version__:   probably ok")
 
 def parse(source, filename='<unknown>', mode='exec'):
     """

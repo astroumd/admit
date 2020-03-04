@@ -12,12 +12,18 @@ import numpy.ma as ma
 
 try:
   import casa
-  import taskinit
+  from taskinit import iatool as iatool
+  from taskinit import tbtool as tbtool
+  from imview import imview as casa_imview
 except:
-  print("WARNING: No CASA; casautil can't function")
+  try:
+    import casatasks as casa
+    from casatools import image         as iatool
+    from casatools import table         as tbtool
+    print("CASA6: cannot use casa_imview")    
+  except:
+    print("WARNING: No CASA; casautil can't function")
 
-# imview was left out of the casa namespace in CASA5
-from imview import imview as casa_imview
 
 from . import PlotControl
 

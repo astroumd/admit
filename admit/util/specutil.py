@@ -6,12 +6,12 @@
 """
 import numpy as np
 import numpy.ma as ma
-from Spectrum import Spectrum
-import filter.Filter1D as Filter1D
-import bdp_types as bt
-import utils
-from segmentfinder import SegmentFinder
-import continuumsubtraction.spectral.ContinuumSubtraction
+from admit.util.Spectrum import Spectrum
+from admit.util.filter import Filter1D 
+from . import bdp_types as bt
+from . import utils
+from .segmentfinder import SegmentFinder
+import admit.util.continuumsubtraction.spectral.ContinuumSubtraction
 from admit.util import LineData
 import copy
 

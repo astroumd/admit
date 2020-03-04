@@ -6,7 +6,12 @@
     This module defines the SpectralLineSearch class.
 """
 # system imports
-import urllib2
+try: #python3
+    from urllib.request import urlopen
+    from urllib.error import URLError
+except: #python2
+    from urllib2 import urlopen
+    from urllib2 import URLError
 import random
 
 # admit imports
@@ -623,9 +628,9 @@ class SpectralLineSearch(object):
 
         """
         try:
-            response = urllib2.urlopen('http://www.cv.nrao.edu', timeout=10)
+            response = urlopen('http://www.cv.nrao.edu', timeout=10)
             return True
-        except urllib2.URLError:
+        except URLError:
             logging.error("Cannot reach splatalogue server, please check your internet connection.")
             raise Exception("Cannot reach splatalogue server, please check your internet connection.")
 

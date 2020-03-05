@@ -1518,6 +1518,7 @@ class Admit(object):
             dtdlist[self.fm[tid]._type] = tdtd
         # generate a string from the nodes
         rough_string = et.tostring(root, 'utf-8')
+        rough_string=rough_string.decode(encoding='utf-8', errors='strict')
 
         # make the text human readable
         temp = rough_string.replace(">", ">\n")

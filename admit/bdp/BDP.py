@@ -324,6 +324,7 @@ class BDP(object):
 
         #Return a pretty-printed XML string for the Element.
         rough_string = et.tostring(root, 'utf-8')
+        rough_string=rough_string.decode(encoding='utf-8', errors='strict')
 
         temp = rough_string.replace(">", ">\n")
         temp = temp.replace("</", "\n</")

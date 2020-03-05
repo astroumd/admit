@@ -34,6 +34,7 @@ import numpy as np
 import admit.util.bdp_types as bt
 from admit.util import UtilBase
 import admit.util.utils as utils
+import imp
 
 # Just some useful constant strings
 START = "<!ELEMENT "
@@ -114,13 +115,13 @@ class DtdGenerator(object):
             return bt.BOOL
         elif isinstance(typ, int):
             return bt.INT
-        elif isinstance(typ, long):
+        elif isinstance(typ, int):
             return bt.LONG
         elif isinstance(typ, float):
             return bt.FLOAT
         elif isinstance(typ, tuple):
             return bt.TUPLE
-        elif type(typ) in types.StringTypes:
+        elif type(typ) in (str,):
             return bt.STRING
         else:
             raise Exception("Improper type: " + str(typ) + " found for attribute " + i + " in " + key)
@@ -150,7 +151,7 @@ class DtdGenerator(object):
                 # MultiImage base class must be reflected here
                 listing = {"images"     : bt.DICT}
                 # write out each of the data members
-                for k, v in listing.iteritems():
+                for k, v in listing.items():
                     self.writeEntry(k, v, dtd)
                 self.writeEntry(bt.IMG, "Image", dtd)
             else:
@@ -204,7 +205,7 @@ class DtdGenerator(object):
         dtd.write(ATSTART + "BDP type (" + key + ") #REQUIRED>\n")
 
         dtd.write("<!-- child nodes #PCDATA indicates parsable character data-->\n")
-        for k, v in listing.iteritems():
+        for k, v in listing.items():
             self.writeEntry(k, v, dtd)
 
         dtd.close()
@@ -256,7 +257,7 @@ class DtdGenerator(object):
         # process images, tables, tasks, and everything else adding their attributes
         dtd.write("<!-- child nodes #PCDATA indicates parsable character data-->\n")
 
-        for k, v in listing.iteritems():
+        for k, v in listing.items():
             self.writeEntry(k, v, dtd)
 
         listing = {}
@@ -270,7 +271,7 @@ class DtdGenerator(object):
         line += ")>\n"
         line += ATSTART + "_keys type (" + bt.DICT + ATEND
         dtd.write(line)
-        for k, v in listing.iteritems():
+        for k, v in listing.items():
             self.writeEntry(k, v, dtd)
         dtd.close()
 
@@ -369,7 +370,7 @@ class DtdGenerator(object):
                 items[i] = self.getType(i, self.util_class[ut], ut)
             self.util_string[ut] = "\t("
             self.util_dtd[ut] = ""
-            for k, v in items.iteritems():
+            for k, v in items.items():
                 if k == "_type" or k == "_order":
                     continue
                 self.util_string[ut] += k + ","
@@ -379,7 +380,7 @@ class DtdGenerator(object):
                     self.util_dtd[ut] += (ATSTART + k + " set (" + bt.STRING + ") #REQUIRED>\n")
                 self.util_dtd[ut] += (ATSTART + k + " type (%s) #REQUIRED>\n" % (v))
             self.util_string[ut] = self.util_string[ut][:-1] + ")>"
-        types.write("UTIL_LIST = %s\n" % (str(self.util_class.keys())))
+        types.write("UTIL_LIST = %s\n" % (str(list(self.util_class.keys()))))
 
 
         # image data types
@@ -429,7 +430,7 @@ class DtdGenerator(object):
             pass
         shutil.move(os.sep + "tmp" + os.sep + str(os.getpid()) + ".bdp_types.py", typesfl)
         # load in the new bdp_types file
-        reload(bt)
+        imp.reload(bt)
         bdp_f.write("from BDP" + " " * 24 + "import BDP" + " " * 24 + "as BDP\n")
 
         # generate the dtds for the BDPs

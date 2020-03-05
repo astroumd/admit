@@ -167,3 +167,11 @@ python.   YMMV.
 
 Some notes on CASA installations
 ================================
+
+CASA6
+-----
+
+As of March 2020 ADMIT was converted to use python3 instead of python2. This in
+order to be able to take advantage of CASA6, which uses python3. This work is
+ongoing and taking place in a branch called "python3". Contact Peter if you want
+to know more.

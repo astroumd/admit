@@ -5,6 +5,13 @@
 
    This module defines the CubeSum_AT class.
 """
+
+import numpy as np
+import numpy.ma as ma
+from copy import deepcopy
+import types
+import os
+
 from admit.AT import AT
 from admit.Summary import SummaryEntry
 from admit.util import APlot
@@ -19,19 +26,19 @@ from admit.bdp.CubeStats_BDP import CubeStats_BDP
 from admit.bdp.LineList_BDP import LineList_BDP
 from admit.bdp.Moment_BDP import Moment_BDP
 import admit.util.utils as utils
+import admit.util.PlotControl as PlotControl
 import admit.util.filter.Filter1D as Filter1D
 from admit.util.AdmitLogging import AdmitLogging as logging
-import numpy as np
-import numpy.ma as ma
-from copy import deepcopy
 
-import types
-import os
 try:
-  import casa
-  import taskinit
+    import casa
+    from taskinit import iatool as iatool
 except:
-  print("WARNING: No CASA; CubeSum task cannot function.")
+    try:
+        import casatasks as casa
+        from casatools import image         as iatool
+    except:
+        print("WARNING: No CASA; CubeSum task cannot function.")
 
 class CubeSum_AT(AT):
     """Creates a moment-0 map of a cube, with optional channel segment selection.
@@ -165,7 +172,7 @@ class CubeSum_AT(AT):
             "zoom"       : 1,      # default map plot zoom ratio
         }
         AT.__init__(self,keys,keyval)
-        self._version = "1.1.0"
+        self._version = "1.2.0"
         self.set_bdp_in([(Image_BDP,     1, bt.REQUIRED),
                          (CubeStats_BDP, 1, bt.OPTIONAL),
                          (LineList_BDP,  1, bt.OPTIONAL)])    # LineSegment_BDP also allowed
@@ -194,7 +201,7 @@ class CubeSum_AT(AT):
         b1a = self._bdp_in[1]                    # cubestats (optional)
         b1b = self._bdp_in[2]                    # linelist  (optional)
 
-        ia = taskinit.iatool()
+        ia = iatool()
 
         f1 =  b1.getimagefile(bt.CASA)
         ia.open(self.dir(f1))

@@ -6,6 +6,14 @@
    This module defines the CubeStats_AT class.
 """
 
+from copy import deepcopy
+import numpy as np
+import numpy.ma as ma
+import math
+import os
+import scipy.stats
+
+
 from admit.AT import AT
 import admit.util.bdp_types as bt
 from admit.bdp.CubeStats_BDP import CubeStats_BDP
@@ -21,18 +29,16 @@ from admit.Summary import SummaryEntry
 import admit.util.casautil as casautil
 from admit.util.AdmitLogging import AdmitLogging as logging
 
-from copy import deepcopy
-import numpy as np
-import numpy.ma as ma
-import math
-import os
 
 try:
-    import scipy.stats
     import casa
-    import taskinit
+    from taskinit import iatool as iatool
 except:
-    print("WARNING: No CASA; CubeStats task cannot function.")
+    try:
+        import casatasks as casa
+        from casatools import image         as iatool
+    except:
+        print("WARNING: No CASA; CubeStats task cannot function.")
 
 class CubeStats_AT(AT):
     """Compute image-plane based statistics for a cube.
@@ -121,7 +127,7 @@ class CubeStats_AT(AT):
                 "psample" : -1,         # if > 0, spatial sampling rate for PeakStats
         }
         AT.__init__(self,keys,keyval)
-        self._version       = "1.1.0"
+        self._version       = "1.2.0"
         self.set_bdp_in([(Image_BDP,      1, bt.REQUIRED)])
         self.set_bdp_out([(CubeStats_BDP, 1)])
 
@@ -210,7 +216,7 @@ class CubeStats_AT(AT):
         numsigma = 3.0
 
         # tools we need
-        ia = taskinit.iatool()
+        ia = iatool()
 
         # grab the new robust statistics. If this is used, 'rms' will be the RMS,
         # else we will use RMS = 1.4826*MAD (MAD does a decent job on outliers as well)

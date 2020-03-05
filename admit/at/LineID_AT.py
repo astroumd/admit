@@ -4506,8 +4506,10 @@ class Peaks(object):
     __slots__ = ["centers", "offsets", "singles", "pairs", "spec",
                  "offsetdone", "fcenters", "fsingles", "linelist",
                  "blends", "segments", "fsegments", "counts"]
-    offsets = set()
-    offsetdone = False
+    if False:
+        # fix this for Python3
+        offsets = set()
+        offsetdone = False
 
     def __init__(self, **kwargs):
         self.centers = {}

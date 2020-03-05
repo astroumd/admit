@@ -1346,7 +1346,8 @@ class FlowManager():
             idmap[tid] = n  # Renumber task IDs sequentially.
 
             # Determine non-default keywords.
-            exec("at = admit.%s()" % task._type)
+            cmd = "global at; at = admit.%s()" % task._type
+            exec(cmd,globals(), locals())
             keys = list(at._keys.keys())
             keys.sort()
             if task.isAutoAlias():

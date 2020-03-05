@@ -30,11 +30,12 @@ class File_BDP(BDP):
         print("File_BDP.show() ran...")
 
     def getfiles(self):
-	""" returns a list of file names. 
+        """
+        returns a list of file names. 
 
         For File_BDP only one filename is currently allowed
 	"""
-	return [self.filename]
+        return [self.filename]
 
     def checkfiles(self):
         """

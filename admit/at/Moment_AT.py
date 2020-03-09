@@ -6,6 +6,11 @@
    This module defines the Moment_AT class.
 """
 
+import math
+import numpy as np
+import numpy.ma as ma
+from copy import deepcopy
+
 # ADMIT imports
 import admit
 from admit.AT import AT
@@ -24,17 +29,17 @@ from admit.util.AdmitLogging import AdmitLogging as logging
 
 # CASA imports
 try:
-    import taskinit
     import casa
+    from taskinit import iatool as iatool
     from makemask import makemask
 except:
-    print("WARNING: No CASA; Moment task cannot function.")
+    try:
+        import casatasks as casa
+        from casatools import image         as iatool
+        from casatasks import makemask
+    except:
+        print("WARNING: No CASA; Moment task cannot function.")
 
-# system imports
-import math
-import numpy as np
-import numpy.ma as ma
-from copy import deepcopy
 
 
 class Moment_AT(AT):
@@ -130,7 +135,7 @@ class Moment_AT(AT):
             "zoom"     : 1,            # default map plot zoom ratio
         }
         AT.__init__(self, keys, keyval)
-        self._version = "1.1.0"
+        self._version = "1.2.0"
         # set input types
         self.set_bdp_in([(Image_BDP,     1, bt.REQUIRED),
                          (CubeStats_BDP, 1, bt.OPTIONAL)])
@@ -203,7 +208,7 @@ class Moment_AT(AT):
         sigma0 = self.getkey("sigma")
         sigma  = sigma0
 
-        ia = taskinit.iatool()
+        ia = iatool()
 
         dt.tag("open")
 

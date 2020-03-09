@@ -187,7 +187,7 @@ class Filter1D(object):
         """
         if not self.isodd(width):
             raise Exception("Boxcar width must be an odd number.")
-        side = (width - 1) / 2
+        side = (width - 1) // 2
         kernel = np.array([1.0] * width)
         kernel /= kernel.sum()
         return np.convolve(self.buffer(side), kernel, mode="valid")

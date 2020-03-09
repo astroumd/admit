@@ -5,6 +5,11 @@
 
    This module defines the CubeSpectrum_AT class.
 """
+from copy import deepcopy
+import numpy as np
+import numpy.ma as ma
+import os
+
 from admit.AT import AT
 import admit.util.bdp_types as bt
 from admit.bdp.Image_BDP        import Image_BDP
@@ -22,16 +27,15 @@ from admit.util import APlot
 import admit.util.utils as utils
 from admit.util.AdmitLogging import AdmitLogging as logging
 
-from copy import deepcopy
-import numpy as np
-import numpy.ma as ma
-import os
-
 try:
-  import taskinit
+  from taskinit import iatool as iatool
   import casa
 except:
-  print("WARNING: No CASA; CubeSpectrum task cannot function.")
+  try:
+    import casatasks as casa
+    from casatools import image         as iatool
+  except:
+    print("WARNING: No CASA; CubeSpectrum task cannot function.")
 
 class CubeSpectrum_AT(AT):
     """ Define one (or more) spectra through a cube.
@@ -136,7 +140,7 @@ class CubeSpectrum_AT(AT):
                 "xaxis"   : "",    # currently still ignored
         }
         AT.__init__(self,keys,keyval)
-        self._version       = "1.1.0"
+        self._version       = "1.2.0"
         self.set_bdp_in( [(Image_BDP,       1,bt.REQUIRED),     # 0: cube: SpwCube or LineCube allowed
                           (CubeStats_BDP,   1,bt.OPTIONAL),     # 1: stats, uses maxpos
                           (Moment_BDP,      1,bt.OPTIONAL),     # 2: map, uses the max in this image as pos=
@@ -180,7 +184,7 @@ class CubeSpectrum_AT(AT):
         self.spec_description = []   # for summary()
 
         # get the tools
-        ia = taskinit.iatool()
+        ia = iatool()
 
         if self._bdp_in[1] != None:                                      # check if CubeStats_BDP
             #print "BDP[1] type: ",self._bdp_in[1]._type
@@ -413,7 +417,7 @@ class CubeSpectrum_AT(AT):
         # we're going to assume 2D images fit in memory and always use getchunk
         # @todo  review the use of the new casautil.getdata() style routines
         if True:
-            ia = taskinit.iatool()
+            ia = iatool()
             ia.open(im)
             plane = ia.getchunk(blc=[0,0,0,-1],trc=[-1,-1,-1,-1],dropdeg=True)
             v = ma.masked_invalid(plane)

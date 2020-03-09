@@ -109,7 +109,7 @@ class LineSegment_AT(AT):
                }
         self.boxcar = True
         AT.__init__(self, keys, keyval)
-        self._version = "1.0.3"
+        self._version = "1.2.0"
         self.set_bdp_in([(CubeSpectrum_BDP, 1, bt.OPTIONAL),
                          (CubeStats_BDP,    1, bt.OPTIONAL)])
         self.set_bdp_out([(LineSegment_BDP, 1)])

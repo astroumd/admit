@@ -20,6 +20,7 @@ except:
     import casatasks as casa
     from casatools import image         as iatool
     from casatools import table         as tbtool
+    from .casa_imview6 import casa_imview6 as casa_imview
     print("CASA6: cannot use casa_imview")    
   except:
     print("WARNING: No CASA; casautil can't function")
@@ -141,8 +142,8 @@ def implot(rasterfile, figname, contourfile=None, plottype=PlotControl.PNG,
     casa_imview(raster=raster, contour=contour, out=figname, axes=axes,
                 zoom=zoom)
 
-    #of = PlotControl.mkext(plottype,dot=False)
-    #casa.viewer(outfile=outfile, infile=imagename, gui=False, plottype=of)
+      #of = PlotControl.mkext(plottype,dot=False)
+      #casa.viewer(outfile=outfile, infile=imagename, gui=False, plottype=of)
     if plotmode == PlotControl.INTERACTIVE or plotmode==PlotControl.SHOW_AT_END:
         casa_imview(raster=raster, contour=contour,axes=axes)
 

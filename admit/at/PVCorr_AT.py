@@ -6,6 +6,10 @@
    Defines the PVCorr_AT class.
 """
 import sys, os, logging
+import scipy
+import scipy.signal
+import numpy as np
+import numpy.ma as ma
 
 from admit.AT import AT
 from admit.Summary import SummaryEntry
@@ -21,17 +25,14 @@ from admit.util import APlot
 from admit.util import stats
 from admit.util.AdmitLogging import AdmitLogging as logging
 
-import numpy as np
-import numpy.ma as ma
-try:
-    import scipy
-    import scipy.signal
-except:
-    print("WARNING: No scipy; PVCorr task cannot function.")
+
 try:
     import casa
 except:
-    print("WARNING: No CASA; PVCorr task cannot function.")
+    try:
+        import casatasks as casa
+    except:
+        print("WARNING: No CASA; PVCorr task cannot function.")
 
 #
 # Some discussion/code on https://github.com/keflavich/image_registration
@@ -89,7 +90,7 @@ class PVCorr_AT(AT):
                 "nchan"    : 0,      # number of channels around the channel where the peak is
                }
         AT.__init__(self,keys,keyval)
-        self._version = "1.1.0"
+        self._version = "1.2.0"
         self.set_bdp_in([(Image_BDP,1,bt.REQUIRED),
                          # @todo optional 2nd PVSlice can be used to draw the template from
                          (CubeStats_BDP,1,bt.REQUIRED)])
@@ -163,8 +164,8 @@ class PVCorr_AT(AT):
             logging.info("MAXPOS-VEL %s %g" % (str(imstat0['maxpos']),imstat0['max'][0]))
             if nchan > 0:
                 # expand around it, later ch0,ch1 will be checked for running off the edge
-                ch0 = ymaxpos - nchan/2
-                ch1 = ymaxpos + nchan/2
+                ch0 = ymaxpos - nchan//2
+                ch1 = ymaxpos + nchan//2
             else:
                 # watershed down to find ch0 and ch1 ?
                 # this doesn't work well in crowded areas
@@ -215,7 +216,7 @@ class PVCorr_AT(AT):
             corr = out
         elif mode == 2:
             out,rms = mode2(data, ch0, ch1, cutoff)             # slower 2D version
-            corr = out[npos/2,:]                                # center cut, but could also try feature detection
+            corr = out[npos//2,:]                               # center cut, but could also try feature detection
         elif mode == 3:
             out,rms = self.mode3(data, ch0, ch1, cutoff)        # Doug's faster 2D version
             # get the peak of each column
@@ -376,7 +377,7 @@ def mode1(data,v0,v1, dmin=0.0,  normalize=False):
     # but between ny=odd or even there is a half channel freq offset
     # alternatively for one of them an interpolation is needed.
     # the idea is that half channel should not influence LineID.
-    corr = out[0,nv/2+1:nv/2+ny+1]
+    corr = out[0,nv//2+1:nv//2+ny+1]
     return corr,rms_est
 
     

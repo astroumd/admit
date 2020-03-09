@@ -624,7 +624,7 @@ class FlowManager():
 
             # Check source task is valid.
             if not si in self:
-              print(errstr, "no source task %d." % si)
+              print(errstr, "no source task %s." % repr(si))
               return -1
 
             # This sequence reliably populates the triple-nested dictionary.

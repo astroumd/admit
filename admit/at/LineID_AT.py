@@ -287,7 +287,7 @@ class LineID_AT(AT):
                }
         self.boxcar = True
         AT.__init__(self, keys, keyval)
-        self._version = "1.0.5"
+        self._version = "1.2.0"
         self.set_bdp_in([(CubeSpectrum_BDP, 1, bt.OPTIONAL),
                          (CubeStats_BDP,    1, bt.OPTIONAL),
                          (PVCorr_BDP,       1, bt.OPTIONAL)])
@@ -455,10 +455,10 @@ class LineID_AT(AT):
         """
         # initialize the data class
         peaks = Peaks(spec=spec, segments=segments)
-        delfrq = utils.veltofreq(650, spec.freq()[len(spec)/2])
+        delfrq = utils.veltofreq(650, spec.freq()[len(spec)//2])
         maxsep = delfrq / spec.delta()
         ts = np.zeros(len(spec)).astype(float)
-        ts[0] = 1.
+        ts[0] = 1.0
 
         # make a copy of the input points which will be modified as groups are located
         singles = copy.deepcopy(points)
@@ -614,7 +614,9 @@ class LineID_AT(AT):
             summary = summary[:-1] + " km/s"
             logging.info(msg + summary)
 
-        peaks.singles = singles
+        peaks.singles = []             # these need to be integers in P3
+        for i in range(len(singles)):
+            peaks.singles.append(int(singles[i]))
         peaks.pairs = clusters
         peaks.counts = newcounts
         return peaks
@@ -802,8 +804,6 @@ class LineID_AT(AT):
                              self.getkey("allowexotics"), **kw)
 
         results = self.checkreject(results)
-        for r in results:
-            print("PJT",r)
         return results
 
     def gettier1(self):
@@ -1500,7 +1500,6 @@ class LineID_AT(AT):
                     peak = peaks.getspecs()[peaks.getchan(freq)]
                     if st==en:
                         fwidth = abs(peaks.getfreqs()[st]-peaks.getfreqs()[st+1])
-                        print("PJT1",fwidth)
 
                     popt, pcov = utils.fitgauss1D(peaks.getfreqs()[st:en + 1] - freq,
                                                   peaks.getspecs()[st:en + 1], par=[peak, 0.0,

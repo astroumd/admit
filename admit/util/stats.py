@@ -52,7 +52,7 @@ def rejecto2(data, f=1.5):
     """
     d = np.abs(data - np.median(data))
     mdev = np.median(d)
-    s = d/mdev if mdev else 0.
+    s = d/mdev if mdev else 0.0
     return data[s<f]
 
 def mystats(data):
@@ -85,9 +85,9 @@ def robust(data,f=1.5):
     else:
         d = np.sort(data).compressed()
     n= len(d)
-    n1 = n/4
-    n2 = n/2
-    n3 = (3*n)/4
+    n1 = n//4
+    n2 = n//2
+    n3 = (3*n)//4
     q1 = d[n1]
     q2 = d[n2]
     q3 = d[n3]

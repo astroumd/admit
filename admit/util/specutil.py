@@ -6,17 +6,20 @@
 """
 import numpy as np
 import numpy.ma as ma
+import copy
+
 from admit.util.Spectrum import Spectrum
 from admit.util.filter import Filter1D 
 from . import bdp_types as bt
 from . import utils
 from .segmentfinder import SegmentFinder
-import continuumsubtraction.spectral.ContinuumSubtraction
 from admit.util import LineData
-import copy
+from admit.util.continuumsubtraction.spectral.ContinuumSubtraction import ContinuumSubtraction
+
 
 def mergestats(s1, s2, noise):
-    """ Method to merge two stats "spectra" into one. Specifically it
+    """ Method to merge two
+    stats "spectra" into one. Specifically it
         is intended to merge the min and max columns from CubeStats by
         taking the maximum of max and abs(min).
         Giving sensitivity to any absorption lines.
@@ -333,7 +336,8 @@ def contsub(id, spectra, segmentfinder, segargs, algorithm, **keyval):
 
     """
     for i,spec in enumerate(spectra):
-        csub = continuumsubtraction.spectral.ContinuumSubtraction()
+        #csub = continuumsubtraction.spectral.ContinuumSubtraction()
+        csub = ContinuumSubtraction()
         spec.set_contin(csub.run(id, spec.spec(), spec.freq(), segmentfinder, segargs, algorithm, **keyval))
 
 

@@ -243,7 +243,7 @@ class AbstractPlot(object):
                 # generate the thumbnail
                 fig = matplotlib.image.thumbnail(pngfile, outfile, scale)
             else:
-                raise Exception("File not found or not readable: %s " % file)
+                raise Exception("File not found or not readable: %s " % pngfile)
             # set the class variable to the name
             self._thumbnailfiles[fno] = outfile
         except KeyError:

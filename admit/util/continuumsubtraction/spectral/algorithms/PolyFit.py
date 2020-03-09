@@ -64,8 +64,8 @@ class PolyFit(object):
                 "y" : ma.fix_invalid(self.y,fill_value=0.0),
                 # reverse the weights since a masked array uses True for good values
                 # and UnivariateSpline needs a number. The reversal translates the
-                # True values to False, which are then interpreted as 0.0 
-                "w" : -self.y.mask}
+                # True values to False, which are then interpreted as 0.0 @todo PJT
+                "w" : ~self.y.mask}                
 
         # get the given arguments
         search = False

@@ -5,6 +5,12 @@
 
    This module defines the PVSlice_AT class.
 """
+from copy import deepcopy
+import numpy as np
+import numpy.ma as ma
+import numpy.linalg as la
+import math
+
 from admit.AT import AT
 from admit.Summary import SummaryEntry
 import admit.util.bdp_types as bt
@@ -12,7 +18,6 @@ from admit.bdp.PVSlice_BDP import PVSlice_BDP
 from admit.bdp.Image_BDP import Image_BDP
 from admit.bdp.Moment_BDP import Moment_BDP
 from admit.bdp.CubeStats_BDP import CubeStats_BDP
-
 
 from admit.util.Image import Image
 from admit.util import APlot
@@ -22,17 +27,18 @@ import admit.util.ImPlot as ImPlot
 import admit.util.casautil as casautil
 from admit.util.AdmitLogging import AdmitLogging as logging
 
-from copy import deepcopy
-import numpy as np
-import numpy.ma as ma
-import numpy.linalg as la
-import math
 
 try:
   import casa
-  import taskinit
+  from taskinit import iatool as iatool
+  from taskinit import tbtool as tbtool  
 except:
-  print("WARNING: No CASA; PVSlice task cannot function.")
+  try:
+    import casatasks as casa
+    from casatools import image         as iatool
+    from casatools import table         as tbtool    
+  except:
+    print("WARNING: No CASA; PVSlice task cannot function.")
 
 class PVSlice_AT(AT):
     """Create a PV Slice through a cube.
@@ -128,7 +134,7 @@ class PVSlice_AT(AT):
                 #"major"   : True,          # (TODO) major or minor axis, not used yet
                 }
         AT.__init__(self,keys,keyval)
-        self._version       = "1.1.3"
+        self._version       = "1.2.0"
         self.set_bdp_in([(Image_BDP,     1, bt.REQUIRED),      # SpwCube
                          (Moment_BDP,    1, bt.OPTIONAL),      # Moment0 or CubeSum
                          (CubeStats_BDP, 1, bt.OPTIONAL)])     # was: PeakPointPlot
@@ -180,8 +186,13 @@ class PVSlice_AT(AT):
         sliceargs = []
         dt = utils.Dtime("PVSlice")
         # import here, otherwise sphinx cannot parse
-        from impv     import impv
-        from imsmooth import imsmooth
+        try:  # casa5-
+          from impv     import impv
+          from imsmooth import imsmooth
+        except:
+              # casa6+
+          from casatasks import impv
+          from casatasks import imsmooth
 
         pvslice = self.getkey('slice')       # x_s,y_s,x_e,y_e (start and end of line)
         pvslit  = self.getkey('slit')        # x_c,y_c,len,pa  (center, length and PA of line)
@@ -281,7 +292,7 @@ class PVSlice_AT(AT):
         overlay   = pvname+"_overlay" 
         if b11 != None:
             f11 = b11.getimagefile(bt.CASA)
-            tb = taskinit.tbtool()
+            tb = tbtool()
             tb.open(self.dir(f11))
             data = tb.getcol('map')
             nx = data.shape[0]
@@ -388,7 +399,7 @@ class PVSlice_AT(AT):
 def map_to_slit(fname, clip=0.0, gamma=1.0):
     """take all values from a map over clip, compute best slit for PV Slice
     """
-    ia = taskinit.iatool()
+    ia = iatool()
     ia.open(fname)
     imshape = ia.shape()
     pix = ia.getchunk().squeeze()     # this should now be a numpy pix[ix][iy] map

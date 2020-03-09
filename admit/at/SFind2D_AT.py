@@ -5,6 +5,13 @@
 
    This module defines the SFind2D_AT class.
 """
+
+
+import numpy as np
+import numpy.ma as ma
+from copy import deepcopy
+import types
+
 from admit.AT import AT
 from admit.Summary import SummaryEntry
 from admit.util import APlot
@@ -19,16 +26,15 @@ from admit.bdp.CubeStats_BDP import CubeStats_BDP
 import admit.util.utils as utils
 from admit.util.AdmitLogging import AdmitLogging as logging
 
-import numpy as np
-import numpy.ma as ma
-from copy import deepcopy
-
-import types
 try:
     import casa
-    import taskinit
+    from taskinit import iatool as iatool
 except:
-    print("WARNING: No CASA; SFind2D task cannot function.")
+    try:
+        import casatasks as casa
+        from casatools import image         as iatool
+    except:
+        print("WARNING: No CASA; SFind2D task cannot function.")
 
 class SFind2D_AT(AT):
     """
@@ -153,7 +159,7 @@ class SFind2D_AT(AT):
                }
 
         AT.__init__(self,keys,keyval)
-        self._version = "1.1.1"
+        self._version = "1.2.0"
         self.set_bdp_in([(Image_BDP,2,bt.OPTIONAL),
                          (CubeStats_BDP,1,bt.OPTIONAL)])
         self.set_bdp_out([(SourceList_BDP, 1)])
@@ -290,7 +296,7 @@ class SFind2D_AT(AT):
         slbdp = SourceList_BDP(slbase)
 
         # connect to casa image and call casa ia.findsources tool
-        ia = taskinit.iatool()
+        ia = iatool()
         ia.open(self.dir(infile))
 
         # findsources() cannot deal with  'Jy/beam.km/s' ???
@@ -333,7 +339,7 @@ class SFind2D_AT(AT):
             if ds9:
                 # @todo variable name
                 regname = self.mkext(infile,'ds9.reg')
-                fp9 = open(self.dir(regname),"w!")
+                fp9 = open(self.dir(regname),"w")     # this was "w!" for python2 ?
             sn0 = -1.0
             for i in range(nsources):
                 c = "component%d" % i
@@ -356,7 +362,7 @@ class SFind2D_AT(AT):
                     smajor = 0.0
                     sminor = 0.0
                     sangle = 0.0
-                peakstr = ia.pixelvalue([xpos,ypos,0,0])
+                peakstr = ia.pixelvalue([int(xpos),int(ypos),0,0])
                 if len(peakstr) == 0:
                     logging.warning("Problem with source %d @ %d,%d" % (i,xpos,ypos))
                     continue

@@ -28,7 +28,7 @@ class BDPReader(object):
         ----------
         file : str
             File name (including any relative or absolute path) of the bdp file to be parsed and 
-            converted to a BDP object.
+            converted to a BDP object.  If not specified here, it needs to be specified at read().
             Default : None.
 
         Attributes
@@ -50,19 +50,18 @@ class BDPReader(object):
             ----------
             file : str
                 File name (including any relative or absolute path) of the bdp file to be parsed and 
-                converted to a BDP object.
+                converted to a BDP object.  Name can be specified here, or at instance creation.
                 Default : None
 
             Returns
             -------
             BDP object of appropriate type based on the given input file.
         """
-        # error check the input
+        # error check the input, but allow file to be given here, or at the instance creation
+        if file is not None:
+            self.file = file            
         if self.file is None:
-            if file is not None:
-                self.file = file
-            else:
-                raise Exception("File name must be specified.")
+            raise Exception("File name must be specified.")
         # see if a path was also given with the file name, if not the used the current working
         # directory
         sloc = self.file.rfind("/")

@@ -18,6 +18,7 @@ import admit.util.bdp_types as bt
 from admit.bdp.LineSegment_BDP import LineSegment_BDP
 from admit.bdp.CubeSpectrum_BDP import CubeSpectrum_BDP
 from admit.bdp.CubeStats_BDP import CubeStats_BDP
+import admit.util.PlotControl as PlotControl
 from admit.util import APlot
 from admit.util.Image import Image
 from admit.util.AdmitLogging import AdmitLogging as logging
@@ -109,7 +110,7 @@ class LineSegment_AT(AT):
                }
         self.boxcar = True
         AT.__init__(self, keys, keyval)
-        self._version = "1.2.0"
+        self._version = "1.2.2"
         self.set_bdp_in([(CubeSpectrum_BDP, 1, bt.OPTIONAL),
                          (CubeStats_BDP,    1, bt.OPTIONAL)])
         self.set_bdp_out([(LineSegment_BDP, 1)])
@@ -210,7 +211,11 @@ class LineSegment_AT(AT):
 
         # instantiate a plotter for all plots made herein
         self._plot_type = admit.util.PlotControl.SVG
-        myplot = APlot(ptype=self._plot_type, pmode=self._plot_mode, abspath=self.dir())
+        if self._plot_mode == PlotControl.NOPLOT:
+            noplot = True
+        else:
+            noplot = False
+            myplot = APlot(ptype=self._plot_type, pmode=self._plot_mode, abspath=self.dir())
         dt.tag("start")
 
         ############################################################################
@@ -326,65 +331,79 @@ class LineSegment_AT(AT):
             if i == 1:
                 mult = -1.
 #            print("MWP statspec plot cutoff[%d] = %f, contin=%f" % (i, (statspec[i].contin() + mult*(statspec[i].noise() * self.getkey("numsigma")))[0], statspec[i].contin()[0] ) )
-            myplot.segplotter(spec.freq(), spec.spec(csub=False),
-                              title="Detected Line Segments", xlab=xlabel,
-                              ylab=label[i], figname=imbase + "_statspec%i" % i,
-                              segments=freqs, cutoff= (spec.contin() + mult*(spec.noise() * self.getkey("numsigma"))),
-                              continuum=spec.contin(), thumbnail=True)
-            imname = myplot.getFigure(figno=myplot.figno, relative=True)
-            thumbnailname = myplot.getThumbnail(figno=myplot.figno, relative=True)
-            image = Image(images={bt.SVG: imname}, thumbnail=thumbnailname,
-                          thumbnailtype=bt.PNG, description=caption[i])
-            lsbdp.image.addimage(image, "statspec%i" % i)
+
+            if self._plot_mode == PlotControl.NOPLOT:
+                imname = "not created"
+                thumbnailname = "not created"
+                # leave captions unchanged for now
+            else:
+                myplot.segplotter(spec.freq(), spec.spec(csub=False),
+                                  title="Detected Line Segments", xlab=xlabel,
+                                  ylab=label[i], figname=imbase + "_statspec%i" % i,
+                                  segments=freqs, cutoff= (spec.contin() + mult*(spec.noise() * self.getkey("numsigma"))),
+                                  continuum=spec.contin(), thumbnail=True)
+                imname = myplot.getFigure(figno=myplot.figno, relative=True)
+                thumbnailname = myplot.getThumbnail(figno=myplot.figno, relative=True)
+                image = Image(images={bt.SVG: imname}, thumbnail=thumbnailname,
+                              thumbnailtype=bt.PNG, description=caption[i])
+                lsbdp.image.addimage(image, "statspec%i" % i)
             spec_description.append([lsbdp.ra, lsbdp.dec, "", xlabel,
                                          imname, thumbnailname, caption[i],
                                          infile])
 
         for i in range(len(specs)):
             freqs = []
+            caption = "Detected line segments from input spectrum #%i." % (i)
             for ch in specseg[i]:
                 frq = [min(specs[i].freq()[ch[0]], specs[i].freq()[ch[1]]),
                        max(specs[i].freq()[ch[0]], specs[i].freq()[ch[1]])]
                 freqs.append(frq)
                 rdata.append(frq)
-            myplot.segplotter(specs[i].freq(), specs[i].spec(csub=False),
-                              title="Detected Line Segments", xlab=xlabel,
-                              ylab="Intensity", figname=imbase + "_spec%03d" % i,
-                              segments=freqs, cutoff=specs[i].contin() + (specs[i].noise() * self.getkey("numsigma")),
-                              continuum=specs[i].contin(), thumbnail=True)
-            imname = myplot.getFigure(figno=myplot.figno, relative=True)
-            thumbnailname = myplot.getThumbnail(figno=myplot.figno,
-                                                relative=True)
-            caption = "Detected line segments from input spectrum #%i." % (i)
-            image = Image(images={bt.SVG: imname}, thumbnail=thumbnailname,
-                          thumbnailtype=bt.PNG, description=caption)
-            lsbdp.image.addimage(image, "spec%03d" % i)
+            if self._plot_mode == PlotControl.NOPLOT:
+                imname = "not created"
+                thumbnailname = "not created"
+            else:
+                myplot.segplotter(specs[i].freq(), specs[i].spec(csub=False),
+                                  title="Detected Line Segments", xlab=xlabel,
+                                  ylab="Intensity", figname=imbase + "_spec%03d" % i,
+                                  segments=freqs, cutoff=specs[i].contin() + (specs[i].noise() * self.getkey("numsigma")),
+                                  continuum=specs[i].contin(), thumbnail=True)
+                imname = myplot.getFigure(figno=myplot.figno, relative=True)
+                thumbnailname = myplot.getThumbnail(figno=myplot.figno,
+                                                    relative=True)
+                image = Image(images={bt.SVG: imname}, thumbnail=thumbnailname,
+                              thumbnailtype=bt.PNG, description=caption)
+                lsbdp.image.addimage(image, "spec%03d" % i)
             spec_description.append([lsbdp.ra, lsbdp.dec, "", xlabel,
                                          imname, thumbnailname, caption,
                                          infile])
 
         caption = "Merged segments overlaid on CubeStats spectrum"
 
-        myplot.summaryspec(statspec, specs, None, imbase + "_summary", llist)
-        imname = myplot.getFigure(figno=myplot.figno, relative=True)
-        thumbnailname = myplot.getThumbnail(figno=myplot.figno, relative=True)
-        caption = "Identified segments overlaid on Signal/Noise plot of all spectra."
+        if self._plot_mode == PlotControl.NOPLOT:
+            imname = "not created"
+            thumbnailname = "not created"
+        else:
+            myplot.summaryspec(statspec, specs, None, imbase + "_summary", llist)
+            imname = myplot.getFigure(figno=myplot.figno, relative=True)
+            thumbnailname = myplot.getThumbnail(figno=myplot.figno, relative=True)
+            caption = "Identified segments overlaid on Signal/Noise plot of all spectra."
 
-        image = Image(images={bt.SVG: imname}, thumbnail=thumbnailname,
-                      thumbnailtype=bt.PNG, description=caption)
-
-        lsbdp.image.addimage(image, "summary")
+            image = Image(images={bt.SVG: imname}, thumbnail=thumbnailname,
+                          thumbnailtype=bt.PNG, description=caption)
+            lsbdp.image.addimage(image, "summary")
+            
         spec_description.append([lsbdp.ra, lsbdp.dec, "", "Signal/Noise",
-                                     imname, thumbnailname, caption,
-                                     infile])
+                                 imname, thumbnailname, caption,
+                                 infile])
 
 
         self._summary["segments"] = SummaryEntry(lsbdp.table.serialize(),
                                                  "LineSegment_AT",
-                                                 self.id(True), taskargs)
+                                                 self.id(True), taskargs,noplot=noplot)
         self._summary["spectra"] = [SummaryEntry(spec_description,
                                                 "LineSegment_AT",
-                                                self.id(True), taskargs)]
+                                                self.id(True), taskargs,noplot=noplot)]
         
         self.addoutput(lsbdp)
         logging.regression("LINESEG: %s" % str(rdata))

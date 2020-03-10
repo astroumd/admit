@@ -20,6 +20,7 @@ from admit.bdp.SourceList_BDP import SourceList_BDP
 import admit.util.casautil as casautil
 import admit.util.Image as Image
 import admit.util.Line as Line
+import admit.util.PlotControl as PlotControl
 import admit.util.ImPlot as ImPlot
 from admit.bdp.Image_BDP import Image_BDP
 from admit.bdp.CubeStats_BDP import CubeStats_BDP
@@ -159,7 +160,7 @@ class SFind2D_AT(AT):
                }
 
         AT.__init__(self,keys,keyval)
-        self._version = "1.2.0"
+        self._version = "1.2.2"
         self.set_bdp_in([(Image_BDP,2,bt.OPTIONAL),
                          (CubeStats_BDP,1,bt.OPTIONAL)])
         self.set_bdp_out([(SourceList_BDP, 1)])
@@ -400,48 +401,56 @@ class SFind2D_AT(AT):
         logging.info(" Restoring Beam: Major axis: %10.3g %s , Minor axis: %10.3g %s , PA: %5.1f %s" % (beammaj, beamunit, beammin, beamunit, beamang, angunit))
         # form into a xml table
         
+        slbdp.table.description="Table of source locations and sizes (not deconvolved)"
         # output is a table_bdp
         self.addoutput(slbdp)
 
-        # instantiate a plotter for all plots made herein
-        myplot = APlot(ptype=self._plot_type,pmode=self._plot_mode,abspath=self.dir())
 
-        # make output png with circles marking sources found
-        if mpl:
-            circles=[]
-            nx = data.shape[1]             # data[] array was already flipud(rot90)'d
-            ny = data.shape[0]             # 
-            for (x,y) in zip(xtab,ytab):
-                circles.append([x,y,1])
-            # @todo variable name
-            if logscale:
-                logging.warning("LogScaling applied")
-                data = data/sigma
-                data = np.where(data<0,-np.log10(1-data),+np.log10(1+data))
-            if nsources == 0:
-                title = "SFind2D: 0 sources above S/N=%.1f" % (nsigma)
-            elif nsources == 1:
-                title = "SFind2D: 1 source (%.1f < S/N < %.1f)" % (nsigma,sn0)
-            else:
-                title = "SFind2D: %d sources (%.1f < S/N < %.1f)" % (nsources,nsigma,sn0)
-            myplot.map1(data,title,slbase,thumbnail=True,circles=circles,
-                        zoom=self.getkey("zoom"))
+        if self._plot_mode == PlotControl.NOPLOT:
+            figname = "not created"
+            thumbname = "not created"
+            imcaption = "not created"
+            noplot = True
+        else:
+            # instantiate a plotter for all plots made herein
+            myplot = APlot(ptype=self._plot_type,pmode=self._plot_mode,abspath=self.dir())
 
-        #---------------------------------------------------------
-        # Get the figure and thumbmail names and create a caption
-        #---------------------------------------------------------
-        imname = myplot.getFigure(figno=myplot.figno,relative=True)
-        thumbnailname = myplot.getThumbnail(figno=myplot.figno,relative=True)
-        caption = "Image of input map with sources found by SFind2D overlayed in green."
-        slbdp.table.description="Table of source locations and sizes (not deconvolved)"
+            # make output png with circles marking sources found
+            if mpl:
+                circles=[]
+                nx = data.shape[1]             # data[] array was already flipud(rot90)'d
+                ny = data.shape[0]             # 
+                for (x,y) in zip(xtab,ytab):
+                    circles.append([x,y,1])
+                # @todo variable name
+                if logscale:
+                    logging.warning("LogScaling applied")
+                    data = data/sigma
+                    data = np.where(data<0,-np.log10(1-data),+np.log10(1+data))
+                if nsources == 0:
+                    title = "SFind2D: 0 sources above S/N=%.1f" % (nsigma)
+                elif nsources == 1:
+                    title = "SFind2D: 1 source (%.1f < S/N < %.1f)" % (nsigma,sn0)
+                else:
+                    title = "SFind2D: %d sources (%.1f < S/N < %.1f)" % (nsources,nsigma,sn0)
+                myplot.map1(data,title,slbase,thumbnail=True,circles=circles,
+                            zoom=self.getkey("zoom"))
+
+            #---------------------------------------------------------
+            # Get the figure and thumbmail names and create a caption
+            #---------------------------------------------------------
+            figname = myplot.getFigure(figno=myplot.figno,relative=True)
+            thumbname = myplot.getThumbnail(figno=myplot.figno,relative=True)
+            imcaption = "Image of input map with sources found by SFind2D overlayed in green."
  
-        #---------------------------------------------------------
-        # Add finder image to the BDP
-        #---------------------------------------------------------
-        image = Image(images={bt.PNG: imname}, 
-                      thumbnail=thumbnailname, 
-                      thumbnailtype=bt.PNG, description=caption)
-        slbdp.image.addimage(image, "finderimage")
+            #---------------------------------------------------------
+            # Add finder image to the BDP
+            #---------------------------------------------------------
+            image = Image(images={bt.PNG: figname}, 
+                          thumbnail=thumbname, 
+                          thumbnailtype=bt.PNG, description=imcaption)
+            slbdp.image.addimage(image, "finderimage")
+            noplot=False
 
         #-------------------------------------------------------------
         # Create the summary entry for the table and image
@@ -449,7 +458,7 @@ class SFind2D_AT(AT):
         self._summary["sources"] = SummaryEntry([slbdp.table.serialize(),
                                                  slbdp.image.serialize()],
                                                 "SFind2D_AT", 
-                                                self.id(True), taskargs)
+                                                self.id(True), taskargs, noplot=noplot)
         
         dt.tag("done")
         dt.end()

@@ -22,6 +22,7 @@ from admit.util.Line import Line
 from admit.util.Image import Image
 import admit.util.Table
 import admit.util.utils as utils
+import admit.util.PlotControl as PlotControl
 from admit.util.AdmitLogging import AdmitLogging as logging
 
 
@@ -109,7 +110,7 @@ class LineCube_AT(AT):
                 "fpad"     : -1.0,   # optional fractional linesegment width padding
                 }
         AT.__init__(self, keys, keyval)
-        self._version = "1.2.0"
+        self._version = "1.2.2"
         self.set_bdp_in([(Image_BDP,     1, bt.REQUIRED),
                          (LineList_BDP,  1, bt.REQUIRED)])
         self.set_bdp_out([(LineCube_BDP, 0)])

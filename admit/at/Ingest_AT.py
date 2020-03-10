@@ -15,6 +15,7 @@ from admit.util.Image import Image
 import admit.util.utils as utils
 import admit.util.casautil as casautil
 import admit.util.ImPlot  as ImPlot
+import admit.util.PlotControl as PlotControl
 from admit.bdp.SpwCube_BDP import SpwCube_BDP
 from admit.bdp.Image_BDP   import Image_BDP
 from admit.util.AdmitLogging import AdmitLogging as logging
@@ -250,7 +251,7 @@ class Ingest_AT(AT):
             # 'cbeam'   : 0.5,     # channel beam variation allowed in terms of pixel size to use median beam
         }
         AT.__init__(self,keys,keyval)
-        self._version = "1.2.0"
+        self._version = "1.2.2"
         self.set_bdp_in()                            # no input BDP
         self.set_bdp_out([(SpwCube_BDP, 1),          # one or two output BDPs
                           (Image_BDP,   0),          # optional PB if there was an pb= input
@@ -731,6 +732,9 @@ class Ingest_AT(AT):
             casa.imhead(fno,mode="put",hdkey="object",hdvalue=srcname)
             h['object'] = srcname
         logging.info('TELESCOPE: %s' % telescope)
+        if telescope == 'UNKNOWN':
+            msg = 'Ingest_AT: warning, an UNKNOWN telescope often results in ADMIT failing'
+            logging.warning(msg)
         logging.info('OBJECT: %s' % srcname)
         logging.info('REFFREQTYPE: %s' % h['reffreqtype'])
         if h['reffreqtype'].find('TOPO')>=0:
@@ -879,3 +883,4 @@ class Ingest_AT(AT):
             self._summary[k].setTaskname("Ingest_AT")
             self._summary[k].setTaskID(self.id(True))
             self._summary[k].setTaskArgs(taskargs)
+            self._summary[k].setNoPlot(True)

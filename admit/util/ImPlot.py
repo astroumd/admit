@@ -1,4 +1,6 @@
 #!/usr/bin/env casarun
+#     we use a __main__
+
 """ .. _ImPlot-api:
 
     **ImPlot** --- Simple image plotter.
@@ -15,7 +17,7 @@ class ImPlot(AbstractPlot):
     """
     Basic ADMIT image plotter that uses casa calls to create figures.
 
-    - uses CASA imview
+    - uses CASA imview (for CASA6 we use a placeholder)
     - plot modes and plot types as in util.PlotControl 
     - keeps track of figure number
     - make thumbnails if requested

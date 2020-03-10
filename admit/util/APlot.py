@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+#  we keep a __main__ for testing
 """
   **APlot** --- Standardized plot generator.
   ------------------------------------------
@@ -139,14 +140,20 @@ class APlot(AbstractPlot):
 
         fig = plt.figure(APlot.figno)
         ax1 = fig.add_subplot(1,1,1)
-        if color==None and size==None:
+        # PJT fix this
+        if True:
             ax1.scatter(x,y)
-        elif color==None:
-            ax1.scatter(x,y,s=size)
-        elif size==None:
-            ax1.scatter(x,y,c=color)
         else:
-            ax1.scatter(x,y,c=color,s=size)
+            print("PJT",type(color))
+            if color==None:
+                if size==None:
+                    ax1.scatter(x,y)
+                else:
+                    ax1.scatter(x,y,s=size)
+            elif size==None:
+                ax1.scatter(x,y,c=color)
+            else:
+                ax1.scatter(x,y,c=color,s=size)
         if title:    ax1.set_title(title)
         if xlab:     ax1.set_xlabel(xlab)
         if ylab:     ax1.set_ylabel(ylab)
@@ -482,7 +489,7 @@ class APlot(AbstractPlot):
             ax1.plot([x[0],x[-1]],[cutoff,cutoff],'g-',label='Cutoff level')
         ylim = ax1.get_ylim()[1]/3.0
         if neg:
-            ylim = ax1.get_ylim()[0]/2.
+            ylim = ax1.get_ylim()[0]/2.0
         yseg = ylim/15.0
         ncol = 0
         if continuum is not None:
@@ -712,7 +719,7 @@ class APlot(AbstractPlot):
 
         ax1.tick_params(axis='both',color='white',width=1)
 #   Note this (inadvertently) can change the axis order if m0>m1 or n0>n1!
-        zoom = data[m0:m1,n0:n1]
+        zoom = data[int(m0):int(m1),int(n0):int(n1)]
 #        logging.info("data[0,0] %g data[m1,n1] %g zoom[0,0] %g zoom[m1,n1] %g" % (data[0,0],data[m1-1,n1-1],zoom[0,0],zoom[m1-1,n1-1]))
 #        print("Zoom==data? %s " % np.array_equal(zoom,data) )
 #        zoom = data
@@ -792,11 +799,12 @@ class APlot(AbstractPlot):
         #
         # Determines frequency delta in the presence of masked values.
         def findDelta(freq):
-          for i in range(len(freq)-1):
-            if not freq.mask[i] and not freq.mask[i+1]:
-              return freq.mask[i+1]-freq.mask[i]
-
-          return 0.0
+            for i in range(len(freq)-1):
+                if not freq.mask[i] and not freq.mask[i+1]:
+                    #return freq.mask[i+1]-freq.mask[i]       @todo PJT why?
+                    return freq[i+1]-freq[i]
+            # never a clean interval, @todo what about e.g. all odd channels masked ?
+            return 0.0
         #
         for i in range(len(stat)):
             mult = 1.
@@ -1031,8 +1039,8 @@ class APlot(AbstractPlot):
         if chan is None:
           chan = list(range(len(x)))
           tickcolor = 'r'
-        locstride = (len(chan)+maxloc-1)/maxloc
-        labstride = (locstride*maxloc)/maxlab
+        locstride = (len(chan)+maxloc-1)//maxloc
+        labstride = (locstride*maxloc)//maxlab
         matplotlib.ticker.Locator.MAXTICKS = 2*(maxloc+1)
 
         # Preliminary tick formatting.
@@ -1073,9 +1081,9 @@ class APlot(AbstractPlot):
         guides = []
         for i in range(len(minors)):
           minors[i].tick2On = False
-          if i%(labstride/locstride):
+          if i%(labstride//locstride):
             # Shorten unlabeled minor ticks.
-            minors[i].tick1line.set_markersize(msize/2)
+            minors[i].tick1line.set_markersize(msize//2)
         for i in range(0,len(x),labstride):
           # Draw guide lines from labeled minor ticks.
           guides += ax1.plot([x[i], x[i]], [ymin, cutoff[i]],
@@ -1294,7 +1302,7 @@ class APlot(AbstractPlot):
             ax1.plot(x,yi)
         ax1.plot([xlim[0],xlim[1]],[noise,noise],'-')
         height = abs(ylim[0]-ylim[1])/2.0
-        inc = height/20.
+        inc = height/20.0
         if segments:
             for s in segments:
                 ax1.plot([s[0],s[1]],[height,height])

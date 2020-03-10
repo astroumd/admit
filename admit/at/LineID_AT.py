@@ -287,7 +287,7 @@ class LineID_AT(AT):
                }
         self.boxcar = True
         AT.__init__(self, keys, keyval)
-        self._version = "1.2.0"
+        self._version = "1.2.1"
         self.set_bdp_in([(CubeSpectrum_BDP, 1, bt.OPTIONAL),
                          (CubeStats_BDP,    1, bt.OPTIONAL),
                          (PVCorr_BDP,       1, bt.OPTIONAL)])
@@ -2084,9 +2084,10 @@ class LineID_AT(AT):
                     closest = -1
                     distance = 1000000.
                     for i in range(len(peaks.fsingles)):
-                        seg = peaks.getfsegment(peaks.fsingles[i])
+                        # PJT trial fix for ESO; also recommend to use some < epsilon, instead == 0.0
                         if peaks.fsingles[i] == 0.0:# or haveit:
                             continue
+                        seg = peaks.getfsegment(peaks.fsingles[i])
                         if t1.getkey("frequency") - fwidth < seg[0] < t1.getkey("frequency") + fwidth or\
                            t1.getkey("frequency") - fwidth < seg[1] < t1.getkey("frequency") + fwidth or\
                            seg[0] < t1.getkey("frequency") < seg[1]:

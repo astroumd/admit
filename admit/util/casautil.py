@@ -21,7 +21,7 @@ except:
     from casatools import image         as iatool
     from casatools import table         as tbtool
     from .casa_imview6 import casa_imview6 as casa_imview
-    print("CASA6: cannot use casa_imview")    
+    print("CASA6: using casa_imview6",repr(casa_imview))
   except:
     print("WARNING: No CASA; casautil can't function")
 
@@ -83,14 +83,6 @@ def implot(rasterfile, figname, contourfile=None, plottype=PlotControl.PNG,
 
     if plotmode == PlotControl.NOPLOT:  return
 
-    # PJT @todo review this, we can probably rid it.
-    if False:
-      # imview creates a casa viewer which in turn can result in errors when run in parallel mode. Therefore
-      # although not standard practice, the import is only done in the function when needed.
-    
-      # imview was left out of the casa namespace in CASA5
-      from imview import imview as casa_imview
-
     if contourfile==None and rasterfile==None:
        raise Exception("You must provide rasterfile and/or contourfile")
 
@@ -145,7 +137,6 @@ def implot(rasterfile, figname, contourfile=None, plottype=PlotControl.PNG,
     # this complained about 'dimensions of axes must be strings (x is not)'
     # axes = { 'x' : h['axisnames'][0],  'y' : h['axisnames'][1] , 'z' : 'z' }
 
-    
     casa_imview(raster=raster, contour=contour, out=figname, axes=axes,
                 zoom=zoom)
 

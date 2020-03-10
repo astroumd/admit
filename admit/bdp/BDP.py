@@ -124,12 +124,14 @@ class BDP(object):
               derived classes should implement these; see e.g. File_AT.
         """
         files = []
+        # PJT @todo review this change for multiImage
         for i in self.__dict__:
             if isinstance(getattr(self, i), Image):
-                #print getattr(self, i).images
                 for key in getattr(self, i).images:
                     files.append(getattr(self, i).images[key])
-                #files.append(getattr(self, i).fileName)
+            if isinstance(getattr(self, i), MultiImage):
+                for key in getattr(self, i).mimages:
+                    files.append(getattr(self, i).mimages[key])  
         return files
 
     def show(self):

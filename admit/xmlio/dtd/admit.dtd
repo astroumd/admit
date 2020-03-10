@@ -16,7 +16,7 @@
 <!ELEMENT metadata (summaryEntry)>
 <!ATTLIST metadata type (METADATA) #REQUIRED>
 <!ATTLIST metadata name (STRING) #REQUIRED>
-<!ELEMENT summaryEntry (_value,_taskname,_taskid,_taskargs)>
+<!ELEMENT summaryEntry (_value,_taskname,_taskid,_taskargs,_noplot)>
 <!ATTLIST summaryEntry type (SUMMARYENTRY) #REQUIRED>
 <!ELEMENT _value (#PCDATA)>
 <!ATTLIST _value type (LIST) #REQUIRED>
@@ -28,6 +28,8 @@
 <!ATTLIST _taskid type (INT) #REQUIRED>
 <!ELEMENT _taskargs (#PCDATA)>
 <!ATTLIST _taskargs type (STRING) #REQUIRED>
+<!ELEMENT _noplot (#PCDATA)>
+<!ATTLIST _noplot type (BOOL) #REQUIRED>
 <!ELEMENT _datatype (#PCDATA)>
 <!ATTLIST _datatype type (DICT) #REQUIRED>
 <!ATTLIST _datatype ndarray (STRING) #REQUIRED>

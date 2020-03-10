@@ -81,8 +81,15 @@ def implot(rasterfile, figname, contourfile=None, plottype=PlotControl.PNG,
     #can't support this until imview out= is fixed! (see below)
     #orientation=PlotControl.LANDSCAPE 
 
-
     if plotmode == PlotControl.NOPLOT:  return
+
+    # PJT @todo review this, we can probably rid it.
+    if False:
+      # imview creates a casa viewer which in turn can result in errors when run in parallel mode. Therefore
+      # although not standard practice, the import is only done in the function when needed.
+    
+      # imview was left out of the casa namespace in CASA5
+      from imview import imview as casa_imview
 
     if contourfile==None and rasterfile==None:
        raise Exception("You must provide rasterfile and/or contourfile")

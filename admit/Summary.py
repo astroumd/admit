@@ -1240,6 +1240,7 @@ class Summary():
                allspecs = "<h4>%s produced no continuum subtraction for the input image</h4>" % taskname
            elif continuumsub.getNoPlot():
                allspecs = "<h4>%s subtracted continuum from the input image but was told not to create any images for display</h4>" % taskname
+           else:
                allspecs = ""
                taskargs = continuumsub.taskargs
                val = continuumsub.getValue()

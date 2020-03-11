@@ -110,7 +110,7 @@ class LineSegment_AT(AT):
                }
         self.boxcar = True
         AT.__init__(self, keys, keyval)
-        self._version = "1.2.2"
+        self._version = "1.2.3"
         self.set_bdp_in([(CubeSpectrum_BDP, 1, bt.OPTIONAL),
                          (CubeStats_BDP,    1, bt.OPTIONAL)])
         self.set_bdp_out([(LineSegment_BDP, 1)])
@@ -179,13 +179,13 @@ class LineSegment_AT(AT):
         dt = utils.Dtime("LineSegment")  # timer for debugging
         spec_description = []
         taskargs = self._taskargs()
-        statbdp = None                   # for the CubeStats BDP
-        specbdp = None                   # for the CubeSpectrum BDP
-        specs = []                  # to hold the input CubeSpectrum based spectra
-        statspec = []             # to hold the input CubeStats based spectrum
-        statseg = []                # to hold the detected segments from statspec
-        specseg = []                # to hold the detected segments from specs
-        #statcutoff = []           # cutoff for statspec line finding
+        statbdp = None               # for the CubeStats BDP
+        specbdp = None               # for the CubeSpectrum BDP
+        specs = []                   # to hold the input CubeSpectrum based spectra
+        statspec = []                # to hold the input CubeStats based spectrum
+        statseg = []                 # to hold the detected segments from statspec
+        specseg = []                 # to hold the detected segments from specs
+        #statcutoff = []             # cutoff for statspec line finding
         #speccutoff = []             # cutoff for specs line finding
         infile = ""
         if self.getkey("minchan") < 1:
@@ -351,6 +351,9 @@ class LineSegment_AT(AT):
                                          imname, thumbnailname, caption[i],
                                          infile])
 
+        if len(specs) > 0:
+            nchan = len(specs[0].freq())
+            coverage = np.zeros(nchan)
         for i in range(len(specs)):
             freqs = []
             caption = "Detected line segments from input spectrum #%i." % (i)
@@ -359,6 +362,7 @@ class LineSegment_AT(AT):
                        max(specs[i].freq()[ch[0]], specs[i].freq()[ch[1]])]
                 freqs.append(frq)
                 rdata.append(frq)
+                coverage[ch[0]:ch[1]+1] = 1.0
             if self._plot_mode == PlotControl.NOPLOT:
                 imname = "not created"
                 thumbnailname = "not created"
@@ -377,6 +381,9 @@ class LineSegment_AT(AT):
             spec_description.append([lsbdp.ra, lsbdp.dec, "", xlabel,
                                          imname, thumbnailname, caption,
                                          infile])
+        if len(specs) > 0:
+            fcoverage = coverage.sum() / nchan
+            logging.log(logging.INFO, " Segment Coverage %d / %d = %g" % (int(coverage.sum()),nchan,fcoverage))
 
         caption = "Merged segments overlaid on CubeStats spectrum"
 

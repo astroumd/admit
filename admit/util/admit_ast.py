@@ -69,6 +69,8 @@ def literal_eval(node_or_string):
             return node.s
         elif isinstance(node, Num):
             return node.n
+        elif isinstance(node, NameConstant):          # p3: Booleans seem to be now returned as NameConstants.
+            return node.value
         elif isinstance(node, Tuple):
             return tuple(map(_convert, node.elts))
         elif isinstance(node, List):

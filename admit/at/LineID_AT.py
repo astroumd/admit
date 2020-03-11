@@ -288,7 +288,7 @@ class LineID_AT(AT):
                }
         self.boxcar = True
         AT.__init__(self, keys, keyval)
-        self._version = "1.2.3"
+        self._version = "1.2.4"
         self.set_bdp_in([(CubeSpectrum_BDP, 1, bt.OPTIONAL),
                          (CubeStats_BDP,    1, bt.OPTIONAL),
                          (PVCorr_BDP,       1, bt.OPTIONAL)])
@@ -615,9 +615,11 @@ class LineID_AT(AT):
             summary = summary[:-1] + " km/s"
             logging.info(msg + summary)
 
-        peaks.singles = []             # these need to be integers in P3
+        #print('PJT0',singles)            
+        peaks.singles = []             # these need to be integers in P3 (PJT)  cannot do peaks.singles = singles
         for i in range(len(singles)):
             peaks.singles.append(int(singles[i]))
+        #print('PJT0',peaks.singles)
         peaks.pairs = clusters
         peaks.counts = newcounts
         return peaks
@@ -931,7 +933,7 @@ class LineID_AT(AT):
 
             Returns
             -------
-            List of the peak points in channel space
+            List of the peak points in channel space, need to be int
 
         """
         wdth = []
@@ -970,7 +972,8 @@ class LineID_AT(AT):
                 pk = pf.find() + float(max(s[0] - 2, 0))
                 for p in pk:
                     if s[0] <= p <= s[1]:
-                        temppks.append(p)
+                        #temppks.append(p)
+                        temppks.append(int(p))    # PJT should they not be int's ?
                 if not iterate:
                     break
                 args["min_width"] -= 1
@@ -2135,6 +2138,7 @@ class LineID_AT(AT):
                                 peak = peaks.getspecs()[peaks.getchan(peaks.fsingles[closest])]
                                 maxwidth = width = utils.veltofreq(10.0, peaks.fsingles[closest])
                                 breakpoint = 0
+                                #print('PJT',closest,peaks.singles[closest])
                                 if i > 0:
                                     delta = abs(peaks.getfreqs()[peaks.singles[closest]]
                                                 - peaks.getfreqs()[peaks.singles[closest] - 1])
@@ -3467,6 +3471,7 @@ class LineID_AT(AT):
                                 break
                     if count >= target:
                         fullpvc.add(point)
+            #print("PJT-pvc:",fullpvc,sorted(fullpvc))
             allpeaks["pvc"] = sorted(fullpvc)
             havesomething = havesomething or len(allpeaks["pvc"]) > 0
 
@@ -3575,6 +3580,7 @@ class LineID_AT(AT):
             else:
                 stpeaks = Peaks(spec=spec)
                 stpeaks.singles = allpeaks["stats"][i]
+                #print("PJT-st",stpeaks.singles)
                 stpeaks.pairs = {}
                 stpeaks.segments = self.statseg[i]
                 peaks["stats"].append(stpeaks)
@@ -3586,12 +3592,14 @@ class LineID_AT(AT):
             else:
                 sppeaks = Peaks(spec=spec)
                 sppeaks.singles = allpeaks["specs"][i]
+                #print("PJT-sp",sppeaks.singles)                
                 sppeaks.pairs = {}
                 sppeaks.segments = self.specseg[i]
                 peaks["specs"].append(sppeaks)
         if self.pvspec is not None:
             pvpeaks = Peaks(spec=self.pvspec)
             pvpeaks.singles = allpeaks["pvc"]
+            #print("PJT-pv",pvpeaks.singles)            
             pvpeaks.segments = self.pvseg
             pvpeaks.pairs = {}
             peaks["pvc"] = pvpeaks
@@ -4548,7 +4556,7 @@ class Peaks(object):
 
         fcenters : dict
 
-        singles : list
+        singles : list   - needs to be int ?
 
         fsingles : list
 
@@ -4817,6 +4825,7 @@ class Peaks(object):
                         self.centers[p2] = (True, [p1, item2[1]])
                         Peaks.offsets.add(diff)
                         break
+                # PJT  how can this be done, should the index not be integer?
                 if not found and not p2 in self.centers:
                     self.centers[(p2 + p1) / 2.0] = (False, [p1, p2])
                     Peaks.offsets.add(diff / 2.0)

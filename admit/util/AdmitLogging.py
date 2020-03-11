@@ -17,6 +17,20 @@ class AdmitLogging(object):
         calls as that module but also offers header and subheader methods
         which allow for annotation in the log.
 
+        ADMIT will normally use this logger. However, applications can also
+        divert this and use their own logger, as is shown in this example:
+
+            import admit
+            admit.logging.findLogger = logging.getLogger
+
+        Or if you want to have ADMIT only log with the print statements,
+
+            import admit
+            def nologger():
+                return None
+            admit.logging.findLogger = nologger
+    
+
         Parameters
         ----------
         None

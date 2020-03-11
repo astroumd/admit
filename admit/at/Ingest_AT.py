@@ -6,6 +6,9 @@
    This module defines the Ingest_AT class.
 """
 import os, sys
+import numpy as np
+import math
+
 
 import admit
 from admit.AT import AT
@@ -20,8 +23,6 @@ from admit.bdp.SpwCube_BDP import SpwCube_BDP
 from admit.bdp.Image_BDP   import Image_BDP
 from admit.util.AdmitLogging import AdmitLogging as logging
 
-import numpy as np
-import math
 try:
     import casa
     from specsmooth import specsmooth
@@ -783,7 +784,7 @@ class Ingest_AT(AT):
             else:
                 fr = fc
             fw = df*float(shape[2])
-            print("PJT:",fr/1e9,fc/1e9,fw/1e9)
+            #print("PJT:",fr/1e9,fc/1e9,fw/1e9)
             dv = -df/fr*ckms
                 
             logging.info("Freq Axis 3: %g %g %g" % (h['crval3']/1e9,h['cdelt3']/1e9,h['crpix3']))

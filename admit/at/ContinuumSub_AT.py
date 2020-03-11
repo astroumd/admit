@@ -5,6 +5,14 @@
 
    This module defines the ContinuumSub_AT class.
 """
+
+import types
+import os
+import numpy as np
+import numpy.ma as ma
+from copy import deepcopy
+
+
 from admit.AT import AT
 from admit.Summary import SummaryEntry
 import admit.util.bdp_types as bt
@@ -21,17 +29,17 @@ import admit.util.utils as utils
 import admit.util.PlotControl as PlotControl
 import admit.util.filter.Filter1D as Filter1D
 from admit.util.AdmitLogging import AdmitLogging as logging
-import numpy as np
-import numpy.ma as ma
-from copy import deepcopy
 
-import types
-import os
+
 try:
   import casa
-  import taskinit
+  from taskinit import iatool as iatool
 except:
-  print("WARNING: No CASA; ContinuumSub task cannot function.")
+  try:
+    import casatasks as casa
+    from casatools import image         as iatool
+  except:
+    print("WARNING: No CASA; ContinuumSub task cannot function.")
 
 class ContinuumSub_AT(AT):
     """Continuum subtraction from a cube. Produces a line cube and continuum map.
@@ -102,7 +110,7 @@ class ContinuumSub_AT(AT):
             "fitorder"   : 0,       # polynomial order
         }
         AT.__init__(self,keys,keyval)
-        self._version = "1.1.2"
+        self._version = "1.2.2"
         self.set_bdp_in([(SpwCube_BDP,      1, bt.REQUIRED),        # input spw cube 
                          (LineList_BDP,     1, bt.OPTIONAL),        # will catch SegmentList as well
                         ])
@@ -151,7 +159,7 @@ class ContinuumSub_AT(AT):
         self.addoutput(b2)
         self.addoutput(b3)
 
-        ia = taskinit.iatool()
+        ia = iatool()
 
         ia.open(self.dir(f1))
         s = ia.summary()

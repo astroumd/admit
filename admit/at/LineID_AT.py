@@ -288,7 +288,7 @@ class LineID_AT(AT):
                }
         self.boxcar = True
         AT.__init__(self, keys, keyval)
-        self._version = "1.2.2"
+        self._version = "1.2.3"
         self.set_bdp_in([(CubeSpectrum_BDP, 1, bt.OPTIONAL),
                          (CubeStats_BDP,    1, bt.OPTIONAL),
                          (PVCorr_BDP,       1, bt.OPTIONAL)])
@@ -4448,6 +4448,7 @@ class LineID_AT(AT):
         #mlist[0]
         mlist.sort(key=lambda x: float(x.getkey("frequency")))
         duplicate_lines = []
+        coverage = np.zeros(len(self.freq))
         for m in mlist:
             addon = ""
             logging.log(logging.INFO, " Found line: " + m.getkey("formula") + " " + m.getkey("transition") +
@@ -4461,6 +4462,10 @@ class LineID_AT(AT):
             llbdp.addRow(m)
             logging.regression("LINEID: %s %.5f  %d %d" % (m.getkey("formula"), m.getkey("frequency"),
                                                            m.getstart(), m.getend()))
+            coverage[m.getstart() : m.getend() + 1] = 1.0
+        fcoverage = coverage.sum() / len(self.freq)
+        logging.log(logging.INFO, " Line Coverage %d / %d = %g" % (int(coverage.sum()),len(self.freq),fcoverage))
+        # PJT @todo the line coverage fraction should be added to the summary
 
         _caption = "Identified lines overlaid on Signal/Noise plot of all spectra."
         # Need to adjust plot DPI = 72 for SVG; stick to PNG for now...

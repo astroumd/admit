@@ -17,10 +17,10 @@ dnl A dummy matplotlibbackend.py, should be using --with-backend=Agg or so
 dnl touch lib/matplotlibbackend.py
 
 # Check if there is a CASA installation in the path. - ignoring $CASAPATH for now
-AC_PATH_PROG(CASAPY_LOC, casa,[])
+# We are assuming casa-config means that casa is there as well.
+AC_PATH_PROG(CASAPY_LOC, casa-config,[])
 if test "x${CASAPY_LOC}" != "x"; then
-    CASA_BIN=`AS_DIRNAME(["$CASAPY_LOC"])`
-    CASA_ROOT=`AS_DIRNAME(["$CASA_BIN"])`
+    CASA_ROOT=$(casa-config --prefix)
     AC_MSG_NOTICE([Found CASA in $CASA_ROOT])
 fi
 

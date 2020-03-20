@@ -1,16 +1,19 @@
-#! /bin/csh -f
+#! /bin/csh -fvx
 #
 #  $ADMIT/bin/wget1 url(s)
 #
 #  This is a simple wget
 #  - be a replacement for wget
-#  - hide the fact that mac doesn't come with wget and uses curl
+#  - should work on mac, since they have curl by default
 #  - skip any files that are already present
 #
+#  See also wgetc, which caches
 
+echo WGET1: $*
 
+#                              try wget
 set wget = `which wget`
-if ($?) then
+if ($#wget > 1) then
    unset wget
    set curl = `which curl`
    if ($?) then
@@ -19,6 +22,7 @@ if ($?) then
    endif
 endif
 
+# force curl
 if (0) then
   unset wget
   set curl=1
@@ -33,7 +37,7 @@ foreach url ($*)
       if ($?wget) then
          wget $url
       else if ($?curl) then
-         curl $url > $file
+         curl $url -o $file
       else
          echo Cannot fetch $url
       endif

@@ -17,6 +17,9 @@ FTP = ftp://ftp.astro.umd.edu/pub/admit/testdata
 # sample testdata needed for a mininum integration and regression test
 DATA = test0.fits test253_spw3.fits test253_cont.fits
 
+# use wget1 or wgetc (caching)
+WGET = wget1
+
 help:
 	@echo Reminders/Helpers to build/distribute ADMIT:
 	@echo "SITE     = $(SITE)"
@@ -153,7 +156,7 @@ data:
 testdata: data
 	@mkdir -p testdata
 	-@for f in $(DATA); do\
-	(cd testdata; ../bin/wget1 $(FTP)/$$f); done
+	(cd testdata; ../bin/$(WGET) $(FTP)/$$f); done
 # 
 
 # deprecate
@@ -169,7 +172,7 @@ test1: bench1
 
 # deprecate
 n253: 
-	(cd data; wget $(N253))
+	(cd data; $(WGET) $(N253))
 
 #  default python, without CASA
 python0:

@@ -163,9 +163,10 @@ class CubeSum_AT(AT):
             "linesum"    : True,   # Select line segments for from the (optional) LineList
             "pad"        : 5,      # number of channels to pad onto the line segments from LineList
             "zoom"       : 1,      # default map plot zoom ratio
+            # "cont"     : True,   # force averaging to make it a continuum     @todo
         }
         AT.__init__(self,keys,keyval)
-        self._version = "1.1.0"
+        self._version = "1.1.0-issue34"
         self.set_bdp_in([(Image_BDP,     1, bt.REQUIRED),
                          (CubeStats_BDP, 1, bt.OPTIONAL),
                          (LineList_BDP,  1, bt.OPTIONAL)])    # LineSegment_BDP also allowed
@@ -323,6 +324,10 @@ class CubeSum_AT(AT):
             args["imagename"] = tmp
             dt.tag("immath")
 
+          
+        if nchan == 1:
+            logging.info("Assumed continuum - see issue 34")
+            args["moments"] = -1    # force continuum   @todo   should we force this via a keyword?
         casa.immoments(**args) 
         dt.tag("immoments")
 

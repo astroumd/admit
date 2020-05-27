@@ -5,6 +5,11 @@
 
    This module defines the Smooth_AT class.
 """
+
+import numpy as np
+from copy import deepcopy
+
+import admit
 from admit.AT import AT
 from admit.Summary import SummaryEntry
 import admit.util.bdp_types as bt
@@ -14,14 +19,26 @@ import admit.util.Line as Line
 from admit.bdp.SpwCube_BDP import SpwCube_BDP
 from admit.util.AdmitLogging import AdmitLogging as logging
 
-import numpy as np
-from copy import deepcopy
 
 try:
-  import casa
-  import taskinit
+    import casa
+    from specsmooth import specsmooth
+    from impbcor import impbcor
+    from imtrans import imtrans
+    from taskinit import iatool as iatool
+    from taskinit import rgtool as rgtool
+    from taskinit import qatool as qatool
 except:
-  print("WARNING: No CASA; Smooth task cannot function.")
+    try:
+        import casatasks as casa
+        from casatasks import impbcor
+        from casatasks import imtrans
+        from casatasks import specsmooth
+        from casatools import image         as iatool
+        from casatools import regionmanager as rgtool
+        from casatools import quanta        as qatool
+    except:
+        print("WARNING: No CASA; Ingest task cannot function.")
 
 class Smooth_AT(AT):
     """Creates a smoothed version of a datacube.
@@ -111,7 +128,7 @@ class Smooth_AT(AT):
         }
 
         AT.__init__(self,keys,keyval)
-        self._version = "1.1.0"
+        self._version = "1.2.0"
         self.set_bdp_in([(SpwCube_BDP,0,bt.REQUIRED)])
         self.set_bdp_out([(SpwCube_BDP,0)])
 
@@ -157,8 +174,8 @@ class Smooth_AT(AT):
         velres['unit'] = velres['unit'].lower()
         taskargs = "bmaj=%s bmin=%s bpa=%s velres=%s" % (bmaj,bmin,bpa,velres)
 
-        ia = taskinit.iatool()
-        qa = taskinit.qatool()
+        ia = iatool()
+        qa = qatool()
 
         bdpnames=[]
         for ibdp in self._bdp_in:

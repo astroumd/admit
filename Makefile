@@ -157,6 +157,16 @@ testdata: data
 	@mkdir -p testdata
 	-@for f in $(DATA); do\
 	(cd testdata; ../bin/$(WGET) $(FTP)/$$f); done
+
+# a much quicker verson of testsdata + bench
+RLOG = "REGRESSION : MOM0FLUX: x-cs.CO_115.27120 27292.2 25565.2 35.0141 2790.35 2790.35 58.5574"
+bench:
+	@mkdir -p testdata
+	(cd testdata; ../bin/$(WGET) $(FTP)/test0.fits; ../bin/runa1 test0.fits)
+	grep MOM0FLUX testdata/test0.fits.log
+	@echo $(RLOG)
+
+
 # 
 
 # deprecate

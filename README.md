@@ -1,11 +1,6 @@
 #  ADMIT = ALMA Data Mining Toolkit 
 
 
-Detailed installation notes are also in the INSTALL file in this
-directory. Developers should also look in INSTALL.dev
-
-Optional components are described in opt/README.
-
 Documentation:
 * our own build: http://admit.astro.umd.edu
 * github pages: https://astroumd.github.io/admit (experimental)
@@ -23,6 +18,13 @@ Here is an example how to install ADMIT with the old python2 based CASA
 and this should run a short ~1 minute benchmark, displaying the  measured flux as
 
       MOM0FLUX: x-cs.CO_115.27120 27292.2 25565.2 35.0141 2790.35 2790.35 58.5574
+
+Detailed installation notes are also in the INSTALL file in this
+directory. Developers should also look in INSTALL.dev
+
+Optional components are described in opt/README.
+
+
 
 ## LATEST News (CASA 6.x)
 

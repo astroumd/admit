@@ -1,4 +1,4 @@
-#! /bin/csh -fvx
+#! /bin/csh -f
 #
 #  $ADMIT/bin/wget1 url(s)
 #

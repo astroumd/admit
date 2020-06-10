@@ -16,9 +16,11 @@ import random
 
 try:
     from taskinit import tbtool as tbtool
+    from slsearch import slsearch    
 except:
     try:
         from casatools import table as tbtool
+        from casatasks import slsearch as slsearch
     except:
         print("WARNING: No CASA; SpectralLineSearch cannot function.")  
         
@@ -721,11 +723,6 @@ class SpectralLineSearch(object):
             A list of LineData objects, with each containing the data for a single transition.
 
         """
-        try:
-            from slsearch import slsearch
-        except:
-            logging.info("WARNING: No CASA, slsearch is not available, no line identificaiton possible.")
-            raise
         if "outfile" not in self.sls_kw:
             # @todo should really use tempfile, or $$; this is an accident in waiting
             # also, in the same namespace if a seed is the same, the accident is guarenteed; see genspec.py)

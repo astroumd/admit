@@ -14,6 +14,14 @@ except: #python2
     from urllib2 import URLError
 import random
 
+try:
+    from taskinit import tbtool as tbtool
+except:
+    try:
+        from casatools import table as tbtool
+    except:
+        print("WARNING: No CASA; SpectralLineSearch cannot function.")  
+        
 # admit imports
 from admit.util import Splatalogue
 from admit.util import logging
@@ -715,7 +723,6 @@ class SpectralLineSearch(object):
         """
         try:
             from slsearch import slsearch
-            import taskinit
         except:
             logging.info("WARNING: No CASA, slsearch is not available, no line identificaiton possible.")
             raise
@@ -730,7 +737,7 @@ class SpectralLineSearch(object):
         #print flname
         slsearch(**self.sls_kw)
         # open the table and get the contents
-        tb = taskinit.tbtool()
+        tb = tbtool()
         tb.open(self.sls_kw["outfile"])
         numrows = tb.nrows()
         possible = []

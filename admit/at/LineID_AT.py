@@ -288,7 +288,7 @@ class LineID_AT(AT):
                }
         self.boxcar = True
         AT.__init__(self, keys, keyval)
-        self._version = "1.2.4"
+        self._version = "1.2.5"
         self.set_bdp_in([(CubeSpectrum_BDP, 1, bt.OPTIONAL),
                          (CubeStats_BDP,    1, bt.OPTIONAL),
                          (PVCorr_BDP,       1, bt.OPTIONAL)])
@@ -4580,11 +4580,13 @@ class Peaks(object):
                  "offsetdone", "fcenters", "fsingles", "linelist",
                  "blends", "segments", "fsegments", "counts"]
     if False:
-        # fix this for Python3
+        # why was this even here in P2
         offsets = set()
         offsetdone = False
 
     def __init__(self, **kwargs):
+        self.offsets = set()      # new in P3
+        self.offsetdone = False   # new in P3
         self.centers = {}
         self.fcenters = {}
         self.singles = []
@@ -4825,7 +4827,7 @@ class Peaks(object):
                         self.centers[p2] = (True, [p1, item2[1]])
                         Peaks.offsets.add(diff)
                         break
-                # PJT  how can this be done, should the index not be integer?
+                # @todo PJT  how can this be done, should the index not be integer?
                 if not found and not p2 in self.centers:
                     self.centers[(p2 + p1) / 2.0] = (False, [p1, p2])
                     Peaks.offsets.add(diff / 2.0)

@@ -10,6 +10,7 @@ To grab the git based source code
 CASA requirements:
     Without CASA you can currently do very little with ADMIT (although a version of
     ADMIT does exist that works with some of the Radio Astro Tools).
+    See below for CASA6 comments.
     
     Here is where you should get CASA:
     

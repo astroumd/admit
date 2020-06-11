@@ -141,7 +141,7 @@ class CubeSpectrum_AT(AT):
                 "xaxis"   : "",    # currently still ignored
         }
         AT.__init__(self,keys,keyval)
-        self._version       = "1.2.2"
+        self._version       = "1.2.3"
         self.set_bdp_in( [(Image_BDP,       1,bt.REQUIRED),     # 0: cube: SpwCube or LineCube allowed
                           (CubeStats_BDP,   1,bt.OPTIONAL),     # 1: stats, uses maxpos
                           (Moment_BDP,      1,bt.OPTIONAL),     # 2: map, uses the max in this image as pos=
@@ -389,12 +389,15 @@ class CubeSpectrum_AT(AT):
 
         if True:
             #       @todo     only first plane due to limitation in exportTable()
-            islash = bdp_name.find('/')
-            if islash < 0:
-                tabname = self.dir("testCubeSpectrum.tab")
-            else:
-                tabname = self.dir(bdp_name[:islash] + "/testCubeSpectrum.tab")
-            table.exportTable(tabname,cols=["frequency" ,"flux"])
+            nspec = table.data.shape[2]
+            logging.info("Writing %d testCubeSpectrum tables" % nspec)
+            for ispec in range(nspec):
+                islash = bdp_name.find('/')
+                if islash < 0:
+                    tabname = self.dir("testCubeSpectrum_%d.tab" % ispec)
+                else:
+                    tabname = self.dir(bdp_name[:islash] + "/testCubeSpectrum_%d.tab" % ispec)
+                table.exportTable(tabname,ispec,cols=["frequency" ,"flux"])
         dt.tag("done")
         # For a single spectrum this is
         # SummaryEntry([[data for spec1]], "CubeSpectrum_AT",taskid)

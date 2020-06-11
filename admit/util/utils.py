@@ -1081,6 +1081,8 @@ def casa_argv(argv):
 
         Modifies the argv from a casarun script to a classic argv list
         such that the returned argv[0] is the casarun scriptname.
+        Meant to capture via the 'casarun' command in CASA5, it will
+        also work in CASA6.
 
         Parameters
         ----------
@@ -1100,7 +1102,12 @@ def casa_argv(argv):
         lines = os.popen("casarun -c","r").readlines()
         n = int(lines[len(lines)-1].strip())
     else:
-        n = argv.index('-c') + 1
+        try:
+            # if the -c is not present, assume the CASA6 environment
+            n = argv.index('-c') + 1
+        except:
+            print("Warning: new CASA6 ?")
+            n = 0
     return argv[n:]
 
 

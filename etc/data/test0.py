@@ -7,14 +7,17 @@
 import os, sys
 import admit
 
-#argv = admit.utils.casa_argv(sys.argv)
-argv = sys.argv
+argv = admit.utils.casa_argv(sys.argv)
+#argv = sys.argv
 if len(argv) < 2:
   cubefile = 'test0.fits'
   projdir = 'test0.admit'
 else:
   cubefile = argv[1]
   projdir = os.path.splitext(argv[1])[0] + '.admit'
+
+#  for now, clean up before
+os.system('rm -rf %s' % projdir)
 
 # Master project.
 p = admit.Project(projdir, commit=False)
@@ -35,7 +38,7 @@ t7  = p.addtask(admit.CubeStats_AT(ppp=True), [t6])
 t8  = p.addtask(admit.Moment_AT(mom0clip=2.0, numsigma=[1]), [t6, t7])
 t9  = p.addtask(admit.CubeSpectrum_AT(), [t6, t8])
 
-if False:
+if True:
   #  now "slsearch()" cannot be found
   t10  = p.addtask(admit.LineID_AT(allowexotics=True, maxgap=10, minchan=2, numsigma=8.0, recomblevel='deep',
                                    tier1width=10.0, vlsr=8.0, csub=[0,None]), [t7, t9])

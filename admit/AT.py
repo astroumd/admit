@@ -684,6 +684,11 @@ class AT(object):
         This has no effect on the task in its parent flow (for which this
         method will return zero).
         """
+        # @todo PJT hacked
+        print("PJT0 _taskid",self._taskid)
+        if self._taskid == None:
+            return 0
+        #
         return 0 if self._taskid < 0 else self._taskid >> 32
 
 

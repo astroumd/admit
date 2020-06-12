@@ -39,13 +39,11 @@ except:
 
   
 class Export_AT(AT):
-    """Creates a FITS file from an image BDP.
+    """Export a selected BDP to an export format.
 
     Unlike the more automated export facility in ADMIT, this allows you to
-    add a true FITS export atomically to the flow, with all of its flow
-    dependencies.
-
-    At a future date this task will also export other types of BDPs, e.g. tables
+    add a true FITS or ASCII TABLE export atomically to the flow, with all
+    of its flow dependencies.
 
     WARNING: The output file is always silently overwritten.
 
@@ -53,26 +51,34 @@ class Export_AT(AT):
 
         **basename**: string
             Basename of the file. If left blank, it will be derived from the input
-            BDP by replacing the extension (usually .im, .cim, .lim) with "fits".
+            BDP by replacing the extension (usually .im, .cim, .lim) with "fits"
+            or "tab", whichever appropriate.
             This will thus also normally include whatever directory structure
             exists with the ADMIT tree.
             If the basename starts with "/" or "./", it is presumed to refer to
             an absolute reference, not something within the ADMIT directory.
+            This is not recommended, but for an export might be convenient.
             Default: "".
     
     **Input BDPs**
 
-        **Image_BDP**: count: 1
+            Only one of the following BDPs will be processed.
+
+        **Image_BDP**: count: 1 
            Input 2-D or 3-D image, such as output by
            `Ingest_AT <Ingest_AT.html>`_,
            `LineCube_AT <LineCube_AT.html>`_ or
            `Moment_AT <Moment_AT.html>`_.
 
+        **Table_BDP**: count: 1
+           Input table, such as output by
+           `CubeSpectrum_AT <CubeSpectrum_AT.html>`_
+
     **Output BDPs**
-        None
+        None (fits files or ascii tables)
 
     **Graphics Produced**
-        TBD
+        None
 
     Parameters
     ----------
@@ -145,7 +151,7 @@ class Export_AT(AT):
                 fp.write(line + '\n')
             fp.close()
                 
-                  
+        # @todo do the other images, or can we test for generic IMAGE_BDP type ?
         if self._bdp_in[0]._type == bt.MOMENT_BDP:
             b1  = self._bdp_in[0]                      # image/cube
             infile = b1.getimagefile(bt.CASA)          # ADMIT filename of the image (cube)

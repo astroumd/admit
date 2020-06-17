@@ -1,14 +1,16 @@
 #!/usr/bin/env python
 #
-#   example admit3 script for test0.fits
-#   - re-execute fails
-#   - not all tasks work yet, but those are commented out
+# This is essentially the admit0.py for test0.fits, in the new python3 style
 #
+#  - always cleans up the admit folder since re-run not working in P3
+#  - no aliases, not working in P3
+#
+
 import os, sys
 import admit
 
+# Command line processing.
 argv = admit.utils.casa_argv(sys.argv)
-#argv = sys.argv
 if len(argv) < 2:
   cubefile = 'test0.fits'
   projdir = 'test0.admit'
@@ -22,32 +24,20 @@ os.system('rm -rf %s' % projdir)
 # Master project.
 p = admit.Project(projdir, commit=False)
 
-beam = {'value': 10.0, 'unit':'arcsec'}
-
 # Flow tasks.
-t0  = p.addtask(admit.Ingest_AT(file=cubefile))
-t00 = p.addtask(admit.Smooth_AT(bmaj=beam, bmin=beam), [t0])
-t1  = p.addtask(admit.CubeStats_AT(ppp=True), [t00])
-t2  = p.addtask(admit.Moment_AT(mom0clip=2.0, numsigma=[1]), [t00, t1])
-t3  = p.addtask(admit.CubeSpectrum_AT(), [t00, t2])
-t5  = p.addtask(admit.LineSegment_AT(maxgap=10, minchan=2, numsigma=10.0, csub=[0,0]), [t1, t3])
-t6  = p.addtask(admit.ContinuumSub_AT(), [t00, t5])
-
-# now on new cube  (t6,0) or t6 is the line cube     (t6,1) is the cont map
-t7  = p.addtask(admit.CubeStats_AT(ppp=True), [t6])
-t8  = p.addtask(admit.Moment_AT(mom0clip=2.0, numsigma=[1]), [t6, t7])
-t9  = p.addtask(admit.CubeSpectrum_AT(), [t6, t8])
-
-if True:
-  #  now "slsearch()" cannot be found
-  t10  = p.addtask(admit.LineID_AT(allowexotics=True, maxgap=10, minchan=2, numsigma=8.0, recomblevel='deep',
-                                   tier1width=10.0, vlsr=8.0, csub=[0,None]), [t7, t9])
-
-  t11 = p.addtask(admit.LineCube_AT(), [t6, t10])
-
-  t12 = p.addtask(admit.Moment_AT(mom0clip=2.0, moments=[0, 1, 2]), [t11, t7])
-  t13 = p.addtask(admit.CubeSpectrum_AT(), [t11, t12])
-
+t0  = p.addtask(admit.Ingest_AT(basename='x', file=cubefile))
+t1  = p.addtask(admit.CubeStats_AT(ppp=True), [t0])
+t2  = p.addtask(admit.CubeSum_AT(numsigma=4.0, sigma=99.0), [t0, t1])
+t3  = p.addtask(admit.Moment_AT(mom0clip=2.0, numsigma=[3.0]), [t0, t1])
+t4  = p.addtask(admit.SFind2D_AT(numsigma=4.0, sigma=2.573442400847699), [t2])
+t5  = p.addtask(admit.PVSlice_AT(clip=2.0, pvsmooth=[10, 10], width=5), [t0, t2])
+t6  = p.addtask(admit.CubeSpectrum_AT(), [t0, t1, t2, t4])
+t7  = p.addtask(admit.PVCorr_AT(), [t5, t1])
+t8  = p.addtask(admit.LineSegment_AT(csub=[0, 0]), [t6, t1])
+t9  = p.addtask(admit.LineID_AT(csub=[0, 0], references='etc/tier1_lines.list'), [t6, t1])
+t10 = p.addtask(admit.LineCube_AT(), [t0, t9])
+t11 = p.addtask(admit.Moment_AT(mom0clip=2.0, moments=[0, 1, 2]), [t10, t1])
+t12 = p.addtask(admit.CubeSpectrum_AT(), [t10, t11])
 
 # Update project.
 p.run()

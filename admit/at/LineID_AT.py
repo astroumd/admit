@@ -288,7 +288,7 @@ class LineID_AT(AT):
                }
         self.boxcar = True
         AT.__init__(self, keys, keyval)
-        self._version = "1.2.5"
+        self._version = "1.2.6"
         self.set_bdp_in([(CubeSpectrum_BDP, 1, bt.OPTIONAL),
                          (CubeStats_BDP,    1, bt.OPTIONAL),
                          (PVCorr_BDP,       1, bt.OPTIONAL)])
@@ -3564,7 +3564,7 @@ class LineID_AT(AT):
             self.addoutput(llbdp)
             self.dt.tag("nolines")
             self.dt.end()
-            Peaks.reset()
+            Peaks.reset()  # static
             # no lines detected
             return
 
@@ -4503,7 +4503,7 @@ class LineID_AT(AT):
         self._summary["spectra"] = [SummaryEntry(self.spec_description, "LineID_AT",
                                                  self.id(True), taskargs)]
         self.addoutput(llbdp)
-        Peaks.reset()
+        Peaks.reset()      # static
         self.dt.tag("done")
         self.dt.end()
 
@@ -4576,17 +4576,14 @@ class Peaks(object):
             Whether or not the offsets have been converted to frequency.
             Internal use only should not be set manually.
     """
-    __slots__ = ["centers", "offsets", "singles", "pairs", "spec",
-                 "offsetdone", "fcenters", "fsingles", "linelist",
+    __slots__ = ["centers", "singles", "pairs", "spec",
+                 "fcenters", "fsingles", "linelist",
                  "blends", "segments", "fsegments", "counts"]
-    if False:
-        # why was this even here in P2
-        offsets = set()
-        offsetdone = False
+    # these are the static member data
+    offsets = set()
+    offsetdone = False
 
     def __init__(self, **kwargs):
-        self.offsets = set()      # new in P3
-        self.offsetdone = False   # new in P3
         self.centers = {}
         self.fcenters = {}
         self.singles = []

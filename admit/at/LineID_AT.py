@@ -288,7 +288,7 @@ class LineID_AT(AT):
                }
         self.boxcar = True
         AT.__init__(self, keys, keyval)
-        self._version = "1.2.6"
+        self._version = "1.2.7"
         self.set_bdp_in([(CubeSpectrum_BDP, 1, bt.OPTIONAL),
                          (CubeStats_BDP,    1, bt.OPTIONAL),
                          (PVCorr_BDP,       1, bt.OPTIONAL)])
@@ -602,16 +602,14 @@ class LineID_AT(AT):
             del clusters[i]
         # report the results
         if len(list(clusters.keys())) > 0:
-            if len(list(clusters.keys())) > 1:
-                exp = "s"
-                pre = ""
-            else:
-                exp = ""
-                pre = " a"
-            msg = "Found %s potential pattern%s with%s separation%s of" % (len(clusters), exp, pre, exp)
+            msg = "Found %s potential pattern(s) with separation(s) of" % (len(clusters))
             summary = ""
             for k in list(clusters.keys()):
-                summary += " %.1f," % (2. * abs(utils.freqtovel(spec.freq()[len(spec)/2], spec.freq()[len(spec)/2] - spec.freq()[len(spec)/2 - k])))
+                # @todo print('PJT',k)  - still some floats hidden here @pjt
+                f = spec.freq()[len(spec)//2]
+                df = f  - spec.freq()[len(spec)//2 - int(k)]
+                summary += " %.1f," % (2 * abs(utils.freqtovel(f,df)))
+
             summary = summary[:-1] + " km/s"
             logging.info(msg + summary)
 
@@ -2265,8 +2263,9 @@ class LineID_AT(AT):
             for i in [0, 1]:
                 peakw = peaks.getspecs()[peaks.getchan(wings[i])]
                 st = max(0, peaks.getchan(wings[i]) - 1.5 * int(twidth / (delta)))
-                en = min(len(peaks) - 1, peaks.getchan(wings[i]) + 1.5 * \
-                  int(twidth / (delta)))
+                en = min(len(peaks) - 1, peaks.getchan(wings[i]) + 1.5 * int(twidth / (delta)))
+                st = int(st)    # P3 @pjt
+                en = int(en)
                 if st==en:
                     fwidth = abs(peaks.getfreqs()[st]-peaks.getfreqs()[st+1])
 
@@ -4579,6 +4578,7 @@ class Peaks(object):
     __slots__ = ["centers", "singles", "pairs", "spec",
                  "fcenters", "fsingles", "linelist",
                  "blends", "segments", "fsegments", "counts"]
+
     # these are the static member data
     offsets = set()
     offsetdone = False

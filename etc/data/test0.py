@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# This is essentially the admit0.py for test0.fits, in the new python3 style
+# This is essentially the admit0.py for "runa1 test0.fits", in the new python3 style
 #
 #  - always cleans up the admit folder since re-run not working in P3
 #  - no aliases, not working in P3
@@ -22,7 +22,7 @@ else:
 os.system('rm -rf %s' % projdir)
 
 # Master project.
-p = admit.Project(projdir, commit=False)
+p = admit.Project(projdir, commit=False, loglevel=15)
 
 # Flow tasks.
 t0  = p.addtask(admit.Ingest_AT(basename='x', file=cubefile))

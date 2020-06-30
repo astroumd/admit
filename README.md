@@ -4,6 +4,7 @@
 Documentation:
 * our own build: http://admit.astro.umd.edu
 * github pages: https://astroumd.github.io/admit (experimental)
+* casaguide: https://casaguides.nrao.edu/index.php/ADMIT_Products_and_Usage
 
 ## Example Install (CASA 5.x)
 

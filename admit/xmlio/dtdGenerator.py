@@ -431,12 +431,12 @@ class DtdGenerator(object):
         shutil.move(os.sep + "tmp" + os.sep + str(os.getpid()) + ".bdp_types.py", typesfl)
         # load in the new bdp_types file
         imp.reload(bt)
-        bdp_f.write("from BDP" + " " * 24 + "import BDP" + " " * 24 + "as BDP\n")
+        bdp_f.write("from .BDP" + " " * 24 + "import BDP" + " " * 24 + "as BDP\n")
 
         # generate the dtds for the BDPs
         for key in bdp_files:
             #line = "from " + key + " " * (27 - len(key)) + "import " + key + " " * (27 - len(key)) + "as " + key[:-4] + "\n"
-            line = "from " + key + " " * (27 - len(key)) + "import " + key + " " * (27 - len(key)) + "as " + key + "\n"
+            line = "from ." + key + " " * (27 - len(key)) + "import " + key + " " * (27 - len(key)) + "as " + key + "\n"
             bdp_f.write(line)
 
         bdp_f.close()
@@ -448,7 +448,7 @@ class DtdGenerator(object):
         ATTYPES = ""
         for key in at_files:
             #line = "from " + key + " " * (27 - len(key)) + "import " + key + " " * (27 - len(key)) + "as " + key[:-3] + "\n"
-            line = "from " + key + " " * (27 - len(key)) + "import " + key + " " * (27 - len(key)) + "as " + key + "\n"
+            line = "from ." + key + " " * (27 - len(key)) + "import " + key + " " * (27 - len(key)) + "as " + key + "\n"
             at_f.write(line)
             ATTYPES += key.upper() + ","
 

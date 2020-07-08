@@ -1,0 +1,128 @@
+#! /usr/bin/env python
+#
+#   Example python script that for a given PID (e.g. 2018.1.01115.S) descends in the Sous/Gous/Mous trees
+#   and finds all {cube,mfs} pbcor.fits files, and runs a suite of predefined ADMIT recipes on them
+#   in a directory parallel to product, named admit.
+#
+#   So, for existing          PID/Sous/Gous/Mous/product/
+#   it will work inside       PID/Sous/Gous/Mous/admit/
+#
+#   Note:   this is still for old-style admit, not ADMIT3
+
+import os, sys
+import glob
+
+
+def usage():
+    print("Usage: %s PID(s)")
+    print("For one or more PID's find the pbcor.fits files that are needed for 'runa1' and 'runa2' in ADMIT")
+    sys.exit(0)
+
+
+def splitall(path):
+    allparts = []
+    while 1:
+        parts = os.path.split(path)
+        if parts[0] == path:  # sentinel for absolute paths
+            allparts.insert(0, parts[0])
+            break
+        elif parts[1] == path: # sentinel for relative paths
+            allparts.insert(0, parts[1])
+            break
+        else:
+            path = parts[0]
+            allparts.insert(0, parts[1])
+    return allparts
+
+def find_pbcor(pid, mfs=False, cube=False, debug=False):
+    """
+    find the pbcor files. Currently limits to "mfs" and/or "cube"
+    """
+    product = glob.glob('%s/*/*/*/product' % pid)
+    if len(product) == 0:
+        # a cheat
+        if pid == 'product':
+            product = ['product']
+        else:
+            print("No product tree found in %s" % pid)
+            print("Need a valid Project ID directory name")
+            return []
+
+    pbcor = []
+    for p in product:
+        w = p.split('/')
+        if len(w) > 4:
+            sous = w[-4]
+            gous = w[-3]
+            mous = w[-2]
+            if debug:
+                print("PID : %s   \nSOUS: %s    \nGOUS: %s    \nMOUS: %s" % (pid,sous,gous,mous))
+            
+        if cube:
+            pbcor1 = glob.glob('%s/*_sci*.cube.I.pbcor.fits' % p)
+            for p1 in pbcor1:
+                if debug:
+                    print(p1)
+                pbcor.append(p1)
+        if mfs:
+            pbcor2 = glob.glob('%s/*_sci*.mfs.I.pbcor.fits' % p)
+            for p2 in pbcor2:
+                if debug:
+                    print(p2)
+                pbcor.append(p2)
+    return pbcor
+
+
+def run_admit(recipe, pbcor, dryrun=False):
+    """ based on a full pbcor file run a recipe in a directory parallel to product
+            [dir/]product/basename.mfs.I.pbcor.fits       runa1
+            [dir/]product/basename.cube.I.pbcor.fits      runa2
+        A directory name before 'product' is optional, but recommended
+    """ 
+    idx = pbcor.find('.pbcor.fits')
+    pb = glob.glob(pbcor[:idx] + '.pb.fits*')
+    if len(pb) == 0:
+        print("Warning: no matching pb found for %s" % pbcor)
+        return
+    pb = pb[0]
+    print(pbcor)
+    print(pb)
+    #  PID/S/G/M/product/member.uid___A001_X133f_X1a2.Tile_004_SMC_SWBar_sci.spw22.cube.I.pbcor.fits
+    #            product/member.uid___A001_X133f_X1a2.Tile_004_SMC_SWBar_sci.spw22.cube.I.pbcor.fits
+    pbname = splitall(pb)[-1]
+    d = splitall(pbcor)
+    pbcorname = d[-1]
+    pdir = '/'.join(d[:-1])
+    adir = '/'.join(d[:-2]) + '/admit'
+    print(pdir)
+    print(adir)
+    #    now some horrid file operations which can possible be done more efficiently if I had a better toolkit
+    cmd = 'mkdir -p %s' % adir 
+    print(cmd)
+    os.system(cmd)
+    cwd = os.getcwd()
+    os.chdir(adir)
+    os.system('ln -sf ../product/%s' % pbcorname)
+    os.system('ln -sf ../product/%s' % pbname)
+    os.system('ls -l')
+
+    cmd = "%s %s" % (recipe, pbcorname.replace('.pbcor.fits',''))
+    print('CMD:',cmd)
+    if not dryrun:
+        os.system(cmd)
+
+    os.chdir(cwd)
+
+if len(sys.argv) == 1:
+    usage()
+
+# Project ID, below which there is (at least one) Sous/Gous/Mous
+pid = sys.argv[1]
+
+p1 = find_pbcor(pid,cube=True)
+print("Found %d pbcor fits files for ADMIT to process as cube" % len(p1))
+p2 = find_pbcor(pid,mfs=True)
+print("Found %d pbcor fits files for ADMIT to process as msf" % len(p2))
+
+#run_admit('runa1', p1[0])
+run_admit('runa2', p2[0])

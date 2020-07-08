@@ -7,19 +7,25 @@
 #   So, for existing          PID/Sous/Gous/Mous/product/
 #   it will work inside       PID/Sous/Gous/Mous/admit/
 #
-#   Note:   this is still for old-style admit, not ADMIT3
+#   Notes:
+#      1. this is still for old-style admit, not ADMIT3
+#      2. this does not encode the different tree view that is encoded in the old do_aap5
+#      3. it handles *.pb.fits as well as *.pb.fits.gz files that should mirror the *.pbcor.fits files
+#
+#   @todo     encode variants on the recipes (binning, numsigma)
 
 import os, sys
 import glob
-
 
 def usage():
     print("Usage: %s PID(s)")
     print("For one or more PID's find the pbcor.fits files that are needed for 'runa1' and 'runa2' in ADMIT")
     sys.exit(0)
 
-
 def splitall(path):
+    """
+        Taken from https://www.oreilly.com/library/view/python-cookbook/0596001673/ch04s16.html
+    """
     allparts = []
     while 1:
         parts = os.path.split(path)
@@ -34,7 +40,7 @@ def splitall(path):
             allparts.insert(0, parts[1])
     return allparts
 
-def find_pbcor(pid, mfs=False, cube=False, debug=False):
+def find_pbcor(pid, mfs=False, cube=False, verbose=False):
     """
     find the pbcor files. Currently limits to "mfs" and/or "cube"
     """
@@ -55,25 +61,25 @@ def find_pbcor(pid, mfs=False, cube=False, debug=False):
             sous = w[-4]
             gous = w[-3]
             mous = w[-2]
-            if debug:
+            if verbose:
                 print("PID : %s   \nSOUS: %s    \nGOUS: %s    \nMOUS: %s" % (pid,sous,gous,mous))
             
         if cube:
             pbcor1 = glob.glob('%s/*_sci*.cube.I.pbcor.fits' % p)
             for p1 in pbcor1:
-                if debug:
+                if verbose:
                     print(p1)
                 pbcor.append(p1)
         if mfs:
             pbcor2 = glob.glob('%s/*_sci*.mfs.I.pbcor.fits' % p)
             for p2 in pbcor2:
-                if debug:
+                if verbose:
                     print(p2)
                 pbcor.append(p2)
     return pbcor
 
 
-def run_admit(recipe, pbcor, dryrun=False):
+def run_admit(recipe, pbcor, dryrun=False, verbose=False):
     """ based on a full pbcor file run a recipe in a directory parallel to product
             [dir/]product/basename.mfs.I.pbcor.fits       runa1
             [dir/]product/basename.cube.I.pbcor.fits      runa2
@@ -85,44 +91,58 @@ def run_admit(recipe, pbcor, dryrun=False):
         print("Warning: no matching pb found for %s" % pbcor)
         return
     pb = pb[0]
-    print(pbcor)
-    print(pb)
-    #  PID/S/G/M/product/member.uid___A001_X133f_X1a2.Tile_004_SMC_SWBar_sci.spw22.cube.I.pbcor.fits
-    #            product/member.uid___A001_X133f_X1a2.Tile_004_SMC_SWBar_sci.spw22.cube.I.pbcor.fits
+    if verbose:
+        print(pbcor)
+        print(pb)
+    #  e.g. PID/S/G/M/product/member.uid___A001_X133f_X1a2.Tile_004_SMC_SWBar_sci.spw22.cube.I.pbcor.fits
+    #                 product/member.uid___A001_X133f_X1a2.Tile_004_SMC_SWBar_sci.spw22.cube.I.pbcor.fits
     pbname = splitall(pb)[-1]
     d = splitall(pbcor)
     pbcorname = d[-1]
     pdir = '/'.join(d[:-1])
     adir = '/'.join(d[:-2]) + '/admit'
-    print(pdir)
-    print(adir)
+    if verbose:
+        print(adir)
     #    now some horrid file operations which can possible be done more efficiently if I had a better toolkit
     cmd = 'mkdir -p %s' % adir 
-    print(cmd)
     os.system(cmd)
     cwd = os.getcwd()
+    
     os.chdir(adir)
     os.system('ln -sf ../product/%s' % pbcorname)
     os.system('ln -sf ../product/%s' % pbname)
-    os.system('ls -l')
 
     cmd = "%s %s" % (recipe, pbcorname.replace('.pbcor.fits',''))
-    print('CMD:',cmd)
+    print('CMD: %s' % cmd)
     if not dryrun:
         os.system(cmd)
+    else:
+        print("     skipping - dryrun")
 
     os.chdir(cwd)
 
 if len(sys.argv) == 1:
     usage()
 
-# Project ID, below which there is (at least one) Sous/Gous/Mous
-pid = sys.argv[1]
 
-p1 = find_pbcor(pid,cube=True)
-print("Found %d pbcor fits files for ADMIT to process as cube" % len(p1))
-p2 = find_pbcor(pid,mfs=True)
-print("Found %d pbcor fits files for ADMIT to process as msf" % len(p2))
 
-#run_admit('runa1', p1[0])
-run_admit('runa2', p2[0])
+
+if __name__ == "__main__":
+
+    # Project ID, below which there is (at least one) Sous/Gous/Mous
+    pid = sys.argv[1]
+    verbose = False
+
+    p1 = find_pbcor(pid,cube=True, verbose=verbose)
+    print("Found %d cube pbcor fits files for ADMIT to process" % len(p1))
+    p2 = find_pbcor(pid,mfs=True, verbose=verbose)
+    print("Found %d msf pbcor fits files for ADMIT to process" % len(p2))
+
+    # the cheap continuum maps
+    for p in p2:
+        run_admit('runa2', p, verbose=verbose)
+
+    # the expensive cubes
+    for p in p1:
+        run_admit('runa1', p, verbose=verbose, dryrun=True)
+

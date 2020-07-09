@@ -96,7 +96,7 @@ def find_pbcor(pid, mfs=False, cube=False, verbose=False):
                 pbcor.append(p2)
     return pbcor
 
-def runa1(pbcorname,pbname=None,label=None,apars=[]):
+def runa1(pbcorname,pbname=None,label=None,apars=[],dryrun=False):
     """ the runa1 recipe, with optional extra args
         $ADMIT/admit/test/admit2.py --pb fname.pb.fits.gz --basename x --out fname.<label>.admit --apar fname.<label>.apar   fname.pbcor.fits
     e.g.   runa1(fname, "native.5sigma", ["numsigma=5"])
@@ -124,9 +124,10 @@ def runa1(pbcorname,pbname=None,label=None,apars=[]):
     r = r + ' %s' % pbcorname
     r = r + ' > %s.log 2>&1' % outname
     print(r)
-    os.system(r)
+    if not dryrun:
+        os.system(r)
 
-def runa2(pbcorname,pbname=None,label=None,apars=[]):
+def runa2(pbcorname,pbname=None,label=None,apars=[],dryrun=False):
     """ the runa1 recipe, with optional extra args
         $ADMIT/admit/test/admit2.py --pb fname.pb.fits.gz --basename x --out fname.<label>.admit --apar fname.<label>.apar   fname.pbcor.fits
     e.g.   runa1(fname, "native.5sigma", ["numsigma=5"])
@@ -158,7 +159,8 @@ def runa2(pbcorname,pbname=None,label=None,apars=[]):
     r = r + ' %s' % pbcorname
     r = r + ' > %s.log 2>&1' % outname
     print(r)
-    os.system(r)
+    if not dryrun:
+        os.system(r)
 
 
 def run_admit(recipe, pbcor, dryrun=False, verbose=False):
@@ -186,30 +188,23 @@ def run_admit(recipe, pbcor, dryrun=False, verbose=False):
     if verbose:
         print(adir)
     #    now some horrid file operations which can possible be done more efficiently if I had a better toolkit
-    cmd = 'mkdir -p %s' % adir 
-    os.system(cmd)
-    cwd = os.getcwd()
-    
-    os.chdir(adir)
-    os.system('ln -sf ../product/%s' % pbcorname)
-    os.system('ln -sf ../product/%s' % pbname)
+    cmd = 'mkdir -p %s' % adir
+    if not dryrun:
+        os.system(cmd)
+        cwd = os.getcwd()
+        os.chdir(adir)
+        os.system('ln -sf ../product/%s' % pbcorname)
+        os.system('ln -sf ../product/%s' % pbname)
 
-    if False:
-        cmd = "%s %s" % (recipe, pbcorname.replace('.pbcor.fits',''))
-        print('CMD: %s' % cmd)
-        if not dryrun:
-            os.system(cmd)
-        else:
-            print("     skipping - dryrun")
-    else:
-        if recipe == 'runa2':
-            runa2(pbcorname,pbname)
-            runa2(pbcorname,pbname,"native.5sigma",["numsigma=3"])
-        elif recipe == 'runa1':
-            runa1(pbcorname,pbname,"native.5sigma",["numsigma=5"])
-            runa1(pbcorname,pbname,"binned4.3sigma",["insmooth=-4","numsigma=3"])
-        
-    os.chdir(cwd)
+    if recipe == 'runa2':
+        runa2(pbcorname,pbname,dryrun=dryrun)
+        runa2(pbcorname,pbname,"native.5sigma",["numsigma=3"],dryrun=dryrun)
+    elif recipe == 'runa1':
+        runa1(pbcorname,pbname,"native.5sigma",["numsigma=5"],dryrun=dryrun)
+        runa1(pbcorname,pbname,"binned4.3sigma",["insmooth=-4","numsigma=3"],dryrun=dryrun)
+
+    if not dryrun:
+        os.chdir(cwd)
 
 if len(sys.argv) == 1:
     usage()
@@ -222,6 +217,7 @@ if __name__ == "__main__":
     # Project ID, below which there is (at least one) Sous/Gous/Mous
     pid = sys.argv[1]
     verbose = False
+    dryrun = True
 
     p1 = find_pbcor(pid,cube=True, verbose=verbose)
     print("Found %d cube pbcor fits files for ADMIT to process" % len(p1))
@@ -229,15 +225,16 @@ if __name__ == "__main__":
     print("Found %d msf pbcor fits files for ADMIT to process" % len(p2))
 
 
-    run_admit('runa2', p2[0], verbose=verbose)
-    run_admit('runa1', p1[0], verbose=verbose)
-
-    if False:
+    if True:
         # the cheap continuum maps
         for p in p2:
-            run_admit('runa2', p, verbose=verbose)
+            run_admit('runa2', p, verbose=verbose, dryrun=dryrun)
 
         # the expensive cubes
         for p in p1:
-            run_admit('runa1', p, verbose=verbose, dryrun=True)
+            run_admit('runa1', p, verbose=verbose, dryrun=dryrun)
+    else:
+        run_admit('runa2', p2[0], verbose=verbose,dryrun=dryrun)
+        run_admit('runa1', p1[0], verbose=verbose,dryrun=dryrun)
+
 

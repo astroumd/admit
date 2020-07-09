@@ -17,6 +17,19 @@
 import os, sys
 import glob
 
+try:
+    import casa
+    print("Warning: still assuming classic ADMIT")
+    is_admit3 = False
+except:
+    try:
+        import casatasks    # pre-release now does this????
+        is_admit3 = True
+        print("Good news: running ADMIT3")
+    except:
+        print("Bad news: your python doesn't know casa or casatasks")
+
+    
 def usage():
     print("Usage: %s PID(s)")
     print("For one or more PID's find the pbcor.fits files that are needed for 'runa1' and 'runa2' in ADMIT")
@@ -50,9 +63,14 @@ def find_pbcor(pid, mfs=False, cube=False, verbose=False):
         if pid == 'product':
             product = ['product']
         else:
-            print("No product tree found in %s" % pid)
-            print("Need a valid Project ID directory name")
-            return []
+            pids = splitall(pid)
+            print("PJT",pids)
+            if pids[-1] == 'product':
+                product = [pid]
+            else:
+                print("No product tree found in %s" % pid)
+                print("Need a valid Project ID directory name")
+                return []
 
     pbcor = []
     for p in product:
@@ -77,6 +95,70 @@ def find_pbcor(pid, mfs=False, cube=False, verbose=False):
                     print(p2)
                 pbcor.append(p2)
     return pbcor
+
+def runa1(pbcorname,pbname=None,label=None,apars=[]):
+    """ the runa1 recipe, with optional extra args
+        $ADMIT/admit/test/admit2.py --pb fname.pb.fits.gz --basename x --out fname.<label>.admit --apar fname.<label>.apar   fname.pbcor.fits
+    e.g.   runa1(fname, "native.5sigma", ["numsigma=5"])
+           runa1(fname, "binned16.3sigma", ["insmooth=-16","numsigma=5"])
+    """
+    r = '$ADMIT/admit/test/admit1.py'
+    r = r + ' --pb %s' % pbname
+    r = r + ' --basename x'
+    if len(apars) > 0:
+        if label == None:
+            aparname = pbcorname + '.apar'
+        else:
+            aparname = pbcorname.replace('.fits','') + '.%s.apar' % label
+        fp = open(aparname,"w")
+        fp.write("# written by AAP\n")
+        for apar in apars:
+            fp.write("%s\n" % apar)
+        fp.close()
+        r = r + ' --apar %s' % aparname
+    if label == None:
+        outname =  pbcorname.replace('.fits','') + ".admit"
+    else:
+        outname =  pbcorname.replace('.fits','') + '.%s.admit' % label
+    r = r + ' --out %s' % outname
+    r = r + ' %s' % pbcorname
+    r = r + ' > %s.log 2>&1' % outname
+    print(r)
+    os.system(r)
+
+def runa2(pbcorname,pbname=None,label=None,apars=[]):
+    """ the runa1 recipe, with optional extra args
+        $ADMIT/admit/test/admit2.py --pb fname.pb.fits.gz --basename x --out fname.<label>.admit --apar fname.<label>.apar   fname.pbcor.fits
+    e.g.   runa1(fname, "native.5sigma", ["numsigma=5"])
+           runa1(fname, "binned16.3sigma", ["insmooth=-16","numsigma=5"])
+
+           pbcorname = basename.pbcor.fits
+           outname   = basename.pbcor.admit      or basename.pbcor.<label>.admit
+           aparname  = basename.pbcor.fits.apar  or basename.pbcor.<label>.apar
+    """
+    r = '$ADMIT/admit/test/admit2.py'
+    r = r + ' --pb %s' % pbname
+    r = r + ' --basename x'
+    if len(apars) > 0:
+        if label == None:
+            aparname = pbcorname + '.apar'
+        else:
+            aparname = pbcorname.replace('.fits','') + '.%s.apar' % label
+        fp = open(aparname,"w")
+        fp.write("# written by AAP\n")
+        for apar in apars:
+            fp.write("%s\n" % apar)
+        fp.close()
+        r = r + ' --apar %s' % aparname
+    if label == None:
+        outname =  pbcorname.replace('.fits','') + ".admit"
+    else:
+        outname =  pbcorname.replace('.fits','') + '.%s.admit' % label
+    r = r + ' --out %s' % outname
+    r = r + ' %s' % pbcorname
+    r = r + ' > %s.log 2>&1' % outname
+    print(r)
+    os.system(r)
 
 
 def run_admit(recipe, pbcor, dryrun=False, verbose=False):
@@ -112,13 +194,21 @@ def run_admit(recipe, pbcor, dryrun=False, verbose=False):
     os.system('ln -sf ../product/%s' % pbcorname)
     os.system('ln -sf ../product/%s' % pbname)
 
-    cmd = "%s %s" % (recipe, pbcorname.replace('.pbcor.fits',''))
-    print('CMD: %s' % cmd)
-    if not dryrun:
-        os.system(cmd)
+    if False:
+        cmd = "%s %s" % (recipe, pbcorname.replace('.pbcor.fits',''))
+        print('CMD: %s' % cmd)
+        if not dryrun:
+            os.system(cmd)
+        else:
+            print("     skipping - dryrun")
     else:
-        print("     skipping - dryrun")
-
+        if recipe == 'runa2':
+            runa2(pbcorname,pbname)
+            runa2(pbcorname,pbname,"native.5sigma",["numsigma=3"])
+        elif recipe == 'runa1':
+            runa1(pbcorname,pbname,"native.5sigma",["numsigma=5"])
+            runa1(pbcorname,pbname,"binned4.3sigma",["insmooth=-4","numsigma=3"])
+        
     os.chdir(cwd)
 
 if len(sys.argv) == 1:
@@ -138,11 +228,16 @@ if __name__ == "__main__":
     p2 = find_pbcor(pid,mfs=True, verbose=verbose)
     print("Found %d msf pbcor fits files for ADMIT to process" % len(p2))
 
-    # the cheap continuum maps
-    for p in p2:
-        run_admit('runa2', p, verbose=verbose)
 
-    # the expensive cubes
-    for p in p1:
-        run_admit('runa1', p, verbose=verbose, dryrun=True)
+    run_admit('runa2', p2[0], verbose=verbose)
+    run_admit('runa1', p1[0], verbose=verbose)
+
+    if False:
+        # the cheap continuum maps
+        for p in p2:
+            run_admit('runa2', p, verbose=verbose)
+
+        # the expensive cubes
+        for p in p1:
+            run_admit('runa1', p, verbose=verbose, dryrun=True)
 

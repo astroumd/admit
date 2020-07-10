@@ -73,6 +73,20 @@ def splitall(path):
             allparts.insert(0, parts[1])
     return allparts
 
+def casa_cleanup(admitname):
+    """
+    clean an admit directory of all CASA images
+    the method here needs to be certified by a CASA expert
+    """
+    # @todo in Python3:   from pathlib import Path
+    # this is only 3 levels deep, works for now
+    files =  glob.glob("%s/*/table.info" % admitname) + glob.glob("%s/*/*/table.info" % admitname) + glob.glob("%s/*/*/*/table.info" % admitname)    
+    for f in files:
+        dat = f.replace("table.info","")
+        cmd = "rm -rf %s" % dat
+        print("CLEANUP: %s" % cmd)
+        os.system(cmd)
+
 def find_pbcor(dirname, mfs=False, cube=False, verbose=False):
     """
     find the ALMA pbcor files in a directory.... since everything starts with a pbcor file.
@@ -100,7 +114,7 @@ def find_pbcor(dirname, mfs=False, cube=False, verbose=False):
             pbcor.append(p2)
     return pbcor
 
-def runa1(pbcorname,pbname=None,label=None,apars=[],dryrun=False):
+def runa1(pbcorname,pbname=None,label=None,apars=[],dryrun=False,cleanup=False):
     """
         the runa1 recipe, with optional extra args
         $ADMIT/admit/test/admit2.py --pb fname.pb.fits.gz --basename x --out fname.<label>.admit --apar fname.<label>.apar   fname.pbcor.fits
@@ -132,8 +146,10 @@ def runa1(pbcorname,pbname=None,label=None,apars=[],dryrun=False):
     print(r)
     if not dryrun:
         os.system(r)
+        if cleanup:
+            casa_cleanup(outname)
 
-def runa2(pbcorname,pbname=None,label=None,apars=[],dryrun=False):
+def runa2(pbcorname,pbname=None,label=None,apars=[],dryrun=False,cleanup=False):
     """
         the runa2 recipe, with optional extra args
         $ADMIT/admit/test/admit2.py --pb fname.pb.fits.gz --basename x --out fname.<label>.admit --apar fname.<label>.apar   fname.pbcor.fits
@@ -169,9 +185,10 @@ def runa2(pbcorname,pbname=None,label=None,apars=[],dryrun=False):
     print(r)
     if not dryrun:
         os.system(r)
+        if cleanup:
+            casa_cleanup(outname)        
 
-
-def run_admit(recipe, pbcor, madmitname, dryrun=False, verbose=False, single=False):
+def run_admit(recipe, pbcor, madmitname, dryrun=False, verbose=False, single=False, cleanup=False):
     """
          based on a full pbcor file run an ADMIT recipe 
     """ 
@@ -209,22 +226,22 @@ def run_admit(recipe, pbcor, madmitname, dryrun=False, verbose=False, single=Fal
     if recipe == 'runa2':
         os.system('listfitsa %s' % pbcorname)
         if single:
-            runa2(pbcorname,pbname,dryrun=dryrun)
+            runa2(pbcorname,pbname,dryrun=dryrun,cleanup=cleanup)
         else:
             # @todo   add some smoothing?   go from 5ppx to 10ppx ?
             # @todo   LGM's default is numsigma=6
-            runa2(pbcorname,pbname,"5sigma",["numsigma=5"],dryrun=dryrun)
-            runa2(pbcorname,pbname,"3sigma",["numsigma=3"],dryrun=dryrun)
+            runa2(pbcorname,pbname,"5sigma",["numsigma=5"],dryrun=dryrun,cleanup=cleanup)
+            runa2(pbcorname,pbname,"3sigma",["numsigma=3"],dryrun=dryrun,cleanup=cleanup)
     elif recipe == 'runa1':
         os.system('listfitsa %s' % pbcorname)
         if single:
-            runa1(pbcorname,pbname,dryrun=dryrun)
+            runa1(pbcorname,pbname,dryrun=dryrun,cleanup=cleanup)
         else:
             #  @todo   LineID's default is numsigma=5
-            runa1(pbcorname,pbname,"native.5sigma",["numsigma=5"],dryrun=dryrun)
-            runa1(pbcorname,pbname,"native.3sigma",["numsigma=3"],dryrun=dryrun)
-            runa1(pbcorname,pbname,"binned4.3sigma",["insmooth=[-4]","numsigma=3"],dryrun=dryrun)
-            runa1(pbcorname,pbname,"binned16.3sigma",["insmooth=[-16]","numsigma=3"],dryrun=dryrun)
+            runa1(pbcorname,pbname,"native.5sigma",["numsigma=5"],dryrun=dryrun,cleanup=cleanup)
+            runa1(pbcorname,pbname,"native.3sigma",["numsigma=3"],dryrun=dryrun,cleanup=cleanup)
+            runa1(pbcorname,pbname,"binned4.3sigma",["insmooth=[-4]","numsigma=3"],dryrun=dryrun,cleanup=cleanup)
+            runa1(pbcorname,pbname,"binned16.3sigma",["insmooth=[-16]","numsigma=3"],dryrun=dryrun,cleanup=cleanup)
             
     if not dryrun:
         os.chdir(cwd)
@@ -261,7 +278,7 @@ def alma_names(dirname):
         print("Hurray, no orphan files")
     os.chdir(cwd)
 
-def compute_admit(dirname, madmitname=None, verbose=False, dryrun=False, single=False):
+def compute_admit(dirname, madmitname=None, verbose=False, dryrun=False, single=False, cleanup=False):
     """
     do it all
     """
@@ -281,11 +298,11 @@ def compute_admit(dirname, madmitname=None, verbose=False, dryrun=False, single=
 
     # the cheap continuum maps
     for p in p2:
-        run_admit('runa2', p, madmitname, verbose=verbose, dryrun=dryrun, single=single)
+        run_admit('runa2', p, madmitname, verbose=verbose, dryrun=dryrun, single=single, cleanup=cleanup)
 
     # the expensive cubes
     for p in p1:
-        run_admit('runa1', p, madmitname, verbose=verbose, dryrun=dryrun, single=single)
+        run_admit('runa1', p, madmitname, verbose=verbose, dryrun=dryrun, single=single, cleanup=cleanup)
 
     return madmitname
 
@@ -299,16 +316,19 @@ if __name__ == "__main__":
                         help = 'Name of the directory containing data')
 
     parser.add_argument('-c', '--checknames', action="store_true", default = False,
-        help = 'Name Check on all fits files, report orphans')
+                        help = 'Name Check on all fits files, report orphans')
 
     parser.add_argument('-n', '--dryrun', action = "store_true", default = False,
-        help = 'Dryrun mode')
+                        help = 'Dryrun mode')
+    
+    parser.add_argument('-r', '--cleanup', action = "store_true", default = False,
+                        help = 'Cleanup CASA images after run')
 
     parser.add_argument('-s', '--single', action = "store_true", default = True,
-        help = 'Single ADMIT mode')
+                        help = 'Single ADMIT mode')
 
     parser.add_argument('-v', '--verbose', action = "store_true", default = False,
-        help = 'Verbose mode.')
+                        help = 'Verbose mode.')
 
     args = vars(parser.parse_args())
 
@@ -323,12 +343,13 @@ if __name__ == "__main__":
     verbose = args['verbose']
     dryrun = args['dryrun']
     single = args['single']
-    print(dryrun)
+    cleanup = args['cleanup']
+    print(cleanup)
 
     if do_names:
         alma_names(dirname)
     else:
-        madmitname = compute_admit(dirname,verbose=verbose,dryrun=dryrun,single=single)
+        madmitname = compute_admit(dirname,verbose=verbose,dryrun=dryrun,single=single,cleanup=cleanup)
 
 # - end
     

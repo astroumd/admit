@@ -2,23 +2,29 @@
 #
 #   AAP = Admit After Pipeline
 #
-#   Example python script that for a given directory finds all ALMA {cube,mfs} pbcor.fits files
+#   Example python script and module that for a given directory finds all ALMA pbcor.fits files
 #   and runs a suite of predefined ADMIT recipes on them, in a local directory named madmit_<YMD_HMS>
+#   It normally matches the pb.fits files, so ADMIT can be work in noise flat image cubes.
 #
 #   Notes:
 #      1. this is still for old-style admit, not ADMIT3, but should port to python3 when ready
 #      2. this does not encode the different tree view that is encoded in the old do_aap5 or runa1
 #      3. it handles *.pb.fits as well as *.pb.fits.gz files that should mirror the *.pbcor.fits files
 #
-#   Script usage
-#      aap.py -d dir1  [-n] [-c]
+#   SCRIPT usage
+#      aap.py -d dir1  [-n] [-c] [-s] [-r]
 #          -n     dry-run, prints out the commands as they would run (old style ADMIT)
 #          -c     check files to see if there are orphans we may not have encoded for ADMIT processing
+#          -s     single mode, only one default run per image/cube
+#          -r     remove all CASA images/tables after the ADMIT run
 #
-#   Module usage
+#   MODULE usage
 #      import aap
 #      madmitname = aap.compute_admit(dirname)
 #
+
+_version = "10-jul-2020 PJT"
+
 import os, sys
 import argparse as ap
 import glob
@@ -37,8 +43,6 @@ except:
     except:
         print("Bad news: your python doesn't know casa or casatasks")
 
-
-_version = "9-jul-2020 PJT"
 
 def version():
     """
@@ -90,25 +94,19 @@ def casa_cleanup(admitname):
 def find_pbcor(dirname, mfs=False, cube=False, verbose=False):
     """
     find the ALMA pbcor files in a directory.... since everything starts with a pbcor file.
-    Currently limited to "mfs" and/or "cube". Skipping the "cont" files.
-    Also only looking at the _sci files.
-    Felix might continue to argue to add the _ph and _bp
+    We keep the MFS/CONT separate from CUBE, since they require different recipes.
     """
     pbcor = []
     if cube:
-        pbcor1s = glob.glob('%s/*_sci*.cube.I.pbcor.fits' % dirname)
-        pbcor1b = glob.glob('%s/*_bp*.cube.I.pbcor.fits' % dirname)
-        pbcor1p = glob.glob('%s/*_ph*.cube.I.pbcor.fits' % dirname)
-        for p1 in pbcor1s:
+        pbcor1a = glob.glob('%s/*.cube.*pbcor*fits' % dirname)
+        for p1 in pbcor1a:
             if verbose:
                 print(p1)
             pbcor.append(p1)
     if mfs:
-        pbcor2s = glob.glob('%s/*_sci*.mfs.I.pbcor.fits' % dirname)
-        pbcor2c = glob.glob('%s/*_sci*.cont.I.pbcor.fits' % dirname)
-        pbcor2b = glob.glob('%s/*_bp*.mfs.I.pbcor.fits' % dirname)
-        pbcor2p = glob.glob('%s/*_ph*.mfs.I.pbcor.fits' % dirname)
-        for p2 in pbcor2s:
+        pbcor2a = glob.glob('%s/*.mfs.*pbcor*fits' % dirname)
+        pbcor2c = glob.glob('%s/*.cont.*pbcor*fits' % dirname)
+        for p2 in pbcor2a+pbcor2c:
             if verbose:
                 print(p2)
             pbcor.append(p2)
@@ -324,7 +322,7 @@ if __name__ == "__main__":
     parser.add_argument('-r', '--cleanup', action = "store_true", default = False,
                         help = 'Cleanup CASA images after run')
 
-    parser.add_argument('-s', '--single', action = "store_true", default = True,
+    parser.add_argument('-s', '--single', action = "store_true", default = False,
                         help = 'Single ADMIT mode')
 
     parser.add_argument('-v', '--verbose', action = "store_true", default = False,
@@ -344,7 +342,7 @@ if __name__ == "__main__":
     dryrun = args['dryrun']
     single = args['single']
     cleanup = args['cleanup']
-    print(cleanup)
+    print(single)
 
     if do_names:
         alma_names(dirname)

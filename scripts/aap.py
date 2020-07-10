@@ -12,11 +12,12 @@
 #      3. it handles *.pb.fits as well as *.pb.fits.gz files that should mirror the *.pbcor.fits files
 #
 #   SCRIPT usage
-#      aap.py -d dir1  [-n] [-c] [-s] [-r]
-#          -n     dry-run, prints out the commands as they would run (old style ADMIT)
+#      aap.py -d dir1  [-c] [-n] [-r] [-s] [-v]
 #          -c     check files to see if there are orphans we may not have encoded for ADMIT processing
-#          -s     single mode, only one default run per image/cube
+#          -n     dry-run, prints out the commands as they would run (old style ADMIT)
 #          -r     remove all CASA images/tables after the ADMIT run
+#          -s     single mode, only one default run per image/cube
+#          -v     verbose
 #
 #   MODULE usage
 #      import aap

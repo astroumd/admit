@@ -1,11 +1,13 @@
 #! /usr/bin/env python
 #
-#   Example python script that for a given directory and finds all ALMA {cube,mfs} pbcor.fits files,
-#   and runs a suite of predefined ADMIT recipes on them, in a local directory named madmit-<YMD-HMS>
+#   AAP = Admit After Pipeline
+#
+#   Example python script that for a given directory finds all ALMA {cube,mfs} pbcor.fits files
+#   and runs a suite of predefined ADMIT recipes on them, in a local directory named madmit_<YMD_HMS>
 #
 #   Notes:
-#      1. this is still for old-style admit, not ADMIT3
-#      2. this does not encode the different tree view that is encoded in the old do_aap5
+#      1. this is still for old-style admit, not ADMIT3, but should port to python3 when ready
+#      2. this does not encode the different tree view that is encoded in the old do_aap5 or runa1
 #      3. it handles *.pb.fits as well as *.pb.fits.gz files that should mirror the *.pbcor.fits files
 #
 #   Script usage
@@ -13,12 +15,14 @@
 #
 #   Module usage
 #      import aap
-#      aap.compute_admit(directoryname)
+#      madmitname = aap.compute_admit(dirname)
 #
 import os, sys
+import argparse as ap
 import glob
 import datetime
 
+#   decipher the python environment (yuck)
 try:
     import casa
     print("Warning: still assuming classic ADMIT")
@@ -31,10 +35,22 @@ except:
     except:
         print("Bad news: your python doesn't know casa or casatasks")
 
-    
+
+_version = "9-jul-2020 PJT"
+
+def version():
+    """
+    identify yourself
+    """
+    print("AAP Version %s" % _version)
+
+
 def usage():
-    print("Usage: %s PID(s)")
-    print("For one or more PID's find the pbcor.fits files that are needed for 'runa1' and 'runa2' in ADMIT")
+    """
+    command line helper
+    """
+    print("Usage: %s -d DIR(s)")
+    print("For one or more DIR's find the pbcor.fits files that are needed for 'runa1' and 'runa2' type recipes in ADMIT")
     sys.exit(0)
 
 def splitall(path):
@@ -76,7 +92,8 @@ def find_pbcor(dirname, mfs=False, cube=False, verbose=False):
     return pbcor
 
 def runa1(pbcorname,pbname=None,label=None,apars=[],dryrun=False):
-    """ the runa1 recipe, with optional extra args
+    """
+        the runa1 recipe, with optional extra args
         $ADMIT/admit/test/admit2.py --pb fname.pb.fits.gz --basename x --out fname.<label>.admit --apar fname.<label>.apar   fname.pbcor.fits
     e.g.   runa1(fname, "native.5sigma", ["numsigma=5"])
            runa1(fname, "binned16.3sigma", ["insmooth=-16","numsigma=5"])
@@ -89,12 +106,13 @@ def runa1(pbcorname,pbname=None,label=None,apars=[],dryrun=False):
             aparname = pbcorname + '.apar'
         else:
             aparname = pbcorname.replace('.fits','') + '.%s.apar' % label
-        fp = open(aparname,"w")
-        fp.write("# written by AAP\n")
-        for apar in apars:
-            fp.write("%s\n" % apar)
-        fp.close()
-        r = r + ' --apar %s' % aparname
+        if not dryrun:
+            fp = open(aparname,"w")
+            fp.write("# written by AAP\n")
+            for apar in apars:
+                fp.write("%s\n" % apar)
+            fp.close()
+            r = r + ' --apar %s' % aparname
     if label == None:
         outname =  pbcorname.replace('.fits','') + ".admit"
     else:
@@ -107,7 +125,8 @@ def runa1(pbcorname,pbname=None,label=None,apars=[],dryrun=False):
         os.system(r)
 
 def runa2(pbcorname,pbname=None,label=None,apars=[],dryrun=False):
-    """ the runa1 recipe, with optional extra args
+    """
+        the runa2 recipe, with optional extra args
         $ADMIT/admit/test/admit2.py --pb fname.pb.fits.gz --basename x --out fname.<label>.admit --apar fname.<label>.apar   fname.pbcor.fits
     e.g.   runa1(fname, "native.5sigma", ["numsigma=5"])
            runa1(fname, "binned16.3sigma", ["insmooth=-16","numsigma=5"])
@@ -124,12 +143,13 @@ def runa2(pbcorname,pbname=None,label=None,apars=[],dryrun=False):
             aparname = pbcorname + '.apar'
         else:
             aparname = pbcorname.replace('.fits','') + '.%s.apar' % label
-        fp = open(aparname,"w")
-        fp.write("# written by AAP\n")
-        for apar in apars:
-            fp.write("%s\n" % apar)
-        fp.close()
-        r = r + ' --apar %s' % aparname
+        if not dryrun:
+            fp = open(aparname,"w")
+            fp.write("# written by AAP\n")
+            for apar in apars:
+                fp.write("%s\n" % apar)
+            fp.close()
+            r = r + ' --apar %s' % aparname
     if label == None:
         outname =  pbcorname.replace('.fits','') + ".admit"
     else:
@@ -143,10 +163,8 @@ def runa2(pbcorname,pbname=None,label=None,apars=[],dryrun=False):
 
 
 def run_admit(recipe, pbcor, madmitname, dryrun=False, verbose=False):
-    """ based on a full pbcor file run a recipe in a directory parallel to product
-            [dir/]product/basename.mfs.I.pbcor.fits       runa1
-            [dir/]product/basename.cube.I.pbcor.fits      runa2
-        A directory name before 'product' is optional, but recommended
+    """
+         based on a full pbcor file run an ADMIT recipe 
     """ 
     idx = pbcor.find('.pbcor.fits')
     pb = glob.glob(pbcor[:idx] + '.pb.fits*')
@@ -157,6 +175,7 @@ def run_admit(recipe, pbcor, madmitname, dryrun=False, verbose=False):
     if verbose:
         print(pbcor)
         print(pb)
+    #  pbcor and pb are filenames relative to the dirname
     #  e.g. PID/S/G/M/product/member.uid___A001_X133f_X1a2.Tile_004_SMC_SWBar_sci.spw22.cube.I.pbcor.fits
     #                 product/member.uid___A001_X133f_X1a2.Tile_004_SMC_SWBar_sci.spw22.cube.I.pbcor.fits
     pbname = splitall(pb)[-1]
@@ -175,30 +194,66 @@ def run_admit(recipe, pbcor, madmitname, dryrun=False, verbose=False):
         os.system(cmd)
         cwd = os.getcwd()
         os.chdir(adir)
-        print("PJT",pbcor)
         os.system('ln -sf %s' % (pbcorpath))
         os.system('ln -sf %s' % (pbpath))
 
     if recipe == 'runa2':
+        os.system('listfitsa %s' % pbcorname)
         runa2(pbcorname,pbname,dryrun=dryrun)
-        runa2(pbcorname,pbname,"native.5sigma",["numsigma=3"],dryrun=dryrun)
+        runa2(pbcorname,pbname,"native.3sigma",["numsigma=3"],dryrun=dryrun)
     elif recipe == 'runa1':
+        os.system('listfitsa %s' % pbcorname)        
         runa1(pbcorname,pbname,"native.5sigma",["numsigma=5"],dryrun=dryrun)
-        runa1(pbcorname,pbname,"binned4.3sigma",["insmooth=-4","numsigma=3"],dryrun=dryrun)
+        runa1(pbcorname,pbname,"native.3sigma",["numsigma=3"],dryrun=dryrun)
+        runa1(pbcorname,pbname,"binned4.3sigma",["insmooth=[-4]","numsigma=3"],dryrun=dryrun)
+        runa1(pbcorname,pbname,"binned16.3sigma",["insmooth=[-16]","numsigma=3"],dryrun=dryrun)
 
     if not dryrun:
         os.chdir(cwd)
+
+def alma_names(dirname):
+    """
+    debugging: search and destroy what we know
+    """
+    cwd = os.getcwd()
+    os.chdir(dirname)
+    files = glob.glob('*fits*')
+    pbcors = glob.glob('*.pbcor.fits')
+    pbcors.sort()
+    nfiles = len(files)
+    npbcors = len(pbcors)
+    print("Found %d pbcor in %d fits files" % (npbcors,nfiles))
+    for pbcor in pbcors:
+        pb = pbcor.replace('.pbcor.fits','.pb.fits.gz')
+        try:
+            i1=files.index(pb)
+            files.remove(pbcor)
+            files.remove(pb)
+        except:
+            print("missing %s" % pb)
+        mask = pb.replace('.pb.','.mask.')
+        try:
+            i1=files.index(mask)
+            files.remove(mask)
+        except:
+            print("missing %s" % mask)
+    for f in files:
+        print("orphan  %s" % f)
+    if len(files)==0:
+        print("Hurray, no orphan files")
+    os.chdir(cwd)
 
 def compute_admit(dirname, madmitname=None, verbose=False, dryrun=False):
     """
     do it all
     """
+    # @todo    if dirname contains the whole P/S/G/M name, store that too
     if madmitname == None:
-        # try some unique name that filecompletes but is parses fast by the human eye
-        # strftime('%Y-%m-%dT%H:%M:%S.%f')   ->  does not work deep inside casa (lattice expr?)
-        madmitname = os.path.abspath('./madmit_'+datetime.datetime.now().strftime('%Y-%m-%d_%H%M%S.%f'))
-    print("MADMIT: ",madmitname)
-    
+        # try some unique name that name-completes but also parses fast by the human eye and filebrowsers
+        madmitname = os.path.abspath('./madmit_'+datetime.datetime.now().strftime('%Y%m%d_%H%M%S.%f'))
+    print("MADMIT: %s" % madmitname)
+
+    # @todo   only mfs and cube?  what about cont ?  or _ph and _pb
     p1 = find_pbcor(dirname,cube=True, verbose=verbose)
     print("Found %d cube pbcor fits files for ADMIT to process" % len(p1))
     p2 = find_pbcor(dirname,mfs=True, verbose=verbose)
@@ -206,7 +261,7 @@ def compute_admit(dirname, madmitname=None, verbose=False, dryrun=False):
     if len(p1) + len(p2) == 0:
         return None
 
-    if True:
+    if False:
         # quick single test
         # madmitname = './madmit'
         run_admit('runa2', p2[0], madmitname, verbose=verbose, dryrun=False)
@@ -226,15 +281,39 @@ def compute_admit(dirname, madmitname=None, verbose=False, dryrun=False):
 
 if __name__ == "__main__":
 
+    
+    parser = ap.ArgumentParser(description='AAP (ADMIT After Pipeline) processing - %s' % _version)
+    
+    parser.add_argument('-d', '--dirname', nargs = 1, type = str, default = ['.'],
+                        help = 'Name of the directory containing data')
+
+    parser.add_argument('-c', '--checknames', action="store_true", default = False,
+        help = 'Name Check on all fits files, report orphans')
+
+    parser.add_argument('-n', '--dryrun', action = "store_true", default = False,
+        help = 'Dryrun mode')
+
+    parser.add_argument('-v', '--verbose', action = "store_true", default = False,
+        help = 'Verbose mode.')
+
+    args = vars(parser.parse_args())
+
     if len(sys.argv) == 1:
         usage()
 
-    # Project ID, below which there is (at least one) Sous/Gous/Mous
-    dirname = sys.argv[1]
-    verbose = False
-    dryrun = True
+    version()
 
-    madmitname = compute_admit(dirname,verbose=verbose,dryrun=dryrun)
+    # Project ID, below which there is (at least one) Sous/Gous/Mous
+    dirname = args['dirname'][0]
+    do_names = args['checknames']
+    verbose = args['verbose']
+    dryrun = args['dryrun']
+    print(dryrun)
+
+    if do_names:
+        alma_names(dirname)
+    else:
+        madmitname = compute_admit(dirname,verbose=verbose,dryrun=dryrun)
 
 # - end
     

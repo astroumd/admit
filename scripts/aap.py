@@ -11,7 +11,9 @@
 #      3. it handles *.pb.fits as well as *.pb.fits.gz files that should mirror the *.pbcor.fits files
 #
 #   Script usage
-#      aap.py dir1 [dir2 ...]
+#      aap.py -d dir1  [-n] [-c]
+#          -n     dry-run, prints out the commands as they would run (old style ADMIT)
+#          -c     check files to see if there are orphans we may not have encoded for ADMIT processing
 #
 #   Module usage
 #      import aap
@@ -73,19 +75,26 @@ def splitall(path):
 
 def find_pbcor(dirname, mfs=False, cube=False, verbose=False):
     """
-    find the ALMA pbcor files in a directory.
-    Currently limited to "mfs" and/or "cube"
+    find the ALMA pbcor files in a directory.... since everything starts with a pbcor file.
+    Currently limited to "mfs" and/or "cube". Skipping the "cont" files.
+    Also only looking at the _sci files.
+    Felix might continue to argue to add the _ph and _bp
     """
     pbcor = []
     if cube:
-        pbcor1 = glob.glob('%s/*_sci*.cube.I.pbcor.fits' % dirname)
-        for p1 in pbcor1:
+        pbcor1s = glob.glob('%s/*_sci*.cube.I.pbcor.fits' % dirname)
+        pbcor1b = glob.glob('%s/*_bp*.cube.I.pbcor.fits' % dirname)
+        pbcor1p = glob.glob('%s/*_ph*.cube.I.pbcor.fits' % dirname)
+        for p1 in pbcor1s:
             if verbose:
                 print(p1)
             pbcor.append(p1)
     if mfs:
-        pbcor2 = glob.glob('%s/*_sci*.mfs.I.pbcor.fits' % dirname)
-        for p2 in pbcor2:
+        pbcor2s = glob.glob('%s/*_sci*.mfs.I.pbcor.fits' % dirname)
+        pbcor2c = glob.glob('%s/*_sci*.cont.I.pbcor.fits' % dirname)
+        pbcor2b = glob.glob('%s/*_bp*.mfs.I.pbcor.fits' % dirname)
+        pbcor2p = glob.glob('%s/*_ph*.mfs.I.pbcor.fits' % dirname)
+        for p2 in pbcor2s:
             if verbose:
                 print(p2)
             pbcor.append(p2)
@@ -162,7 +171,7 @@ def runa2(pbcorname,pbname=None,label=None,apars=[],dryrun=False):
         os.system(r)
 
 
-def run_admit(recipe, pbcor, madmitname, dryrun=False, verbose=False):
+def run_admit(recipe, pbcor, madmitname, dryrun=False, verbose=False, single=False):
     """
          based on a full pbcor file run an ADMIT recipe 
     """ 
@@ -199,15 +208,24 @@ def run_admit(recipe, pbcor, madmitname, dryrun=False, verbose=False):
 
     if recipe == 'runa2':
         os.system('listfitsa %s' % pbcorname)
-        runa2(pbcorname,pbname,dryrun=dryrun)
-        runa2(pbcorname,pbname,"native.3sigma",["numsigma=3"],dryrun=dryrun)
+        if single:
+            runa2(pbcorname,pbname,dryrun=dryrun)
+        else:
+            # @todo   add some smoothing?   go from 5ppx to 10ppx ?
+            # @todo   LGM's default is numsigma=6
+            runa2(pbcorname,pbname,"5sigma",["numsigma=5"],dryrun=dryrun)
+            runa2(pbcorname,pbname,"3sigma",["numsigma=3"],dryrun=dryrun)
     elif recipe == 'runa1':
-        os.system('listfitsa %s' % pbcorname)        
-        runa1(pbcorname,pbname,"native.5sigma",["numsigma=5"],dryrun=dryrun)
-        runa1(pbcorname,pbname,"native.3sigma",["numsigma=3"],dryrun=dryrun)
-        runa1(pbcorname,pbname,"binned4.3sigma",["insmooth=[-4]","numsigma=3"],dryrun=dryrun)
-        runa1(pbcorname,pbname,"binned16.3sigma",["insmooth=[-16]","numsigma=3"],dryrun=dryrun)
-
+        os.system('listfitsa %s' % pbcorname)
+        if single:
+            runa1(pbcorname,pbname,dryrun=dryrun)
+        else:
+            #  @todo   LineID's default is numsigma=5
+            runa1(pbcorname,pbname,"native.5sigma",["numsigma=5"],dryrun=dryrun)
+            runa1(pbcorname,pbname,"native.3sigma",["numsigma=3"],dryrun=dryrun)
+            runa1(pbcorname,pbname,"binned4.3sigma",["insmooth=[-4]","numsigma=3"],dryrun=dryrun)
+            runa1(pbcorname,pbname,"binned16.3sigma",["insmooth=[-16]","numsigma=3"],dryrun=dryrun)
+            
     if not dryrun:
         os.chdir(cwd)
 
@@ -243,7 +261,7 @@ def alma_names(dirname):
         print("Hurray, no orphan files")
     os.chdir(cwd)
 
-def compute_admit(dirname, madmitname=None, verbose=False, dryrun=False):
+def compute_admit(dirname, madmitname=None, verbose=False, dryrun=False, single=False):
     """
     do it all
     """
@@ -261,20 +279,13 @@ def compute_admit(dirname, madmitname=None, verbose=False, dryrun=False):
     if len(p1) + len(p2) == 0:
         return None
 
-    if False:
-        # quick single test
-        # madmitname = './madmit'
-        run_admit('runa2', p2[0], madmitname, verbose=verbose, dryrun=False)
-        run_admit('runa1', p1[0], madmitname, verbose=verbose, dryrun=False)
-        return madmitname
-    
     # the cheap continuum maps
     for p in p2:
-        run_admit('runa2', p, madmitname, verbose=verbose, dryrun=dryrun)
+        run_admit('runa2', p, madmitname, verbose=verbose, dryrun=dryrun, single=single)
 
     # the expensive cubes
     for p in p1:
-        run_admit('runa1', p, madmitname, verbose=verbose, dryrun=dryrun)
+        run_admit('runa1', p, madmitname, verbose=verbose, dryrun=dryrun, single=single)
 
     return madmitname
 
@@ -293,6 +304,9 @@ if __name__ == "__main__":
     parser.add_argument('-n', '--dryrun', action = "store_true", default = False,
         help = 'Dryrun mode')
 
+    parser.add_argument('-s', '--single', action = "store_true", default = True,
+        help = 'Single ADMIT mode')
+
     parser.add_argument('-v', '--verbose', action = "store_true", default = False,
         help = 'Verbose mode.')
 
@@ -308,12 +322,13 @@ if __name__ == "__main__":
     do_names = args['checknames']
     verbose = args['verbose']
     dryrun = args['dryrun']
+    single = args['single']
     print(dryrun)
 
     if do_names:
         alma_names(dirname)
     else:
-        madmitname = compute_admit(dirname,verbose=verbose,dryrun=dryrun)
+        madmitname = compute_admit(dirname,verbose=verbose,dryrun=dryrun,single=single)
 
 # - end
     

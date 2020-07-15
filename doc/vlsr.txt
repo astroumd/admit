@@ -1,0 +1,25 @@
+The success of LineID, one of the centerpieces of ADMIT, hinges on a correct value of the VLSR.
+Realizing that a VLSR does not always make sense (HDF, solar system objects etc.) for a large
+set of objects it does makes sense, in particular , the PI has usually set the VLSR in the OT.
+
+The VLSR is derived (or set) in Ingest_AT, and then subsequently used in LineID_AT (which 
+another value can be overridden fro the one Ingest_AT derived).
+
+
+
+Here we list the current status - and possible future - of how VLSR has been set in Ingest_AT:
+
+
+1. We first compute VLSRc from RESTFREQ and the mid-band frequency
+
+2. We also cheat via $ADMIT/etc/vlsr.tab so currently if an OBJECT name appears in this list, 
+  it overrides VLSRc. This is to simulate any potential SIMBAD/NED object lookup. This is very
+  latent, so we currently cheat.
+  On the long term, this cheat should disappear.
+
+3. Any value set via the vlsr= keyword
+
+4. the Source.xml in the ASDM product of the MOUSE has sysVel, which comes from the OT ?
+
+5. the hard labor done in mous_source_redshift.txt, this is similar to ADMIT's   'vlsr.tab' cheat.
+

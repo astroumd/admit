@@ -1,16 +1,25 @@
-The success of LineID, one of the centerpieces of ADMIT, hinges on a correct value of the VLSR.
+How should ADMIT determine VLSR?
+================================
+
+The success of LineID, one of the centerpieces of ADMIT, hinges on a correct value for the VLSR.
 Realizing that a VLSR does not always make sense (HDF, solar system objects etc.) for a large
 set of objects it does makes sense, in particular , the PI has usually set the VLSR in the OT.
+There are objects where the PI will use VLSR=0, even though it's a clear object or more likely
+group of objects.
+
 
 The VLSR is derived (or set) in Ingest_AT, and then subsequently used in LineID_AT (which 
 another value can be overridden fro the one Ingest_AT derived).
 
 
-
 Here we list the current status - and possible future - of how VLSR has been set in Ingest_AT:
 
 
-1. We first compute VLSRc from RESTFREQ and the mid-band frequency
+1. We first compute VLSRc from RESTFREQ and the mid-band frequency, but ADMIT computed three values
+   for the VLSR and then decides which one to pick:
+   VLSRc = 119.829790       center freq reference to RESTFREQ 
+   VLSRw = -162.484021      width of band in V space (technically V_max - V_min)
+   VLSRf = 0.000000 
 
 2. We also cheat via $ADMIT/etc/vlsr.tab so currently if an OBJECT name appears in this list, 
   it overrides VLSRc. This is to simulate any potential SIMBAD/NED object lookup. This is very
@@ -23,3 +32,18 @@ Here we list the current status - and possible future - of how VLSR has been set
 
 5. the hard labor done in mous_source_redshift.txt, this is similar to ADMIT's   'vlsr.tab' cheat.
 
+
+
+Questions:
+
+1a.   What happened to the ZSOURCE keyword?
+
+1b.   Slightly related, the LINTRN keyword?
+
+2.   In the Source.xml (in the ASDM) we have something like
+
+     <sourceName>NGC1097</sourceName>
+     <transition>1 1 "CO_v_0_2_1(ID=3768101)"</transition>
+     <restFrequency>1 1 2.30538E11</restFrequency>
+     <sysVel>1 1 1271000.0</sysVel>
+     <velRefCode>LSRK</velRefCode>

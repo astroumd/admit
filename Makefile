@@ -170,7 +170,7 @@ bench:
 # python3 of bench
 bench3:
 	@mkdir -p testdata
-	(cd testdata; ../bin/$(WGET) $(FTP)/test0.fits; /usr/bin/time ../etc/data/test0.py test0.fits > test0.log 2>&1  )
+	(cd testdata; ../bin/$(WGET) $(FTP)/test0.fits; /usr/bin/time ../etc/data/test0.py test0.fits > test0.log 2>&1; tail -2 test0.log)
 	grep MOM0FLUX testdata/test0.log
 	@echo $(RLOG)
 	@echo These last two lines should be identical

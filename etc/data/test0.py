@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 #
 # This is essentially the admit0.py for "runa1 test0.fits", in the new python3 style
+# In true ADMIT3 python has to execute this, in CASA5 style, the 'casarun' wrapper
+# needs to run this.
 #
-#  - always cleans up the admit folder since re-run not working in P3
-#  - no aliases, not working in P3
+#  - always cleans up the admit folder since re-run not working in P3 yet
+#  - no aliases, not working in P3 yet
 #
 
 import os, sys

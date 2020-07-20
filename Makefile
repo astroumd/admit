@@ -168,15 +168,20 @@ bench:
 	@echo These last two lines should be identical
 
 # python3 of bench
-bench3:
+bench35:
 	@mkdir -p testdata
-	(cd testdata; ../bin/$(WGET) $(FTP)/test0.fits; /usr/bin/time ../etc/data/test0.py test0.fits > test0.log 2>&1; tail -2 test0.log)
+	(cd testdata; ../bin/$(WGET) $(FTP)/test0.fits; /usr/bin/time casarun ../etc/data/test0.py test0.fits > test0.log 2>&1; tail -2 test0.log)
 	grep MOM0FLUX testdata/test0.log
 	@echo $(RLOG)
 	@echo These last two lines should be identical
 
-
-# 
+# python3 of bench
+bench36:
+	@mkdir -p testdata
+	(cd testdata; ../bin/$(WGET) $(FTP)/test0.fits; /usr/bin/time python ../etc/data/test0.py test0.fits > test0.log 2>&1; tail -2 test0.log)
+	grep MOM0FLUX testdata/test0.log
+	@echo $(RLOG)
+	@echo These last two lines should be identical
 
 # deprecate
 bench1:	data data/bench1

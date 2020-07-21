@@ -867,7 +867,9 @@ class APlot(AbstractPlot):
                 ax1.plot([min(frqs), max(frqs)], [pk*.92, pk*.92], 'k-')
                 ax1.plot([min(frqs), max(frqs)], [place-step/2.0,place-step/2.0], 'k-')
 
-            ax1.text(l.getkey("frequency"),0.0,l.getkey("uid") + extra,withdash=True,rotation='vertical',dashdirection=1,dashlength=size[1]*0.7,dashrotation=90)
+            # PJT
+            #ax1.text(l.getkey("frequency"),0.0,l.getkey("uid") + extra,withdash=True,rotation='vertical',dashdirection=1,dashlength=size[1]*0.7,dashrotation=90)
+            ax1.text(l.getkey("frequency"),0.0,l.getkey("uid") + extra,rotation='vertical')
             if l.getfstart() != 0 and l.getfend() != 0:
                 if first:
                     ax1.add_patch(patches.Rectangle((l.getfstart(), ylim[0]), l.getfend() - l.getfstart(), ylim[1] - ylim[0], alpha=0.1, ec='none', fc='blue', label="Channel Range"))
@@ -876,6 +878,7 @@ class APlot(AbstractPlot):
                     ax1.add_patch(patches.Rectangle((l.getfstart(), ylim[0]), l.getfend() - l.getfstart(), ylim[1] - ylim[0], alpha=0.1, ec='none', fc='blue'))
         first = True
         for l in force:
+            # PJT
             ax1.text(l.getkey("frequency"),0.0,l.getkey("uid"),withdash=True,rotation='vertical',dashdirection=1,dashlength=size[1]*0.7,dashrotation=90,color='green')
             if l.getfstart() != 0 and l.getfend() != 0:
                 if first:
@@ -1140,7 +1143,9 @@ class APlot(AbstractPlot):
                 seglines += ax1.plot([min(frqs), max(frqs)], [pk*.92, pk*.92], 'k-')
                 seglines += ax1.plot([min(frqs), max(frqs)], [place-step/2.0,place-step/2.0], 'k-')
 
-            axtexts.append(ax1.text(l.getkey("frequency"),pk*.85,l.getkey("uid")+extra,withdash=True,rotation='vertical',dashdirection=1,dashlength=50,dashrotation=90))
+            # PJT
+            #axtexts.append(ax1.text(l.getkey("frequency"),pk*.85,l.getkey("uid")+extra,withdash=True,rotation='vertical',dashdirection=1,dashlength=50,dashrotation=90))
+            axtexts.append(ax1.text(l.getkey("frequency"),pk*.85,l.getkey("uid")+extra,rotation='vertical'))            
             # black tickmark
             seglines += ax1.plot([l.getkey("frequency"),l.getkey("frequency")],[place-step/2.0,place+step/2.0],'k-')
             # red segment
@@ -1154,6 +1159,7 @@ class APlot(AbstractPlot):
 
         first = True
         for l in force:
+            # PJT
             axtexts.append(ax1.text(l.getkey("frequency"),pk*.85,l.getkey("uid"),withdash=True,rotation='vertical',dashdirection=1,dashlength=50,dashrotation=90,color='green'))
             # green tickmark
             seglines += ax1.plot([l.getkey("frequency"),l.getkey("frequency")],[place-step/2.0,place+step/2.0],'g-')
@@ -1173,7 +1179,9 @@ class APlot(AbstractPlot):
             if f<fmin or f>fmax: continue
             r = references[f]
             seglines += ax1.plot([f,f],[2.0*place-step,2.0*place+step],'k-')
-            axtexts.append(ax1.text(f,2.0*place+step,r,withdash=True,rotation='vertical',dashdirection=1,dashlength=50,dashrotation=45))
+            # PJT
+            #axtexts.append(ax1.text(f,2.0*place+step,r,withdash=True,rotation='vertical',dashdirection=1,dashlength=50,dashrotation=45))
+            axtexts.append(ax1.text(f,2.0*place+step,r,rotation='vertical'))
 
         # Put a legend below current axis.
         ax1.legend(loc="lower center", bbox_to_anchor=(0.5,-0.14),

@@ -16,6 +16,8 @@
 #  - on the NRAO lustre file system nautilus is known to be unstable (and just die),
 #    dolphin works better
 
+unsetenv LD_LIBRARY_PATH
+
 
 if (-e /usr/bin/nemo) then
    set n = /usr/bin/nemo

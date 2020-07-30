@@ -2,9 +2,9 @@
 #
 #   AAP = Admit After Pipeline
 #
-#   Example python script and module that for a given directory finds all ALMA pbcor.fits files
+#   Example python script (and module) that for a given directory finds all ALMA pbcor.fits files
 #   and runs a suite of predefined ADMIT recipes on them, in a local directory named madmit_<YMD_HMS>
-#   It normally matches the pb.fits files, so ADMIT can be work in noise flat image cubes.
+#   It normally matches the pb.fits files, so ADMIT can work on noise flat image cubes.
 #
 #   Notes:
 #      1. this is still for old-style admit, not ADMIT3, but should port to python3 when ready
@@ -23,8 +23,10 @@
 #      import aap
 #      madmitname = aap.compute_admit(dirname)
 #
+#   @todo
+#
 
-_version = "10-jul-2020 PJT"
+_version = "29-jul-2020 PJT"
 
 import os, sys
 import argparse as ap

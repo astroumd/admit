@@ -167,6 +167,10 @@ bench:
 	@echo $(RLOG)
 	@echo These last two lines should be identical
 
+# reflow, should work but not do any work
+benchr:
+	(cd testdata; cp test0.admit/admit0.py . ; /usr/bin/time ./admit0.py)
+
 # python3 of bench
 bench35:
 	@mkdir -p testdata

@@ -28,7 +28,7 @@
 #      import aap
 #      madmitname = aap.compute_admit(dirname)
 #
-#   @todo
+#   @todo ...
 #
 
 _version = "9-sep-2020 PJT"

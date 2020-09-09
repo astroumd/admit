@@ -54,11 +54,10 @@ import random
 #              6       no edge allowed
 # - vlsr needs to be stored, in a veldef?   For this we need access to ASDM/Source.xml
 #   and will need a small tool in util.py to parse the xml and return what we need
-# - resolve the confusion between symlink= and copy=
+#          <sysVel>1 1 1271000.0</sysVel>   <velRefCode>LSRK</velRefCode>
 # - allow LineCube instead of the default SpwCube
 # - autobox?
 # - if not a fits file, there is no smoothing
-#   (obviously if it remains a symlink, of course we cannot change the data)
 # - check if spectral reference is LSRK (e.g. some ALMA is TOPO, that's bad)
 #   although some may not have it, e.g. test6503
 #   SPECSYS = 'TOPO' or 'TOPOCENT' (casa 3.3.0)
@@ -69,7 +68,7 @@ import random
 
 
 class Ingest_AT(AT):
-    """Ingest an image (cube) into ADMIT, normally to bootstrap a flow.
+    """Ingest an image (cube) into ADMIT, normally used to bootstrap a flow.
 
     See also :ref:`Ingest-AT-Design` for the design document.
 
@@ -157,8 +156,9 @@ class Ingest_AT(AT):
                FWHM is used. 
                If nz is 1, a Hanning smooth is applied, else a boxcar of size nz is used.
                See also :ref:`Smooth-AT-api`, where a common beam can be computed or supplied.
-               A future version should contain a decimation option.
-               By default no smoothing is applied.
+               Experimentally if supplied with a negative number nz<0, bin=[1,1,-nz] is used
+               to achieve a binning factor.
+               By default no smoothing or binning is applied.
     
       **mask**: boolean
                If True, a mask needs to be created where the
@@ -184,7 +184,6 @@ class Ingest_AT(AT):
                convention of course. We call this VLSRf.
                NOTE: clarify/check if the "1+z" velocity scale of the high-z object is correct.
                Default: -1.0 (method not used). Units must be GHz!
-      
 
     **Input BDPs**
       None. The input is specific via the file= keyword.
@@ -243,7 +242,7 @@ class Ingest_AT(AT):
             'mask'    : True,      # define a mask where data==0.0 if no mask present
             'box'     : [],        # [] or z1,z2 or x1,y1,x2,y2  or x1,y1,z1,x2,y2,z2 
             'edge'    : [],        # [] or zl,zr - number of edge channels
-            'smooth'  : [],        # pixel smoothing size applied to data (can be slow) - see also Smooth_AT
+            'smooth'  : [],        # pixel smoothing size applied to data (can be slow) - see also Smooth_AT (allow rebin)
             'variflow': False,     # requires manual sub-flow management for now
             'vlsr'    : -999999.99, # force a VLSR (see also LineID)
             'restfreq': -1.0,      # alternate VLSRf specification
@@ -252,7 +251,7 @@ class Ingest_AT(AT):
             # 'cbeam'   : 0.5,     # channel beam variation allowed in terms of pixel size to use median beam
         }
         AT.__init__(self,keys,keyval)
-        self._version = "1.2.2"
+        self._version = "1.2.4"
         self.set_bdp_in()                            # no input BDP
         self.set_bdp_out([(SpwCube_BDP, 1),          # one or two output BDPs
                           (Image_BDP,   0),          # optional PB if there was an pb= input
@@ -317,6 +316,7 @@ class Ingest_AT(AT):
 
         # smooth=  could become deprecated, and/or include a decimation option to make it useful
         #          again, Smooth_AT() does this also , at the cost of an extra cube to store
+        #          testing a binning if integer < 0 is used
         smooth = self.getkey("smooth")      # 
         #
         vlsr = self.getkey("vlsr")          # see also LineID, where this could be given again
@@ -465,27 +465,40 @@ class Ingest_AT(AT):
                 # spectral: boxcar/hanning (check for flux conservation)
                 #     is the boxcar wrong, not centered, but edged?
                 # @todo CASA BUG:  this will loose the object name (and maybe more?) from header, so VLSR lookup fails
-                fnos = fno + '.smooth'
-                ia.convolve2d(outfile=fnos, overwrite=True, pa='0deg',
-                                       major='%gpix' % smooth[0], minor='%gpix' % smooth[1], type='gaussian')
-                ia.close()
-                srcname = casa.imhead(fno,mode="get",hdkey="object")          # work around CASA bug
-                #@todo use safer ia.rename() here.
-                # https://casa.nrao.edu/docs/CasaRef/image.rename.html
-                utils.rename(fnos,fno)
-                casa.imhead(fno,mode="put",hdkey="object",hdvalue=srcname)    # work around CASA bug
-                dt.tag("convolve2d")
-                if len(smooth) > 2 and smooth[2] > 0:
-                    if smooth[2] == 1:
-                        # @todo only 1 channel option
-                        specsmooth(fno,fnos,axis=2,function='hanning',dmethod="")
-                    else:
-                        # @todo may have the wrong center
-                        specsmooth(fno,fnos,axis=2,function='boxcar',dmethod="",width=smooth[2])
+                if len(smooth) == 1 and smooth[0] < 0:
+                    # special rebin (tool) option (task: imrebin)
+                    binz=-smooth[0]
+                    fnos = fno + '.rebin'
+                    #im2 = ia.rebin(outfile=fnos,overwite=True,bin=[1,1,binz])
+                    im2 = ia.rebin(outfile=fnos,bin=[1,1,binz])
+                    im2.done()
+                    ia.close()
+                    srcname = casa.imhead(fno,mode="get",hdkey="object")          # work around CASA bug
+                    utils.rename(fnos,fno)
+                    casa.imhead(fno,mode="put",hdkey="object",hdvalue=srcname)    # work around CASA bug
+                    dt.tag("rebin")                    
+                else:
+                    fnos = fno + '.smooth'
+                    ia.convolve2d(outfile=fnos, overwrite=True, pa='0deg',
+                                           major='%gpix' % smooth[0], minor='%gpix' % smooth[1], type='gaussian')
+                    ia.close()
+                    srcname = casa.imhead(fno,mode="get",hdkey="object")          # work around CASA bug
                     #@todo use safer ia.rename() here.
                     # https://casa.nrao.edu/docs/CasaRef/image.rename.html
                     utils.rename(fnos,fno)
-                    dt.tag("specsmooth")
+                    casa.imhead(fno,mode="put",hdkey="object",hdvalue=srcname)    # work around CASA bug
+                    dt.tag("convolve2d")
+                    if len(smooth) > 2 and smooth[2] > 0:
+                        if smooth[2] == 1:
+                            # @todo only 1 channel option
+                            specsmooth(fno,fnos,axis=2,function='hanning',dmethod="")
+                        else:
+                            # @todo may have the wrong center
+                            specsmooth(fno,fnos,axis=2,function='boxcar',dmethod="",width=smooth[2])
+                        #@todo use safer ia.rename() here.
+                        # https://casa.nrao.edu/docs/CasaRef/image.rename.html
+                        utils.rename(fnos,fno)
+                        dt.tag("specsmooth")
                 ia.open(fno)
 
             s = ia.summary()
@@ -810,7 +823,7 @@ class Ingest_AT(AT):
                 else:
                     vlsrf = 0.0
                 logging.info("VLSRc = %f  VLSRw = %f  VLSRf = %f VLSR = %f" % (vlsrc, vlsrw, vlsrf, vlsr))
-                if h['vlsr'] == 0.0: # @todo! This fails if vlsr actually is zero. Need another magic number
+                if h['vlsr'] == 0.0: # @todo  This fails if vlsr actually is zero. Need another magic number
                     h['vlsr'] = vlsrc
                     logging.warning("Warning: No VLSR found, substituting VLSRc = %f" % vlsrc)
         else:

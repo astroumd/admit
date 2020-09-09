@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+#! /opt/casa/packages/RHEL7/release/current/bin/python
 #
 #   AAP = Admit After Pipeline
 #
@@ -19,6 +20,10 @@
 #          -s     single mode, only one default run per image/cube
 #          -v     verbose
 #
+#   To use as a script, your shell environment must have 'casa' and  CASA's 'python' in the $PATH,
+#   this normally takes two modifications, e.g.
+#        export PATH=$CASAROOT/bin:$CASAROOT/lib/casa/bin:$PATH
+#
 #   MODULE usage
 #      import aap
 #      madmitname = aap.compute_admit(dirname)
@@ -26,7 +31,7 @@
 #   @todo
 #
 
-_version = "29-jul-2020 PJT"
+_version = "9-sep-2020 PJT"
 
 import os, sys
 import argparse as ap
@@ -36,15 +41,15 @@ import datetime
 #   decipher the python environment (yuck)
 try:
     import casa
-    print("Warning: still assuming classic ADMIT")
+    print("Warning fake: still assuming classic ADMIT")
     is_admit3 = False
 except:
     try:
         import casatasks    # pre-release now does this????
         is_admit3 = True
-        print("Good news: running ADMIT3")
+        print("Good fake news: running ADMIT3")
     except:
-        print("Bad news: your python doesn't know casa or casatasks")
+        print("Bad fake news: your python doesn't know casa or casatasks")
 
 
 def version():
@@ -239,9 +244,9 @@ def run_admit(recipe, pbcor, madmitname, dryrun=False, verbose=False, single=Fal
             runa1(pbcorname,pbname,dryrun=dryrun,cleanup=cleanup)
         else:
             #  @todo   LineID's default is numsigma=5
-            runa1(pbcorname,pbname,"native.5sigma",["numsigma=5"],dryrun=dryrun,cleanup=cleanup)
+            #runa1(pbcorname,pbname,"native.5sigma",["numsigma=5"],dryrun=dryrun,cleanup=cleanup)
+            #runa1(pbcorname,pbname,"binned4.3sigma",["insmooth=[-4]","numsigma=3"],dryrun=dryrun,cleanup=cleanup)
             runa1(pbcorname,pbname,"native.3sigma",["numsigma=3"],dryrun=dryrun,cleanup=cleanup)
-            runa1(pbcorname,pbname,"binned4.3sigma",["insmooth=[-4]","numsigma=3"],dryrun=dryrun,cleanup=cleanup)
             runa1(pbcorname,pbname,"binned16.3sigma",["insmooth=[-16]","numsigma=3"],dryrun=dryrun,cleanup=cleanup)
             
     if not dryrun:
@@ -285,8 +290,10 @@ def compute_admit(dirname, madmitname=None, verbose=False, dryrun=False, single=
     """
     # @todo    if dirname contains the whole P/S/G/M name, store that too
     if madmitname == None:
+        prefix=dirname.split('/')
         # try some unique name that name-completes but also parses fast by the human eye and filebrowsers
         madmitname = os.path.abspath('./madmit_'+datetime.datetime.now().strftime('%Y%m%d_%H%M%S.%f'))
+        madmitname = os.path.abspath(prefix[-1]+"_"+prefix[-2]+"_"+datetime.datetime.now().strftime('%Y%m%d_%H%M%S.%f'))
     print("MADMIT: %s" % madmitname)
 
     # @todo   only mfs and cube?  what about cont ?  or _ph and _pb

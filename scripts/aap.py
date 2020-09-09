@@ -236,7 +236,7 @@ def run_admit(recipe, pbcor, madmitname, dryrun=False, verbose=False, single=Fal
         else:
             # @todo   add some smoothing?   go from 5ppx to 10ppx ?
             # @todo   LGM's default is numsigma=6
-            runa2(pbcorname,pbname,"5sigma",["numsigma=5"],dryrun=dryrun,cleanup=cleanup)
+            # runa2(pbcorname,pbname,"5sigma",["numsigma=5"],dryrun=dryrun,cleanup=cleanup)
             runa2(pbcorname,pbname,"3sigma",["numsigma=3"],dryrun=dryrun,cleanup=cleanup)
     elif recipe == 'runa1':
         os.system('listfitsa %s' % pbcorname)
@@ -244,8 +244,8 @@ def run_admit(recipe, pbcor, madmitname, dryrun=False, verbose=False, single=Fal
             runa1(pbcorname,pbname,dryrun=dryrun,cleanup=cleanup)
         else:
             #  @todo   LineID's default is numsigma=5
-            #runa1(pbcorname,pbname,"native.5sigma",["numsigma=5"],dryrun=dryrun,cleanup=cleanup)
-            #runa1(pbcorname,pbname,"binned4.3sigma",["insmooth=[-4]","numsigma=3"],dryrun=dryrun,cleanup=cleanup)
+            # runa1(pbcorname,pbname,"native.5sigma",["numsigma=5"],dryrun=dryrun,cleanup=cleanup)
+            # runa1(pbcorname,pbname,"binned4.3sigma",["insmooth=[-4]","numsigma=3"],dryrun=dryrun,cleanup=cleanup)
             runa1(pbcorname,pbname,"native.3sigma",["numsigma=3"],dryrun=dryrun,cleanup=cleanup)
             runa1(pbcorname,pbname,"binned16.3sigma",["insmooth=[-16]","numsigma=3"],dryrun=dryrun,cleanup=cleanup)
             
@@ -290,7 +290,7 @@ def compute_admit(dirname, madmitname=None, verbose=False, dryrun=False, single=
     """
     # @todo    if dirname contains the whole P/S/G/M name, store that too
     if madmitname == None:
-        prefix=dirname.split('/')
+        prefix=dirname.strip('/').split('/')
         # try some unique name that name-completes but also parses fast by the human eye and filebrowsers
         madmitname = os.path.abspath('./madmit_'+datetime.datetime.now().strftime('%Y%m%d_%H%M%S.%f'))
         madmitname = os.path.abspath(prefix[-1]+"_"+prefix[-2]+"_"+datetime.datetime.now().strftime('%Y%m%d_%H%M%S.%f'))

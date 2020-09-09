@@ -3,7 +3,7 @@
 #   $ADMIT/bin/casarun
 #
 #   this peculiar script allows one to write executable
-#   python scripts and place them in your $PATH with a top
+#   python2 scripts and place them in your $PATH with a top
 #   line
 #          #! /usr/bin/env casarun
 #
@@ -23,7 +23,8 @@
 #        this way it can be used with with and without casa
 #
 # See also: http://ascl.net/1504.006 (drive-casa)
-
+#
+# @todo  make it work casa6/python3
 
 #echo  CASARUN: $#argv  $*
 

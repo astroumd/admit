@@ -31,7 +31,7 @@
 #   @todo ...
 #
 
-_version = "9-sep-2020 PJT"
+_version = "22-sep-2020 PJT"
 
 import os, sys
 import argparse as ap
@@ -237,7 +237,7 @@ def run_admit(recipe, pbcor, madmitname, dryrun=False, verbose=False, single=Fal
             # @todo   add some smoothing?   go from 5ppx to 10ppx ?
             # @todo   LGM's default is numsigma=6
             # runa2(pbcorname,pbname,"5sigma",["numsigma=5"],dryrun=dryrun,cleanup=cleanup)
-            runa2(pbcorname,pbname,"3sigma",["numsigma=3"],dryrun=dryrun,cleanup=cleanup)
+            runa2(pbcorname,pbname,"5sigma",["numsigma=5"],dryrun=dryrun,cleanup=cleanup)
     elif recipe == 'runa1':
         os.system('listfitsa %s' % pbcorname)
         if single:
@@ -246,8 +246,8 @@ def run_admit(recipe, pbcor, madmitname, dryrun=False, verbose=False, single=Fal
             #  @todo   LineID's default is numsigma=5
             # runa1(pbcorname,pbname,"native.5sigma",["numsigma=5"],dryrun=dryrun,cleanup=cleanup)
             # runa1(pbcorname,pbname,"binned4.3sigma",["insmooth=[-4]","numsigma=3"],dryrun=dryrun,cleanup=cleanup)
-            runa1(pbcorname,pbname,"native.3sigma",["numsigma=3"],dryrun=dryrun,cleanup=cleanup)
-            runa1(pbcorname,pbname,"binned16.3sigma",["insmooth=[-16]","numsigma=3"],dryrun=dryrun,cleanup=cleanup)
+            runa1(pbcorname,pbname,"native.5sigma",["numsigma=5"],dryrun=dryrun,cleanup=cleanup)
+            runa1(pbcorname,pbname,"binned16.5sigma",["insmooth=[-16]","numsigma=5"],dryrun=dryrun,cleanup=cleanup)
             
     if not dryrun:
         os.chdir(cwd)

@@ -26,7 +26,7 @@ import argparse as ap
 
 import admit
 
-version  = '19-dec-2017'
+version  = '16-oct-2020'
 
 #  ===>>> set some parameters for this run <<<=================================================================
 #
@@ -196,6 +196,13 @@ a[cubestats1].setkey('ppp',False)
 csttab1 = (cubestats1,0)
 
 if stop == 'cubestats':  a.exit(1)
+
+# CubeSum (since we took that plot away in Ingest)
+moment1 = a.addtask(admit.CubeSum_AT(), [bandcube1,csttab1])
+a[moment1].setkey('numsigma',4.0)   # Nsigma clip in cube
+a[moment1].setkey('sigma',99.0)     # >0 force single cuberms sigma from cubestats
+csmom0 = (moment1,0)
+
 
 # SFind2D
 if pbmap1 == None:

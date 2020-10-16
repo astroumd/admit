@@ -224,20 +224,6 @@ class Ingest_AT(AT):
 
     """
 
-    #### DEPRECATED KEYWORDS BUT STILL ACTIVE IN CODE BY THEIR DEFAULT
-    """
-
-          **symlink** : True/False:
-               If True, A symlink is kept to the input file without
-               any conversion (if that was needed) This is used in
-               those cases where your whole flow can work with the
-               fits file, without need to convert to a CASA image
-               Setting to True, also disabled all other processing
-               (mask/region/pbcor) Use with caution!  [False]
-               DEPRECATION
-
-    """
-
     def __init__(self,**keyval):
         keys = {
             'file'    : "",        # fitsfile cube or map (or casa/miriad)
@@ -251,12 +237,11 @@ class Ingest_AT(AT):
             'variflow': False,     # requires manual sub-flow management for now
             'vlsr'    : -999999.99, # force a VLSR (see also LineID)
             'restfreq': -1.0,      # alternate VLSRf specification, in GHz
-            # 'symlink' : False,   # 
             # 'autobox' : False,   # automatically cut away spatial and spectral slices that are masked
             # 'cbeam'   : 0.5,     # channel beam variation allowed in terms of pixel size to use median beam
         }
         AT.__init__(self,keys,keyval)
-        self._version = "1.2.5"
+        self._version = "1.2.6"
         self.set_bdp_in()                            # no input BDP
         self.set_bdp_out([(SpwCube_BDP, 1),          # one or two output BDPs
                           (Image_BDP,   0),          # optional PB if there was an pb= input
@@ -336,6 +321,11 @@ class Ingest_AT(AT):
         if fitsfile[0] != os.sep:
             raise Exception("Bad file=%s, expected absolute name").with_traceback(fitsfile)
 
+        # since binning could be invoked later, this would result in a different VLSRc, so
+        # we compute that here on the original cube
+        h0 = casa.imhead(fitsfile,mode='list')
+        nz0 = h0['shape'][2]
+            
         # now determine if it could have been a CASA (or MIRIAD) image already 
         # which we'll assume if it's a directory; this is natively supported by CASA
         # but there are tools where if you pass it a FITS or MIRIAD
@@ -475,8 +465,10 @@ class Ingest_AT(AT):
                     binz = -smooth[0]
                     fnos = fno + '.rebin'
                     #im2 = ia.rebin(outfile=fnos,overwite=True,bin=[1,1,binz])
-                    #im2 = ia.rebin(outfile=fnos,bin=[1,1,binz])    # crop=False is the default
-                    im2 = ia.rebin(outfile=fnos,bin=[1,1,binz],crop=True)
+                    if False:
+                        im2 = ia.rebin(outfile=fnos,bin=[1,1,binz],crop=False)     # this is rebin's default
+                    else:
+                        im2 = ia.rebin(outfile=fnos,bin=[1,1,binz],crop=True)
                     im2.done()
                     ia.close()
                     srcname = casa.imhead(fno,mode="get",hdkey="object")          # work around CASA bug
@@ -739,6 +731,7 @@ class Ingest_AT(AT):
             implot.plotter(rasterfile=bdpfile,figname=bdpfile)
             # @todo needs to be registered for the BDP, right now we only have the plot
 
+
         # ia.summary() doesn't have this easily available, so run the more expensive imhead()
         h = casa.imhead(fno,mode='list')
         telescope = h['telescope']
@@ -771,12 +764,18 @@ class Ingest_AT(AT):
             h['beampa']    = commonbeam['pa']
         # cheat add some things that need to be passed to summary....
         h['badpixel'] = 1.0-fgood
+        avt = admit.VLSR()
         if vlsr < -999998.0:
-            vlsr = admit.VLSR().vlsr(h['object'].upper())
+            vlsr = avt.vlsr(h0['object'].upper())
             if vlsr == 0.0:
                 vlsr = -999999.99
         h['vlsr']  = vlsr
         logging.info("VLSR = %f (from source catalog)" % vlsr)
+        
+        vlsrz = avt.vlsrz(h0['object'].upper())
+        logging.info("VLSRz: %d values: %f +/- %f   %s" % (len(vlsrz),
+                                                           vlsrz.mean(),vlsrz.std(),
+                                                           str(vlsrz)))
         
         taskargs = "file=" + fitsfile
         if create_mask == True:
@@ -788,13 +787,13 @@ class Ingest_AT(AT):
         r2d = 57.29577951308232
         logging.info("RA   Axis 1: %f %f %f" % (h['crval1']*r2d,h['cdelt1']*r2d*3600.0,h['crpix1']))
         logging.info("DEC  Axis 2: %f %f %f" % (h['crval2']*r2d,h['cdelt2']*r2d*3600.0,h['crpix2']))
-        if nz > 1:
+        if nz0 > 1:
             # @todo check if this is really a freq axis (for ALMA it is, but...)
-            t3 = h['ctype3']
-            df = h['cdelt3']
-            fc = h['crval3'] + (0.5*(float(shape[2])-1)-h['crpix3'])*df        # center freq; 0 based pixels
-            if 'restfreq' in h:
-                fr = float(h['restfreq'][0])           # casa cheats, it may put 0 in here if FITS is missing it
+            t3 = h0['ctype3']
+            df = h0['cdelt3']
+            fc = h0['crval3'] + (0.5*float(nz0-1)-h0['crpix3'])*df         # center freq; 0 based pixels
+            if 'restfreq' in h0:
+                fr = float(h0['restfreq'][0])           # CASA cheats, it may put 0 in here if FITS is missing it
                 if fr == 0.0:
                     fr = fc
                 else:
@@ -803,12 +802,28 @@ class Ingest_AT(AT):
                         h['vlsr'] = vlsr
             else:
                 fr = fc
-            fw = df*float(shape[2])
+            fw = df*nz0
             #print("PJT:",fr/1e9,fc/1e9,fw/1e9)
             dv = -df/fr*ckms
-                
-            logging.info("Freq Axis 3: %g %g %g" % (h['crval3']/1e9,h['cdelt3']/1e9,h['crpix3']))
-            logging.info("Cube Axis 3: type=%s  velocity increment=%f km/s @ fc=%f fw=%f GHz" % (t3,dv,fc/1e9,fw/1e9))
+            # these are now in the original cube
+            logging.info("Freq Orig Axis 3: %g %g %g" % (h0['crval3']/1e9,h0['cdelt3']/1e9,h0['crpix3']))
+            logging.info("Cube Orig Axis 3: type=%s  velocity increment=%f km/s @ fc=%f fw=%f GHz" % (t3,dv,fc/1e9,fw/1e9))
+            
+
+            t3 = h['ctype3']
+            df = h['cdelt3']
+            fc = h['crval3'] + (0.5*float(nz-1)-h['crpix3'])*df        # center freq; 0 based pixels
+            if 'restfreq' in h0:
+                fr = float(h['restfreq'][0])           # CASA cheats, it may put 0 in here if FITS is missing it
+                if fr == 0.0:
+                    fr = fc
+            else:
+                fr = fc
+            fw = df*nz
+            dv = -df/fr*ckms
+            
+            logging.info("Freq Binn Axis 3: %g %g %g" % (h['crval3']/1e9,h['cdelt3']/1e9,h['crpix3']))
+            logging.info("Cube Binn Axis 3: type=%s  velocity increment=%f km/s @ fc=%f fw=%f GHz" % (t3,dv,fc/1e9,fw/1e9))
         # @todo sort out this restfreq/vlsr
         # report 'reffreqtype', 'restfreq' 'telescope'
         # if the fits file has ALTRVAL/ALTRPIX, this is lost in CASA?
@@ -818,25 +833,26 @@ class Ingest_AT(AT):
         # Another method to get the vlsr is to override the restfreq (f0) with an AT keyword
         # and the 'restfreq' from the header (f) is then used to compute the vlsr:   v = c (1 - f/f0)
         #
-        if shape[2] > 1 and 'restfreq' in h:
-            logging.info("RESTFREQ: %g %g %g" % (fr/1e9,h['restfreq'][0]/1e9,restfreq))
-            if shape[2] > 1:
+        if nz0 > 1 and 'restfreq' in h0:
+            logging.info("RESTFREQ: %g %g %g" % (fr/1e9,h0['restfreq'][0]/1e9,restfreq))
+            if nz0 > 1:
                 # v_radio of the center of the window w.r.t. restfreq
                 vlsrc = ckms*(1-fc/fr)     # @todo rel frame?
-                vlsrw = dv*float(shape[2])
+                vlsrw = dv*float(nz0)
                 if restfreq > 0:
                     vlsrf = ckms*(1-fr/restfreq/1e9)
                     h['vlsr'] = vlsrf
                 else:
                     vlsrf = 0.0
-                logging.info("VLSRc = %f  VLSRw = %f  VLSRf = %f VLSR = %f" % (vlsrc, vlsrw, vlsrf, vlsr))
-                if h['vlsr'] == 0.0: # @todo  This fails if vlsr actually is zero. Need another magic number
+                logging.info("VLSRc= %f  VLSRw= %f  VLSRf= %f VLSRz= %f VLSR= %f" % (vlsrc, vlsrw, vlsrf, vlsrz.mean(), vlsr))
+                if h['vlsr'] == 0.0:          # @todo  This fails if vlsr actually is zero. Need another magic number
                     h['vlsr'] = vlsrc
                     logging.warning("Warning: No VLSR found, substituting VLSRc = %f" % vlsrc)
+                # @todo  TBD if we need a smarter algorithm to set the final h["vlsr"]
         else:
             msg = 'Ingest_AT: missing RESTFREQ'
             print(msg)
-        # @todo   LINTRN  is the ALMA keyword that designates the expected line transition in a spw
+        # @todo   LINTRN  is the (future) ALMA keyword that designates the expected line transition in a spw
 
         self._summarize(fitsfile, bdpfile, h, shape, taskargs)
 

@@ -1,4 +1,8 @@
-# awk -F\| '{if($5 != 0) printf("%s,%s\n",$3,$5)}' project_mous_source_redshift_line.txt  | sort | uniq > z.tab
+# Source name (can have spaces) and Z. Taken from ALMA archive, courtesy Felix Stoehr.   
+# See also vlsr.tab for another version in another format
+# Created with:
+#     awk -F\| '{if($5 != 0) printf("%s,%s\n",$3,$5)}' project_mous_source_redshift_line.txt  | sort | uniq > z.tab
+#
 0009-1,-5.33699703931e-06
 0009-2,-5.33699703931e-06
 0029-7354,0.000533845047564

@@ -63,8 +63,9 @@ import random
 #   SPECSYS = 'TOPO' or 'TOPOCENT' (casa 3.3.0)
 #             'BARY'  (helio)
 #   imhead->['reffreqtype']
-#  - smooth and decimate option?
+#  - smooth and decimate option? [done:  smooth=[-16] would bin by 16 channels
 #  - vlsr=0.0 cannot be given technically?
+#
 
 
 class Ingest_AT(AT):
@@ -83,6 +84,9 @@ class Ingest_AT(AT):
 
     Internally ADMIT will store images as 4D CASA images, with any missing
     3rd or 4th axis created redundantly (FREQ as axis 3, and POL as axis 4)
+
+    This is arguably the most important routine in ADMIT, as it checks and
+    sets header variables that can control a successfull ADMIT flow.
 
     **Keywords**
 
@@ -173,6 +177,7 @@ class Ingest_AT(AT):
                file is CASA or MIRIAD already, unexpected things may happen.
                This VLSR (or VLSRc) is added to the ADMIT summary, which will be used
                downstream in the flow by other AT's (e.g. LineID)
+               We also list VLSRw (spectral window width, in km/s)
                Default: -999999.99 (not set).
 
       **restfreq**: float (GHz)
@@ -245,13 +250,13 @@ class Ingest_AT(AT):
             'smooth'  : [],        # pixel smoothing size applied to data (can be slow) - see also Smooth_AT (allow rebin)
             'variflow': False,     # requires manual sub-flow management for now
             'vlsr'    : -999999.99, # force a VLSR (see also LineID)
-            'restfreq': -1.0,      # alternate VLSRf specification
+            'restfreq': -1.0,      # alternate VLSRf specification, in GHz
             # 'symlink' : False,   # 
             # 'autobox' : False,   # automatically cut away spatial and spectral slices that are masked
             # 'cbeam'   : 0.5,     # channel beam variation allowed in terms of pixel size to use median beam
         }
         AT.__init__(self,keys,keyval)
-        self._version = "1.2.4"
+        self._version = "1.2.5"
         self.set_bdp_in()                            # no input BDP
         self.set_bdp_out([(SpwCube_BDP, 1),          # one or two output BDPs
                           (Image_BDP,   0),          # optional PB if there was an pb= input
@@ -467,10 +472,11 @@ class Ingest_AT(AT):
                 # @todo CASA BUG:  this will loose the object name (and maybe more?) from header, so VLSR lookup fails
                 if len(smooth) == 1 and smooth[0] < 0:
                     # special rebin (tool) option (task: imrebin)
-                    binz=-smooth[0]
+                    binz = -smooth[0]
                     fnos = fno + '.rebin'
                     #im2 = ia.rebin(outfile=fnos,overwite=True,bin=[1,1,binz])
-                    im2 = ia.rebin(outfile=fnos,bin=[1,1,binz])
+                    #im2 = ia.rebin(outfile=fnos,bin=[1,1,binz])    # crop=False is the default
+                    im2 = ia.rebin(outfile=fnos,bin=[1,1,binz],crop=True)
                     im2.done()
                     ia.close()
                     srcname = casa.imhead(fno,mode="get",hdkey="object")          # work around CASA bug
@@ -727,7 +733,8 @@ class Ingest_AT(AT):
 
         # if the cube has only 1 plane (e.g. continuum) , create a visual (png or so)
         # for 3D cubes, rely on something like CubeSum
-        if nz == 1:
+        #if nz == 1:
+        if False:         # disable to test Xvfb, or refer plotting to cubesum or so
             implot = ImPlot(pmode=self._plot_mode,ptype=self._plot_type,abspath=self.dir())
             implot.plotter(rasterfile=bdpfile,figname=bdpfile)
             # @todo needs to be registered for the BDP, right now we only have the plot
@@ -765,10 +772,10 @@ class Ingest_AT(AT):
         # cheat add some things that need to be passed to summary....
         h['badpixel'] = 1.0-fgood
         if vlsr < -999998.0:
-            vlsr          = admit.VLSR().vlsr(h['object'].upper())
+            vlsr = admit.VLSR().vlsr(h['object'].upper())
             if vlsr == 0.0:
                 vlsr = -999999.99
-        h['vlsr']     = vlsr
+        h['vlsr']  = vlsr
         logging.info("VLSR = %f (from source catalog)" % vlsr)
         
         taskargs = "file=" + fitsfile

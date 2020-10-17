@@ -56,11 +56,8 @@ class VLSR(object):
             self.table2 = utils.admit_root() + "/etc/z.tab"            
             self.cat  = read_vlsr(self.table1,upper)
             self.zcat = read_z(self.table2,upper)
-            #    while we're tinkering with VLSR determination, make this "info"
-            #logging.debug("VLSR: %s, found %d entries" % (self.table1,len(self.cat)))
-            #logging.debug("VLSR: %s, found %d entries" % (self.table2,len(self.zcat)))
-            logging.info("VLSR: %s, found %d entries" % (self.table1,len(self.cat)))
-            logging.info("VLSR: %s, found %d entries" % (self.table2,len(self.zcat)))
+            logging.debug("VLSR: %s, found %d entries" % (self.table1,len(self.cat)))
+            logging.debug("VLSR: %s, found %d entries" % (self.table2,len(self.zcat)))
         else:
             logging.warning("VLSR: Warning, no ADMIT, empty VLSR/Z catalogue")
             self.cat = {}
@@ -132,6 +129,7 @@ class VLSR(object):
                 pass
         else:
             print("No NED")
+        return 0.0
 
     def try_SB(self,name):
         return 0.0

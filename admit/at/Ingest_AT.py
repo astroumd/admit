@@ -242,7 +242,7 @@ class Ingest_AT(AT):
             # 'cbeam'   : 0.5,     # # channel beam variation allowed in terms of pixel size to use median beam
         }
         AT.__init__(self,keys,keyval)
-        self._version = "1.2.7"
+        self._version = "1.2.8"
         self.set_bdp_in()                            # no input BDP
         self.set_bdp_out([(SpwCube_BDP, 1),          # one or two output BDPs
                           (Image_BDP,   0),          # optional PB if there was an pb= input
@@ -791,17 +791,16 @@ class Ingest_AT(AT):
             h['restfreq'] = [restfreq]
             logging.warning("No RESTFREQ found in binned image header, using %f GHz",restfreq/1e9)
 
-        # catalog lookup (for now, do it always) to get a VLSR
+        # catalog lookup (for now, do it always) to get some estimates for VLSR
                     
         avt = admit.VLSR()
         vlsrv = avt.vlsr(srcname)             # our own VLSR table of popular test files
         vlsrz = avt.vlsrz(srcname)            # ALMA z table
-        vlsr2 = avt.vlsr2(srcname)            # external simbad/ned
-        
         logging.info("VLSRv = %f (from source catalog)" % vlsrv)
         logging.info("VLSRz = %f +/- %f   %d values: %s" % (vlsrz.mean(),vlsrz.std(),
                                                             len(vlsrz),            
                                                             str(vlsrz)))
+        # vlsr2 = avt.vlsr2(srcname)            # external simbad/ned
         # logging.info("VLSRs = %f (from Simbad/NED)" % vlsr2)
 
         #   Now we will determine the VLSR in a series of steps:
@@ -890,6 +889,10 @@ class Ingest_AT(AT):
 
             h['vlsr'] = vlsr
 
+        else:
+            # continuum
+            logging.info("FREQ Axis 3: %g %g %g" % (h0['crval3']/1e9,h0['cdelt3']/1e9,h0['crpix3']))
+            
         #
         # @todo  TBD if we need a smarter algorithm to set the final h["vlsr"]
         #

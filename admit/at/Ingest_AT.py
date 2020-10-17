@@ -177,6 +177,7 @@ class Ingest_AT(AT):
                file is CASA or MIRIAD already, unexpected things may happen.
                This VLSR (or VLSRc) is added to the ADMIT summary, which will be used
                downstream in the flow by other AT's (e.g. LineID)
+               VLSRv and VLSRz are sourcename based values from a catalog.
                We also list VLSRw (spectral window width, in km/s)
                Default: -999999.99 (not set).
 
@@ -188,7 +189,7 @@ class Ingest_AT(AT):
                In this case VLSR = c * (1-f/f0), in the radio definition, with z in the optical
                convention of course. We call this VLSRf.
                NOTE: clarify/check if the "1+z" velocity scale of the high-z object is correct.
-               Default: -1.0 (method not used). Units must be GHz!
+               Default: -1.0. Units must be GHz!
 
     **Input BDPs**
       None. The input is specific via the file= keyword.
@@ -235,7 +236,7 @@ class Ingest_AT(AT):
             'edge'    : [],        # [] or zl,zr - number of edge channels
             'smooth'  : [],        # pixel smoothing size applied to data (can be slow) - see also Smooth_AT (allow rebin)
             'variflow': False,     # requires manual sub-flow management for now
-            'vlsr'    : -999999.9, # force finding a VLSR (see also LineID)
+            'vlsr'    : -999999.9, # force finding a VLSR (see also LineID) - units are km/s
             'restfreq': -1.0,      # alternate VLSRf specification, in GHz, needed if RESTFREQ missing
             # 'autobox' : False,   # # automatically cut away spatial and spectral slices that are masked
             # 'cbeam'   : 0.5,     # # channel beam variation allowed in terms of pixel size to use median beam
@@ -311,7 +312,7 @@ class Ingest_AT(AT):
         #
         vlsr = self.getkey("vlsr")          # see also LineID, where this could be given again
         if vlsr < -9999:                    # trigger that VLSR has not been set
-            vlsr = None
+            vlsr = None                     # in order to try other methods (restfreq or catalog based)
 
         # first place a fits file in the admit project directory (symlink)
         # this is a bit involved, depending on if an absolute or relative path was
@@ -323,13 +324,28 @@ class Ingest_AT(AT):
         if fitsfile[0] != os.sep:
             raise Exception("Bad file=%s, expected absolute name").with_traceback(fitsfile)
 
-        # since binning could be invoked later, this would result in a different VLSRc, so
-        # we compute that here on the original cube
+        # since binning could be invoked later, this would result in a different VLSRc,
+        # so we grab the header here, for proper VLSR determination later
+        # Here we need:   h0, nz0, srcname and maybe vlsr in the future
         h0 = casa.imhead(fitsfile,mode='list')
         nz0 = h0['shape'][2]
         if 'restfreq' not in h0:
             h0['restfreq'] = [restfreq]
             logging.warning("No RESTFREQ found in image header, using %f GHz",restfreq/1e9)
+        #  In some older(?) CASA pipeline data there was no OBJECT, but a FIELD
+        if 'object' in h0:
+            srcname = h0['object']
+            if srcname == ' ':
+                logging.warning("Blank OBJECT name")
+        else:
+            if 'field' in h0:
+                srcname = h0['field']
+            else:
+                srcname = 'Unknown'
+        #  maybe some day in the future?
+        if 'vsource' in h0:
+            logging.warning("VSOURCE = %f found, the future is here!" % h0['vsource'])
+            vlsr = h0['vsource']
             
         # now determine if it could have been a CASA (or MIRIAD) image already 
         # which we'll assume if it's a directory; this is natively supported by CASA
@@ -464,19 +480,19 @@ class Ingest_AT(AT):
                 # spatial: gauss
                 # spectral: boxcar/hanning (check for flux conservation)
                 #     is the boxcar wrong, not centered, but edged?
-                # @todo CASA BUG:  this will loose the object name (and maybe more?) from header, so VLSR lookup fails
+                # @todo CASA BUG:  this will loose the object name (and maybe more?) from header,
+                #                  so VLSR lookup fails. Now we use h0{}, so this bug is gone for us.
                 if len(smooth) == 1 and smooth[0] < 0:
                     # special rebin (tool) option (task: imrebin)
                     binz = -smooth[0]
                     fnos = fno + '.rebin'
-                    #im2 = ia.rebin(outfile=fnos,overwite=True,bin=[1,1,binz])
-                    if False:
-                        im2 = ia.rebin(outfile=fnos,bin=[1,1,binz],crop=False)     # this is rebin's default
-                    else:
+                    if True:
                         im2 = ia.rebin(outfile=fnos,bin=[1,1,binz],crop=True)
+                    else:
+                        im2 = ia.rebin(outfile=fnos,bin=[1,1,binz],crop=False)     # this is rebin's default
                     im2.done()
                     ia.close()
-                    srcname = casa.imhead(fno,mode="get",hdkey="object")          # work around CASA bug
+                    # srcname = casa.imhead(fno,mode="get",hdkey="object")          # work around CASA bug
                     utils.rename(fnos,fno)
                     casa.imhead(fno,mode="put",hdkey="object",hdvalue=srcname)    # work around CASA bug
                     dt.tag("rebin")                    
@@ -485,7 +501,7 @@ class Ingest_AT(AT):
                     ia.convolve2d(outfile=fnos, overwrite=True, pa='0deg',
                                            major='%gpix' % smooth[0], minor='%gpix' % smooth[1], type='gaussian')
                     ia.close()
-                    srcname = casa.imhead(fno,mode="get",hdkey="object")          # work around CASA bug
+                    # srcname = casa.imhead(fno,mode="get",hdkey="object")          # work around CASA bug
                     #@todo use safer ia.rename() here.
                     # https://casa.nrao.edu/docs/CasaRef/image.rename.html
                     utils.rename(fnos,fno)
@@ -740,16 +756,6 @@ class Ingest_AT(AT):
         # ia.summary() doesn't have this easily available, so run the more expensive imhead()
         h = casa.imhead(fno,mode='list')
         telescope = h['telescope']
-        # work around CASA's PIPELINE bug/feature?   if 'OBJECT' is blank, try 'FIELD'
-        srcname = h['object']
-        if srcname == ' ':
-            logging.warning('FIELD used for OBJECT')
-            srcname = casa.imhead(fno,mode='get',hdkey='field')
-            if srcname == False:
-                # if no FIELD either, we're doomed.  yes, this did happen.
-                srcname = 'Unknown'
-            casa.imhead(fno,mode="put",hdkey="object",hdvalue=srcname)
-            h['object'] = srcname
         logging.info('TELESCOPE: %s' % telescope)
         if telescope == 'UNKNOWN':
             msg = 'Ingest_AT: warning, an UNKNOWN telescope often results in ADMIT failing'
@@ -785,18 +791,29 @@ class Ingest_AT(AT):
             h['restfreq'] = [restfreq]
             logging.warning("No RESTFREQ found in binned image header, using %f GHz",restfreq/1e9)
 
-        # catalog lookup (for now, do it always)
-        # the aim is to find the best "vlsr", based on a few methods
+        # catalog lookup (for now, do it always) to get a VLSR
                     
         avt = admit.VLSR()
-        vlsrv = avt.vlsr(h0['object'].upper())     # our own VLSR table of popular test files
-        vlsrz = avt.vlsrz(h0['object'].upper())    # ALMA z table
+        vlsrv = avt.vlsr(srcname)             # our own VLSR table of popular test files
+        vlsrz = avt.vlsrz(srcname)            # ALMA z table
+        vlsr2 = avt.vlsr2(srcname)            # external simbad/ned
         
         logging.info("VLSRv = %f (from source catalog)" % vlsrv)
         logging.info("VLSRz = %f +/- %f   %d values: %s" % (vlsrz.mean(),vlsrz.std(),
                                                             len(vlsrz),            
                                                             str(vlsrz)))
-        #   1) if vlsr= is given, use it
+        # logging.info("VLSRs = %f (from Simbad/NED)" % vlsr2)
+
+        #   Now we will determine the VLSR in a series of steps:
+        #   from vlsr=, RESTFREQ=, restfreq= and catalog based
+        #   If all that fails, it will be set to 0.0
+        
+        if 'vlsr' in h:
+            logging.warning("VLSR is already in the header ???")
+        h['vlsr'] = 0.0
+
+        
+        #   1) if vlsr= was already determined, use it.
         if vlsr != None:
             h['vlsr']  = vlsrv
         
@@ -812,6 +829,7 @@ class Ingest_AT(AT):
                 fr = fc
             fw = df*nz
             dv = -df/fr*ckms
+            err4 = dv
             logging.info("Freq Binn Axis 3: %g %g %g" % (h['crval3']/1e9,h['cdelt3']/1e9,h['crpix3']))
             logging.info("Cube Binn Axis 3: type=%s  velocity increment=%f km/s @ fc=%f fw=%f GHz" % (t3,dv,fc/1e9,fw/1e9))
 
@@ -824,20 +842,22 @@ class Ingest_AT(AT):
             # 2)  if restfreq= was give, use it
             if restfreq > 0:
                 vlsrf = ckms*(1-fc/restfreq)
-                h['vlsr'] = vlsrf
                 if vlsr == None:
+                    h['vlsr'] = vlsrf
                     vlsr = vlsrf
             else:
                 vlsrf = 0.0
 
             # 3) if RESTFREQ was in image header, use it 
-            fr = float(h0['restfreq'][0])           # CASA cheats, it may put 0 in here if FITS is missing it
-                                                    # and can be < 0 if no RESTFREQ and no restfreq
-            if fr <= 0.0:                # if no restfreq known either way
-                fr = fc                  # set it to the center freq, which could result in vlsr=0.0
-            vlsrc = ckms*(1-fc/fr)       # @todo rel frame?
-            if vlsr == None:
-                vlsr = vlsrc
+            fr = h0['restfreq'][0]  
+            if fr > 0.0:   
+                vlsrc = ckms*(1-fc/fr)   
+                if vlsr == None:
+                    h['vlsr'] = vlsrc                
+                    vlsr = vlsrc
+            else:
+                fr = fc
+                vlsrc = 0.0
             
             fw = df*nz0
             dv = -df/fr*ckms
@@ -846,30 +866,30 @@ class Ingest_AT(AT):
 
             logging.info("RESTFREQ: %g %g %g" % (fr/1e9,h0['restfreq'][0]/1e9,restfreq/1e9))
 
-            # v_radio of the center of the window w.r.t. restfreq
-
             vlsrw = dv*float(nz0)
-                
             logging.info("VLSRc= %f  VLSRf= %f  VLSRv= %f VLSRz= %f WIDTH= %f" % (vlsrc,vlsrf,vlsrv,vlsrz.mean(),vlsrw))
-
-            if 'vlsr' not in h:
-                if vlsr == None:
-                    h['vlsr'] = 0.0
-                else:
-                    h['vlsr'] = vlsr
-
-            if h['vlsr'] == 0.0:          # @todo  This fails if vlsr actually is zero. Need another magic number
-                h['vlsr'] = vlsrc
-                logging.warning("Warning: No VLSR found, substituting VLSRc = %f" % vlsrc)
 
             err1 = err2 = err3 = 0.0
             err1 = vlsrz.std()
             if vlsrv != 0.0:
-                err2 = vlsr - vlsrv
+                if vlsr == None:
+                    vlsr = vlsrv
+                else:
+                    err2 = vlsrv-vlsr
             if vlsrz.mean() != 0.0:
-                err3 = vlsr - vlsrz.mean()
+                if vlsr == None:
+                    vlsr = vlsrz.mean()
+                else:
+                    err3 = vlsr - vlsrz.mean()
+                    
+            if vlsr == None:
+                logging.warning("Warning: No VLSR found yet, setting to 0.0")
+                vlsr = 0.0
 
-            logging.info("VLSR = %f errs = %f %f %f" % (vlsr,err1,err2,err3))
+            logging.info("VLSR = %f errs = %f %f %f  width = %f" % (vlsr,err1,err2,err3,err4))
+
+            h['vlsr'] = vlsr
+
         #
         # @todo  TBD if we need a smarter algorithm to set the final h["vlsr"]
         #

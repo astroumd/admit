@@ -84,21 +84,27 @@ class VLSR(object):
         else:
             return 0.0
 
-    def vlsrz(self, name, c=299792.458, upper=True):
+    def vlsrz(self, name, scale = None, upper=True):
         """ return VLSR from Z table for a requested object
             name matching is done in upper case by default
             If no match is found, 0.0 is returned.
 
-            NOTE: normally c * z/(1+z) is returned, unless c<0
-                  it will return z itself.
+            NOTE: normally c * z/(1+z) is returned, unless a scale
+                  is set, and it returns scale * z
         """
         if len(name) == 0:  return 0.0
+        if scale == None:
+            if have_ADMIT:
+                ckms = utils.c
+            else:
+                ckms = 299792.458            
+            
         src = name.upper()
         if src in self.zcat:
-            if c < 0:
-                return self.zcat[src]
+            if scale == None:
+                return ckms*self.zcat[src]/(1+self.zcat[src]) 
             else:
-                return c*self.zcat[src]/(1+self.zcat[src]) 
+                return scale * self.zcat[src]
         else:
             return np.array([0.0])
 

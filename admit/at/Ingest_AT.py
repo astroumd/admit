@@ -24,6 +24,12 @@ from admit.bdp.Image_BDP   import Image_BDP
 from admit.util.AdmitLogging import AdmitLogging as logging
 
 try:
+    from astropy.io import fits as fits
+except:
+    import pyfits as fits
+    
+
+try:
     import casa
     from specsmooth import specsmooth
     from impbcor import impbcor
@@ -42,8 +48,6 @@ except:
         from casatools import quanta        as qatool
     except:
         print("WARNING: No CASA; Ingest task cannot function.")
-
-import random
 
 # @todo 
 # - rel path should be to ../basename.fits
@@ -242,7 +246,7 @@ class Ingest_AT(AT):
             # 'cbeam'   : 0.5,     # # channel beam variation allowed in terms of pixel size to use median beam
         }
         AT.__init__(self,keys,keyval)
-        self._version = "1.2.8"
+        self._version = "1.2.9"
         self.set_bdp_in()                            # no input BDP
         self.set_bdp_out([(SpwCube_BDP, 1),          # one or two output BDPs
                           (Image_BDP,   0),          # optional PB if there was an pb= input
@@ -342,10 +346,19 @@ class Ingest_AT(AT):
                 srcname = h0['field']
             else:
                 srcname = 'Unknown'
+        logging.info("OBJECT: %s   SHAPE: %s" % (srcname,str(h0['shape'])))
         #  maybe some day in the future?
         if 'vsource' in h0:
             logging.warning("VSOURCE = %f found, the future is here!" % h0['vsource'])
             vlsr = h0['vsource']
+        #  the problem is that importfits() only reads a limited set of FITS keywords
+        #  Useful ones for ALMA could be:
+        #  MEMBER:    'uid://A001/X1467/X291'
+        #  FILNAM01: 
+        #  PROPCODE:  '2019.1.00912.S'
+        if True:
+            h1 = self._fitsheader(fitsfile)
+            print("FITSHEADER: %s" % h1['OBJECT'])
             
         # now determine if it could have been a CASA (or MIRIAD) image already 
         # which we'll assume if it's a directory; this is natively supported by CASA
@@ -804,33 +817,32 @@ class Ingest_AT(AT):
         # logging.info("VLSRs = %f (from Simbad/NED)" % vlsr2)
 
         #   Now we will determine the VLSR in a series of steps:
-        #   from vlsr=, RESTFREQ=, restfreq= and catalog based
+        #   from vlsr=, vlsrf, vlsrv, vlsrz, vlsrc, in that order.
         #   If all that fails, it will be set to 0.0
         
         if 'vlsr' in h:
             logging.warning("VLSR is already in the header ???")
-        h['vlsr'] = 0.0
-
-        
-        #   1) if vlsr= was already determined, use it.
+       
+        #   1) if vlsr= was already set (Ingest parameter)
         if vlsr != None:
-            h['vlsr']  = vlsrv
-        
+            h['vlsr']  = vlsr
+
         if nz0 > 1:
 
-            # first report on the binned axis (described by h)
-            # @todo check if this is really a freq axis (for ALMA it is, but...)
-            t3 = h['ctype3']
-            df = h['cdelt3']
-            fc = h['crval3'] + (0.5*float(nz-1)-h['crpix3'])*df        # center freq; 0 based pixels
-            fr = float(h['restfreq'][0])           # CASA cheats, it may put 0 in here if FITS is missing it
-            if fr <= 0.0:
-                fr = fc
-            fw = df*nz
-            dv = -df/fr*ckms
-            err4 = dv
-            logging.info("Freq Binn Axis 3: %g %g %g" % (h['crval3']/1e9,h['cdelt3']/1e9,h['crpix3']))
-            logging.info("Cube Binn Axis 3: type=%s  velocity increment=%f km/s @ fc=%f fw=%f GHz" % (t3,dv,fc/1e9,fw/1e9))
+            if nz != nz0:
+                # first report on the binned axis (described by h)
+                # @todo check if this is really a freq axis (for ALMA it is, but...)
+                t3 = h['ctype3']
+                df = h['cdelt3']
+                fc = h['crval3'] + (0.5*float(nz-1)-h['crpix3'])*df        # center freq; 0 based pixels
+                fr = float(h['restfreq'][0])           # CASA cheats, it may put 0 in here if FITS is missing it
+                if fr <= 0.0:
+                    fr = fc
+                fw = df*nz
+                dv = -df/fr*ckms
+                err4 = dv
+                logging.info("Freq Binn Axis 3: %g %g %g" % (h['crval3']/1e9,h['cdelt3']/1e9,h['crpix3']))
+                logging.info("Cube Binn Axis 3: type=%s  velocity increment=%f km/s @ fc=%f fw=%f GHz" % (t3,dv,fc/1e9,fw/1e9))
 
             # now report on the original axis (described by h0) from which we derive the final VLSR
             # @todo check if this is really a freq axis (for ALMA it is, but...)
@@ -838,7 +850,7 @@ class Ingest_AT(AT):
             df = h0['cdelt3']
             fc = h0['crval3'] + (0.5*float(nz0-1)-h0['crpix3'])*df         # center freq; 0 based pixels
 
-            # 2)  if restfreq= was give, use it
+            # 2)  if restfreq= was given, use vlsrf
             if restfreq > 0:
                 vlsrf = ckms*(1-fc/restfreq)
                 if vlsr == None:
@@ -847,7 +859,15 @@ class Ingest_AT(AT):
             else:
                 vlsrf = 0.0
 
-            # 3) if RESTFREQ was in image header, use it 
+            # 3) if vlsrv was non-zero, use it
+            if vlsr == None and vlsrv != 0.0:
+                vlsr = vlsrv
+
+            # 4) if vlsrz was non-zero, use it
+            if vlsr == None and vlsrz.mean() != 0.0:
+                vlsr = vlsrz.mean()
+            
+            # 5) if RESTFREQ was in image header, use vlsrc
             fr = h0['restfreq'][0]  
             if fr > 0.0:   
                 vlsrc = ckms*(1-fc/fr)   
@@ -860,6 +880,8 @@ class Ingest_AT(AT):
             
             fw = df*nz0
             dv = -df/fr*ckms
+            if nz0 == nz:
+                err4 = dv
             logging.info("Freq Orig Axis 3: %g %g %g" % (h0['crval3']/1e9,h0['cdelt3']/1e9,h0['crpix3']))
             logging.info("Cube Orig Axis 3: type=%s  velocity increment=%f km/s @ fc=%f fw=%f GHz" % (t3,dv,fc/1e9,fw/1e9))
 
@@ -870,22 +892,12 @@ class Ingest_AT(AT):
 
             err1 = err2 = err3 = 0.0
             err1 = vlsrz.std()
-            if vlsrv != 0.0:
-                if vlsr == None:
-                    vlsr = vlsrv
-                else:
-                    err2 = vlsrv-vlsr
-            if vlsrz.mean() != 0.0:
-                if vlsr == None:
-                    vlsr = vlsrz.mean()
-                else:
-                    err3 = vlsr - vlsrz.mean()
                     
             if vlsr == None:
                 logging.warning("Warning: No VLSR found yet, setting to 0.0")
                 vlsr = 0.0
 
-            logging.info("VLSR = %f errs = %f %f %f  width = %f" % (vlsr,err1,err2,err3,err4))
+            logging.info("VLSR = %f errs = %f %f %f width = %f" % (vlsr,err1,err2,err3,err4))
 
             h['vlsr'] = vlsr
 
@@ -974,3 +986,19 @@ class Ingest_AT(AT):
             self._summary[k].setTaskID(self.id(True))
             self._summary[k].setTaskArgs(taskargs)
             self._summary[k].setNoPlot(True)
+
+    def _fitsheader(self, fitsfile):
+        """  grab the header of a FITS file as a dictionary
+             This is useful for ALMA data, as many ALMA specific keywords
+             are not in the CASA image header
+        """
+
+        try:
+            hdu = fits.open(fitsfile)
+            return hdu[0].header
+        except:
+            print("WARNING: could not process fitsheader %s" % fitsfile)
+            return { 'OBJECT' : 'no-fitsfile' }
+    
+        
+             

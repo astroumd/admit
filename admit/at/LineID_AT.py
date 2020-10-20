@@ -2962,24 +2962,25 @@ class LineID_AT(AT):
             otherwise.
 
         """
+        #   @todo   what are these numbers, and that 48.07692308 ???
         fit = [42.96712785, -777.04366254, 3892.90652112]
         for peaks in counts["stats"]:
             count = len(peaks)
             if count < 10:
                 if len(self.freq) < count*48.07692308:
-                    logging.info("Too many peaks in CubeStats for pattern finding to be useful, turning it off.")
+                    logging.info("Too many peaks in CubeStats for pattern finding to be useful, turning it off.[1]")
                     return True
             elif len(self.freq) < fit[0] * count**2 + fit[1] * count + fit[2]:
-                logging.info("Too many peaks in CubeStats for pattern finding to be useful, turning it off.")
+                logging.info("Too many peaks in CubeStats for pattern finding to be useful, turning it off.[2]")
                 return True
         for peaks in counts["specs"]:
             count = len(peaks)
             if count < 10:
                 if len(self.freq) < count*48.07692308:
-                    logging.info("Too many peaks in CubeSpectrum for pattern finding to be useful, turning it off.")
+                    logging.info("Too many peaks in CubeSpectrum for pattern finding to be useful, turning it off.[1]")
                     return True
             elif len(self.freq) < fit[0] * count**2 + fit[1] * count + fit[2]:
-                logging.info("Too many peaks in CubeSpectrum for pattern finding to be useful, turning it off.")
+                logging.info("Too many peaks in CubeSpectrum for pattern finding to be useful, turning it off.[2]")
                 return True
         return False
 
@@ -3082,7 +3083,7 @@ class LineID_AT(AT):
         self.identifylines = self.getkey("identifylines")
         if self.vlsr < -999999.0 and self.identifylines:
             try:
-                self.vlsr = admit.Project.summaryData.get('vlsr')[0].getValue()[0]
+                self.vlsr = float(admit.Project.summaryData.get('vlsr')[0].getValue()[0])    # python3 needs float()
                 logging.info("Set vlsr = %.2f for line identification." % self.vlsr)
             except:
                 logging.info("No vlsr found in summary data and none given as an argument, switching identifylines to False.")

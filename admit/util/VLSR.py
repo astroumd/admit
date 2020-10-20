@@ -81,10 +81,11 @@ class VLSR(object):
         else:
             return 0.0
 
-    def vlsrz(self, name, scale = None, upper=True):
+    def vlsrz(self, name, scale = None, zeros=False, upper=True):
         """ return VLSR from Z table for a requested object
             name matching is done in upper case by default
             If no match is found, 0.0 is returned.
+            Any 0's are deemd
 
             NOTE: normally c * z/(1+z) is returned, unless a scale
                   is set, and it returns scale * z
@@ -98,10 +99,15 @@ class VLSR(object):
             
         src = name.upper()
         if src in self.zcat:
+            z = self.zcat[src]
+            if zeros:
+                z = z[z != 0.0]
+                if len(z) == 0:
+                    return np.array([0.0])
             if scale == None:
-                return ckms*self.zcat[src]/(1+self.zcat[src]) 
+                return ckms*z/(1+z)
             else:
-                return scale * self.zcat[src]
+                return scale * z
         else:
             return np.array([0.0])
 

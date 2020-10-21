@@ -246,7 +246,7 @@ class Ingest_AT(AT):
             # 'cbeam'   : 0.5,     # # channel beam variation allowed in terms of pixel size to use median beam
         }
         AT.__init__(self,keys,keyval)
-        self._version = "1.2.9"
+        self._version = "1.2.10"
         self.set_bdp_in()                            # no input BDP
         self.set_bdp_out([(SpwCube_BDP, 1),          # one or two output BDPs
                           (Image_BDP,   0),          # optional PB if there was an pb= input
@@ -293,7 +293,17 @@ class Ingest_AT(AT):
             return {}
 
     def run(self):
-        # 
+        #
+        def alma_head(h1, key, show=True):
+            """ helper function to show header items we expect in ALMA fits files
+            """
+            if key in h1:
+                if show:
+                    print("ALMA %-8s = %s" % (key,h1[key]))
+                return h1[key]
+            return None
+            # - end-of-head1
+            
         self._summary = {}                  # prepare to make a summary here
         dt = utils.Dtime("Ingest")          # timer for debugging
 
@@ -358,7 +368,13 @@ class Ingest_AT(AT):
         #  PROPCODE:  '2019.1.00912.S'
         if True:
             h1 = self._fitsheader(fitsfile)
-            print("FITSHEADER: %s" % h1['OBJECT'])
+            alma_head(h1,'OBJECT')
+            alma_head(h1,'DATE-OBS')
+            alma_head(h1,'SPWNAM01')
+            alma_head(h1,'FILNAM01')
+            alma_head(h1,'PROPCODE')
+            alma_head(h1,'MEMBER')            
+            
             
         # now determine if it could have been a CASA (or MIRIAD) image already 
         # which we'll assume if it's a directory; this is natively supported by CASA

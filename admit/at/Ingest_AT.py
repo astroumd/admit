@@ -29,8 +29,10 @@ except:
     import pyfits as fits
     
 try:
+    # casa5
     import casa
     from specsmooth import specsmooth
+    from imsubimage import imsubimage
     from impbcor  import impbcor
     from imtrans  import imtrans
     from imsmooth import imsmooth    
@@ -39,10 +41,12 @@ try:
     from taskinit import qatool as qatool
 except:
     try:
+        # casa6
         import casatasks as casa
         from casatasks import impbcor
         from casatasks import imtrans
         from casatasks import specsmooth
+        from casatasks import imsubimage
         from casatasks import imsmooth
         from casatools import image         as iatool
         from casatools import regionmanager as rgtool
@@ -247,7 +251,7 @@ class Ingest_AT(AT):
             # 'cbeam'   : 0.5,     # # channel beam variation allowed in terms of pixel size to use median beam
         }
         AT.__init__(self,keys,keyval)
-        self._version = "1.2.11"
+        self._version = "1.2.12"
         self.set_bdp_in()                            # no input BDP
         self.set_bdp_out([(SpwCube_BDP, 1),          # one or two output BDPs
                           (Image_BDP,   0),          # optional PB if there was an pb= input
@@ -734,10 +738,10 @@ class Ingest_AT(AT):
                 # @todo this happens when you ingest a fits or casa image which is ra-dec-pol-freq
                 #       https://github.com/astroumd/admit/issues/48
                 if nz > 1:
-                    logging.warning('Ingest_AT: 4D cube: Exctracting the stokes I')
+                    logging.warning('Ingest_AT: %s 4D cube: Exctracting the stokes I' % fno)
                     fnos = fno + '.imsubimage'
-                    imsubimage(fno,fnos,stokes='I')
-                    utils.rename(fno,fnos)
+                    imsubimage(fno,fnos,stokes='I',overwrite=True)
+                    utils.rename(fnos,fno)
                 else:
                     # @todo this is not working yet when the input was a casa image, but ok when fits. go figure.
                     fnot = fno + ".trans"

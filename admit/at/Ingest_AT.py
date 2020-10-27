@@ -28,12 +28,12 @@ try:
 except:
     import pyfits as fits
     
-
 try:
     import casa
     from specsmooth import specsmooth
-    from impbcor import impbcor
-    from imtrans import imtrans
+    from impbcor  import impbcor
+    from imtrans  import imtrans
+    from imsmooth import imsmooth    
     from taskinit import iatool as iatool
     from taskinit import rgtool as rgtool
     from taskinit import qatool as qatool
@@ -43,6 +43,7 @@ except:
         from casatasks import impbcor
         from casatasks import imtrans
         from casatasks import specsmooth
+        from casatasks import imsmooth
         from casatools import image         as iatool
         from casatools import regionmanager as rgtool
         from casatools import quanta        as qatool
@@ -246,7 +247,7 @@ class Ingest_AT(AT):
             # 'cbeam'   : 0.5,     # # channel beam variation allowed in terms of pixel size to use median beam
         }
         AT.__init__(self,keys,keyval)
-        self._version = "1.2.10"
+        self._version = "1.2.11"
         self.set_bdp_in()                            # no input BDP
         self.set_bdp_out([(SpwCube_BDP, 1),          # one or two output BDPs
                           (Image_BDP,   0),          # optional PB if there was an pb= input
@@ -513,15 +514,19 @@ class Ingest_AT(AT):
                 #                  so VLSR lookup fails. Now we use h0{}, so this bug is gone for us.
                 if len(smooth) == 1 and smooth[0] < 0:
                     # special rebin (tool) option (task: imrebin)
+                    # @todo with a perplanebeam rebin will fail.  need to imsmooth(kernel='commonbeam')
+                    if 'perplanebeams' in h0:
+                        logging.warning("perplanebeams detected: binning will require an extra smooth")
+                        fnos = fno + '.csmooth'
+                        ia.close()
+                        imsmooth(fno,"commonbeam",outfile=fnos)
+                        ia.open(fnos)
+                        # @todo rename/delete
                     binz = -smooth[0]
                     fnos = fno + '.rebin'
-                    if True:
-                        im2 = ia.rebin(outfile=fnos,bin=[1,1,binz],crop=True)
-                    else:
-                        im2 = ia.rebin(outfile=fnos,bin=[1,1,binz],crop=False)     # this is rebin's default
+                    im2 = ia.rebin(outfile=fnos,bin=[1,1,binz],crop=True)        # ensure equal S/N per new chan
                     im2.done()
                     ia.close()
-                    # srcname = casa.imhead(fno,mode="get",hdkey="object")          # work around CASA bug
                     utils.rename(fnos,fno)
                     casa.imhead(fno,mode="put",hdkey="object",hdvalue=srcname)    # work around CASA bug
                     dt.tag("rebin")                    
@@ -727,10 +732,12 @@ class Ingest_AT(AT):
         if len(shape)>3:
             if shape[3]>1:
                 # @todo this happens when you ingest a fits or casa image which is ra-dec-pol-freq
+                #       https://github.com/astroumd/admit/issues/48
                 if nz > 1:
-                    msg = 'Ingest_AT: cannot deal with real 4D cubes yet'
-                    logging.critical(msg)
-                    raise Exception(msg)
+                    logging.warning('Ingest_AT: 4D cube: Exctracting the stokes I')
+                    fnos = fno + '.imsubimage'
+                    imsubimage(fno,fnos,stokes='I')
+                    utils.rename(fno,fnos)
                 else:
                     # @todo this is not working yet when the input was a casa image, but ok when fits. go figure.
                     fnot = fno + ".trans"

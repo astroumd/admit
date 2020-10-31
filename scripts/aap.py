@@ -32,7 +32,7 @@
 #   @todo ...
 #
 
-_version = "16-oct-2020 PJT"
+_version = "31-oct-2020 PJT"
 
 import os, sys
 import argparse as ap
@@ -201,27 +201,20 @@ def runa2(pbcorname,pbname=None,label=None,apars=[],dryrun=False,ingest=False,cl
 
 def run_admit(recipe, pbcor, madmitname, dryrun=False, ingest=False, verbose=False, single=False, cleanup=False):
     """
-         based on a full pbcor file run an ADMIT recipe 
-    """ 
-    idx = pbcor.find('.pbcor.fits')
-    pb = glob.glob(pbcor[:idx] + '.pb.fits*')
-    if len(pb) == 0:
-        print("Warning: no matching pb found for %s" % pbcor)
+         based on a full pbcor file run an ADMIT recipe, and figure out the pb name
+    """
+    pb = find_pb(pbcor)
+    if pb == None:
+        print("Warning: no pb found for pbcor=%s" % pbcor)
         return
-    pb = pb[0]
-    if verbose:
-        print(pbcor)
-        print(pb)
+    pbcorpath = os.path.abspath(pbcor)
+    pbpath    = os.path.abspath(pb)
+    pbcorname = splitall(pbcor)[-1]
+    pbname    = splitall(pb)[-1]
+
     #  pbcor and pb are filenames relative to the dirname
     #  e.g. PID/S/G/M/product/member.uid___A001_X133f_X1a2.Tile_004_SMC_SWBar_sci.spw22.cube.I.pbcor.fits
-    #                 product/member.uid___A001_X133f_X1a2.Tile_004_SMC_SWBar_sci.spw22.cube.I.pbcor.fits
-    pbname = splitall(pb)[-1]
-    d = splitall(pbcor)
-    pbcorname = d[-1]
-    pbcorpath = os.path.abspath(pbcor)
-    pbpath = os.path.abspath(pb)
-    pdir = '/'.join(d[:-1])
-    adir = '/'.join(d[:-2]) + '/admit'
+
     adir = madmitname
     if verbose:
         print(adir)
@@ -257,6 +250,43 @@ def run_admit(recipe, pbcor, madmitname, dryrun=False, ingest=False, verbose=Fal
     if not dryrun:
         os.chdir(cwd)
 
+_pbnames = [
+    ['.pbcor.fits',                   '.pb.fits'],
+    ['.pbcor.fits',                   '.pb.fits.gz'],
+    ['.tt0.pbcor.fits',               '.pb.tt0.fits'],
+    ['.image.pbcor.fits',             '.pb.fits'],
+    ['.image.tt0.pbcor.fits',         '.pb.tt0.fits'],
+    ['.image.tt0.manual.pbcor.fits',  '.tt0.manual.pb.fits'],
+    ['.image.manual.pbcor.fits',      '.manual.pb.fits'],
+    ['.manual.pbcor.fits',            '.pb.fits'],
+]
+
+
+def find_pb(pbcor, guess=None):
+    """ find the matching 'pb' file that belongs to an ALMA 'pbcor' file
+        This has a long and checkered history. See the _pbnames[] rules.
+
+        pbcor     full name of the pbcor file
+        guess     if given, a guess to match againts the patterns we know about
+     
+    
+    """
+    def match(b1, guess):
+        # print("Checking %s" % b1)
+        if guess == None:
+            return os.path.exists(b1)
+        return b1 == guess
+
+    for pb in _pbnames:
+        b1 = pbcor.replace(pb[0], pb[1])
+        if match(b1,guess): return b1
+
+    print("Warning: no match found for %s" % pbcor)
+    if True:
+        return "None"
+    return None
+       
+
 def alma_names(dirname):
     """
     debugging: search and destroy what we know
@@ -270,19 +300,32 @@ def alma_names(dirname):
     npbcors = len(pbcors)
     print("Found %d pbcor in %d fits files" % (npbcors,nfiles))
     for pbcor in pbcors:
-        pb = pbcor.replace('.pbcor.fits','.pb.fits.gz')
-        try:
-            i1=files.index(pb)
+        pb = find_pb(pbcor)
+        if pb != None:
             files.remove(pbcor)
             files.remove(pb)
-        except:
-            print("missing %s" % pb)
-        mask = pb.replace('.pb.','.mask.')
-        try:
-            i1=files.index(mask)
-            files.remove(mask)
-        except:
-            print("missing %s" % mask)
+            mask = pb.replace('.pb.','.mask.')
+            try:
+                i1=files.index(mask)
+                files.remove(mask)
+            except:
+                print("missing %s" % mask)
+            
+        if False:
+            pb = pbcor.replace('.pbcor.fits','.pb.fits.gz')
+            try:
+                i1=files.index(pb)
+                files.remove(pbcor)
+                files.remove(pb)
+            except:
+                print("missing %s" % pb)
+            mask = pb.replace('.pb.','.mask.')
+            try:
+                i1=files.index(mask)
+                files.remove(mask)
+            except:
+                print("missing %s" % mask)
+                
     for f in files:
         print("orphan  %s" % f)
     if len(files)==0:
@@ -309,11 +352,11 @@ def compute_admit(dirname, madmitname=None, verbose=False, ingest=False, dryrun=
     if len(p1) + len(p2) == 0:
         return None
 
-    # the cheap continuum maps
+    # the cheap continuum maps go first
     for p in p2:
         run_admit('runa2', p, madmitname, verbose=verbose, dryrun=dryrun, ingest=ingest, single=single, cleanup=cleanup)
 
-    # the expensive cubes
+    # the expensive cubes come last
     for p in p1:
         run_admit('runa1', p, madmitname, verbose=verbose, dryrun=dryrun, ingest=ingest, single=single, cleanup=cleanup)
 

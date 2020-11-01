@@ -97,7 +97,7 @@ def casa_cleanup(admitname):
     for f in files:
         dat = f.replace("table.info","")
         cmd = "rm -rf %s" % dat
-        print("CLEANUP: %s" % cmd)
+        print("CLEANUP: '%s'" % cmd)
         os.system(cmd)
 
 def find_pbcor(dirname, mfs=False, cube=False, verbose=False):

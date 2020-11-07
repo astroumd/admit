@@ -11,6 +11,7 @@ from admit.Summary import SummaryEntry
 import admit.util.bdp_types as bt
 import admit.util.Table
 import admit.util.utils as utils
+import admit.util.PlotControl as PlotControl
 from admit.bdp.SpwCube_BDP import SpwCube_BDP
 import numpy as np
 import os as os
@@ -258,6 +259,6 @@ class Regrid_AT(AT):
 
         #keys = "pixsize=%.4g naxis1=%d naxis2=%d mean_ra=%0.4f mean_dec=%0.4f reffreq=%g chan_width=%g" % (pix_scale/(4.848137E-6), npix_ra, npix_dec, mean_ra,mean_dec,min_nu,chan_width)
         taskargs = "pix_scale = " + str(self.getkey("pix_scale")) + " chan_width = "+str(self.getkey("chan_width"))
-        self._summary["regrid"] = SummaryEntry(atable.serialize(),"Regrid_AT",self.id(True),taskargs)
+        self._summary["regrid"] = SummaryEntry(atable.serialize(),"Regrid_AT",self.id(True),taskargs,noplot=True)
         dt.tag("done")
         dt.end()

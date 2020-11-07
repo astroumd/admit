@@ -140,11 +140,14 @@ class Image(UtilBase):
                     for k1, v1 in v.iteritems():
                         if k1 == bt.THUMB or k1 == bt.AUX:
                             raise Exception("Thumnails and auxiliary files cannot be added as part of the images item, they must be added under the thumbnail or auxiliary item.")
-                if hasattr(self, k):
+                if hasattr(self, k):                
+                    if v==None: 
+                        print('WARNING: v was None, set to ""')
+                        v=''
                     if type(v) == type(getattr(self, k)):
                         setattr(self, k, v)
                     else:
-                        raise Exception("Cannot change data type for %s, expected %s but got %s" % (k, str(type(getattr(self, k))), str(type(v))))
+                        raise Exception("Cannot change data type for %s, expected %s but got %s" % (k, str(type(getattr(self, k))), str(type(v))))                        
                 else:
                     raise Exception("Invalid key given to Image class: %s" % (k))
         elif not name == "":

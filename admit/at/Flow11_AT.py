@@ -191,9 +191,9 @@ class Flow11_AT(AT):
 
         # finally, set some parameters for the ADMIT summary
         abc_list= ['robust', 'chauvenet', 21.3, 123]
-        self._summary['datamin'] = SummaryEntry(3.14159,"Flow11_AT",taskid=self.id(True))
-        self._summary['datamax']  = SummaryEntry(2.71828,"Flow11_AT",taskid=self.id(True))
-        self._summary['rmsmethd'] = SummaryEntry(abc_list,"Flow11_AT",taskid=self.id(True))
+        self._summary['datamin'] = SummaryEntry(3.14159,"Flow11_AT",taskid=self.id(True),noplot=True)
+        self._summary['datamax']  = SummaryEntry(2.71828,"Flow11_AT",taskid=self.id(True),noplot=True)
+        self._summary['rmsmethd'] = SummaryEntry(abc_list,"Flow11_AT",taskid=self.id(True),noplot=True)
         print "Flow11_AT taskid = %d" % self.id(True)
 
         

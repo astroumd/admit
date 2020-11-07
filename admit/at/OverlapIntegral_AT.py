@@ -21,6 +21,7 @@ from admit.util.Image import Image
 import admit.util.utils as utils
 import admit.util.APlot as APlot
 import admit.util.Line as Line
+import admit.util.PlotControl as PlotControl
 import admit.util.ImPlot as ImPlot
 import admit.util.Table
 from admit.bdp.Image_BDP import Image_BDP
@@ -33,7 +34,7 @@ try:
   import casa
   import taskinit
 except:
-  print "WARNING: No scipy or casa; OverlapIntegral task cannot function."
+  print("WARNING: No scipy or casa; OverlapIntegral task cannot function.")
 
 
 class OverlapIntegral_AT(AT):
@@ -140,7 +141,6 @@ class OverlapIntegral_AT(AT):
         normalize = self.getkey("normalize")
         doCross = True
         doCross = False
-        myplot = APlot(pmode=self._plot_mode,ptype=self._plot_type,abspath=self.dir())
         
         dt.tag("start")
  
@@ -236,23 +236,28 @@ class OverlapIntegral_AT(AT):
         pdata = np.rot90(out.squeeze())
         logging.info("PDATA: %s" % str(pdata.shape))
         
-        myplot.map1(pdata,title,"testOI",thumbnail=True,cmap=cmap)
+        if self._plot_mode == PlotControl.NOPLOT:
+            figname = "not created"
+            thumbnailname = "not created"
+            imcaption = "not created"
+            noplot = True
+        else:
+            myplot = APlot(pmode=self._plot_mode,ptype=self._plot_type,abspath=self.dir())
+            myplot.map1(pdata,title,"testOI",thumbnail=True,cmap=cmap)
+            figname = myplot.getFigure(figno=myplot.figno,relative=True)
+            thumbnailname = myplot.getThumbnail(figno=myplot.figno,relative=True)
+            #@todo fill in imcaption with more info - line names, etc.
+            imcaption = "Need descriptive imcaption here"
+            noplot = False
         
         #-----------------------------
         # Populate summary information
         #-----------------------------
         taskargs = "chans=%s cmap=%s" % (chans, cmap)
-        imname = ""
-        thumbnailname = ""
-        # uncomment when ready.
-        imname = myplot.getFigure(figno=myplot.figno,relative=True)
-        thumbnailname = myplot.getThumbnail(figno=myplot.figno,relative=True)
-        #@todo fill in caption with more info - line names, etc.
-        caption = "Need descriptive caption here"
-        summaryinfo = [summarytable.serialize(),imname,thumbnailname,caption]
+        summaryinfo = [summarytable.serialize(),figname,thumbnailname,imcaption]
         self._summary["overlap"] = SummaryEntry(summaryinfo,
                                    "OverlapIntegral_AT",
-                                   self.id(True),taskargs)
+                                   self.id(True),taskargs,noplot=noplot)
         #-----------------------------
         dt.tag("done")
         dt.end()
@@ -262,6 +267,10 @@ def crossn(data, myplot):
          CAUTION: Expensive routine
          @todo     divide    cross(i,j)/sqrt(auto(i)*auto(j))
     """
+    # even if self._plot_mode = PlotControl.NOPLOT, run through the 
+    # computation because  a) the user asked for it by doCross=True, 
+    # b) it would be more consistent with any regression testing,
+    # and c) if this computation ever gets put into a BDP we'd want it that way.
     n = len(data)
     nx = data[0].shape[0]
     ny = data[0].shape[1]
@@ -270,7 +279,8 @@ def crossn(data, myplot):
         idata = data[i].data.squeeze()
         out = scipy.signal.correlate2d(idata,idata,mode='same')
         auto[i] = np.rot90(out.reshape((nx,ny)))
-        myplot.map1(auto[i],"autocorr-%d" % i,"testOI-%d-%d" % (i,i),thumbnail=False)        
+        if self._plot_mode != PlotControl.NOPLOT:
+            myplot.map1(auto[i],"autocorr-%d" % i,"testOI-%d-%d" % (i,i),thumbnail=False)        
     for i in range(n):
         idata = data[i].data.squeeze()
         for j in range(i+1,n):
@@ -278,7 +288,8 @@ def crossn(data, myplot):
             out = scipy.signal.correlate2d(idata,jdata,mode='same')
             #outd = np.rot90(out.reshape((nx,ny))) / np.sqrt(auto[i]*auto[j])
             outd = np.rot90(out.reshape((nx,ny))) 
-            myplot.map1(outd,"crosscorr-%d-%d" % (i,j),"testOI-%d-%d" % (i,j),thumbnail=False)
+            if self._plot_mode != PlotControl.NOPLOT:
+                myplot.map1(outd,"crosscorr-%d-%d" % (i,j),"testOI-%d-%d" % (i,j),thumbnail=False)
 
 
 def rgb1(r,g,b, normalize=False):

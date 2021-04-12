@@ -213,7 +213,7 @@ class CubeStats_AT(AT):
         peakfit   = False             # True will enable a true gaussian fit
 
         # mintest:  the min number of channels for a normaltest()
-        mintest = 19
+        mintest = 9
         
         # numsigma:  adding all signal > numsigma ; not user enabled;   for peaksum.
         numsigma = -1.0
@@ -493,7 +493,8 @@ class CubeStats_AT(AT):
             ry2 = stats.robust(y2)
             y2_mean = ry2.mean()
             y2_std  = ry2.std()
-            if n>mintest: logging.debug("NORMALTEST2[%d]: %s" % (n,str(scipy.stats.normaltest(ry2))))
+            if logging.do(logging.DEBUG) and n>mintest:
+                logging.debug("NORMALTEST2[%d]: %s" % (n,str(scipy.stats.normaltest(ry2))))
             if self._plot_mode == PlotControl.NOPLOT:
                 noplot = True
             else:
@@ -508,7 +509,8 @@ class CubeStats_AT(AT):
             rdy2 = stats.robust(dy2)
             dy2_mean = rdy2.mean()
             dy2_std  = rdy2.std()
-            if n>mintest: logging.debug("NORMALTEST3[%d]: %s" % (n,str(scipy.stats.normaltest(rdy2))))
+            if logging.do(logging.DEBUG) and n>mintest:
+                logging.debug("NORMALTEST3[%d]: %s" % (n,str(scipy.stats.normaltest(rdy2))))
             if self._plot_mode == PlotControl.NOPLOT:
                 noplot = True
             else:
@@ -522,7 +524,8 @@ class CubeStats_AT(AT):
             ry3 = stats.robust(y3)
             y3_mean = ry3.mean()
             y3_std  = ry3.std()
-            if n>mintest: logging.debug("NORMALTEST4[%d]: %s" % (n,str(scipy.stats.normaltest(ry3))))
+            if logging.do(logging.DEBUG) and n>mintest:
+                logging.debug("NORMALTEST4[%d]: %s" % (n,str(scipy.stats.normaltest(ry3))))
             if self._plot_mode == PlotControl.NOPLOT:
                 noplot = True
             else:
@@ -536,7 +539,8 @@ class CubeStats_AT(AT):
             rdy3 = stats.robust(dy3)
             dy3_mean = rdy3.mean()
             dy3_std  = rdy3.std()
-            if n>mintest: logging.debug("NORMALTEST5[%d]: %s" % (n,str(scipy.stats.normaltest(rdy3))))
+            if logging.do(logging.DEBUG) and n>mintest:
+                logging.debug("NORMALTEST5[%d]: %s" % (n,str(scipy.stats.normaltest(rdy3))))
             if self._plot_mode == PlotControl.NOPLOT:
                 noplot = True
             else:
@@ -550,7 +554,8 @@ class CubeStats_AT(AT):
             ry5 = stats.robust(y5)
             y5_mean = ry5.mean()
             y5_std  = ry5.std()
-            if n>mintest: logging.debug("NORMALTEST6[%d]: %s" % (n,str(scipy.stats.normaltest(ry5))))
+            if logging.do(logging.DEBUG) and n>mintest:
+                logging.debug("NORMALTEST6[%d]: %s" % (n,str(scipy.stats.normaltest(ry5))))
             if self._plot_mode == PlotControl.NOPLOT:
                 noplot = True
             else:

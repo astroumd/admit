@@ -15,7 +15,7 @@ from . import utils
 from .segmentfinder import SegmentFinder
 from admit.util import LineData
 from admit.util.continuumsubtraction.spectral.ContinuumSubtraction import ContinuumSubtraction
-
+from admit.util.AdmitLogging import AdmitLogging as logging
 
 def mergestats(s1, s2, noise):
     """ Method to merge two
@@ -262,6 +262,16 @@ def getinfo(segment, spec):
         else:
             ratio = 0.0
         fwhm = thespectrum.fwhm(segment)
+        # working around a bug when spectrum is 0 at the end? [via F.Stoehr - april 2021]
+        # this resulted in a fwhm = "nan" - needs to be solved formally
+        if type(fwhm) != type(ratio):
+            logging.warning("Bad fwhm for segment %s" % str(segment))
+            if False:
+                s0 = thespectrum.spec(masked=False)
+                s1 = thespectrum.spec()
+                print("PJT3",fwhm,type(fwhm),ratio,type(ratio),segment,len(s0),len(s1),s1.count(),s0,s1)
+                print("PJT-WARNING",peak,ratio,fwhm)
+            return peak, ratio, 0.0
     else:
         return None, None, None
 

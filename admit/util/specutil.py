@@ -15,6 +15,7 @@ from . import utils
 from .segmentfinder import SegmentFinder
 from admit.util import LineData
 from admit.util.continuumsubtraction.spectral.ContinuumSubtraction import ContinuumSubtraction
+from admit.util.AdmitLogging import AdmitLogging as logging
 
 
 def mergestats(s1, s2, noise):
@@ -168,6 +169,7 @@ def getspectrum(bdp, vlsr=0.0, smooth=(), recalc=False, segment={"method": "ADMI
         for i in range(len(spectrum)):
             if isinstance(spectrum[i].mask, bool) or isinstance(spectrum[i].mask, np.bool_):
                 spectrum[i].mask = np.array([spectrum[i].mask] * len(spectrum[i].data))
+        # loop over all spectra
         for i in range(len(freq)):
             # source rest frame
             freq[i] = utils.undoppler(freq[i], vlsr)
@@ -175,7 +177,6 @@ def getspectrum(bdp, vlsr=0.0, smooth=(), recalc=False, segment={"method": "ADMI
             tempspec.mask_invalid()
             tempspec.fix_invalid(0.0)
             tempspec.mask_equal(0.0)
-
 
             segment["spectrum"] = tempspec.spec()
             segment["freq"] = tempspec.freq()
@@ -268,7 +269,7 @@ def getinfo(segment, spec):
     return peak, ratio, fwhm
 
 # @todo just use **keyval here?
-def findsegments(spectra,method,minchan,maxgap,numsigma,iterate,noise=None):
+def findsegments(spectra,method,minchan,maxgap,numsigma,iterate,noise=None,edgechannels=0):
     """Call Segmentfinder with specific options. Used by LineID_AT
        and LineSegment_AT
 
@@ -290,6 +291,9 @@ def findsegments(spectra,method,minchan,maxgap,numsigma,iterate,noise=None):
 
           noise : float 
              noise level to use. Default: None, noise is calculated
+             
+          edgechannels: int
+             number of edge channels which are used to discard lines that make use of them   
      
        Returns
        -------
@@ -308,7 +312,23 @@ def findsegments(spectra,method,minchan,maxgap,numsigma,iterate,noise=None):
                                               nomean=True,
                                               noise=noise)
 
-        vals.append(sfinder.find())
+        
+        thisvals = sfinder.find()
+
+        # removing the line-segments that are in conflict with the edgechannels
+        length = len(thisvals[0].getsegments())
+        iii = 0    
+        while iii < length:
+            segment = thisvals[0].getsegments()[iii]
+            logging.warning("%d %s" % ((iii, str(segment))))
+            if (segment[0] < edgechannels) or (segment[1] > len(spec.spec())-edgechannels):
+                logging.info("Removing segment %s because of edgechannels=[0:%d] and [%d:%d]" % (str(segment), edgechannels, len(spec.spec())-edgechannels, len(spec.spec())))
+                thisvals[0].remove(iii)
+                length -= 1
+            else:
+                iii += 1
+        vals.append(thisvals)             
+
     return vals
 
 def contsub(id, spectra, segmentfinder, segargs, algorithm, **keyval):

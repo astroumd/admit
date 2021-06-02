@@ -251,7 +251,7 @@ class Ingest_AT(AT):
             # 'cbeam'   : 0.5,     # # channel beam variation allowed in terms of pixel size to use median beam
         }
         AT.__init__(self,keys,keyval)
-        self._version = "1.2.12"
+        self._version = "1.2.13"
         self.set_bdp_in()                            # no input BDP
         self.set_bdp_out([(SpwCube_BDP, 1),          # one or two output BDPs
                           (Image_BDP,   0),          # optional PB if there was an pb= input
@@ -350,7 +350,7 @@ class Ingest_AT(AT):
         nz0 = h0['shape'][2]
         if 'restfreq' not in h0:
             h0['restfreq'] = [restfreq]
-            logging.warning("No RESTFREQ found in image header, using %f GHz",restfreq/1e9)
+            logging.warning("No RESTFREQ found in image header, using %f GHz" % (restfreq/1e9))
         #  In some older(?) CASA pipeline data there was no OBJECT, but a FIELD
         if 'object' in h0:
             srcname = h0['object']
@@ -801,11 +801,12 @@ class Ingest_AT(AT):
             msg = 'Ingest_AT: warning, an UNKNOWN telescope often results in ADMIT failing'
             logging.warning(msg)
         logging.info('OBJECT: %s' % srcname)
-        logging.info('REFFREQTYPE: %s' % h['reffreqtype'])
-        if h['reffreqtype'].find('TOPO')>=0:
-            msg = 'Ingest_AT: cannot deal with cubes with TOPOCENTRIC frequencies yet - winging it'
-            logging.warning(msg)
-            #raise Exception,msg
+        if 'reffreqtype' in h:
+            logging.info('REFFREQTYPE: %s' % h['reffreqtype'])
+            if h['reffreqtype'].find('TOPO')>=0:
+                msg = 'Ingest_AT: cannot deal with cubes with TOPOCENTRIC frequencies yet - winging it'
+                logging.warning(msg)
+                #raise Exception,msg
         # Ensure beam parameters are available if there are multiple beams
         # If there is just one beam, then we are just overwriting the header
         # variables with their identical values.
@@ -829,7 +830,7 @@ class Ingest_AT(AT):
         
         if 'restfreq' not in h:
             h['restfreq'] = [restfreq]
-            logging.warning("No RESTFREQ found in binned image header, using %f GHz",restfreq/1e9)
+            logging.warning("No RESTFREQ found in binned image header, using %f GHz" % (restfreq/1e9))
 
         # catalog lookup (for now, do it always) to get some estimates for VLSR
                     

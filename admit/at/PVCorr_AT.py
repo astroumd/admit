@@ -91,7 +91,7 @@ class PVCorr_AT(AT):
                 "nchan"    : 0,      # number of channels around the channel where the peak is
                }
         AT.__init__(self,keys,keyval)
-        self._version = "1.2.3"
+        self._version = "1.2.4"
         self.set_bdp_in([(Image_BDP,1,bt.REQUIRED),
                          # @todo optional 2nd PVSlice can be used to draw the template from
                          (CubeStats_BDP,1,bt.REQUIRED)])

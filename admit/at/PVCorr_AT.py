@@ -91,7 +91,7 @@ class PVCorr_AT(AT):
                 "nchan"    : 0,      # number of channels around the channel where the peak is
                }
         AT.__init__(self,keys,keyval)
-        self._version = "1.2.2"
+        self._version = "1.2.3"
         self.set_bdp_in([(Image_BDP,1,bt.REQUIRED),
                          # @todo optional 2nd PVSlice can be used to draw the template from
                          (CubeStats_BDP,1,bt.REQUIRED)])
@@ -213,6 +213,8 @@ class PVCorr_AT(AT):
             logging.warning("Sanity swapping ch0,1 due to likely noisy data")
             ch0,ch1 = ch1,ch0
 
+        logging.debug("PVCorr:  ch0,ch1,cutoff=%d %d %g" % (ch0,ch1,cutoff))
+
         if mode == 1:
             out,rms = mode1(data, ch0, ch1, cutoff, normalize)
             corr = out
@@ -286,7 +288,8 @@ class PVCorr_AT(AT):
 
             self._summary["pvcorr"] = SummaryEntry([figname,thumbname,imcaption,fin],"PVCorr_AT",self.id(True),taskargs,noplot=noplot)
         else:
-            self._summary["pvcorr"] = None
+            # self._summary["pvcorr"] = None
+            # @todo it seems SummaryEntry cannot be None
             logging.warning("No summary")
             logging.regression("PVC: -1")
 

@@ -85,7 +85,8 @@ class VLSR(object):
         """ return VLSR from Z table for a requested object
             name matching is done in upper case by default
             If no match is found, 0.0 is returned.
-            Any 0's are deemd
+            Any 0's are deemed non-valid and by default will be removed
+            from the returned array.
 
             NOTE: normally c * z/(1+z) is returned, unless a scale
                   is set, and it returns scale * z

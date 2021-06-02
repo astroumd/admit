@@ -169,6 +169,8 @@ class Spectrum(object):
            return self._noise
 
     def delta(self):
+        """Return the absolute value of the spectral channel width
+        """
         if self._delta is None:
             self.calcdelta()
         else:
@@ -181,7 +183,7 @@ class Spectrum(object):
             Parameters
             ----------
             chan : float
-                The channel to convert
+                The channel number to convert (0 is the first channel)
 
             Returns
             -------
@@ -627,8 +629,19 @@ class Spectrum(object):
             raise Exception("calcdelta: no freq set")
         if len(self._freq) == 1:
             raise Exception("calcdelta: frequency axis 1, continuum?")
+        self._delta = abs(self._freq[1] - self._freq[0])        
+        if True:
+            # print("PJT-delta",self._delta)
+            return
+        # something bizarre going on with the masks at larger binning?
+        # in the end, who cares if channels are masked, here all we
+        # need is _delta
+        n=len(self._freq)
         for f in range(len(self._freq) - 1):
+            print("PJT-calcdelta",f,n,self._mask[f],abs(self._freq[f] - self._freq[f + 1]))
+            # a False mask means data is good
             if not self._mask[f] and not self._mask[f + 1]:
+                #if not self._mask[f] or not self._mask[f + 1]:            
                 self._delta = abs(self._freq[f] - self._freq[f + 1])
                 return
         raise Exception("calcdelta")

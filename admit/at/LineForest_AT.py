@@ -345,6 +345,7 @@ class LineForest_AT(AT):
         self.vlsr = self.getkey("vlsr")
         self.identifylines = self.getkey("identifylines")
         self._plot_type = admit.util.PlotControl.SVG
+        vlsr = self.vlsr 
 
         self.specs = specutil.getspectrum(specbdp, vlsr, self.getkey("smooth"),self.getkey("recalcnoise"), basicsegment)
 

@@ -284,7 +284,8 @@ class LineID_AT(AT):
                 "references"   : "",
                 "iterate"      : True,
                 "force"        : [],
-                "reject"       : []
+                "reject"       : [],
+                "edgechannels" : 0
                }
         self.boxcar = True
         AT.__init__(self, keys, keyval)
@@ -3201,11 +3202,12 @@ class LineID_AT(AT):
         maxgap=self.getkey("maxgap") 
         numsigma=self.getkey("numsigma")
         iterate=self.getkey("iterate")
+        edgechannels=self.getkey("edgechannels")
 
         self.dt.tag("segment finder")
         if specbdp is not None:
             logging.info("Detecting segments in CubeSpectrum based data")
-            values = specutil.findsegments(self.specs, method, minchan, maxgap, numsigma, iterate)
+            values = specutil.findsegments(self.specs, method, minchan, maxgap, numsigma, iterate, edgechannels=edgechannels)
             for i, t in enumerate(values):
                 self.specseg.append(self.checkforcesegs(t[0]))
                 self.specs[i].set_noise(t[2])
@@ -3213,7 +3215,7 @@ class LineID_AT(AT):
 
         if statbdp is not None:
             logging.info("Detecting segments in CubeStats based data")
-            values = specutil.findsegments(self.statspec, method, minchan, maxgap, numsigma, iterate)
+            values = specutil.findsegments(self.statspec, method, minchan, maxgap, numsigma, iterate, edgechannels=edgechannels)
             for i, t in enumerate(values):
                 self.statseg.append(self.checkforcesegs(t[0]))
                 self.statspec[i].set_noise(t[2])
@@ -3221,7 +3223,7 @@ class LineID_AT(AT):
 
         if pvbdp is not None:
             logging.info("Detecting segments in PVCorr based data")
-            values = specutil.findsegments([self.pvspec], method, minchan, maxgap, numsigma, iterate,noise=self.pvsigma)
+            values = specutil.findsegments([self.pvspec], method, minchan, maxgap, numsigma, iterate,noise=self.pvsigma, edgechannels=edgechannels)
             self.pvspec.set_noise(self.pvsigma)  # @TODO: why not values[0][2]?
             for t in values:
                 self.pvseg = self.checkforcesegs(t[0])

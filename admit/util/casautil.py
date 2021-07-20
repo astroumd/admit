@@ -20,8 +20,7 @@ except:
     import casatasks as casa
     from casatools import image         as iatool
     from casatools import table         as tbtool
-    from .casa_imview6 import casa_imview6 as casa_imview
-    print("CASA6: using casa_imview6",repr(casa_imview))
+    from casaviewer import imview as casa_imview 
   except:
     print("WARNING: No CASA; casautil can't function")
 

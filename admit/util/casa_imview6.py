@@ -3,6 +3,7 @@ import os
 # called by util/casautil.py:
 #     CASA5:  from imview import imview as casa_imview
 #     CASA6:  from .casa_imview6 import casa_imview6 as casa_imview
+#       now:  from casaviewer import imview as casa_imview 
 
 def casa_imview6(**kwargs):
     """

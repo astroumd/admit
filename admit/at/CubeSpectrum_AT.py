@@ -141,7 +141,7 @@ class CubeSpectrum_AT(AT):
                 "xaxis"   : "",    # currently still ignored
         }
         AT.__init__(self,keys,keyval)
-        self._version       = "1.2.4"
+        self._version       = "1.2.5"
         self.set_bdp_in( [(Image_BDP,       1,bt.REQUIRED),     # 0: cube: SpwCube or LineCube allowed
                           (CubeStats_BDP,   1,bt.OPTIONAL),     # 1: stats, uses maxpos
                           (Moment_BDP,      1,bt.OPTIONAL),     # 2: map, uses the max in this image as pos=
@@ -435,14 +435,17 @@ class CubeSpectrum_AT(AT):
         """
         # 2D images don't store maxpos/maxval yet, so we need to grab them
         # imstat on a 512^2 image is about 0.032 sec
-        # ia.getchunk is about 0.008, about 4x faster.
+        # ia.getchunk is about 0.008, about 4x faster. (but this was without grabbing mask)
         # we're going to assume 2D images fit in memory and always use getchunk
         # @todo  review the use of the new casautil.getdata() style routines
         if True:
             ia = iatool()
             ia.open(im)
             plane = ia.getchunk(blc=[0,0,0,-1],trc=[-1,-1,-1,-1],dropdeg=True)
-            v = ma.masked_invalid(plane)
+            mask  = ia.getchunk(blc=[0,0,0,-1],trc=[-1,-1,-1,-1],dropdeg=True, getmask=True)
+            #v = ma.masked_invalid(plane)
+            v=ma.masked_where(mask == False,plane)
+
             ia.close()
             mp = np.unravel_index(v.argmax(), v.shape)
             maxval = v[mp[0],mp[1]]
@@ -451,7 +454,6 @@ class CubeSpectrum_AT(AT):
             imstat0 = casa.imstat(im)
             maxpos = imstat0["maxpos"][:2].tolist()
             maxval = imstat0["max"][0]
-        #print "MAXPOS_IM:::",maxpos,maxval,type(maxpos[0])
         return (maxpos,maxval)
 
     def summary(self):

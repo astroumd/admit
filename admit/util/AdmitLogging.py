@@ -99,6 +99,34 @@ class AdmitLogging(object):
         AdmitLogging.loggers.add(name)
 
     @staticmethod
+    def do(level):
+        """ Method to check if the logging you wish to do is
+            consistent with the logging level set.
+        
+            Normally this function is never called, but in the
+            case where the argument to one of the logging
+            functions contains a computation that can fail due
+            some known condition, this "do" function needs to
+            be part of that condition.  Example:
+
+            if logging.do(logging.DEBUG) and x > 0:
+               logging.debug("something dangerous: %g" % sqrt(x))
+
+            Parameters
+            ----------
+            level : int
+                The level number to add
+
+            Returns
+            -------
+            Boolean, if logging at this level is be safe to call
+        
+        """
+        if level >= AdmitLogging.EFFECTIVELOGLEVEL:
+            return True
+        return False
+
+    @staticmethod
     def warning(message):
         """ Method to emit a warning level message to the log(s)
 

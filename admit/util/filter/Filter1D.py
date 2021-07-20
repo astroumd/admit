@@ -162,7 +162,11 @@ class Filter1D(object):
             -------
             Numpy array containing the buffered input array
         """
-        return np.pad(self.spec, (nchan, ), mode='reflect')
+        if True:
+            return np.pad(self.spec, (nchan, ), mode='reflect')
+        else:
+            print("PJT filter1d:",self.spec.shape,nchan)
+            return np.pad(self.spec, nchan, mode='reflect')
 
     def boxcar(self, width):
         r""" Method to apply a boxcar filter to a spectrum. The filter for point
@@ -215,7 +219,7 @@ class Filter1D(object):
         """
         if not self.isodd(width):
             raise Exception("Gaussian width must be an odd number.")
-        side = (width - 1) / 2
+        side = (width - 1) // 2
         kernel = np.zeros(width)
         for j in range(width):
             kernel[j] = math.exp(-0.5 * pow(((float(j) - ((float(width) - 1.0) /
@@ -247,7 +251,7 @@ class Filter1D(object):
         if not self.isodd(width):
             raise Exception("Welch width must be an odd number.")
         width += 2    # must add 2 to get the proper width
-        side = (width - 1) / 2
+        side = (width - 1) // 2
         kernel = np.zeros(width)
         for j in range(width):
             kernel[j] = (1 - math.pow((j - (float(width - 1) / 2.0)) / 
@@ -280,7 +284,7 @@ class Filter1D(object):
             raise Exception("Hanning width must be an odd number.")
 
         width += 2    # must add 2 to get the proper width
-        side = (width - 1) / 2
+        side = (width - 1) // 2
         kernel = np.zeros(width)
         for j in range(width):
             kernel[j] = 0.5 * (1.0 - math.cos((2.0 * math.pi * j) / float(width - 1)))

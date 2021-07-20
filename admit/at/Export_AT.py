@@ -90,7 +90,8 @@ class Export_AT(AT):
 
     """
     
-    
+# @todo    need an option to remove casa images and not  write the fits files. i.e. culling the admit tree to a minimal one
+#
     def __init__(self, **keyval):
         keys = {
             "basename"   : "",     # defaults to BDP derived

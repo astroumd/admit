@@ -1,68 +1,68 @@
-<!ELEMENT GENERATESPECTRUM_AT	(_stale,_enabled,_running,_plot_mode,_plot_type,_bdp_out_map,_bdp_in_map,_link,_loglevel,_loggername,_alias,_taskid,_variflow,_version,_needToSave,_baseDir,spec_description,_keys)>
+<!ELEMENT GENERATESPECTRUM_AT	(_loglevel,_running,_variflow,_bdp_out_map,_link,_plot_mode,_enabled,_needToSave,_loggername,_bdp_in_map,_stale,spec_description,_baseDir,_version,_alias,_plot_type,_taskid,_keys)>
 <!-- child nodes #PCDATA indicates parsable character data-->
-<!ELEMENT _stale		(#PCDATA)>
-<!ATTLIST _stale type (BOOL) #REQUIRED>
-<!ELEMENT _enabled		(#PCDATA)>
-<!ATTLIST _enabled type (BOOL) #REQUIRED>
-<!ELEMENT _running		(#PCDATA)>
-<!ATTLIST _running type (BOOL) #REQUIRED>
-<!ELEMENT _plot_mode		(#PCDATA)>
-<!ATTLIST _plot_mode type (INT) #REQUIRED>
-<!ELEMENT _plot_type		(#PCDATA)>
-<!ATTLIST _plot_type type (INT) #REQUIRED>
-<!ELEMENT _bdp_out_map		(#PCDATA)>
-<!ATTLIST _bdp_out_map ndarray (STRING) #REQUIRED>
-<!ATTLIST _bdp_out_map set (STRING) #REQUIRED>
-<!ATTLIST _bdp_out_map type (LIST) #REQUIRED>
-<!ELEMENT _bdp_in_map		(#PCDATA)>
-<!ATTLIST _bdp_in_map ndarray (STRING) #REQUIRED>
-<!ATTLIST _bdp_in_map set (STRING) #REQUIRED>
-<!ATTLIST _bdp_in_map type (LIST) #REQUIRED>
-<!ELEMENT _link		(#PCDATA)>
-<!ATTLIST _link type (INT) #REQUIRED>
 <!ELEMENT _loglevel		(#PCDATA)>
 <!ATTLIST _loglevel type (INT) #REQUIRED>
-<!ELEMENT _loggername		(#PCDATA)>
-<!ATTLIST _loggername type (STRING) #REQUIRED>
-<!ELEMENT _alias		(#PCDATA)>
-<!ATTLIST _alias type (STRING) #REQUIRED>
-<!ELEMENT _taskid		(#PCDATA)>
-<!ATTLIST _taskid type (INT) #REQUIRED>
-<!ELEMENT _variflow		(#PCDATA)>
-<!ATTLIST _variflow type (BOOL) #REQUIRED>
-<!ELEMENT _version		(#PCDATA)>
-<!ATTLIST _version type (STRING) #REQUIRED>
-<!ELEMENT _needToSave		(#PCDATA)>
-<!ATTLIST _needToSave type (BOOL) #REQUIRED>
-<!ELEMENT _baseDir		(#PCDATA)>
-<!ATTLIST _baseDir type (STRING) #REQUIRED>
+<!ELEMENT _running		(#PCDATA)>
+<!ATTLIST _running type (BOOL) #REQUIRED>
 <!ELEMENT spec_description		(#PCDATA)>
 <!ATTLIST spec_description ndarray (STRING) #REQUIRED>
 <!ATTLIST spec_description set (STRING) #REQUIRED>
 <!ATTLIST spec_description type (LIST) #REQUIRED>
-<!ELEMENT _keys	(file,nchan,nspectra,seed,contin,freq,delta,lines,transitions,hanning)>
+<!ELEMENT _alias		(#PCDATA)>
+<!ATTLIST _alias type (STRING) #REQUIRED>
+<!ELEMENT _bdp_out_map		(#PCDATA)>
+<!ATTLIST _bdp_out_map ndarray (STRING) #REQUIRED>
+<!ATTLIST _bdp_out_map set (STRING) #REQUIRED>
+<!ATTLIST _bdp_out_map type (LIST) #REQUIRED>
+<!ELEMENT _link		(#PCDATA)>
+<!ATTLIST _link type (INT) #REQUIRED>
+<!ELEMENT _version		(#PCDATA)>
+<!ATTLIST _version type (STRING) #REQUIRED>
+<!ELEMENT _needToSave		(#PCDATA)>
+<!ATTLIST _needToSave type (BOOL) #REQUIRED>
+<!ELEMENT _loggername		(#PCDATA)>
+<!ATTLIST _loggername type (STRING) #REQUIRED>
+<!ELEMENT _plot_mode		(#PCDATA)>
+<!ATTLIST _plot_mode type (INT) #REQUIRED>
+<!ELEMENT _bdp_in_map		(#PCDATA)>
+<!ATTLIST _bdp_in_map ndarray (STRING) #REQUIRED>
+<!ATTLIST _bdp_in_map set (STRING) #REQUIRED>
+<!ATTLIST _bdp_in_map type (LIST) #REQUIRED>
+<!ELEMENT _stale		(#PCDATA)>
+<!ATTLIST _stale type (BOOL) #REQUIRED>
+<!ELEMENT _variflow		(#PCDATA)>
+<!ATTLIST _variflow type (BOOL) #REQUIRED>
+<!ELEMENT _plot_type		(#PCDATA)>
+<!ATTLIST _plot_type type (INT) #REQUIRED>
+<!ELEMENT _taskid		(#PCDATA)>
+<!ATTLIST _taskid type (INT) #REQUIRED>
+<!ELEMENT _enabled		(#PCDATA)>
+<!ATTLIST _enabled type (BOOL) #REQUIRED>
+<!ELEMENT _baseDir		(#PCDATA)>
+<!ATTLIST _baseDir type (STRING) #REQUIRED>
+<!ELEMENT _keys	(nchan,file,lines,hanning,nspectra,contin,delta,freq,transitions,seed)>
 <!ATTLIST _keys type (DICT) #REQUIRED>
-<!ELEMENT file		(#PCDATA)>
-<!ATTLIST file type (STRING) #REQUIRED>
 <!ELEMENT nchan		(#PCDATA)>
 <!ATTLIST nchan type (INT) #REQUIRED>
-<!ELEMENT nspectra		(#PCDATA)>
-<!ATTLIST nspectra type (INT) #REQUIRED>
-<!ELEMENT seed		(#PCDATA)>
-<!ATTLIST seed type (INT) #REQUIRED>
-<!ELEMENT contin		(#PCDATA)>
-<!ATTLIST contin type (FLOAT) #REQUIRED>
-<!ELEMENT freq		(#PCDATA)>
-<!ATTLIST freq type (FLOAT) #REQUIRED>
-<!ELEMENT delta		(#PCDATA)>
-<!ATTLIST delta type (FLOAT) #REQUIRED>
 <!ELEMENT lines		(#PCDATA)>
 <!ATTLIST lines ndarray (STRING) #REQUIRED>
 <!ATTLIST lines set (STRING) #REQUIRED>
 <!ATTLIST lines type (LIST) #REQUIRED>
+<!ELEMENT hanning		(#PCDATA)>
+<!ATTLIST hanning type (BOOL) #REQUIRED>
+<!ELEMENT nspectra		(#PCDATA)>
+<!ATTLIST nspectra type (INT) #REQUIRED>
+<!ELEMENT contin		(#PCDATA)>
+<!ATTLIST contin type (FLOAT) #REQUIRED>
+<!ELEMENT file		(#PCDATA)>
+<!ATTLIST file type (STRING) #REQUIRED>
+<!ELEMENT delta		(#PCDATA)>
+<!ATTLIST delta type (FLOAT) #REQUIRED>
+<!ELEMENT freq		(#PCDATA)>
+<!ATTLIST freq type (FLOAT) #REQUIRED>
 <!ELEMENT transitions		(#PCDATA)>
 <!ATTLIST transitions ndarray (STRING) #REQUIRED>
 <!ATTLIST transitions set (STRING) #REQUIRED>
 <!ATTLIST transitions type (LIST) #REQUIRED>
-<!ELEMENT hanning		(#PCDATA)>
-<!ATTLIST hanning type (BOOL) #REQUIRED>
+<!ELEMENT seed		(#PCDATA)>
+<!ATTLIST seed type (INT) #REQUIRED>

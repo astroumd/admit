@@ -107,6 +107,7 @@ class LineSegment_AT(AT):
                 "recalcnoise"  : False,
                 "csub"         : [1, None],
                 "iterate"      : True,
+                "edgechannels" : 0
                }
         self.boxcar = True
         AT.__init__(self, keys, keyval)
@@ -284,17 +285,18 @@ class LineSegment_AT(AT):
         maxgap=self.getkey("maxgap") 
         numsigma=self.getkey("numsigma")
         iterate=self.getkey("iterate")
-        
+        edgechannels=self.getkey("edgechannels")
+
         if specbdp is not None:
             logging.info("Detecting segments in CubeSpectrum based data")
-            values = specutil.findsegments(specs, method, minchan, maxgap, numsigma, iterate)
+            values = specutil.findsegments(specs, method, minchan, maxgap, numsigma, iterate, edgechannels=edgechannels)
             for i, t in enumerate(values):
                 specseg.append(t[0])
                 specs[i].set_noise(t[2])
 
         if statbdp is not None:
             logging.info("Detecting segments in CubeStats based data")
-            values = specutil.findsegments(statspec, method, minchan, maxgap, numsigma, iterate)
+            values = specutil.findsegments(statspec, method, minchan, maxgap, numsigma, iterate, edgechannels=edgechannels)
             for i, t in enumerate(values):
                 statseg.append(t[0])
                 # print ("MWP LINESEGMENT %d Setting noise=%f minchan=%d",(i,t[2],minchan))

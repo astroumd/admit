@@ -1,56 +1,56 @@
-<!ELEMENT SFIND2D_AT	(_stale,_enabled,_running,_plot_mode,_plot_type,_bdp_out_map,_bdp_in_map,_link,_loglevel,_loggername,_alias,_taskid,_variflow,_version,_needToSave,_baseDir,_keys)>
+<!ELEMENT SFIND2D_AT	(_loglevel,_running,_variflow,_bdp_out_map,_link,_plot_mode,_enabled,_needToSave,_loggername,_bdp_in_map,_stale,_baseDir,_version,_alias,_plot_type,_taskid,_keys)>
 <!-- child nodes #PCDATA indicates parsable character data-->
-<!ELEMENT _stale		(#PCDATA)>
-<!ATTLIST _stale type (BOOL) #REQUIRED>
-<!ELEMENT _enabled		(#PCDATA)>
-<!ATTLIST _enabled type (BOOL) #REQUIRED>
+<!ELEMENT _loglevel		(#PCDATA)>
+<!ATTLIST _loglevel type (INT) #REQUIRED>
 <!ELEMENT _running		(#PCDATA)>
 <!ATTLIST _running type (BOOL) #REQUIRED>
-<!ELEMENT _plot_mode		(#PCDATA)>
-<!ATTLIST _plot_mode type (INT) #REQUIRED>
-<!ELEMENT _plot_type		(#PCDATA)>
-<!ATTLIST _plot_type type (INT) #REQUIRED>
+<!ELEMENT _baseDir		(#PCDATA)>
+<!ATTLIST _baseDir type (STRING) #REQUIRED>
+<!ELEMENT _alias		(#PCDATA)>
+<!ATTLIST _alias type (STRING) #REQUIRED>
 <!ELEMENT _bdp_out_map		(#PCDATA)>
 <!ATTLIST _bdp_out_map ndarray (STRING) #REQUIRED>
 <!ATTLIST _bdp_out_map set (STRING) #REQUIRED>
 <!ATTLIST _bdp_out_map type (LIST) #REQUIRED>
-<!ELEMENT _bdp_in_map		(#PCDATA)>
-<!ATTLIST _bdp_in_map ndarray (STRING) #REQUIRED>
-<!ATTLIST _bdp_in_map set (STRING) #REQUIRED>
-<!ATTLIST _bdp_in_map type (LIST) #REQUIRED>
 <!ELEMENT _link		(#PCDATA)>
 <!ATTLIST _link type (INT) #REQUIRED>
-<!ELEMENT _loglevel		(#PCDATA)>
-<!ATTLIST _loglevel type (INT) #REQUIRED>
-<!ELEMENT _loggername		(#PCDATA)>
-<!ATTLIST _loggername type (STRING) #REQUIRED>
-<!ELEMENT _alias		(#PCDATA)>
-<!ATTLIST _alias type (STRING) #REQUIRED>
-<!ELEMENT _taskid		(#PCDATA)>
-<!ATTLIST _taskid type (INT) #REQUIRED>
-<!ELEMENT _variflow		(#PCDATA)>
-<!ATTLIST _variflow type (BOOL) #REQUIRED>
 <!ELEMENT _version		(#PCDATA)>
 <!ATTLIST _version type (STRING) #REQUIRED>
 <!ELEMENT _needToSave		(#PCDATA)>
 <!ATTLIST _needToSave type (BOOL) #REQUIRED>
-<!ELEMENT _baseDir		(#PCDATA)>
-<!ATTLIST _baseDir type (STRING) #REQUIRED>
-<!ELEMENT _keys	(numsigma,sigma,region,robust,snmax,nmax,zoom)>
+<!ELEMENT _loggername		(#PCDATA)>
+<!ATTLIST _loggername type (STRING) #REQUIRED>
+<!ELEMENT _plot_mode		(#PCDATA)>
+<!ATTLIST _plot_mode type (INT) #REQUIRED>
+<!ELEMENT _bdp_in_map		(#PCDATA)>
+<!ATTLIST _bdp_in_map ndarray (STRING) #REQUIRED>
+<!ATTLIST _bdp_in_map set (STRING) #REQUIRED>
+<!ATTLIST _bdp_in_map type (LIST) #REQUIRED>
+<!ELEMENT _stale		(#PCDATA)>
+<!ATTLIST _stale type (BOOL) #REQUIRED>
+<!ELEMENT _variflow		(#PCDATA)>
+<!ATTLIST _variflow type (BOOL) #REQUIRED>
+<!ELEMENT _plot_type		(#PCDATA)>
+<!ATTLIST _plot_type type (INT) #REQUIRED>
+<!ELEMENT _taskid		(#PCDATA)>
+<!ATTLIST _taskid type (INT) #REQUIRED>
+<!ELEMENT _enabled		(#PCDATA)>
+<!ATTLIST _enabled type (BOOL) #REQUIRED>
+<!ELEMENT _keys	(nmax,numsigma,snmax,region,zoom,robust,sigma)>
 <!ATTLIST _keys type (DICT) #REQUIRED>
+<!ELEMENT nmax		(#PCDATA)>
+<!ATTLIST nmax type (INT) #REQUIRED>
 <!ELEMENT numsigma		(#PCDATA)>
 <!ATTLIST numsigma type (FLOAT) #REQUIRED>
-<!ELEMENT sigma		(#PCDATA)>
-<!ATTLIST sigma type (FLOAT) #REQUIRED>
 <!ELEMENT region		(#PCDATA)>
 <!ATTLIST region type (STRING) #REQUIRED>
+<!ELEMENT zoom		(#PCDATA)>
+<!ATTLIST zoom type (INT) #REQUIRED>
+<!ELEMENT snmax		(#PCDATA)>
+<!ATTLIST snmax type (FLOAT) #REQUIRED>
 <!ELEMENT robust		(#PCDATA)>
 <!ATTLIST robust ndarray (STRING) #REQUIRED>
 <!ATTLIST robust set (STRING) #REQUIRED>
 <!ATTLIST robust type (LIST) #REQUIRED>
-<!ELEMENT snmax		(#PCDATA)>
-<!ATTLIST snmax type (FLOAT) #REQUIRED>
-<!ELEMENT nmax		(#PCDATA)>
-<!ATTLIST nmax type (INT) #REQUIRED>
-<!ELEMENT zoom		(#PCDATA)>
-<!ATTLIST zoom type (INT) #REQUIRED>
+<!ELEMENT sigma		(#PCDATA)>
+<!ATTLIST sigma type (FLOAT) #REQUIRED>

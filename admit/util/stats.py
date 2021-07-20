@@ -85,6 +85,11 @@ def robust(data,f=1.5):
     else:
         d = np.sort(data).compressed()
     n= len(d)
+    if n == 0:
+        # should have never gotten here
+        print('PJT-robust unexpected array with no data')
+        # return a fully masked array, and hold your breath
+        return ma.masked_outside(np.arange(1), 1.0, 2.0)
     n1 = n//4
     n2 = n//2
     n3 = (3*n)//4

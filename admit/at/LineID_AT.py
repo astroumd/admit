@@ -284,7 +284,8 @@ class LineID_AT(AT):
                 "references"   : "",
                 "iterate"      : True,
                 "force"        : [],
-                "reject"       : []
+                "reject"       : [],
+                "edgechannels" : 0
                }
         self.boxcar = True
         AT.__init__(self, keys, keyval)
@@ -2962,24 +2963,25 @@ class LineID_AT(AT):
             otherwise.
 
         """
+        #   @todo   what are these numbers, and that 48.07692308 ???
         fit = [42.96712785, -777.04366254, 3892.90652112]
         for peaks in counts["stats"]:
             count = len(peaks)
             if count < 10:
                 if len(self.freq) < count*48.07692308:
-                    logging.info("Too many peaks in CubeStats for pattern finding to be useful, turning it off.")
+                    logging.info("Too many peaks in CubeStats for pattern finding to be useful, turning it off.[1]")
                     return True
             elif len(self.freq) < fit[0] * count**2 + fit[1] * count + fit[2]:
-                logging.info("Too many peaks in CubeStats for pattern finding to be useful, turning it off.")
+                logging.info("Too many peaks in CubeStats for pattern finding to be useful, turning it off.[2]")
                 return True
         for peaks in counts["specs"]:
             count = len(peaks)
             if count < 10:
                 if len(self.freq) < count*48.07692308:
-                    logging.info("Too many peaks in CubeSpectrum for pattern finding to be useful, turning it off.")
+                    logging.info("Too many peaks in CubeSpectrum for pattern finding to be useful, turning it off.[1]")
                     return True
             elif len(self.freq) < fit[0] * count**2 + fit[1] * count + fit[2]:
-                logging.info("Too many peaks in CubeSpectrum for pattern finding to be useful, turning it off.")
+                logging.info("Too many peaks in CubeSpectrum for pattern finding to be useful, turning it off.[2]")
                 return True
         return False
 
@@ -3082,7 +3084,7 @@ class LineID_AT(AT):
         self.identifylines = self.getkey("identifylines")
         if self.vlsr < -999999.0 and self.identifylines:
             try:
-                self.vlsr = admit.Project.summaryData.get('vlsr')[0].getValue()[0]
+                self.vlsr = float(admit.Project.summaryData.get('vlsr')[0].getValue()[0])    # python3 needs float()
                 logging.info("Set vlsr = %.2f for line identification." % self.vlsr)
             except:
                 logging.info("No vlsr found in summary data and none given as an argument, switching identifylines to False.")
@@ -3200,11 +3202,12 @@ class LineID_AT(AT):
         maxgap=self.getkey("maxgap") 
         numsigma=self.getkey("numsigma")
         iterate=self.getkey("iterate")
+        edgechannels=self.getkey("edgechannels")
 
         self.dt.tag("segment finder")
         if specbdp is not None:
             logging.info("Detecting segments in CubeSpectrum based data")
-            values = specutil.findsegments(self.specs, method, minchan, maxgap, numsigma, iterate)
+            values = specutil.findsegments(self.specs, method, minchan, maxgap, numsigma, iterate, edgechannels=edgechannels)
             for i, t in enumerate(values):
                 self.specseg.append(self.checkforcesegs(t[0]))
                 self.specs[i].set_noise(t[2])
@@ -3212,7 +3215,7 @@ class LineID_AT(AT):
 
         if statbdp is not None:
             logging.info("Detecting segments in CubeStats based data")
-            values = specutil.findsegments(self.statspec, method, minchan, maxgap, numsigma, iterate)
+            values = specutil.findsegments(self.statspec, method, minchan, maxgap, numsigma, iterate, edgechannels=edgechannels)
             for i, t in enumerate(values):
                 self.statseg.append(self.checkforcesegs(t[0]))
                 self.statspec[i].set_noise(t[2])
@@ -3220,7 +3223,7 @@ class LineID_AT(AT):
 
         if pvbdp is not None:
             logging.info("Detecting segments in PVCorr based data")
-            values = specutil.findsegments([self.pvspec], method, minchan, maxgap, numsigma, iterate,noise=self.pvsigma)
+            values = specutil.findsegments([self.pvspec], method, minchan, maxgap, numsigma, iterate,noise=self.pvsigma, edgechannels=edgechannels)
             self.pvspec.set_noise(self.pvsigma)  # @TODO: why not values[0][2]?
             for t in values:
                 self.pvseg = self.checkforcesegs(t[0])

@@ -66,4 +66,7 @@ if ($sysname == Darwin) then
   endif
 endif
 
+echo Trying CASA6, no worries if this fails
+python -c 'import casatools'
+
 unset _acasa

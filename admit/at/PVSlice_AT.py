@@ -135,7 +135,7 @@ class PVSlice_AT(AT):
                 #"major"   : True,          # (TODO) major or minor axis, not used yet
                 }
         AT.__init__(self,keys,keyval)
-        self._version       = "1.2.2"
+        self._version       = "1.2.3"
         self.set_bdp_in([(Image_BDP,     1, bt.REQUIRED),      # SpwCube
                          (Moment_BDP,    1, bt.OPTIONAL),      # Moment0 or CubeSum
                          (CubeStats_BDP, 1, bt.OPTIONAL)])     # was: PeakPointPlot
@@ -422,6 +422,7 @@ def map_to_slit(fname, clip=0.0, gamma=1.0):
     pix = ia.getchunk().squeeze()     # this should now be a numpy pix[ix][iy] map
     pixmax = pix.max()
     pixrms = pix.std()
+    logging.debug("Finding pixmax,pixrms=%g %g in %s" % (pixmax,pixrms,str(imshape)))
     if False:
         pix1 = pix.flatten()
         rpix = stats.robust(pix1)
@@ -434,17 +435,22 @@ def map_to_slit(fname, clip=0.0, gamma=1.0):
     ny = pix.shape[1]
     x=np.arange(pix.shape[0]).reshape( (nx,1) )
     y=np.arange(pix.shape[1]).reshape( (1,ny) )
+    maxiter = 20
     if clip > 0.0:
         nmax = nx*ny
         clip = clip * pixrms
         logging.debug("Using initial clip=%g for rms=%g" % (clip,pixrms))
         m=ma.masked_less(pix,clip)
-        while m.count() == 0:
+        while m.count() == 0 and maxiter > 0:
           clip = 0.5 * clip
           logging.debug("no masking...trying lower clip=%g" % clip)
           m=ma.masked_less(pix,clip)
+          maxiter = maxiter - 1
         else:
-          logging.debug("Clip=%g now found %d/%d points" % (clip,m.count(),nmax))
+          if maxiter == 0:
+            logging.warning("Lowering clip did not converge")
+          else:
+            logging.debug("Clip=%g now found %d/%d points" % (clip,m.count(),nmax))
         
     else:
         #@ todo   sigma-clipping with iterations?  see also astropy.stats.sigma_clip()

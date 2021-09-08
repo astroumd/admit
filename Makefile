@@ -17,8 +17,8 @@ FTP = ftp://ftp.astro.umd.edu/pub/admit/testdata
 # sample testdata needed for a mininum integration and regression test
 DATA = test0.fits test253_spw3.fits test253_cont.fits
 
-# use wget1 or wgetc (caching)
-WGET = wget1
+# use wget1 or wgetc if you want caching
+WGET = wget
 
 help:
 	@echo Reminders/Helpers to build/distribute ADMIT:
@@ -160,12 +160,16 @@ testdata: data
 
 # a much quicker one minute verson of testdata + bench on test0.fits
 RLOG = "REGRESSION : MOM0FLUX: x.CO_115.27120 27240.3 25534.1 35.0141 2790.42 2790.42 58.6513"
-bench:
-	@mkdir -p testdata
-	(cd testdata; $(WGET) $(FTP)/test0.fits; ../bin/runa1 test0.fits)
+bench: testdata/test0.fits
+	(cd testdata; runa1 test0.fits)
 	grep MOM0FLUX testdata/test0.fits.log
 	@echo $(RLOG)
 	@echo These last two lines should be identical
+
+testdata/test0.fits:
+	@mkdir -p testdata
+	(cd testdata; $(WGET) $(FTP)/test0.fits)
+
 
 # reflow, should work but not do any work
 benchr:

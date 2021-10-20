@@ -23,6 +23,11 @@ if ($#argv == 0) then
   exit 0
 endif
 
+#  first kill all our Xvfb instances... they can hang tasks, or give weird side-effects
+#  but can be bad when running ADMIT tasks in parallel
+ps aux | grep Xvfb
+killall -u `whoami` Xvfb
+
 #  these are files with a fixed name (no $$ or tmpfile() usage)
 #  that need to be cleaned up if a CASA script crashes in certain ways
 #  @todo should be filed as a CASA bug, we shouldn't need to do this

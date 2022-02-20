@@ -218,13 +218,6 @@ def a_exit(level):
         os.system(cmd)
     a.exit(level)
 
-def a_cmd(argv):
-    """
-    run a command
-    """
-    cmd = argv[0]
-    os.system()
-
 #maxpos   = get_pos(1)+get_pos(2)+get_pos(3)+get_pos(4)+get_pos(5)+get_pos(6)+get_pos(7)+get_pos(8)+get_pos(9)+get_pos(10)
 # 0:47:33.317 -25.17.15.926 = pos 7
 

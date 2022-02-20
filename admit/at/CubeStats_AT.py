@@ -128,7 +128,7 @@ class CubeStats_AT(AT):
                 "psample" : -1,         # if > 0, spatial sampling rate for PeakStats
         }
         AT.__init__(self,keys,keyval)
-        self._version       = "1.2.3"
+        self._version       = "1.3.0"
         self.set_bdp_in([(Image_BDP,      1, bt.REQUIRED)])
         self.set_bdp_out([(CubeStats_BDP, 1)])
 

@@ -160,7 +160,7 @@ class SFind2D_AT(AT):
                }
 
         AT.__init__(self,keys,keyval)
-        self._version = "1.2.2"
+        self._version = "1.3.0"
         self.set_bdp_in([(Image_BDP,2,bt.OPTIONAL),
                          (CubeStats_BDP,1,bt.OPTIONAL)])
         self.set_bdp_out([(SourceList_BDP, 1)])
@@ -206,7 +206,7 @@ class SFind2D_AT(AT):
             -------
             None
         """
-        logging.study7("sfind2d")
+        logging.study7("# sfind2d")
         dt = utils.Dtime("SFind2D")               # tagging time
         self._summary = {}
         # get key words that user input
@@ -220,6 +220,7 @@ class SFind2D_AT(AT):
         mpl = True                                     # aplot.map1() plot
         dynlog = 20.0                                  # above this value of dyn range finder chart is log I-scaled
         bpatch = True                                  # patch units to Jy/beam for ia.findsources()
+        dpr = 180.0/np.pi
         
         # get the input casa image from bdp[0]
         bdpin = self._bdp_in[0]
@@ -375,7 +376,7 @@ class SFind2D_AT(AT):
                 if snr > sn0:
                     sn0 = snr
                 logging.info("%s %s %8.2f %8.2f %10.3g %10.3g %7.3f %7.3f %6.1f %6.1f" % (ra,dec,xpos,ypos,peakf,flux,smajor,sminor,sangle,snr))
-                logging.study7("S %s %s %8.2f %8.2f %10.3g %10.3g %7.3f %7.3f %6.1f %6.1f" % (ra,dec,xpos,ypos,peakf,flux,smajor,sminor,sangle,snr))
+                logging.study7("S %13.9f %13.9f %10.3g %10.3g %7.3f %7.3f %6.1f %6.1f" % (r*dpr,d*dpr,peakf,flux,smajor,sminor,sangle,snr))
                 
                 xtab.append(xpos)
                 ytab.append(ypos)

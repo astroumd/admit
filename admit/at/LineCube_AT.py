@@ -110,7 +110,7 @@ class LineCube_AT(AT):
                 "fpad"     : -1.0,   # optional fractional linesegment width padding
                 }
         AT.__init__(self, keys, keyval)
-        self._version = "1.2.2"
+        self._version = "1.3.0"
         self.set_bdp_in([(Image_BDP,     1, bt.REQUIRED),
                          (LineList_BDP,  1, bt.REQUIRED)])
         self.set_bdp_out([(LineCube_BDP, 0)])
@@ -135,6 +135,7 @@ class LineCube_AT(AT):
             -------
             None
         """
+        logging.study7("# linecube")
         dt = utils.Dtime("LineCube")
         self._summary = {}
         # look for an input noise level, either through keyword or input 
@@ -300,6 +301,7 @@ class LineCube_AT(AT):
                         end = nchan - 1
             endch = startch + diff
             args["chans"] = "%i~%i" % (start, end)
+            logging.study7("# %s %d %d" % (cdir, start, end))
             rdata.append(start)
             rdata.append(end)
             # for the summmary, which will be a table of

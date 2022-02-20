@@ -251,7 +251,7 @@ class Ingest_AT(AT):
             # 'cbeam'   : 0.5,     # # channel beam variation allowed in terms of pixel size to use median beam
         }
         AT.__init__(self,keys,keyval)
-        self._version = "1.2.13"
+        self._version = "1.3.0"
         self.set_bdp_in()                            # no input BDP
         self.set_bdp_out([(SpwCube_BDP, 1),          # one or two output BDPs
                           (Image_BDP,   0),          # optional PB if there was an pb= input
@@ -915,8 +915,8 @@ class Ingest_AT(AT):
                 err4 = dv
             logging.info("Freq Orig Axis 3: %g %g %g" % (h0['crval3']/1e9,h0['cdelt3']/1e9,h0['crpix3']))
             logging.info("Cube Orig Axis 3: type=%s  velocity increment=%f km/s @ fc=%f fw=%f GHz" % (t3,dv,fc/1e9,fw/1e9))
-            logging.study7("fc %f" % (fc/1e9))
-            logging.study7("fw %f" % (fw/1e9))
+            logging.study7("freqc %f" % (fc/1e9))
+            logging.study7("freqw %f" % (fw/1e9))
 
             logging.info("RESTFREQ: %g %g %g" % (fr/1e9,h0['restfreq'][0]/1e9,restfreq/1e9))
 
@@ -937,7 +937,11 @@ class Ingest_AT(AT):
         else:
             # continuum
             logging.info("FREQ Axis 3: %g %g %g" % (h0['crval3']/1e9,h0['cdelt3']/1e9,h0['crpix3']))
-            # @todo fc,fw for study7
+            fc = (1-h0['crpix3'])*h0['cdelt3'] + h0['crval3']
+            fw = h0['cdelt3']
+            logging.study7("freqc %f" % (fc/1e9))
+            logging.study7("freqw %f" % (fw/1e9))
+            logging.study7("lines 0")
             
         #
         # @todo  TBD if we need a smarter algorithm to set the final h["vlsr"]
@@ -954,6 +958,12 @@ class Ingest_AT(AT):
         # @todo   ZSOURCE is the proposed VLSR slot in the fits header, but this has frame issues (it's also optical)
 
         self._summarize(fitsfile, bdpfile, h, shape, taskargs)
+
+        # study7 in fits units - all degrees here
+        dpr = 180*np.pi
+        logging.study7("bmaj %s" % (self._summary['bmaj'].value[0] * dpr))
+        logging.study7("bmin %s" % (self._summary['bmin'].value[0] * dpr))
+        logging.study7("bpa  %s" % (self._summary['bpa'].value[0]))
 
         dt.tag("done")
         dt.end()

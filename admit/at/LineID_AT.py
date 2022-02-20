@@ -289,7 +289,7 @@ class LineID_AT(AT):
                }
         self.boxcar = True
         AT.__init__(self, keys, keyval)
-        self._version = "1.2.7"
+        self._version = "1.3.0"
         self.set_bdp_in([(CubeSpectrum_BDP, 1, bt.OPTIONAL),
                          (CubeStats_BDP,    1, bt.OPTIONAL),
                          (PVCorr_BDP,       1, bt.OPTIONAL)])
@@ -2997,7 +2997,7 @@ class LineID_AT(AT):
             -------
             None
         """
-        logging.study7("lineid")
+        logging.study7("# lineid")
         self.dt = utils.Dtime("LineID")
         if not self.boxcar:
             logging.info("Boxcar smoothing turned off.")
@@ -4468,7 +4468,13 @@ class LineID_AT(AT):
             logging.log(logging.INFO, " Found line: " + m.getkey("formula") + " " + m.getkey("transition") +
                         " @ " + str(m.getkey("frequency")) + "GHz, channels " + str(m.getstart()) +
                         " - " + str(m.getend()) + addon)
-            logging.study7("L %s %s %g" % (m.getkey("formula"), m.getkey("transition"),m.getkey("frequency"))) 
+            rest = m.getkey("frequency")
+            fmin = self.freq[m.getstart()]
+            fmax = self.freq[m.getend()]
+            vmin = utils.freqtovel(rest, rest-fmin)
+            vmax = utils.freqtovel(rest, rest-fmax)
+            if vmin > vmax:  (vmin,vmax) = (vmax,vmin)
+            logging.study7("L %s %s %.5f %g %g" % (m.getkey("formula"), m.getkey("transition"),m.getkey("frequency"), vmin, vmax))
             if m.getkey('uid') in duplicate_lines:
                 logging.log(logging.WARNING, " Skipping duplicate UID: " + m.getkey("uid"))
                 continue
@@ -4480,6 +4486,7 @@ class LineID_AT(AT):
             coverage[m.getstart() : m.getend() + 1] = 1.0
         fcoverage = coverage.sum() / len(self.freq)
         logging.log(logging.INFO, " Line Coverage %d / %d = %g" % (int(coverage.sum()),len(self.freq),fcoverage))
+        logging.study7("fcoverage %g" % fcoverage)
         # PJT @todo the line coverage fraction should be added to the summary
 
         _caption = "Identified lines overlaid on Signal/Noise plot of all spectra."

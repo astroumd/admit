@@ -172,7 +172,7 @@ class CubeSum_AT(AT):
             "zoom"       : 1,      # default map plot zoom ratio
         }
         AT.__init__(self,keys,keyval)
-        self._version = "1.2.2"
+        self._version = "1.3.0"
         self.set_bdp_in([(Image_BDP,     1, bt.REQUIRED),
                          (CubeStats_BDP, 1, bt.OPTIONAL),
                          (LineList_BDP,  1, bt.OPTIONAL)])    # LineSegment_BDP also allowed
@@ -189,6 +189,7 @@ class CubeSum_AT(AT):
             -------
             None
         """
+        logging.study7("# cubesum")
         dt = utils.Dtime("CubeSum")              # tagging time
         self._summary = {}                       # an ADMIT summary will be created here
  

@@ -206,6 +206,7 @@ class SFind2D_AT(AT):
             -------
             None
         """
+        logging.study7("sfind2d")
         dt = utils.Dtime("SFind2D")               # tagging time
         self._summary = {}
         # get key words that user input
@@ -374,6 +375,7 @@ class SFind2D_AT(AT):
                 if snr > sn0:
                     sn0 = snr
                 logging.info("%s %s %8.2f %8.2f %10.3g %10.3g %7.3f %7.3f %6.1f %6.1f" % (ra,dec,xpos,ypos,peakf,flux,smajor,sminor,sangle,snr))
+                logging.study7("S %s %s %8.2f %8.2f %10.3g %10.3g %7.3f %7.3f %6.1f %6.1f" % (ra,dec,xpos,ypos,peakf,flux,smajor,sminor,sangle,snr))
                 
                 xtab.append(xpos)
                 ytab.append(ypos)

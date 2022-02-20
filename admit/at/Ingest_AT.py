@@ -340,6 +340,8 @@ class Ingest_AT(AT):
         if fitsfile[0] != os.sep:
             fitsfile = os.path.abspath(os.getcwd() + os.sep + fitsfile)
         logging.debug('FILE=%s' % fitsfile)
+        logging.study7('# ingest')
+        logging.study7('FITS  %s' % fitsfile)
         if fitsfile[0] != os.sep:
             raise Exception("Bad file=%s, expected absolute name").with_traceback(fitsfile)
 
@@ -716,6 +718,7 @@ class Ingest_AT(AT):
         nx = s['shape'][0]
         ny = s['shape'][1]
         nz = s['shape'][2]
+        logging.study7("nchan %d" % nz)
         for n in s['shape']:
             npix = npix * n
         ngood = int(s0['npts'][0])
@@ -912,6 +915,8 @@ class Ingest_AT(AT):
                 err4 = dv
             logging.info("Freq Orig Axis 3: %g %g %g" % (h0['crval3']/1e9,h0['cdelt3']/1e9,h0['crpix3']))
             logging.info("Cube Orig Axis 3: type=%s  velocity increment=%f km/s @ fc=%f fw=%f GHz" % (t3,dv,fc/1e9,fw/1e9))
+            logging.study7("fc %f" % (fc/1e9))
+            logging.study7("fw %f" % (fw/1e9))
 
             logging.info("RESTFREQ: %g %g %g" % (fr/1e9,h0['restfreq'][0]/1e9,restfreq/1e9))
 
@@ -932,6 +937,7 @@ class Ingest_AT(AT):
         else:
             # continuum
             logging.info("FREQ Axis 3: %g %g %g" % (h0['crval3']/1e9,h0['cdelt3']/1e9,h0['crpix3']))
+            # @todo fc,fw for study7
             
         #
         # @todo  TBD if we need a smarter algorithm to set the final h["vlsr"]

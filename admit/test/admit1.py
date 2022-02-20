@@ -40,7 +40,7 @@ import argparse as ap
 
 import admit
 
-version  = '21-dec-2017'
+version  = '20-feb-2022'
 
 #  ===>>> set some parameters for this run <<<=================================================================
 #
@@ -179,6 +179,8 @@ robust  = []
 
 pvwidth = 5
 
+study7 = True
+
 # given as example here, you would stick this in your personal .apar file for your object(s)
 def get_pos(i):
     """ return key positions in N253 (1..10) from Meier's Table 2:
@@ -199,6 +201,29 @@ def get_pos(i):
             ['00h47m33.100s',   '-25d17m17.50s' ],  # map reference 
           ]
     return pos[i]
+
+def a_exit(level):
+    """
+    """
+    global a
+    global study7
+    if study7:
+        # @todo the plan is to create this file inside of adir,
+        #       for now, we need to copy it
+        log = "admit_study7.log"
+        lines = open(log,"r").readlines()
+        adir = lines[0].split()[1]
+        print("A_EXIT %s" % adir)
+        cmd = "cp %s %s" % (log,adir)
+        os.system(cmd)
+    a.exit(level)
+
+def a_cmd(argv):
+    """
+    run a command
+    """
+    cmd = argv[0]
+    os.system()
 
 #maxpos   = get_pos(1)+get_pos(2)+get_pos(3)+get_pos(4)+get_pos(5)+get_pos(6)+get_pos(7)+get_pos(8)+get_pos(9)+get_pos(10)
 # 0:47:33.317 -25.17.15.926 = pos 7
@@ -262,12 +287,27 @@ for ap1 in ['admit1.apar', file+".apar", apar]:         # loop over 3 possible a
     else:
         print("Skipping ",ap1)
 
+
+# deal with admit_study7.log file in the working directory
+# @todo this should be inside of adir
+if study7:
+    fp = open("admit_study7.log","w")
+    fp.write("adir  %s\n" % adir)
+    fp.write("file  %s\n" % file)
+    fp.close()
+    #  write a script in /tmp/aq$$.sh that creates the admit_aq.log file after the first ingest when adir is ready
+    alma_aq_cmd = "alma_aq.sh %s %s" % (file,adir)
+    
 # open admit
 a = admit.Project(adir,name='Testing ADMIT1 style pipeline - version %s' % version,create=create,loglevel=loglevel)
 
+
 if a.new:
-    print("Starting a new ADMIT using",file)
-    cmd = 'cp -a %s %s' % (sys.argv[0],adir)               # copy the script into the admit directory (@todo is that right one?)
+    print("Starting a new ADMIT using %s" % file)
+    if study7:
+        print("ALMA_AQ:: %s" % alma_aq_cmd)
+        os.system(alma_aq_cmd)
+    cmd = 'cp -a %s %s' % (sys.argv[0],adir)               # copy the script into the admit directory
     os.system(cmd)
     a.set(admit_dir=adir)                                  # why was this again?
     #
@@ -282,7 +322,8 @@ else:
     a.fm.diagram(a.dir()+'admit.dot')
     a.show()
     a.showsetkey()
-    sys.exit(0)     # doesn't work properly in IPython, leaves the user with a confusing mess
+    #sys.exit(0)     # doesn't work properly in IPython, leaves the user with a confusing mess
+    a_exit()
 
 # Default ADMIT plotting environment
 a.plotparams(plotmode,plottype)
@@ -306,7 +347,7 @@ if False:
     # test File_AT:
     file1 = a.addtask(admit.File_AT(file=file))
 
-if stop == 'ingest':  a.exit(1)
+if stop == 'ingest':  a_exit(1)
 
 # smooth
 if len(smooth) > 0:
@@ -328,7 +369,7 @@ if len(smooth) > 0:
     bandcube1_orig = bandcube1
     bandcube1 = bandcube2
 
-    if stop == 'smooth':  a.exit(1)
+    if stop == 'smooth':  a_exit(1)
 else:    
     bandcube1_orig = ()
 
@@ -363,7 +404,7 @@ a[cubestats1].setkey('ppp',usePPP)
 a[cubestats1].setkey('psample',psample)
 csttab1 = (cubestats1,0)
 
-if stop == 'cubestats':  a.exit(1)
+if stop == 'cubestats':  a_exit(1)
 
 
 # CubeSum
@@ -378,7 +419,7 @@ if False:
     # testing Export_AT()
     fits000 = a.addtask(admit.Export_AT(basename="testCubeSum"), [csmom0])
 
-if stop == 'cubesum':  a.exit(1)    
+if stop == 'cubesum':  a_exit(1)    
 
 # SFind2D on CSM 
 if True:
@@ -413,7 +454,7 @@ else:
      
 csptab1 = (cubespectrum1,0)
 
-if stop == 'cubespectrum':  a.exit(1)    
+if stop == 'cubespectrum':  a_exit(1)    
 
 # Find line segments from cubestats and/or cubespect
 # For SD maps cubestats should not be used, since there is a false (negative) continuum
@@ -440,7 +481,7 @@ if lineSEG:
     nsegments = len(a[lstab1[0]][0])
     print("Found %d segments in LineSegment" % nsegments)
     
-    if stop == 'linesegments':  a.exit(1)    
+    if stop == 'linesegments':  a_exit(1)    
 else:
     nsegments = 0
 
@@ -520,7 +561,7 @@ else:
         cubespectrum1 = a.addtask(admit.CubeSpectrum_AT(), [bandcube1,csmom0])
     csptab1 = (cubespectrum1,0)
 
-    if stop == 'contsub':  a.exit(1)    
+    if stop == 'contsub':  a_exit(1)    
 
 if usePV:        
     # PVSlice
@@ -540,7 +581,7 @@ if usePV:
     a[slice1].setkey('pvsmooth',pvSmooth)   # pvsmooth, in pixel numbers
     pvslice1 = (slice1,0)
 
-    if stop == 'pvslice':  a.exit(1)
+    if stop == 'pvslice':  a_exit(1)
 
     corr1 = a.addtask(admit.PVCorr_AT(),[pvslice1,csttab1])
     #a[corr1].setkey('chans',[530,584])     # this is automated, but here you pick a channel range line
@@ -548,7 +589,7 @@ if usePV:
     #a[corr1].setkey('numsigma',3.0)
     pvcorr1 = (corr1,0)
 
-    if stop == 'pvcorr':  a.exit(1)
+    if stop == 'pvcorr':  a_exit(1)
 
 a.run()
 source = a.summaryData.get('object')[0].getValue()[0]
@@ -590,7 +631,7 @@ lltab1 = (lineid1,0)
 
 a.run()
 
-if stop == 'lineid':  a.exit(1)    
+if stop == 'lineid':  a_exit(1)    
 
 nlines = len(a[lltab1[0]][0])
 print("Found %d lines in LineID" % nlines)
@@ -598,7 +639,7 @@ print("Found %d lines in LineID" % nlines)
 # special case, exit here if you don't want any linecubes
 if maxlines == 0:
     print("maxlines=0; no linecube's will be produced - end of admit1")
-    a.exit(1)
+    a_exit(1)
 
 #
 if len(bandcube1_orig) > 0 and not useSmooth: bandcube1 = bandcube1_orig
@@ -616,7 +657,7 @@ a.run()
 nlines = len(a[linecube1])
 print("Found %d lines in LineCube" % nlines)
 
-if stop == 'linecube':  a.exit(1)    
+if stop == 'linecube':  a_exit(1)    
 
 
 x = list(range(nlines))    # place holder to contain mol/line
@@ -655,6 +696,13 @@ for i in range(nlines):
     else:
         # CubeSpectrum last resort, where it takes the peak from cube maximum
         sp[x[i]] = a.addtask(admit.CubeSpectrum_AT(),[linecubei,csttab1])
+
+    # two options here:
+    #   1. do a simple new SFind2D on the moment0 map
+    #   2. use the sourcelist from the CubeSum->SFind2D map to make a new
+    #      sourcelist from the moment0 map - this way we have the same
+    #      sourcelist for each linecube, make the comparison easier
+    #      without having to resort to source merging
 
 if useMOM:
     if nlines == 0:
@@ -701,3 +749,6 @@ a.run()
 if admit0:
     print("RE-RUN: ",run_admit0)
     os.system(run_admit0)
+
+    
+a_exit(0)

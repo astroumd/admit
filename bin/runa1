@@ -33,6 +33,7 @@ foreach base ($*)
   set pb = $base.flux.fits
   set log = $base.log
   if (-e $im && -e $pb) then
+    echo "case 00"
     listfitsa $im
     echo $a  --pb $pb --basename x $im
     if ($sysname == Darwin) exec $a  --pb $pb --basename x $im >& $log
@@ -51,6 +52,7 @@ foreach base ($*)
   set log = $base.log
   if (-e $pbz) set pb = $pbz
   if (-e $im && -e $pb) then
+    echo "case 0"  
     listfitsa $im
     echo $a  --pb $pb --basename x $im
     if ($sysname == Darwin) exec $a  --pb $pb --basename x $im >& $log
@@ -63,6 +65,7 @@ foreach base ($*)
   set imz = $im.gz
   set pbz = $pb.gz
   if (-e $imz && -e $pbz) then
+    echo "case 0a"
     listfitsa $imz
     echo $a  --pb $pbz --basename x $imz
     if ($sysname == Darwin) exec $a  --pb $pbz --basename x $imz >& $log
@@ -78,6 +81,7 @@ foreach base ($*)
   set log = $base.log
 
   if (-e $im && -e $pb) then
+    echo "case 1"  
     listfitsa $im
     echo $a  --pb $pb --basename x $im
     if ($sysname == Darwin) exec $a  --pb $pb --basename x $im >& $log
@@ -92,6 +96,7 @@ foreach base ($*)
   set pb = $base.flux.fits
   set log = $base.log
   if (-e $nf && -e $ff && -e $pb) then
+    echo "case 2"  
     listfitsa $nf
     echo $a  --basename x $nf
     if ($sysname == Darwin) exec $a  --basename x $nf >& $log
@@ -104,6 +109,7 @@ foreach base ($*)
   set im = $base
   set log = $base.log
   if (-e $im) then
+    echo "case 3"  
     listfitsa $im
     echo $a --basename x $im
     if ($sysname == Darwin) exec $a --basename x $im >& $log

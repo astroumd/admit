@@ -189,7 +189,9 @@ class CubeStats_AT(AT):
         maxvrms = self.getkey("maxvrms")
 
         psample = -1
-        psample = self.getkey("psample")        
+        psample = self.getkey("psample")
+
+        logging.study7('# cubestats')
 
         # BDP's used :
         #   b1 = input BDP
@@ -383,6 +385,8 @@ class CubeStats_AT(AT):
         if rms_ratio > 1.5:
             logging.warning("RMS sanity check = %f.  Either bad sidelobes, lotsa signal, or both" % rms_ratio)
         logging.regression("CST: %f %f" % (sigma0, rms_ratio))
+
+        logging.study7("rms %g" % sigma0)
 
         # plots: no plots need to be made when nchan=1 for continuum
         # however we could make a histogram, overlaying the "best" gauss so 

@@ -2997,6 +2997,7 @@ class LineID_AT(AT):
             -------
             None
         """
+        logging.study7("lineid")
         self.dt = utils.Dtime("LineID")
         if not self.boxcar:
             logging.info("Boxcar smoothing turned off.")
@@ -3098,6 +3099,7 @@ class LineID_AT(AT):
             vlsr = 0.0
         logging.info("Identifylines = %s" % str(self.identifylines))
         logging.info("Using vlsr = %g" % vlsr)
+        logging.study7("vlsr %f" % vlsr)
 
         # grab any optional references overplotted on the "ll" plots
         line_ref = utils.get_references(self.getkey("references"))
@@ -3480,6 +3482,7 @@ class LineID_AT(AT):
         # if nothing was detected
         if not havesomething:
             logging.warning("No lines detected by LineID.")
+            logging.study7("nlines 0")
             # regression:  name, freq, ch0, ch1
             if self.getkey("vlsr") > -999998.0:
                 t = "Rest"
@@ -4459,11 +4462,13 @@ class LineID_AT(AT):
         mlist.sort(key=lambda x: float(x.getkey("frequency")))
         duplicate_lines = []
         coverage = np.zeros(len(self.freq))
+        logging.study7("nlines %d" % len(mlist))
         for m in mlist:
             addon = ""
             logging.log(logging.INFO, " Found line: " + m.getkey("formula") + " " + m.getkey("transition") +
                         " @ " + str(m.getkey("frequency")) + "GHz, channels " + str(m.getstart()) +
                         " - " + str(m.getend()) + addon)
+            logging.study7("L %s %s %g" % (m.getkey("formula"), m.getkey("transition"),m.getkey("frequency"))) 
             if m.getkey('uid') in duplicate_lines:
                 logging.log(logging.WARNING, " Skipping duplicate UID: " + m.getkey("uid"))
                 continue

@@ -52,6 +52,11 @@ class AdmitLogging(object):
     loggers = set()             # set of the names of all registered loggers
     EFFECTIVELOGLEVEL = 20      # all loggers must have the same level
 
+    #  For the study7 method (a big hack) wen
+    study7_log = 'study7_admit.log'
+    study7_fp  = None
+
+    
     @staticmethod
     def init(name, logfile, level):
         """ Method to initialize a new named logger
@@ -125,6 +130,29 @@ class AdmitLogging(object):
         if level >= AdmitLogging.EFFECTIVELOGLEVEL:
             return True
         return False
+
+    @staticmethod
+    def study7(message):
+        """ Method to write mockdata for study7
+
+            Parameters
+            ----------
+            message : str
+                The message to sed to the log
+
+            Returns
+            -------
+            None
+
+        """
+        if True:
+            fp = open("admit_study7.log","a")
+            fp.write("%s\n" % message)
+            fp.close()
+        else:
+            if study7_fp == None:
+                study7_fp = open(study7_log,"w")
+            study7_fp.write("%s\n" % message)
 
     @staticmethod
     def warning(message):

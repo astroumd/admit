@@ -26,7 +26,7 @@ import argparse as ap
 
 import admit
 
-version  = '17-oct-2020'
+version  = '20-feb-2022'
 
 #  ===>>> set some parameters for this run <<<=================================================================
 #
@@ -72,6 +72,25 @@ robust  = []
 #loglevel = 20               # 10=DEBUG, 15=TIMING 20=INFO 30=WARNING 40=ERROR 50=FATAL
 #useMask  = False
 #plotmode = admit.PlotControl.INTERACTIVE
+
+study7 = True
+
+def a_exit(level):
+    """
+    """
+    global a
+    global study7
+    if study7:
+        # @todo the plan is to create this file inside of adir,
+        #       for now, we need to copy it
+        log = "admit_study7.log"
+        lines = open(log,"r").readlines()
+        adir = lines[0].split()[1]
+        print("A_EXIT %s" % adir)
+        cmd = "cp %s %s" % (log,adir)
+        os.system(cmd)
+    a.exit(level)
+
 
 #-----------------------------------------------------------------------------------------------------------------------
 #-------------------- command line parsing -----------------------------------------------------------------------------
@@ -127,12 +146,24 @@ for ap1 in ['admit2.apar', file+".apar", apar]:         # loop over 3 possible a
     else:
         print("Skipping ",ap1)
         
+# deal with admit_study7.log file in the working directory
+# @todo this should be inside of adir
+if study7:
+    fp = open("admit_study7.log","w")
+    fp.write("adir  %s\n" % adir)
+    fp.write("file  %s\n" % file)
+    fp.close()
+    #  write a script in /tmp/aq$$.sh that creates the admit_aq.log file after the first ingest when adir is ready
+    alma_aq_cmd = "alma_aq.sh %s %s" % (file,adir)
     
 # open admit
 a = admit.Project(adir,name='Testing ADMIT2 style pipeline - version %s' % version,create=create,loglevel=loglevel)
 
 if a.new:
     print("Starting a new ADMIT using ",file)
+    if study7:
+        print("ALMA_AQ:: %s" % alma_aq_cmd)
+        os.system(alma_aq_cmd)
     cmd = 'cp -a %s %s' % (sys.argv[0],adir)
     os.system(cmd)
     a.set(admit_dir=adir)
@@ -169,7 +200,7 @@ a.run()
 if len(a[ingest1]) == 1:
     pbmap1 = None
 
-if stop == 'ingest':  a.exit(1)
+if stop == 'ingest':  a_exit(1)
 
 if len(smooth) > 0:
     smooth1 = a.addtask(admit.Smooth_AT(), [bandcube1])
@@ -187,7 +218,7 @@ if len(smooth) > 0:
     # or do LineID with bandcube2, but make linecube's from bandcube1
     bandcube1 = bandcube2
     
-    if stop == 'smooth':  a.exit(1)
+    if stop == 'smooth':  a_exit(1)
 
 # CubeStats - will also do log(Noise),log(Peak) plot
 cubestats1 = a.addtask(admit.CubeStats_AT(), [bandcube1])
@@ -195,7 +226,7 @@ a[cubestats1].setkey('robust',robust)
 a[cubestats1].setkey('ppp',False)
 csttab1 = (cubestats1,0)
 
-if stop == 'cubestats':  a.exit(1)
+if stop == 'cubestats':  a_exit(1)
 
 # CubeSum (since we took that plot away in Ingest)
 moment1 = a.addtask(admit.CubeSum_AT(), [bandcube1,csttab1])
@@ -263,4 +294,6 @@ if repeat:
 a.run()
 
 a.showsetkey(adir+'/admit.apar')
+
+a_exit(0)
 

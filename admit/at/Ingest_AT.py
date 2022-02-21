@@ -941,7 +941,7 @@ class Ingest_AT(AT):
             fw = h0['cdelt3']
             logging.study7("freqc %f" % (fc/1e9))
             logging.study7("freqw %f" % (fw/1e9))
-            logging.study7("lines 0")
+            logging.study7("nlines 0")
             
         #
         # @todo  TBD if we need a smarter algorithm to set the final h["vlsr"]

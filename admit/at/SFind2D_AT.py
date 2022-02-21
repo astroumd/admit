@@ -321,6 +321,7 @@ class SFind2D_AT(AT):
         ytab = []
         logscale = False
         sumflux = 0.0
+        logging.study7("nsources %d" % nsources)
         if nsources > 0:
             # @TODO: Why are Xpix, YPix not stored in the table?
             #        -> PJT: I left them out since they are connected to an image which may not be available here
@@ -392,7 +393,6 @@ class SFind2D_AT(AT):
             dt.tag("table")
         logging.regression("CONTFLUX: %d %g" % (nsources,sumflux))
         
-
         summary = ia.summary()
         beammaj = summary['restoringbeam']['major']['value']
         beammin = summary['restoringbeam']['minor']['value']

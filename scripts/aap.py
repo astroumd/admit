@@ -32,7 +32,7 @@
 #   @todo ...
 #
 
-_version = "31-oct-2020 PJT"
+_version = "21-feb-2022 PJT"
 
 import os, sys
 import argparse as ap
@@ -42,15 +42,15 @@ import datetime
 #   decipher the python environment (yuck)
 try:
     import casa
-    print("Warning fake: still assuming classic ADMIT")
+    print("Warning: still assuming classic ADMIT")
     is_admit3 = False
 except:
     try:
         import casatasks    # pre-release now does this????
         is_admit3 = True
-        print("Good fake news: running ADMIT3")
+        print("Good news: running ADMIT3")
     except:
-        print("Bad fake news: your python doesn't know casa or casatasks")
+        print("Bad news: your python doesn't know casa or casatasks")
 
 
 def version():
@@ -340,8 +340,8 @@ def compute_admit(dirname, madmitname=None, verbose=False, ingest=False, dryrun=
     if madmitname == None:
         prefix=dirname.strip('/').split('/')
         # try some unique name that name-completes but also parses fast by the human eye and filebrowsers
-        madmitname = os.path.abspath('./madmit_'+datetime.datetime.now().strftime('%Y%m%d_%H%M%S.%f'))
-        madmitname = os.path.abspath(prefix[-1]+"_"+prefix[-2]+"_"+datetime.datetime.now().strftime('%Y%m%d_%H%M%S.%f'))
+        madmitname = os.path.abspath('./madmit_'+datetime.datetime.now().strftime('%Y%m%d_%H%M%S'))
+        madmitname = os.path.abspath(prefix[-1]+"_"+prefix[-2]+"_"+datetime.datetime.now().strftime('%Y%m%d_%H%M%S'))
     print("MADMIT: %s" % madmitname)
 
     # @todo   only mfs and cube?  what about cont ?  or _ph and _pb

@@ -136,7 +136,7 @@ class Moment_AT(AT):
             "zoom"     : 1,            # default map plot zoom ratio
         }
         AT.__init__(self, keys, keyval)
-        self._version = "1.2.2"
+        self._version = "1.3.0"
         # set input types
         self.set_bdp_in([(Image_BDP,     1, bt.REQUIRED),
                          (CubeStats_BDP, 1, bt.OPTIONAL)])
@@ -163,6 +163,8 @@ class Moment_AT(AT):
             -------
             None
         """
+        logging.study7("# moment")
+        
         self._summary = {}
         momentsummary = []
         dt = utils.Dtime("Moment")
@@ -431,6 +433,8 @@ class Moment_AT(AT):
                 msg = "MOM0FLUX: %s %g %g %g %g %g %g" % ("SPW_FULL"    ,map[0].sum(),sum0,beamarea,vmean,vmean,vsig)
             logging.regression(msg)
             dt.tag("mom0flux")
+            dot = basename[:loc].find('.')
+            logging.study7("L_%s %g %g %g" % (basename[:loc][dot+1:], sum0, vmean, vsig))
 
             # create a histogram of flux per channel
 

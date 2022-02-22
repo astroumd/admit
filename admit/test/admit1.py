@@ -690,6 +690,10 @@ for i in range(nlines):
         # CubeSpectrum last resort, where it takes the peak from cube maximum
         sp[x[i]] = a.addtask(admit.CubeSpectrum_AT(),[linecubei,csttab1])
 
+    #  just run it, no output bdp needed yet
+    if study7:
+        junk = a.addtask(admit.MapSources_AT(),[m[x[i]],csttab1,sfind1])
+
     # two options here:
     #   1. do a simple new SFind2D on the moment0 map
     #   2. use the sourcelist from the CubeSum->SFind2D map to make a new

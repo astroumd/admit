@@ -931,6 +931,7 @@ class Ingest_AT(AT):
                 vlsr = 0.0
 
             logging.info("VLSR = %f errs = %f %f %f width = %f" % (vlsr,err1,err2,err3,err4))
+            logging.study7("vlsr %g" % vlsr)
 
             h['vlsr'] = vlsr
 
@@ -942,6 +943,7 @@ class Ingest_AT(AT):
             logging.study7("freqc %f" % (fc/1e9))
             logging.study7("freqw %f" % (fw/1e9))
             logging.study7("nlines 0")
+            logging.study7("vlsr 0")
             
         #
         # @todo  TBD if we need a smarter algorithm to set the final h["vlsr"]
@@ -964,7 +966,6 @@ class Ingest_AT(AT):
         logging.study7("bmaj %s" % (self._summary['bmaj'].value[0] * dpr))
         logging.study7("bmin %s" % (self._summary['bmin'].value[0] * dpr))
         logging.study7("bpa  %s" % (self._summary['bpa'].value[0]))
-        logging.study7("vlsr %g" % vlsr)
 
         dt.tag("done")
         dt.end()

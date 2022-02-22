@@ -964,6 +964,7 @@ class Ingest_AT(AT):
         logging.study7("bmaj %s" % (self._summary['bmaj'].value[0] * dpr))
         logging.study7("bmin %s" % (self._summary['bmin'].value[0] * dpr))
         logging.study7("bpa  %s" % (self._summary['bpa'].value[0]))
+        logging.study7("vlsr %g" % vlsr)
 
         dt.tag("done")
         dt.end()

@@ -3483,6 +3483,7 @@ class LineID_AT(AT):
         if not havesomething:
             logging.warning("No lines detected by LineID.")
             logging.study7("nlines 0")
+            logging.study7("fcoverage 0.0")
             # regression:  name, freq, ch0, ch1
             if self.getkey("vlsr") > -999998.0:
                 t = "Rest"

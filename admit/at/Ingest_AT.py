@@ -944,6 +944,7 @@ class Ingest_AT(AT):
             logging.study7("freqw %f" % (fw/1e9))
             logging.study7("nlines 0")
             logging.study7("vlsr 0")
+            logging.study7("fcoverage 0.0")
             
         #
         # @todo  TBD if we need a smarter algorithm to set the final h["vlsr"]

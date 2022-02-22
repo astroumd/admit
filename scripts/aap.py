@@ -363,7 +363,7 @@ def compute_admit(dirname, madmitname=None, verbose=False, ingest=False, dryrun=
         run_admit('runa1', p, madmitname, verbose=verbose, dryrun=dryrun, ingest=ingest, single=single, cleanup=cleanup)
 
     # maintain a link to the latest
-    if os.path.exist(ladmitname):
+    if os.path.exists(ladmitname):
         os.unlink(ladmitname)
     os.symlink(madmitname, ladmitname)
 

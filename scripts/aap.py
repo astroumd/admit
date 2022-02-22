@@ -19,6 +19,7 @@
 #          -i     ingest only ADMIT run
 #          -r     remove all CASA images/tables after the ADMIT run
 #          -s     single mode, only one default run per image/cube
+#          -x     kill all Xvfb before starting
 #          -v     verbose
 #
 #   To use as a script, your shell environment must have 'casa' and  CASA's 'python' in the $PATH,
@@ -342,6 +343,7 @@ def compute_admit(dirname, madmitname=None, verbose=False, ingest=False, dryrun=
         # try some unique name that name-completes but also parses fast by the human eye and filebrowsers
         madmitname = os.path.abspath('./madmit_'+datetime.datetime.now().strftime('%Y%m%d_%H%M%S'))
         madmitname = os.path.abspath(prefix[-1]+"_"+prefix[-2]+"_"+datetime.datetime.now().strftime('%Y%m%d_%H%M%S'))
+        ladmitname = os.path.abspath(prefix[-1]+"_"+prefix[-2]+"_latest")
     print("MADMIT: %s" % madmitname)
 
     # @todo   only mfs and cube?  what about cont ?  or _ph and _pb
@@ -359,6 +361,11 @@ def compute_admit(dirname, madmitname=None, verbose=False, ingest=False, dryrun=
     # the expensive cubes come last
     for p in p1:
         run_admit('runa1', p, madmitname, verbose=verbose, dryrun=dryrun, ingest=ingest, single=single, cleanup=cleanup)
+
+    # maintain a link to the latest
+    if os.path.exist(ladmitname):
+        os.unlink(ladmitname)
+    os.symlink(madmitname, ladmitname)
 
     return madmitname
 
@@ -385,6 +392,9 @@ if __name__ == "__main__":
 
     parser.add_argument('-s', '--single', action = "store_true", default = False,
                         help = 'Single ADMIT mode')
+    
+    parser.add_argument('-x', '--xvfb',   action = "store_true", default = False,
+                        help = 'Clean Xvfb')
 
     parser.add_argument('-v', '--verbose', action = "store_true", default = False,
                         help = 'Verbose mode.')
@@ -405,7 +415,8 @@ if __name__ == "__main__":
     ingest = args['ingest']
     single = args['single']
     cleanup = args['cleanup']
-    print(single)
+    xvfb = args['xvfb']
+    print(single,xvfb)
 
     if do_names:
         alma_names(dirname)

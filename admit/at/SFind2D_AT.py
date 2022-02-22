@@ -345,6 +345,7 @@ class SFind2D_AT(AT):
                 regname = self.mkext(infile,'ds9.reg')
                 fp9 = open(self.dir(regname),"w")     # this was "w!" for python2 ?
             sn0 = -1.0
+            logging.study7("# S sigma %s" % sigma)
             for i in range(nsources):
                 c = "component%d" % i
                 name = "%d" % (i+1)

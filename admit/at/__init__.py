@@ -26,6 +26,7 @@ from .LineCube_AT                import LineCube_AT                as LineCube_A
 from .LineForest_AT              import LineForest_AT              as LineForest_AT
 from .LineID_AT                  import LineID_AT                  as LineID_AT
 from .LineSegment_AT             import LineSegment_AT             as LineSegment_AT
+from .MapSources_AT              import MapSources_AT              as MapSources_AT
 from .Moment_AT                  import Moment_AT                  as Moment_AT
 from .OverlapIntegral_AT         import OverlapIntegral_AT         as OverlapIntegral_AT
 from .PVCorr_AT                  import PVCorr_AT                  as PVCorr_AT

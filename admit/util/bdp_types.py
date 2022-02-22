@@ -39,7 +39,7 @@ LINE = "LINE"
 MULTIIMAGE = "MULTIIMAGE"
 SOURCE = "SOURCE"
 TABLE = "TABLE"
-UTIL_LIST = ['Image', 'Line', 'MultiImage', 'Source', 'Table']
+UTIL_LIST = ['Source', 'Image', 'MultiImage', 'Line', 'Table']
 
 # Image types
 
@@ -107,6 +107,7 @@ LINECUBE_AT = "LineCube_AT"
 LINEFOREST_AT = "LineForest_AT"
 LINEID_AT = "LineID_AT"
 LINESEGMENT_AT = "LineSegment_AT"
+MAPSOURCES_AT = "MapSources_AT"
 MOMENT_AT = "Moment_AT"
 OVERLAPINTEGRAL_AT = "OverlapIntegral_AT"
 PVCORR_AT = "PVCorr_AT"

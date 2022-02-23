@@ -181,7 +181,7 @@ class MapSources_AT(AT):
             spa  = b2.table.getFullColumnByName("PA")
             nppb = 31.0    # @todo
             if str(ra) == "None":
-               logging.study("# no sources")
+               logging.study7("# no sources")
             else:
                 for (r,d,p,j,n,a) in zip(ra,dec,peak,smaj,smin,spa):
                     rdc = convert_sexa(r,d)

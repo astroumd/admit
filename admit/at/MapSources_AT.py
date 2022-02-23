@@ -180,21 +180,24 @@ class MapSources_AT(AT):
             smin = b2.table.getFullColumnByName("Minor")
             spa  = b2.table.getFullColumnByName("PA")
             nppb = 31.0    # @todo
-            for (r,d,p,j,n,a) in zip(ra,dec,peak,smaj,smin,spa):
-                rdc = convert_sexa(r,d)
-                # this is tricky, to stay under 1 pixel , or you get a 2x2 back.
-                # see CubeSpectrum comments
-                region = 'centerbox[[%s,%s],[1pix,1pix]]' % (rdc[0],rdc[1])
-                imval = casa.imval(self.dir(fin),region=region)
-                peak  = imval['data']
-                flux  = peak * j * n / nppb
-                if len(flux.shape) > 1:     # rare case if we step on a boundary between cells?
-                    logging.warning("source %d has spectrum shape %s: averaging the spectra" % (i,repr(flux.shape)))
-                    flux = np.average(flux,axis=0)
-                rdc = convert_sexa(r,d,True)
-                snr = -1.0   # @todo
-                logging.study7("S %s %s   %g %g %g %g %g %g" % (rdc[0],rdc[1],peak,flux,j,n,a,snr))
-                # S  [w_id l_id ] ra dec peak flux smaj smin spa snr
+            if str(ra) == "None":
+               logging.study("# no sources")
+            else:
+                for (r,d,p,j,n,a) in zip(ra,dec,peak,smaj,smin,spa):
+                    rdc = convert_sexa(r,d)
+                    # this is tricky, to stay under 1 pixel , or you get a 2x2 back.
+                    # see CubeSpectrum comments
+                    region = 'centerbox[[%s,%s],[1pix,1pix]]' % (rdc[0],rdc[1])
+                    imval = casa.imval(self.dir(fin),region=region)
+                    peak  = imval['data']
+                    flux  = peak * j * n / nppb
+                    if len(flux.shape) > 1:     # rare case if we step on a boundary between cells?
+                        logging.warning("source %d has spectrum shape %s: averaging the spectra" % (i,repr(flux.shape)))
+                        flux = np.average(flux,axis=0)
+                    rdc = convert_sexa(r,d,True)
+                    snr = -1.0   # @todo
+                    logging.study7("S %s %s   %g %g %g %g %g %g" % (rdc[0],rdc[1],peak,flux,j,n,a,snr))
+                    # S  [w_id l_id ] ra dec peak flux smaj smin spa snr
 
         dt.end()
 

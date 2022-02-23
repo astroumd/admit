@@ -149,6 +149,8 @@ class SFind2D_AT(AT):
         _version : string
     """
 
+    #  @todo   threshold to only allow pointsources
+
     def __init__(self, **keyval):
         keys = {"numsigma" : 6.0,          # default to 5 sigma
                 "sigma"    : -1.0,         # default to grab sigma from CubeStats BDP

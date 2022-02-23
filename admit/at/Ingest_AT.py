@@ -786,6 +786,7 @@ class Ingest_AT(AT):
             dt.tag("imtrans3")
 
         logging.regression('CUBE: %g %g %g  %d %d %d  %f' % (s0['min'],s0['max'],s0['rms'],nx,ny,nz,100.0*(1 - fgood)))
+        logging.study7("peak %g" % s0['min'])
 
         # if the cube has only 1 plane (e.g. continuum) , create a visual (png or so)
         # for 3D cubes, rely on something like CubeSum
@@ -945,6 +946,15 @@ class Ingest_AT(AT):
             logging.study7("nlines 0")
             logging.study7("vlsr 0")
             logging.study7("fcoverage 0.0")
+
+        if True:
+            # Number of Points per Beam = 1.13309 * Bx * By / (Px * Py) for study7
+            bmaj = h['beammajor']['value']   # arcsec
+            bmin = h['beamminor']['value']   # cdelt's are in radians
+            px = abs(h0['cdelt1'] * 206264.81)
+            py = abs(h0['cdelt2'] * 206264.81)
+            nppb = 1.13309 * bmaj * bmin / (px * py)
+            logging.study7("nppb  %g" % nppb)
             
         #
         # @todo  TBD if we need a smarter algorithm to set the final h["vlsr"]
@@ -963,7 +973,7 @@ class Ingest_AT(AT):
         self._summarize(fitsfile, bdpfile, h, shape, taskargs)
 
         # study7 in fits units - all degrees here
-        dpr = 180*np.pi
+        dpr = 180/np.pi
         logging.study7("bmaj %s" % (self._summary['bmaj'].value[0] * dpr))
         logging.study7("bmin %s" % (self._summary['bmin'].value[0] * dpr))
         logging.study7("bpa  %s" % (self._summary['bpa'].value[0]))

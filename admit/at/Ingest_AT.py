@@ -786,7 +786,7 @@ class Ingest_AT(AT):
             dt.tag("imtrans3")
 
         logging.regression('CUBE: %g %g %g  %d %d %d  %f' % (s0['min'],s0['max'],s0['rms'],nx,ny,nz,100.0*(1 - fgood)))
-        logging.study7("peak %g" % s0['min'])
+        logging.study7("peak %g" % s0['max'])
 
         # if the cube has only 1 plane (e.g. continuum) , create a visual (png or so)
         # for 3D cubes, rely on something like CubeSum
@@ -939,7 +939,7 @@ class Ingest_AT(AT):
         else:
             # continuum
             logging.info("FREQ Axis 3: %g %g %g" % (h0['crval3']/1e9,h0['cdelt3']/1e9,h0['crpix3']))
-            fc = (1-h0['crpix3'])*h0['cdelt3'] + h0['crval3']
+            fc = -h0['crpix3']*h0['cdelt3'] + h0['crval3']
             fw = h0['cdelt3']
             logging.study7("freqc %f" % (fc/1e9))
             logging.study7("freqw %f" % (fw/1e9))

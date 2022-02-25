@@ -189,11 +189,11 @@ class MapSources_AT(AT):
                     # see CubeSpectrum comments
                     region = 'centerbox[[%s,%s],[1pix,1pix]]' % (rdc[0],rdc[1])
                     imval = casa.imval(self.dir(fin),region=region)
-                    peak  = imval['data']
+                    peak  = imval['data'].mean()
+                    #if peak.shape[0] > 1:     # rare case if we step on a boundary between cells?
+                    #    logging.warning("source has spectrum shape %s: averaging the spectra" % (repr(peak.shape)))
+                    #    peak = np.average(peak,axis=0)
                     flux  = peak * j * n / nppb
-                    if len(flux.shape) > 1:     # rare case if we step on a boundary between cells?
-                        logging.warning("source %d has spectrum shape %s: averaging the spectra" % (i,repr(flux.shape)))
-                        flux = np.average(flux,axis=0)
                     rdc = convert_sexa(r,d,True)
                     snr = -1.0   # @todo
                     logging.study7("S %s %s   %g %g %g %g %g %g" % (rdc[0],rdc[1],peak,flux,j,n,a,snr))

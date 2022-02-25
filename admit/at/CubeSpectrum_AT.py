@@ -212,6 +212,8 @@ class CubeSpectrum_AT(AT):
             pos.append(pos1[1])
             dt.tag("Moment-pos")
 
+        #  @todo is the source list is empty, test if str(ra) == "None"   ???
+
         if self._bdp_in[3] != None:                                      # check if SourceList
             # print "BDP[3] type: ",self._bdp_in[3]._type
             # a table (SourceList)

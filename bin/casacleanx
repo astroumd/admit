@@ -1,0 +1,20 @@
+#! /usr/bin/env bash
+#
+#   clean old Xvfb that casa doesn't seem to clean up
+#   needs an annoying delay
+
+nmax=40
+kmax=3
+
+n=$(ps aux | grep Xvfb|wc -l)
+
+if [ $n -gt $nmax ]; then
+    echo "Killing $kmax / $n" Xvbf 
+    for i in $(seq $kmax); do
+	# if you don't sleep, it goes too fast and they won't be killed
+	pkill -o Xvfb
+	sleep 1
+    done
+else
+    echo "$n Xvbf are running, no harm done"
+fi

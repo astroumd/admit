@@ -32,12 +32,13 @@
 #   @todo ...
 #
 
-_version = "31-oct-2020 PJT"
+_version = "2-nov-2020 PJT"
 
 import os, sys
 import argparse as ap
 import glob
 import datetime
+import shutil
 
 #   decipher the python environment (yuck)
 try:
@@ -96,9 +97,8 @@ def casa_cleanup(admitname):
     files =  glob.glob("%s/*/table.info" % admitname) + glob.glob("%s/*/*/table.info" % admitname) + glob.glob("%s/*/*/*/table.info" % admitname)    
     for f in files:
         dat = f.replace("table.info","")
-        cmd = "rm -rf %s" % dat
-        print("CLEANUP: '%s'" % cmd)
-        os.system(cmd)
+        print("CLEANUP: %s" % dat)
+        shutil.rmtree(dat)
 
 def find_pbcor(dirname, mfs=False, cube=False, verbose=False):
     """

@@ -17,8 +17,8 @@ FTP = ftp://ftp.astro.umd.edu/pub/admit/testdata
 # sample testdata needed for a mininum integration and regression test
 DATA = test0.fits test253_spw3.fits test253_cont.fits
 
-# use wget1 or wgetc (caching)
-WGET = wget1
+# use wget1 or wgetc if you want caching
+WGET = wget
 
 help:
 	@echo Reminders/Helpers to build/distribute ADMIT:
@@ -156,16 +156,20 @@ data:
 testdata: data
 	@mkdir -p testdata
 	-@for f in $(DATA); do\
-	(cd testdata; ../bin/$(WGET) $(FTP)/$$f); done
+	(cd testdata; $(WGET) $(FTP)/$$f); done
 
 # a much quicker one minute verson of testdata + bench on test0.fits
 RLOG = "REGRESSION : MOM0FLUX: x.CO_115.27120 27240.3 25534.1 35.0141 2790.42 2790.42 58.6513"
-bench:
-	@mkdir -p testdata
-	(cd testdata; ../bin/$(WGET) $(FTP)/test0.fits; ../bin/runa1 test0.fits)
+bench: testdata/test0.fits
+	(cd testdata; runa1 test0.fits)
 	grep MOM0FLUX testdata/test0.fits.log
 	@echo $(RLOG)
 	@echo These last two lines should be identical
+
+testdata/test0.fits:
+	@mkdir -p testdata
+	(cd testdata; $(WGET) $(FTP)/test0.fits)
+
 
 # reflow, should work but not do any work
 benchr:
@@ -174,7 +178,7 @@ benchr:
 # python3 of bench
 bench35:
 	@mkdir -p testdata
-	(cd testdata; ../bin/$(WGET) $(FTP)/test0.fits; /usr/bin/time casarun ../etc/data/test0.py test0.fits > test0.log 2>&1; tail -2 test0.log)
+	(cd testdata; $(WGET) $(FTP)/test0.fits; /usr/bin/time casarun ../etc/data/test0.py test0.fits > test0.log 2>&1; tail -2 test0.log)
 	grep MOM0FLUX testdata/test0.log
 	@echo $(RLOG)
 	@echo These last two lines should be identical
@@ -182,7 +186,7 @@ bench35:
 # python3 of bench
 bench36:
 	@mkdir -p testdata
-	(cd testdata; ../bin/$(WGET) $(FTP)/test0.fits; /usr/bin/time python ../etc/data/test0.py test0.fits > test0.log 2>&1; tail -2 test0.log)
+	(cd testdata; $(WGET) $(FTP)/test0.fits; /usr/bin/time python ../etc/data/test0.py test0.fits > test0.log 2>&1; tail -2 test0.log)
 	grep MOM0FLUX testdata/test0.log
 	@echo $(RLOG)
 	@echo These last two lines should be identical
@@ -192,7 +196,7 @@ bench1:	data data/bench1
 
 # deprecate
 data/bench1:
-	(cd data; wget -O - $(FTP)/bench1.tar.gz | tar zxf -)
+	(cd data; $(WGET) -O - $(FTP)/bench1.tar.gz | tar zxf -)
 
 # deprecate
 test1: bench1
@@ -200,7 +204,7 @@ test1: bench1
 
 # deprecate
 n253: 
-	(cd data; wget $(N253))
+	(cd data; $(WGET) $(N253))
 
 #  default python, without CASA
 python0:
@@ -217,7 +221,7 @@ bench2:	data data/bench2
 
 # deprecate
 data/bench2:
-	(cd data; wget -O - $(FTP)/bench2.tar.gz | tar zxf -)
+	(cd data; $(WGET) -O - $(FTP)/bench2.tar.gz | tar zxf -)
 
 # deprecate
 test2: bench2
@@ -226,11 +230,11 @@ test2: bench2
 # test0.fits is the same as foobar.fits
 # deprecate
 test0: data
-	(cd data; wget $(FTP)/test0.fits)
+	(cd data; $(WGET) $(FTP)/test0.fits)
 
 # deprecate
 foobar:	data 
-	(cd data; wget $(FTP)/foobar.fits; sed s/NGC3256/ngc3256/ foobar.fits > foobar2.fits)
+	(cd data; $(WGET) $(FTP)/foobar.fits; sed s/NGC3256/ngc3256/ foobar.fits > foobar2.fits)
 
 # do a new version check in
 # These files have version info

@@ -13,7 +13,8 @@
 #      3. it handles *.pb.fits as well as *.pb.fits.gz files that should mirror the *.pbcor.fits files
 #
 #   SCRIPT usage
-#      aap.py -d dir1  [-c] [-n] [-i] [-r] [-s] [-v] 
+#      aap.py -d dir1  [-c] [-n] [-i] [-r] [-s] [-v]
+#          -d dir directory within which are ALMA fits files
 #          -c     check files to see if there are orphans we may not have encoded for ADMIT processing
 #          -n     dry-run, prints out the commands as they would run (old style ADMIT)
 #          -i     ingest only ADMIT run
@@ -32,7 +33,7 @@
 #   @todo ...
 #
 
-_version = "2-nov-2020 PJT"
+_version = "16-feb-2022 PJT"
 
 import os, sys
 import argparse as ap
@@ -49,9 +50,9 @@ except:
     try:
         import casatasks    # pre-release now does this????
         is_admit3 = True
-        print("Good fake news: running ADMIT3")
+        print("Good news: running ADMIT3")
     except:
-        print("Bad fake news: your python doesn't know casa or casatasks")
+        print("Bad news: your python doesn't know casa or casatasks")
 
 
 def version():

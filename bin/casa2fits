@@ -7,7 +7,7 @@
 #               casa2fits `cat file`
 #               ---------> file is a text file containing a bunch of fits files
 
-version  = '7-mar-2016'
+version  = '2-mar-2023'
 
 
 # =================================================================================================================
@@ -16,10 +16,16 @@ import sys, os, math
 import admit
 
 try:
+  # casa5
   import taskinit
   import casa
 except:
-  print "WARNING: problem importing CASA modules"
+  try:
+    # casa6
+    import casatasks as casa
+    import taskinit
+  except:
+    print("WARNING: problem importing CASA modules")
 
 
 argv = admit.utils.casa_argv(sys.argv)
@@ -40,7 +46,7 @@ for ff in argv[1:]:
 
     shape = str(casa.imhead(ff,mode='list')['shape'])
 
-    print "(%d/%d) %s %s" % (i,total,ff,shape)
+    print("(%d/%d) %s %s" % (i,total,ff,shape))
     casa.exportfits(ff,ff+'.fits',overwrite=True)
     
 

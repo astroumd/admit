@@ -9,7 +9,7 @@
 #               $ADMIT/admit/test/listfits `cat file`
 #               ---------> file is a text file containing a bunch of fits files
 
-version  = '29-may-2017'
+version  = '20-may-2024'
 
 
 # =================================================================================================================
@@ -21,7 +21,7 @@ try:
   import taskinit
   import casa
 except:
-  print "WARNING: No CASA; Ingest task cannot function."
+  print("WARNING: No CASA; Ingest task cannot function.")
 
 
 verbose = False
@@ -53,7 +53,7 @@ for ff in argv[1:]:
     dt.tag("ia.summary")
 
     s1 = ia.miscinfo()
-    if s1.has_key('object'):
+    if 'object' in s1:
         # casa image has it
         obj = s1['object']
     else:
@@ -79,11 +79,11 @@ for ff in argv[1:]:
     counter += 1
 
     if verbose: 
-      print fn
+      print (fn)
       print ("shape: {0}").format(s['shape']) 
       print ("{0}% masked").format(percentbad)
       print ("file {0}/{1}").format(counter,total)
     
     if not verbose:
-      print fn,s['shape'],percentbad,obj
+      print (fn,s['shape'],percentbad,obj)
     

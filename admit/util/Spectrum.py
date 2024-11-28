@@ -620,7 +620,7 @@ class Spectrum(object):
         elif isinstance(chans, ma.masked_array):
             self._chans = chans.data.astype(np.int, copy=True)
         elif isinstance(chans, np.ndarray):
-            self._chans = chans.astype(np.int, copy=True)
+            self._chans = chans.astype(np.int32, copy=True)  # deprecating np.int
         else:
             raise
 

@@ -220,7 +220,7 @@ class LineList_BDP(Table_BDP, Image_BDP):
         chans = self.spectra.getColumnByName("channel", plane, np.int32)
         freq = self.spectra.getColumnByName("frequency", plane, np.float64)
         spec = self.spectra.getColumnByName("intensity", plane, np.float64)
-        mask = self.spectra.getColumnByName("mask", plane, np.bool)
+        mask = self.spectra.getColumnByName("mask", plane, np.bool_)    # numpy deprecation
         noise = self.spectra.getColumnByName("noise", plane, np.float64)[0]
         contin = self.spectra.getColumnByName("continuum", plane, np.float64)
         spectrum = Spectrum(spec=spec, freq=freq, chans=chans, mask=mask,

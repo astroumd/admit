@@ -1201,6 +1201,9 @@ class Dtime(object):
                         lines.append(it)
                 t.close()
             else:
+                # hack for Mac:
+                if True:
+                    return np.array([])
                 proc = subprocess.Popen(['ps','-o', 'rss', '-o', 'vsz', '-o','pid', '-p',str(os.getpid())],stdout=subprocess.PIPE)
                 proc_output = proc.communicate()[0].split('\n') 
                 proc_output_memory = proc_output[1]
@@ -1209,7 +1212,8 @@ class Dtime(object):
                 phys_mem = int(proc_output_memory[0])/1204 # to MB 
                 virtual_mem = int(proc_output_memory[1])/1024 
                 
-        except (IOError, OSError):
+        #except (IOError, OSError):
+        except:
             if self.report:
                 logging.timing(self.label + " Error: cannot read memory usage information.")
 

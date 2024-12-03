@@ -58,7 +58,7 @@ pb       = ''               # --pb:       add if the input map was already pbcor
 apar     = ''               # --apar:     add this apar as well (file.apar is also checked for)
 out      = ''               # --out:      alternative output admit name (instead of file.admit)
 stop     = ''               # --stop:     early labeled bailout ('ingest', ...)
-loglevel = 15               # 10=DEBUG, 15=TIMING 20=INFO 30=WARNING 40=ERROR 50=FATAL
+loglevel = 20               # 10=DEBUG, 15=TIMING 20=INFO 30=WARNING 40=ERROR 50=FATAL
 
 admit0   = False            # rerun using admit0 ?
 
@@ -66,6 +66,7 @@ plot     = 't'              #
 #
 useMask  = True             # use a mask where fits data == 0.0
 vlsr     = None             # either set it below, or make get_vlsr() to work (else vlsr=0 will be used)
+z        = None             # alternative to vlsr=
 restfreq = None             # set it to the line freq in GHz if this determined VLSRf 
 maxpos   = []               # default to the peak in the cube for CubeSpectrum
 robust   = ['hin',1.5]      # default hinges-fences
@@ -294,6 +295,8 @@ a[ingest1].setkey('pb',pb)
 a[ingest1].setkey('smooth',insmooth)
 if vlsr != None:
     a[ingest1].setkey('vlsr',vlsr)
+if z != None:
+    a[ingest1].setkey('z',z)
 if restfreq != None:
     a[ingest1].setkey('restfreq',restfreq)
 if len(inbox) > 0:

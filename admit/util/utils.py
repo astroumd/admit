@@ -1175,8 +1175,11 @@ class Dtime(object):
         time.time   :    wall clock time (include I/O and multitasking overhead)
         time.clock  :    cpu clock time
         """
-        #return np.array([time.clock(), time.time()])       time.clock is gone in python 3.8
-        return np.array([time.process_time(), time.time()])
+        try:
+            # time.clock is gone in python 3.8
+            return np.array([time.clock(), time.time()])
+        except:
+            return np.array([time.process_time(), time.time()])
 
     def get_mem(self):
         """ Read memory usage info from /proc/pid/status

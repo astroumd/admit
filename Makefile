@@ -37,7 +37,7 @@ help:
 	@echo " "
 	@echo "First time:"
 	@echo "  make config"
-	@echo "  source admit_start.csh"
+	@echo "  source admit_start.sh               (there is also a .csh version)"
 	@echo " "
 	@echo "Maintenance targets:"
 	@echo "  make version                        git checkin the files needed when version number changed"
@@ -164,7 +164,8 @@ bench: testdata/test0.fits
 	(cd testdata; runa1 test0.fits)
 	grep MOM0FLUX testdata/test0.fits.log
 	@echo $(RLOG)
-	@echo These last two lines should be identical
+	@echo These last two lines should be identical. There should be 125 files in testdata/test0.admit:
+	@echo `ls testdata/test0.admit | wc -l`
 
 testdata/test0.fits:
 	@mkdir -p testdata

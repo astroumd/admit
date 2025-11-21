@@ -948,7 +948,7 @@ def gaussian1D(x, intensity, center, fwhm):
         -------
         a list of intensities for the gaussian, one for each entry in x
     """
-    val = intensity * scipy.exp(-((x - center) ** 2) / (2 * ((fwhm / (2 * scipy.sqrt(2 * scipy.log(2)))) ** 2)))
+    val = intensity * np.exp(-((x - center) ** 2) / (2 * ((fwhm / (2 * np.sqrt(2 * np.log(2)))) ** 2)))
     return val
 
 def fitgauss1D(x, y, par=None, width=-1.0):

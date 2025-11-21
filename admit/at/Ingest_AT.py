@@ -190,9 +190,12 @@ class Ingest_AT(AT):
                We also list VLSRw (spectral window width, in km/s)
                Default: -999999.99 (not set).
 
+      **z**: float (dimensionless)
+               Alternative to specifing the VLSR of the source.
+
       **restfreq**: float (GHz)
                An alternative method providing the source VLSR would be to specify the true
-               restfreq (f0) where the fits header has a 'fake' restfreq (f). This technique
+               restfreq (f0) where the fits header may have a 'fake' restfreq (f). This technique
                is sometimes used by the PI to avoid complex high-z doppler calculations and
                supply the redshifted line directly.
                In this case VLSR = c * (1-f/f0), in the radio definition, with z in the optical

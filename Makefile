@@ -162,10 +162,11 @@ testdata: data
 RLOG = "REGRESSION : MOM0FLUX: x.CO_115.27120 27240.3 25534.1 35.0141 2790.42 2790.42 58.6513"
 bench: testdata/test0.fits
 	(cd testdata; runa1 test0.fits)
+	@echo -n "There should be 123 files in testdata/test0.admit, and we found "
+	@echo `ls testdata/test0.admit | wc -l`
 	grep MOM0FLUX testdata/test0.fits.log
 	@echo $(RLOG)
-	@echo These last two lines should be identical. There should be 125 files in testdata/test0.admit:
-	@echo `ls testdata/test0.admit | wc -l`
+	@echo These last two lines should be identical.
 
 testdata/test0.fits:
 	@mkdir -p testdata

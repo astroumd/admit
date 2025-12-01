@@ -5,6 +5,13 @@
 
    This module defines the CubeSum_AT class.
 """
+
+import numpy as np
+import numpy.ma as ma
+from copy import deepcopy
+import types
+import os
+
 from admit.AT import AT
 from admit.Summary import SummaryEntry
 from admit.util import APlot
@@ -19,19 +26,19 @@ from admit.bdp.CubeStats_BDP import CubeStats_BDP
 from admit.bdp.LineList_BDP import LineList_BDP
 from admit.bdp.Moment_BDP import Moment_BDP
 import admit.util.utils as utils
+import admit.util.PlotControl as PlotControl
 import admit.util.filter.Filter1D as Filter1D
 from admit.util.AdmitLogging import AdmitLogging as logging
-import numpy as np
-import numpy.ma as ma
-from copy import deepcopy
 
-import types
-import os
 try:
-  import casa
-  import taskinit
+    import casa
+    from taskinit import iatool as iatool
 except:
-  print "WARNING: No CASA; CubeSum task cannot function."
+    try:
+        import casatasks as casa
+        from casatools import image         as iatool
+    except:
+        print("WARNING: No CASA; CubeSum task cannot function.")
 
 class CubeSum_AT(AT):
     """Creates a moment-0 map of a cube, with optional channel segment selection.
@@ -166,7 +173,7 @@ class CubeSum_AT(AT):
             # "cont"     : True,   # force averaging to make it a continuum     @todo
         }
         AT.__init__(self,keys,keyval)
-        self._version = "1.1.0-issue34"
+        self._version = "1.2.3"
         self.set_bdp_in([(Image_BDP,     1, bt.REQUIRED),
                          (CubeStats_BDP, 1, bt.OPTIONAL),
                          (LineList_BDP,  1, bt.OPTIONAL)])    # LineSegment_BDP also allowed
@@ -195,7 +202,7 @@ class CubeSum_AT(AT):
         b1a = self._bdp_in[1]                    # cubestats (optional)
         b1b = self._bdp_in[2]                    # linelist  (optional)
 
-        ia = taskinit.iatool()
+        ia = iatool()
 
         f1 =  b1.getimagefile(bt.CASA)
         ia.open(self.dir(f1))
@@ -232,7 +239,7 @@ class CubeSum_AT(AT):
         sig_const = False                        # figure out if sigma is taken as constant in the cube
         if b1a == None:                          # if no 2nd BDP was given, sigma needs to be specified 
             if sigma <= 0.0:
-                raise Exception,"Neither user-supplied sigma nor CubeStats_BDP input given. One is required."
+                raise Exception("Neither user-supplied sigma nor CubeStats_BDP input given. One is required.")
             else:
                 sig_const = True                 # and is constant
         else:
@@ -344,53 +351,68 @@ class CubeSum_AT(AT):
         # report that flux, but there's no way to get the units from casa it seems
         # ia.summary()['unit'] is usually 'Jy/beam.km/s' for ALMA
         # imstat() does seem to know it.
-        if st.has_key('flux'):
+        if 'flux' in st:
             rdata = [st['flux'][0],st['sum'][0]]
             logging.info("Total flux: %f (sum=%f)" % (st['flux'],st['sum']))
         else:
             rdata = [st['sum'][0]]
             logging.info("Sum: %f (beam parameters missing)" % (st['sum']))
         logging.regression("CSM: %s" % str(rdata))
-            
-        # Create two output images for html and their thumbnails, too
-        implot = ImPlot(ptype=self._plot_type,pmode=self._plot_mode,abspath=self.dir())
-        implot.plotter(rasterfile=bdp_name,figname=bdp_name,
-                       colorwedge=True,zoom=self.getkey("zoom"))
-        figname   = implot.getFigure(figno=implot.figno,relative=True)
-        thumbname = implot.getThumbnail(figno=implot.figno,relative=True)
-       
-        dt.tag("implot")
 
-        thumbtype = bt.PNG            # really should be correlated with self._plot_type!!
+        if self._plot_mode == PlotControl.NOPLOT:
+            figname    = "not created"
+            thumbname  = "not created"
+            imcaption  = "not created"
+            auxname    = "not created"
+            auxcaption = "not created"
+            auxthumb   = "not created"
+            images = {bt.CASA : bdp_name}
+            casaimage = Image(images = images)
+            noplot = True
+        else:
 
-        # 2. Create a histogram of the map data
-        # get the data for a histogram
-        data = casautil.getdata(image_out,zeromask=True).compressed()
-        dt.tag("getdata")
+            # Create two output images for html and their thumbnails, too
+            implot = ImPlot(ptype=self._plot_type,pmode=self._plot_mode,abspath=self.dir())
+            implot.plotter(rasterfile=bdp_name,figname=bdp_name,
+                           colorwedge=True,zoom=self.getkey("zoom"))
+            figname   = implot.getFigure(figno=implot.figno,relative=True)
+            thumbname = implot.getThumbnail(figno=implot.figno,relative=True)
+           
+            dt.tag("implot")
 
-        # get the label for the x axis
-        bunit = casa.imhead(imagename=image_out, mode="get", hdkey="bunit")
+            thumbtype = bt.PNG            # really should be correlated with self._plot_type!!
 
-        # Make the histogram plot
-        # Since we give abspath in the constructor, figname should be relative
-        myplot = APlot(ptype=self._plot_type,pmode=self._plot_mode,abspath=self.dir())
-        auxname = bdp_name + "_histo"
-        auxtype = bt.PNG  # really should be correlated with self._plot_type!!
-        myplot.histogram(columns = data,
-                         figname = auxname,
-                         xlab    = bunit,
-                         ylab    = "Count",
-                         title   = "Histogram of CubeSum: %s" % (bdp_name),
-                         thumbnail=True)
-        auxname = myplot.getFigure(figno=myplot.figno,relative=True)
-        auxthumb = myplot.getThumbnail(figno=myplot.figno,relative=True)
+            # 2. Create a histogram of the map data
+            # get the data for a histogram
+            data = casautil.getdata(image_out,zeromask=True).compressed()
+            dt.tag("getdata")
 
-        images = {bt.CASA : bdp_name, bt.PNG : figname}
-        casaimage = Image(images    = images,
-                                auxiliary = auxname,
-                                auxtype   = auxtype,
-                                thumbnail = thumbname,
-                                thumbnailtype = thumbtype)
+            # get the label for the x axis
+            bunit = casa.imhead(imagename=image_out, mode="get", hdkey="bunit")
+
+            # Make the histogram plot
+            # Since we give abspath in the constructor, figname should be relative
+            myplot = APlot(ptype=self._plot_type,pmode=self._plot_mode,abspath=self.dir())
+            auxname = bdp_name + "_histo"
+            auxtype = bt.PNG  # really should be correlated with self._plot_type!!
+            myplot.histogram(columns = data,
+                             figname = auxname,
+                             xlab    = bunit,
+                             ylab    = "Count",
+                             title   = "Histogram of CubeSum: %s" % (bdp_name),
+                             thumbnail=True)
+            auxname = myplot.getFigure(figno=myplot.figno,relative=True)
+            auxthumb = myplot.getThumbnail(figno=myplot.figno,relative=True)
+
+            images = {bt.CASA : bdp_name, bt.PNG : figname}
+            casaimage = Image(images    = images,
+                              auxiliary = auxname,
+                              auxtype   = auxtype,
+                              thumbnail = thumbname,
+                              thumbnailtype = thumbtype)
+            imcaption = "Integral (moment 0) of all emission in image cube"
+            auxcaption = "Histogram of cube sum for image cube"
+            noplot = False
 
         if hasattr(b1,"line"):                      # SpwCube doesn't have Line
             line = deepcopy(getattr(b1,"line"))
@@ -399,12 +421,13 @@ class CubeSum_AT(AT):
         else:
             line = Line(name="Undetermined")    # fake a Line if there wasn't one
 
-        self.addoutput(Moment_BDP(xmlFile=bdp_name,moment=0,image=deepcopy(casaimage),line=line))
+
         imcaption = "Integral (moment 0) of all emission in image cube"
         auxcaption = "Histogram of cube sum for image cube"
+        
+        self.addoutput(Moment_BDP(xmlFile=bdp_name,moment=0,image=deepcopy(casaimage),line=line))
         taskargs = "numsigma=%.1f sigma=%g smooth=%s" % (numsigma, sigma, str(smooth))
-        self._summary["cubesum"] = SummaryEntry([figname,thumbname,imcaption,auxname,auxthumb,auxcaption,bdp_name,infile],"CubeSum_AT",self.id(True),taskargs)
-
+        self._summary["cubesum"] = SummaryEntry([figname,thumbname,imcaption,auxname,auxthumb,auxcaption,bdp_name,infile],"CubeSum_AT",self.id(True),taskargs,noplot=noplot)
         ia.done()
         
         dt.tag("done")

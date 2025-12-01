@@ -30,16 +30,16 @@ else:
     i2 = a.add(admit.AT_flow12('flow2b'),  [(i1,0)] ) 
     #
     if True:
-        print "LEN: ",len(a)
+        print("LEN: ",len(a))
         for i in range(len(a)):
-            print "LEN(%d): %s" % (i,a[i].len2())
+            print("LEN(%d): %s" % (i,a[i].len2()))
             a[i].set('touch=1')
     #
     a.run()
     #
     if True:
         # run it again, better not do anything
-        print 'Running again'
+        print('Running again')
         a.run()
 
 

@@ -7,7 +7,7 @@
 # ADMIT imports
 #from Table_BDP import Table_BDP
 #from Image_BDP import Image_BDP
-from LineList_BDP import LineList_BDP
+from .LineList_BDP import LineList_BDP
 import admit.util.utils as utils
 
 # system imports

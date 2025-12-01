@@ -6,8 +6,8 @@
     This module defines the CubeStats_BDP class.
 """
 import admit.util.bdp_types as bt
-from Table_BDP import Table_BDP
-from Image_BDP import Image_BDP
+from .Table_BDP import Table_BDP
+from .Image_BDP import Image_BDP
 
 class CubeStats_BDP(Table_BDP,Image_BDP):
     """Holds the plane based statistics of a cube
@@ -47,8 +47,8 @@ class CubeStats_BDP(Table_BDP,Image_BDP):
 
     def _show(self):
         # the baseclass show() should do it
-        print "# mean:",self.mean
-        print "# sigma:",self.sigma
-        print "# maxval:",self.maxval
-        print "# maxpos:",self.maxpos
-        print "# robust:",self.robust
+        print("# mean:",self.mean)
+        print("# sigma:",self.sigma)
+        print("# maxval:",self.maxval)
+        print("# maxpos:",self.maxpos)
+        print("# robust:",self.robust)

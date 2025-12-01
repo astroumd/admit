@@ -16,9 +16,9 @@ try:
     import admit.xmlio.dtdGenerator as dg
     dg.generate()
 except:
-    print 'There was an error from dtdGenerator....'
-    print 'Perhaps that catch-22 when adding a new BDP type?'
-    print 'Running again, and have a look at the error message:'
+    print('There was an error from dtdGenerator....')
+    print('Perhaps that catch-22 when adding a new BDP type?')
+    print('Running again, and have a look at the error message:')
     import admit.xmlio.dtdGenerator as dg
     dg.generate()
     

@@ -275,7 +275,7 @@ class AdmitParser(sax.handler.ContentHandler):
         elif temp == bt.FLOAT:
             self.type = float()
         elif temp == bt.LONG:
-            self.type = long()
+            self.type = int()
         elif temp == bt.NONE:
             target = None
             # handle the utility, BDP and AT classes
@@ -290,8 +290,8 @@ class AdmitParser(sax.handler.ContentHandler):
             try:
                 setattr(target, self.name, None)
             except AttributeError:
-                print "Data member %s is not a member of %s. This may be due to a version mismatch between the data and your software, attempting to continue." % \
-                      (self.name, str(type(target)))
+                print("Data member %s is not a member of %s. This may be due to a version mismatch between the data and your software, attempting to continue." % \
+                      (self.name, str(type(target))))
             except:
                 raise
         elif temp == bt.DICT:
@@ -352,14 +352,14 @@ class AdmitParser(sax.handler.ContentHandler):
             self.inAT = True
             try:
                 self.curAT = utils.getClass("at", name)
-            except Exception, e:
+            except Exception as e:
                 raise Exception("Could not create class of type %s because %s" % (name, str(e)))
         elif name == bt.BDP:
             self.type = temp
             self.inBDP = True
             try:
                 self.BDP = utils.getClass("bdp", temp)
-            except Exception, e:
+            except Exception as e:
                 raise Exception("Could not create class of type %s because %s" % (temp, str(e)))
         elif temp == bt.SUMMARY:
             self.summaryData = Summary.Summary()
@@ -496,7 +496,7 @@ class AdmitParser(sax.handler.ContentHandler):
         elif name == bt.ADMIT:
             self.inAdmit = False
             if not self.dtd.checkAll():
-                print "Some required nodes missing from admit.xml file, attempting to continue anyway"
+                print("Some required nodes missing from admit.xml file, attempting to continue anyway")
         elif name == "_keys":
             self.inKeys = False
         elif name == self.summaryEntryName:
@@ -644,8 +644,8 @@ class AdmitParser(sax.handler.ContentHandler):
             return bool(int(item))
         if isinstance(self.type, int):
             return int(item)
-        if isinstance(self.type, long):
-            return long(item)
+        if isinstance(self.type, int):
+            return int(item)
         if isinstance(self.type, float):
             return float(item)
         if isinstance(self.type, str):

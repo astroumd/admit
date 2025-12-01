@@ -20,7 +20,7 @@ try:
   import casa
   import taskinit
 except:
-  print "WARNING: No CASA; Regrid task cannot function."
+  print("WARNING: No CASA; Regrid task cannot function.")
 
 class Regrid_AT(AT):
     """Creates a regridded version of multiple datacubes. Capable of 
@@ -242,7 +242,7 @@ class Regrid_AT(AT):
 
           if(do_freq_regrid):
             ia.open(ofile)
-            print flux_correction
+            print(flux_correction)
             ia.calc(pixels=ofile.replace(r"/",r"\/")+'*'+str(flux_correction))
             ia.done()
           obdp = admit.SpwCube_BDP(ostem)

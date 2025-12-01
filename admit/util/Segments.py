@@ -100,7 +100,7 @@ class Segments(object):
                 # iterate through the lists
                 while True:
                     try:
-                        tempseg = [int(stit.next()), int(enit.next())]
+                        tempseg = [int(next(stit)), int(next(enit))]
                         tempseg.sort()
                         peak = max(peak, tempseg[1])
                         self._segments.append(tempseg)
@@ -494,9 +494,9 @@ class Segments(object):
             self.recalcmask()
         elif type(other) == type(self):
             if self._startchan != other._startchan:
-                raise "Starting channel numbers do not match."
+                raise Exception("Starting channel numbers do not match.")
             if len(self._chans) != len(other._chans):
-                raise "Number of channels do not match."
+                raise Exception("Number of channels do not match.")
             for seg in other:
                 self._segments.append(seg)
                 self.recalcmask()

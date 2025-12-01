@@ -26,14 +26,14 @@ class TestSource(unittest.TestCase):
         pass
 
     def test_AAAwhoami(self):
-        print "\n==== %s ====" % self.testName
+        print("\n==== %s ====" % self.testName)
 
     # test isequal() and __str__()
     def test_isequal(self):
 
         ret = self.s1.isequal(self.s2)
         if(self.verbose):
-            print "\nSource is equal:", ret
+            print("\nSource is equal:", ret)
 
         # s1 and s2 are the same
         self.assertTrue(ret)
@@ -45,7 +45,7 @@ class TestSource(unittest.TestCase):
 
         ret = self.s1.isequal(self.s2)
         if(self.verbose):
-            print "\nSource is equal:", ret
+            print("\nSource is equal:", ret)
 
         # s1 is not equal to s2
         self.assertFalse(ret)

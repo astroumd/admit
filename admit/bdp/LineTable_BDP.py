@@ -1,5 +1,5 @@
-from Line_BDP import Line_BDP
-from Table_BDP import Table_BDP
+from .Line_BDP import Line_BDP
+from .Table_BDP import Table_BDP
 import admit.util.bdp_types as bt
 
 class LineTable_BDP(Line_BDP,Table_BDP):    

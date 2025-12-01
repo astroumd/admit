@@ -109,9 +109,9 @@ if __name__ == "__main__":
 
     # Options check.
     if not opts.flow:
-        print "Please use '-f <number>' option to pick a flow."
-        print "For options help: 'python test_FM.py -h'"
-        print "Usage example: 'python test_FM.py -f 4'"
+        print("Please use '-f <number>' option to pick a flow.")
+        print("For options help: 'python test_FM.py -h'")
+        print("Usage example: 'python test_FM.py -f 4'")
         exit(1)
 
     # Flow option.

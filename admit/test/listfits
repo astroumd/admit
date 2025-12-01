@@ -20,7 +20,7 @@ try:
   import taskinit
   import casa
 except:
-  print "WARNING: No CASA; Ingest task cannot function."
+  print("WARNING: No CASA; Ingest task cannot function.")
 
 
 verbose = False
@@ -61,11 +61,11 @@ for ff in argv[1:]:
     counter += 1
 
     if verbose: 
-      print fn
-      print ("shape: {0}").format(s['shape']) 
-      print ("{0}% masked").format(percentbad)
-      print ("file {0}/{1}").format(counter,total)
+      print(fn)
+      print(("shape: {0}").format(s['shape'])) 
+      print(("{0}% masked").format(percentbad))
+      print(("file {0}/{1}").format(counter,total))
     
     if not verbose:
-      print fn,s['shape'],percentbad
+      print(fn,s['shape'],percentbad)
     

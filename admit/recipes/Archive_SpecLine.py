@@ -110,8 +110,8 @@ def _run(argv):
         KEYS["width"]    = int(KEYS["width"])
         KEYS["cutoff"]   = ast.literal_eval(str(KEYS["cutoff"]))
         KEYS["box"]      = ast.literal_eval(str(KEYS["box"]))
-    except Exception, e:
-        print("Exception converting keyword value to number:",e)
+    except Exception as e:
+        print(("Exception converting keyword value to number:",e))
         return
     #
     # Set-up all ADMIT Flow tasks for execution including their aliases and connections

@@ -39,7 +39,7 @@ LINE = "LINE"
 MULTIIMAGE = "MULTIIMAGE"
 SOURCE = "SOURCE"
 TABLE = "TABLE"
-UTIL_LIST = ['Source', 'Image', 'MultiImage', 'Line', 'Table']
+UTIL_LIST = ['Image', 'Line', 'MultiImage', 'Source', 'Table']
 
 # Image types
 
@@ -104,6 +104,7 @@ FLOWN1_AT = "FlowN1_AT"
 GENERATESPECTRUM_AT = "GenerateSpectrum_AT"
 INGEST_AT = "Ingest_AT"
 LINECUBE_AT = "LineCube_AT"
+LINEFOREST_AT = "LineForest_AT"
 LINEID_AT = "LineID_AT"
 LINESEGMENT_AT = "LineSegment_AT"
 MOMENT_AT = "Moment_AT"

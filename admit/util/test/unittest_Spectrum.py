@@ -20,7 +20,7 @@ class TestSpectrum(unittest.TestCase):
         self.fwhm_in = 2.355 # ghz (so that dispersion is 1.0)
         self.delta_in = 0.05 # ghz
         self.peak_in = 1.0
-        chans = np.ma.array(range(maxchan))
+        chans = np.ma.array(list(range(maxchan)))
         self.freq = np.ma.array([110.0+(x * self.delta_in) for x in chans])
         self.mid = self.freq[maxchan/2+1]
         self.intensity = np.ma.array(utils.gaussian1D(self.freq,self.peak_in,self.mid,self.fwhm_in))
@@ -30,14 +30,14 @@ class TestSpectrum(unittest.TestCase):
         pass
 
     def test_AAAwhoami(self):
-        print "\n==== %s ====" % self.testName
+        print("\n==== %s ====" % self.testName)
 
     def test_moments(self):
-        print "m0(P)=%f,m0(I)=%f,m0(A)=%f"% ( self.spectrum.moment(p=0),self.spectrum.momenti(p=0),self.spectrum.momenta(p=0))
-        print "m1(P)=%f,m1(I)=%f,m1(A)=%f" % (self.spectrum.moment(p=1),self.spectrum.momenti(p=1),self.spectrum.momenta(p=1))
-        print "m2(P)=%f,m2(I)=%f,m2(A)=%f" % (self.spectrum.moment(p=2),self.spectrum.momenti(p=2),self.spectrum.momenta(p=2))
-        print "m3(P)=%f,m3(I)=%f,m3(A)=%f" % (self.spectrum.moment(p=3),self.spectrum.momenti(p=3),self.spectrum.momenta(p=3))
-        print "mf=%f,df=%f,delta=%f,dv=%f,fwhm=%f\n"% (self.spectrum.meanfrequency(),self.spectrum.freqdispersion(),self.spectrum.delta(),self.spectrum.veldispersion(),self.spectrum.fwhm())
+        print("m0(P)=%f,m0(I)=%f,m0(A)=%f"% ( self.spectrum.moment(p=0),self.spectrum.momenti(p=0),self.spectrum.momenta(p=0)))
+        print("m1(P)=%f,m1(I)=%f,m1(A)=%f" % (self.spectrum.moment(p=1),self.spectrum.momenti(p=1),self.spectrum.momenta(p=1)))
+        print("m2(P)=%f,m2(I)=%f,m2(A)=%f" % (self.spectrum.moment(p=2),self.spectrum.momenti(p=2),self.spectrum.momenta(p=2)))
+        print("m3(P)=%f,m3(I)=%f,m3(A)=%f" % (self.spectrum.moment(p=3),self.spectrum.momenti(p=3),self.spectrum.momenta(p=3)))
+        print("mf=%f,df=%f,delta=%f,dv=%f,fwhm=%f\n"% (self.spectrum.meanfrequency(),self.spectrum.freqdispersion(),self.spectrum.delta(),self.spectrum.veldispersion(),self.spectrum.fwhm()))
         self.assertEqual(round(self.spectrum.meanfrequency(),2),self.mid)
         self.assertEqual(self.spectrum.peak(),self.peak_in)
         self.assertEqual(round(self.spectrum.freqdispersion(),3),self.fwhm_in/2.355)

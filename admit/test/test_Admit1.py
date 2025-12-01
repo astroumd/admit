@@ -22,26 +22,26 @@ if __name__ == '__main__':
         a = admit.Admit()
 
     if a.new:
-        print "Starting a new Admit (iteration n=0) in %s" % a.dir()
+        print("Starting a new Admit (iteration n=0) in %s" % a.dir())
         a.set(n=1)
         a.set(a=1)
         a.set(b=[])
-        print "n=",a.get('n'),type(a.get('n'))
+        print("n=",a.get('n'),type(a.get('n')))
     else:
         if a.has("n"):
             n = a.get("n")
         else:
             # should never happen
             n = 0
-            raise ValueError, "admit.xml did not contain userData['n']"
-        print "Reading previous admit.xml (iteration n=%d)" % n
-        print "a=",a.get("a")
+            raise ValueError("admit.xml did not contain userData['n']")
+        print("Reading previous admit.xml (iteration n=%d)" % n)
+        print("a=",a.get("a"))
         b = a.get("b")
         b.append(n)
         a.set(b=b)
-        print "b=",b
+        print("b=",b)
         if a.has("c"):
-            print "c=",a.get("c")
+            print("c=",a.get("c"))
         else:
             a.set(c='3')
         n = n + 1
@@ -49,9 +49,9 @@ if __name__ == '__main__':
 
     # harmless, since there isn't anything to run here
     a.run()
-    print "len->",len(a)
+    print("len->",len(a))
     
     # write out the admit.xml
     a.write()
 
-    print "Final waving from ",a.dir()
+    print("Final waving from ",a.dir())

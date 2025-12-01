@@ -7,6 +7,9 @@
 #     There is a alternate (NED based) method in VLSR.py as well, but that only works
 #     for galaxies of course.
 #
+#     We also added the z.tab method (see vlsrz()) which returns an array of all z's
+#     (or vlsrz's in km/s) listed in any of the ALMA archive data.
+#
 #     We are using the RADIO convention of radial velocity, ie.
 #                  vrad = c * z / (1 + z)
 #     with c = 299792.458

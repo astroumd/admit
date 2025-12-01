@@ -13,7 +13,7 @@ class TestFail(unittest.TestCase):
         self.testName = "Failing Unit Test"
 
     def test_AAAwhoami(self):
-        print "==== %s ====" % self.testName
+        print("==== %s ====" % self.testName)
 
 # Uncomment to make this unit test fail and turn buildbot red
 #    def test_fail(self):

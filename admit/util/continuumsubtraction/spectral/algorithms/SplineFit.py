@@ -13,7 +13,7 @@ from admit.util.AdmitLogging import AdmitLogging as logging
 try:
     from scipy.interpolate import UnivariateSpline
 except:
-    print "WARNING: No scipy; SplineFit fitter cannot function."
+    print("WARNING: No scipy; SplineFit fitter cannot function.")
 
 
 class SplineFit(object):

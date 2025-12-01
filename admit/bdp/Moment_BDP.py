@@ -6,8 +6,8 @@
 
     This module defines the Moment_BDP class.
 """
-from Image_BDP import Image_BDP
-from Line_BDP import Line_BDP
+from .Image_BDP import Image_BDP
+from .Line_BDP import Line_BDP
 
 
 class Moment_BDP(Image_BDP, Line_BDP):

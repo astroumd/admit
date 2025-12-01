@@ -5,6 +5,14 @@
 
    This module defines the ContinuumSub_AT class.
 """
+
+import types
+import os
+import numpy as np
+import numpy.ma as ma
+from copy import deepcopy
+
+
 from admit.AT import AT
 from admit.Summary import SummaryEntry
 import admit.util.bdp_types as bt
@@ -18,19 +26,20 @@ from admit.bdp.Image_BDP import Image_BDP
 from admit.bdp.LineList_BDP import LineList_BDP
 from admit.bdp.LineSegment_BDP import LineSegment_BDP
 import admit.util.utils as utils
+import admit.util.PlotControl as PlotControl
 import admit.util.filter.Filter1D as Filter1D
 from admit.util.AdmitLogging import AdmitLogging as logging
-import numpy as np
-import numpy.ma as ma
-from copy import deepcopy
 
-import types
-import os
+
 try:
   import casa
-  import taskinit
+  from taskinit import iatool as iatool
 except:
-  print "WARNING: No CASA; ContinuumSub task cannot function."
+  try:
+    import casatasks as casa
+    from casatools import image         as iatool
+  except:
+    print("WARNING: No CASA; ContinuumSub task cannot function.")
 
 class ContinuumSub_AT(AT):
     """Continuum subtraction from a cube. Produces a line cube and continuum map.
@@ -101,7 +110,7 @@ class ContinuumSub_AT(AT):
             "fitorder"   : 0,       # polynomial order
         }
         AT.__init__(self,keys,keyval)
-        self._version = "1.1.0"
+        self._version = "1.2.2"
         self.set_bdp_in([(SpwCube_BDP,      1, bt.REQUIRED),        # input spw cube 
                          (LineList_BDP,     1, bt.OPTIONAL),        # will catch SegmentList as well
                         ])
@@ -150,7 +159,7 @@ class ContinuumSub_AT(AT):
         self.addoutput(b2)
         self.addoutput(b3)
 
-        ia = taskinit.iatool()
+        ia = iatool()
 
         ia.open(self.dir(f1))
         s = ia.summary()
@@ -172,13 +181,13 @@ class ContinuumSub_AT(AT):
                 s = Segments(ch0,ch1,nchan=nchan)
                 ch = s.getchannels(True)     # take the complement of lines as the continuum
             else:
-                ch = range(nchan)            # no lines?  take everything as continuum (probably bad)
+                ch = list(range(nchan))            # no lines?  take everything as continuum (probably bad)
                 logging.warning("All channels taken as continuum. Are you sure?")
         elif len(contsub) > 0:               # else if contsub[] was supplied manually
             s = Segments(contsub,nchan=nchan)
             ch = s.getchannels()
         else:
-            raise Exception,"No contsub= or input LineList given"
+            raise Exception("No contsub= or input LineList given")
             
         if len(ch) > 0:
             ia.open(self.dir(f1))
@@ -192,7 +201,7 @@ class ContinuumSub_AT(AT):
                 # this option is now deprecated (see above, by setting b1b = None), no user option allowed
                 # there is likely a mis-match in the beam, given how they are produced. So it's safer to
                 # remove this here, and force the flow to smooth manually
-                print "Adding back in a continuum map"
+                print("Adding back in a continuum map")
                 f1b = b1b.getimagefile(bt.CASA)
                 f1c = self.mkext(f1,'sum')
                 # @todo   notice we are not checking for conforming mapsize and WCS
@@ -201,25 +210,34 @@ class ContinuumSub_AT(AT):
                 utils.rename(self.dir(f1c),self.dir(f3))
                 dt.tag("immath")
         else:
-            raise Exception,"No channels left to determine continuum. pad=%d too large?" % pad
+            raise Exception("No channels left to determine continuum. pad=%d too large?" % pad)
 
         # regression
         rdata = casautil.getdata(self.dir(f3)).data
         logging.regression("CSUB: %f %f" % (rdata.min(),rdata.max()))
 
-        # Create two output images for html and their thumbnails, too
-        implot = ImPlot(ptype=self._plot_type,pmode=self._plot_mode,abspath=self.dir())
-        implot.plotter(rasterfile=f3,figname=f3,colorwedge=True)
-        figname   = implot.getFigure(figno=implot.figno,relative=True)
-        thumbname = implot.getThumbnail(figno=implot.figno,relative=True)
         b2.setkey("image", Image(images={bt.CASA:f2}))
-        b3.setkey("image", Image(images={bt.CASA:f3, bt.PNG : figname}))
+        
+        # Create two output images for html and their thumbnails, too
+        if self._plot_mode == PlotControl.NOPLOT:
+          figname   = "not created"
+          thumbname = "not created"
+          imcaption = "not created"
+          b3.setkey("image", Image(images={bt.CASA:f3}))
+          noplot = True
+        else:
+          implot = ImPlot(ptype=self._plot_type,pmode=self._plot_mode,abspath=self.dir())
+          implot.plotter(rasterfile=f3,figname=f3,colorwedge=True)
+          figname   = implot.getFigure(figno=implot.figno,relative=True)
+          thumbname = implot.getThumbnail(figno=implot.figno,relative=True)
+          b3.setkey("image", Image(images={bt.CASA:f3, bt.PNG : figname}))
+          noplot = False
         dt.tag("implot")
 
         if len(ch) > 0:
           taskargs = "pad=%d fitorder=%d contsub=%s" % (pad,fitorder,str(contsub))
           imcaption = "Continuum map"
-          self._summary["continuumsub"] = SummaryEntry([figname,thumbname,imcaption],"ContinuumSub_AT",self.id(True),taskargs)
+          self._summary["continuumsub"] = SummaryEntry([figname,thumbname,imcaption],"ContinuumSub_AT",self.id(True),taskargs,noplot=noplot)
           
         dt.tag("done")
         dt.end()

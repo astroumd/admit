@@ -38,7 +38,7 @@
 <!ATTLIST _taskid type (INT) #REQUIRED>
 <!ELEMENT _enabled		(#PCDATA)>
 <!ATTLIST _enabled type (BOOL) #REQUIRED>
-<!ELEMENT _keys	(numsigma,minchan,smooth,recalcnoise,maxgap,csub,iterate,segment)>
+<!ELEMENT _keys	(numsigma,minchan,edgechannels,smooth,recalcnoise,maxgap,csub,iterate,segment)>
 <!ATTLIST _keys type (DICT) #REQUIRED>
 <!ELEMENT numsigma		(#PCDATA)>
 <!ATTLIST numsigma type (FLOAT) #REQUIRED>
@@ -46,6 +46,8 @@
 <!ATTLIST minchan type (INT) #REQUIRED>
 <!ELEMENT maxgap		(#PCDATA)>
 <!ATTLIST maxgap type (INT) #REQUIRED>
+<!ELEMENT edgechannels		(#PCDATA)>
+<!ATTLIST edgechannels type (INT) #REQUIRED>
 <!ELEMENT smooth		(#PCDATA)>
 <!ATTLIST smooth ndarray (STRING) #REQUIRED>
 <!ATTLIST smooth set (STRING) #REQUIRED>

@@ -54,7 +54,7 @@ class TestAdmitLogging(unittest.TestCase):
         pass
 
     def test_AAAwhoami(self):
-        print "\n==== %s ====" % self.testName
+        print("\n==== %s ====" % self.testName)
 
 ## commented out because basicConfig() is currently not working.
 ## It should call logging.basicConfig() instead of logger.basicConfig()
@@ -78,7 +78,7 @@ class TestAdmitLogging(unittest.TestCase):
         for line in r.readlines():
             if msg in line:
                 if(self.verbose):
-                    print "\nFound message > ", line
+                    print("\nFound message > ", line)
                 found = True
                 r.close()
                 break
@@ -95,7 +95,7 @@ class TestAdmitLogging(unittest.TestCase):
         for line in r.readlines():
             if msg in line:
                 if(self.verbose):
-                    print "\nFound message > ", line
+                    print("\nFound message > ", line)
                 found = True
                 r.close()
                 break
@@ -112,7 +112,7 @@ class TestAdmitLogging(unittest.TestCase):
         for line in r.readlines():
             if msg in line:
                 if(self.verbose):
-                    print "\nFound message > ", line
+                    print("\nFound message > ", line)
                 found = True
                 r.close()
                 break
@@ -129,7 +129,7 @@ class TestAdmitLogging(unittest.TestCase):
         for line in r.readlines():
             if msg in line:
                 if(self.verbose):
-                    print "\nFound message > ", line
+                    print("\nFound message > ", line)
  
                 found = True
                 r.close()
@@ -147,7 +147,7 @@ class TestAdmitLogging(unittest.TestCase):
         for line in r.readlines():
             if msg in line:
                 if(self.verbose):
-                    print "\nFound message > ", line
+                    print("\nFound message > ", line)
  
                 found = True
                 r.close()
@@ -165,7 +165,7 @@ class TestAdmitLogging(unittest.TestCase):
         for line in r.readlines():
             if msg in line:
                 if(self.verbose):
-                    print "\nFound message > ", found
+                    print("\nFound message > ", found)
   
                 found = True
                 r.close()
@@ -182,7 +182,7 @@ class TestAdmitLogging(unittest.TestCase):
         for line in r.readlines():
             if msg in line:
                 if(self.verbose):
-                    print "\nFound message >", line
+                    print("\nFound message >", line)
  
                 found = True
                 r.close()
@@ -199,7 +199,7 @@ class TestAdmitLogging(unittest.TestCase):
         for line in r.readlines():
             if msg in line:
                 if(self.verbose):
-                    print "\nFound message >", line
+                    print("\nFound message >", line)
  
                 found = True
                 r.close()
@@ -216,7 +216,7 @@ class TestAdmitLogging(unittest.TestCase):
         for line in r.readlines():
             if msg in line:
                 if(self.verbose):
-                    print "\nFound message >", line
+                    print("\nFound message >", line)
  
                 found = True
                 r.close()
@@ -232,10 +232,10 @@ class TestAdmitLogging(unittest.TestCase):
         found = []
         r = open(self.logfile, 'r')
         for line in r.readlines():
-            for k, v in kw.iteritems():
+            for k, v in kw.items():
                 if k in line and str(v) in line:
                     if(self.verbose):
-                        print "\nFound message >", line
+                        print("\nFound message >", line)
  
                     found.append(True)
         r.close()
@@ -263,7 +263,7 @@ class TestAdmitLogging(unittest.TestCase):
         for line in r.readlines():
             if msg in line:
                 if(self.verbose):
-                    print "\nFound message >", line
+                    print("\nFound message >", line)
  
                 found = True
                 break
@@ -281,7 +281,7 @@ class TestAdmitLogging(unittest.TestCase):
         for line in r.readlines():
             if msg in line:
                 if(self.verbose):
-                    print "\nFound message >", line
+                    print("\nFound message >", line)
  
                 found = True
                 r.close()
@@ -299,7 +299,7 @@ class TestAdmitLogging(unittest.TestCase):
         for line in r.readlines():
             if msg in line:
                 if(self.verbose):
-                    print "\nFound message >", line
+                    print("\nFound message >", line)
  
                 found = True
                 r.close()

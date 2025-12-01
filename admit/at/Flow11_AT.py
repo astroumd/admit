@@ -130,7 +130,7 @@ class Flow11_AT(AT):
                 (maybe 0.2" on 10000 operations)
                 This is a fast helper function of run
             """
-            print "run:: TOUCH1",fname
+            print("run:: TOUCH1",fname)
             if os.path.exists(fname):
                 os.utime(fname,None)
             else:
@@ -141,9 +141,9 @@ class Flow11_AT(AT):
                 This is a fast helper function of run
             """
             if not os.path.exists(fname):
-                raise Exception,'run::Flow11_AT: file %s does not exist' % fname
+                raise Exception('run::Flow11_AT: file %s does not exist' % fname)
             else:
-                print "run::Flow11_AT file %s exists" % fname
+                print("run::Flow11_AT file %s exists" % fname)
 
         # make room for BDP's
         self.clearoutput()
@@ -151,10 +151,10 @@ class Flow11_AT(AT):
         # make sure there is 1 input BDP   (using self.valid_bdp will clean up this code)
         # do we need this with self._valid_bdp_in ???
         if len(self._bdp_in) != 1:
-            raise Exception,"run::Flow11_AT: need one BDP_in (%d given)" % len(self._bdp_in)
+            raise Exception("run::Flow11_AT: need one BDP_in (%d given)" % len(self._bdp_in))
 
         # report 
-        print "run::Flow11_AT  Input filename: ",self._bdp_in[0].filename
+        print("run::Flow11_AT  Input filename: ",self._bdp_in[0].filename)
 
         # handle exist= to see if the file needs to exist to run this code
         exist = self.getkey('exist')
@@ -163,7 +163,7 @@ class Flow11_AT(AT):
         # get the output filename for the output BDP (no automatic naming here)
         filename = self.getkey('file')
         if filename == None:
-            raise Exception,'run::Flow11_AT  no file= given, there is no default yet'
+            raise Exception('run::Flow11_AT  no file= given, there is no default yet')
         if len(filename) == 0:
           # derive from input file
           alias = self._alias
@@ -194,7 +194,7 @@ class Flow11_AT(AT):
         self._summary['datamin'] = SummaryEntry(3.14159,"Flow11_AT",taskid=self.id(True))
         self._summary['datamax']  = SummaryEntry(2.71828,"Flow11_AT",taskid=self.id(True))
         self._summary['rmsmethd'] = SummaryEntry(abc_list,"Flow11_AT",taskid=self.id(True))
-        print "Flow11_AT taskid = %d" % self.id(True)
+        print("Flow11_AT taskid = %d" % self.id(True))
 
         
     # class function(s) for just Flow11 now follow:
@@ -206,7 +206,7 @@ class Flow11_AT(AT):
         compare this with touch1, which is a local
         helper function to run().
         """
-        print "run:: TOUCH2",fname
+        print("run:: TOUCH2",fname)
 
         if os.path.exists(fname):
             os.utime(fname,None)

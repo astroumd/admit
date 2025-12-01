@@ -1,4 +1,6 @@
 #!/usr/bin/env casarun
+#     we use a __main__
+
 """ .. _ImPlot-api:
 
     **ImPlot** --- Simple image plotter.
@@ -6,16 +8,16 @@
 
     This module defines the ImPlot class.
 """
-from AbstractPlot import AbstractPlot
+from .AbstractPlot import AbstractPlot
 import os
-import PlotControl
-import casautil
+from . import PlotControl
+from . import casautil
 
 class ImPlot(AbstractPlot):
     """
     Basic ADMIT image plotter that uses casa calls to create figures.
 
-    - uses CASA imview
+    - uses CASA imview (for CASA6 we use a placeholder)
     - plot modes and plot types as in util.PlotControl 
     - keeps track of figure number
     - make thumbnails if requested
@@ -88,7 +90,7 @@ if __name__ == "__main__":
 
     import os.path
     import sys
-    import PlotControl
+    from . import PlotControl
     
     rasterfile="implot_test.fits"
 
@@ -101,5 +103,5 @@ if __name__ == "__main__":
         a1.plotter(figname="figone",rasterfile=rasterfile,contourfile="implot_test.fits",thumbnail=True)
         a1.show()
     else:
-        print "## Exception: Could not find file: %s" % a1._abspath+rasterfile
+        print("## Exception: Could not find file: %s" % a1._abspath+rasterfile)
 

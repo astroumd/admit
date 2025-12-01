@@ -23,7 +23,7 @@ try:
     from scipy.optimize import curve_fit
     import scipy
 except:
-    print "WARNING: No scipy; some utilities will not function."
+    print("WARNING: No scipy; some utilities will not function.")
 
 ndarray = np.array(0)
 # speed of light in km/s
@@ -117,7 +117,7 @@ def admit_root(path = None):
             logging.warning("ADMIT_ROOT is a relative address")
             # @tdodo shouldn't that be a fatal error
     # 
-    print "_ADMIT_ROOT=",_admit_root
+    print("_ADMIT_ROOT=",_admit_root)
     if path == None:
         return _admit_root
     return _admit_root + '/' + path
@@ -147,12 +147,12 @@ def admit_dir(file, out=None):
         return file + ext
     else:
         if file[loc:] == ext:
-            print "Warning: assuming a re-run on existing ",file
+            print("Warning: assuming a re-run on existing ",file)
             return file
         if file[loc:] == '.gz':
             loc = file[:loc].rfind('.')
             if loc < 0:
-                print "Warning: ill format short filename ",file
+                print("Warning: ill format short filename ",file)
                 return file
         return file[:loc] + ext
 
@@ -171,7 +171,7 @@ def assert_files(files):
     for f in files:
         if len(f) == 0: continue
         if not os.path.exists(f):
-            raise Exception,"File %s does not exist" % f
+            raise Exception("File %s does not exist" % f)
 
 #@TODO why do we have a wrapper for a one-line python library call?
 # because the default is to fail if there are errors, we want to supress
@@ -578,8 +578,8 @@ def equal(f1, f2, relerror=0.000001):
         df = abs((f1 - f2) / f1)
     else:
         # f1==f2==0.0 should have been caught before
-        print f1,f2
-        raise Exception,"Can never happen.... really"
+        print(f1,f2)
+        raise Exception("Can never happen.... really")
     
     if df <= relerror:
         return True
@@ -699,7 +699,7 @@ def format_chem(form):
 
     # look for isomers and format them
     # start with the back and loop over, that way we should catch all
-    for k, v in isotopes.iteritems():
+    for k, v in isotopes.items():
         form = form.replace(k, v)
     # there should be only single digit numbers now, multipliers for atoms
     inf = False
@@ -876,7 +876,7 @@ def getmass(formula):
     while True:
         loc = -1
         key = None
-        for k, v in isotopes.iteritems():
+        for k, v in isotopes.items():
             l = form.rfind(k)
             if l > loc:
                 loc = l
@@ -898,7 +898,7 @@ def getmass(formula):
                 substr = form[i - 1]
             form.replace(form[i], "", 1)
             form += substr * (factor - 1)
-    for k, v in wts.iteritems():
+    for k, v in wts.items():
         count = form.count(k)
         mass += count * v
         form = form.replace(k, "")
@@ -948,7 +948,7 @@ def gaussian1D(x, intensity, center, fwhm):
         -------
         a list of intensities for the gaussian, one for each entry in x
     """
-    val = intensity * scipy.exp(-((x - center) ** 2) / (2 * ((fwhm / (2 * scipy.sqrt(2 * scipy.log(2)))) ** 2)))
+    val = intensity * np.exp(-((x - center) ** 2) / (2 * ((fwhm / (2 * np.sqrt(2 * np.log(2)))) ** 2)))
     return val
 
 def fitgauss1D(x, y, par=None, width=-1.0):
@@ -989,7 +989,7 @@ def fitgauss1D(x, y, par=None, width=-1.0):
         try:
             params, covar = curve_fit(gaussian1D, x, y, p0=par)
         # if the covariance cannot be determined, just return the initial values
-        except RuntimeError, e:
+        except RuntimeError as e:
             if "Optimal" in str(e):
                 params = par
                 covar = [0] * len(par)
@@ -1081,6 +1081,8 @@ def casa_argv(argv):
 
         Modifies the argv from a casarun script to a classic argv list
         such that the returned argv[0] is the casarun scriptname.
+        Meant to capture via the 'casarun' command in CASA5, it will
+        also work in CASA6.
 
         Parameters
         ----------
@@ -1100,7 +1102,12 @@ def casa_argv(argv):
         lines = os.popen("casarun -c","r").readlines()
         n = int(lines[len(lines)-1].strip())
     else:
-        n = argv.index('-c') + 1
+        try:
+            # if the -c is not present, assume the CASA6 environment
+            n = argv.index('-c') + 1
+        except:
+            print("Warning: new CASA6 ?")
+            n = 0
     return argv[n:]
 
 
@@ -1168,7 +1175,11 @@ class Dtime(object):
         time.time   :    wall clock time (include I/O and multitasking overhead)
         time.clock  :    cpu clock time
         """
-        return np.array([time.clock(), time.time()])
+        try:
+            # time.clock is gone in python 3.8
+            return np.array([time.clock(), time.time()])
+        except:
+            return np.array([time.process_time(), time.time()])
 
     def get_mem(self):
         """ Read memory usage info from /proc/pid/status
@@ -1193,6 +1204,9 @@ class Dtime(object):
                         lines.append(it)
                 t.close()
             else:
+                # hack for Mac:
+                if True:
+                    return np.array([])
                 proc = subprocess.Popen(['ps','-o', 'rss', '-o', 'vsz', '-o','pid', '-p',str(os.getpid())],stdout=subprocess.PIPE)
                 proc_output = proc.communicate()[0].split('\n') 
                 proc_output_memory = proc_output[1]
@@ -1201,7 +1215,8 @@ class Dtime(object):
                 phys_mem = int(proc_output_memory[0])/1204 # to MB 
                 virtual_mem = int(proc_output_memory[1])/1024 
                 
-        except (IOError, OSError):
+        #except (IOError, OSError):
+        except:
             if self.report:
                 logging.timing(self.label + " Error: cannot read memory usage information.")
 
@@ -1257,8 +1272,8 @@ def get_references(filename):
         w = line.strip().split()
         if len(w) > 1:
             f = float(w[0])
-            if ref.has_key(f):
-                print "Warning: duplicate key at reference ",f
+            if f in ref:
+                print("Warning: duplicate key at reference ",f)
                 continue
             ref[f] = w[1]
     return ref

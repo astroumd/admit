@@ -22,6 +22,7 @@ from admit.bdp.LineList_BDP import LineList_BDP
 from admit.bdp.CubeSpectrum_BDP import CubeSpectrum_BDP
 from admit.bdp.CubeStats_BDP import CubeStats_BDP
 from admit.bdp.PVCorr_BDP import PVCorr_BDP
+import admit.util.PlotControl as PlotControl
 import admit.util.filter.Filter1D as Filter1D
 from admit.util import APlot
 from admit.util.Image import Image
@@ -283,11 +284,12 @@ class LineID_AT(AT):
                 "references"   : "",
                 "iterate"      : True,
                 "force"        : [],
-                "reject"       : []
+                "reject"       : [],
+                "edgechannels" : 0
                }
         self.boxcar = True
         AT.__init__(self, keys, keyval)
-        self._version = "1.0.5"
+        self._version = "1.2.7"
         self.set_bdp_in([(CubeSpectrum_BDP, 1, bt.OPTIONAL),
                          (CubeStats_BDP,    1, bt.OPTIONAL),
                          (PVCorr_BDP,       1, bt.OPTIONAL)])
@@ -455,10 +457,10 @@ class LineID_AT(AT):
         """
         # initialize the data class
         peaks = Peaks(spec=spec, segments=segments)
-        delfrq = utils.veltofreq(650, spec.freq()[len(spec)/2])
+        delfrq = utils.veltofreq(650, spec.freq()[len(spec)//2])
         maxsep = delfrq / spec.delta()
         ts = np.zeros(len(spec)).astype(float)
-        ts[0] = 1.
+        ts[0] = 1.0
 
         # make a copy of the input points which will be modified as groups are located
         singles = copy.deepcopy(points)
@@ -501,7 +503,7 @@ class LineID_AT(AT):
                     clusters[diff] = dlist
         # get the actual peak points rather then just indexes
         clens = {}
-        for k, v in clusters.iteritems():
+        for k, v in clusters.items():
             tl = []
             for i in v:
                 tl.append([points[i[0]], points[i[1]]])
@@ -545,7 +547,7 @@ class LineID_AT(AT):
         # remove any that appear multiple times
         counts = {}
         multi = {}
-        for k, v in clusters.iteritems():
+        for k, v in clusters.items():
             for i in v:
                 if i[0] in counts:
                     multi[i[0]].append(i)
@@ -557,7 +559,7 @@ class LineID_AT(AT):
                 else:
                     counts[i[1]] = 1
                     multi[i[1]] = [i]
-        for k, v in multi.iteritems():
+        for k, v in multi.items():
             ratios = {}
             r = []
             if len(v) > 1:
@@ -567,9 +569,9 @@ class LineID_AT(AT):
                     r.append(temp)
                     ratios[tuple(i)] = temp
                 best = min(r, key=lambda x: abs(x - 1.0))
-                for k1, v1 in ratios.iteritems():
+                for k1, v1 in ratios.items():
                     if best != v1:
-                        for k2 in clusters.keys():
+                        for k2 in list(clusters.keys()):
                             try:
                                 clusters[k2].remove(list(k1))
                             except ValueError:
@@ -578,13 +580,13 @@ class LineID_AT(AT):
         remove = []
         newcounts = {}
         counts = set()
-        for k, v in clusters.iteritems():
+        for k, v in clusters.items():
             counts.add(len(v))
         if len(counts) > 0:
             counts = sorted(counts)
             counts.reverse()
             counts = counts[0:min(2, len(counts))]
-        for k, v in clusters.iteritems():
+        for k, v in clusters.items():
             if not len(v) in counts:
                 remove.append(k)
                 continue
@@ -600,21 +602,23 @@ class LineID_AT(AT):
         for i in remove:
             del clusters[i]
         # report the results
-        if len(clusters.keys()) > 0:
-            if len(clusters.keys()) > 1:
-                exp = "s"
-                pre = ""
-            else:
-                exp = ""
-                pre = " a"
-            msg = "Found %s potential pattern%s with%s separation%s of" % (len(clusters), exp, pre, exp)
+        if len(list(clusters.keys())) > 0:
+            msg = "Found %s potential pattern(s) with separation(s) of" % (len(clusters))
             summary = ""
-            for k in clusters.keys():
-                summary += " %.1f," % (2. * abs(utils.freqtovel(spec.freq()[len(spec)/2], spec.freq()[len(spec)/2] - spec.freq()[len(spec)/2 - k])))
+            for k in list(clusters.keys()):
+                # @todo print('PJT',k)  - still some floats hidden here @pjt
+                f = spec.freq()[len(spec)//2]
+                df = f  - spec.freq()[len(spec)//2 - int(k)]
+                summary += " %.1f," % (2 * abs(utils.freqtovel(f,df)))
+
             summary = summary[:-1] + " km/s"
             logging.info(msg + summary)
 
-        peaks.singles = singles
+        #print('PJT0',singles)            
+        peaks.singles = []             # these need to be integers in P3 (PJT)  cannot do peaks.singles = singles
+        for i in range(len(singles)):
+            peaks.singles.append(int(singles[i]))
+        #print('PJT0',peaks.singles)
         peaks.pairs = clusters
         peaks.counts = newcounts
         return peaks
@@ -737,7 +741,7 @@ class LineID_AT(AT):
                     results.append(res)
         elif isinstance(lines, dict):
             results = {}
-            for freq, res in lines.iteritems():
+            for freq, res in lines.items():
                 if isinstance(res, list):
                     tempr = []
                     for r in res:
@@ -802,8 +806,6 @@ class LineID_AT(AT):
                              self.getkey("allowexotics"), **kw)
 
         results = self.checkreject(results)
-        for r in results:
-            print "PJT",r
         return results
 
     def gettier1(self):
@@ -930,7 +932,7 @@ class LineID_AT(AT):
 
             Returns
             -------
-            List of the peak points in channel space
+            List of the peak points in channel space, need to be int
 
         """
         wdth = []
@@ -969,7 +971,8 @@ class LineID_AT(AT):
                 pk = pf.find() + float(max(s[0] - 2, 0))
                 for p in pk:
                     if s[0] <= p <= s[1]:
-                        temppks.append(p)
+                        #temppks.append(p)
+                        temppks.append(int(p))    # PJT should they not be int's ?
                 if not iterate:
                     break
                 args["min_width"] -= 1
@@ -1025,7 +1028,7 @@ class LineID_AT(AT):
             hi = max(rng)
             found = False
             # now look for matches in clusters
-            for chan in chfc.values():
+            for chan in list(chfc.values()):
                 if low <= chan[0][0] <= hi or low <= chan[0][1] <= hi or \
                     chan[0][0] <= low <= chan[0][1]:
                     count += 1
@@ -1035,7 +1038,7 @@ class LineID_AT(AT):
             if found:
                 continue
             # now search the single lines
-            for chan in shfc.values():
+            for chan in list(shfc.values()):
                 if low <= chan[0][0] <= hi or low <= chan[0][1] <= hi or \
                     chan[0][0] <= low <= chan[0][1]:
                     count += 1
@@ -1089,7 +1092,7 @@ class LineID_AT(AT):
             low = min(rng)
             hi = max(rng)
             # look to see if any match, if one does add it to the dictionary
-            for freq, chan in combhfc.iteritems():
+            for freq, chan in combhfc.items():
                 if low < chan[0][0] <= hi or low <= chan[0][1] <= hi or \
                     chan[0][0] <= low <= chan[0][1]:
                     hfline = copy.deepcopy(hfl)
@@ -1102,7 +1105,7 @@ class LineID_AT(AT):
         # need to find where main line belongs
         fc = set()
         fs = set()
-        for freq, ident in possibleblends.iteritems():
+        for freq, ident in possibleblends.items():
             # if there is only 1 line then just add it to the identifications
             if len(ident) == 1:
                 hfline = copy.deepcopy(ident[0])
@@ -1160,7 +1163,7 @@ class LineID_AT(AT):
                     blends.append(hfline)
                 self.blendcount += 1
             # remove any identified lines from the peaks instance
-            for f, v in peak.fcenters.iteritems():
+            for f, v in peak.fcenters.items():
                 for idn in ident:
                     if idn.getfstart() <= f <= idn.getfend():
                         fc.add(f)
@@ -1168,7 +1171,7 @@ class LineID_AT(AT):
                         v[1][0] = 0.0
                     if idn.getfstart() <= v[1][1] <= idn.getfend():
                         v[1][1] = 0.0
-            for f, v in peak.fcenters.iteritems():
+            for f, v in peak.fcenters.items():
                 if v[1][0] == 0.0:
                     if v[1][1] != 0.0:
                         peak.fsingles.append(v[1][1])
@@ -1433,7 +1436,7 @@ class LineID_AT(AT):
                 # first generate channel ranges for all lines and clusters
                 chfc = {}
                 shfc = {}
-                for freq, v in peaks.fcenters.iteritems():
+                for freq, v in peaks.fcenters.items():
                     parameters = {0: [0, 0, 0, [100000, -1000000]],
                                   1: [0, 0, 0, []],
                                   2: [0, 0, 0, []]}
@@ -1500,7 +1503,6 @@ class LineID_AT(AT):
                     peak = peaks.getspecs()[peaks.getchan(freq)]
                     if st==en:
                         fwidth = abs(peaks.getfreqs()[st]-peaks.getfreqs()[st+1])
-                        print "PJT1",fwidth
 
                     popt, pcov = utils.fitgauss1D(peaks.getfreqs()[st:en + 1] - freq,
                                                   peaks.getspecs()[st:en + 1], par=[peak, 0.0,
@@ -1520,14 +1522,14 @@ class LineID_AT(AT):
                 width = self.getkey("tier1width")
             fwidth = utils.veltofreq(width, peaks.centerfreq())
             # go through each possible transition and see if we have a line that is a possibility
-            for trans, t1 in tier1.iteritems():
+            for trans, t1 in tier1.items():
                 todel = set()
                 found = False
                 # go through all detected clusters
                 skip = []
                 noskip = {}
                 doskip = False
-                for k in peaks.fcenters.keys():
+                for k in list(peaks.fcenters.keys()):
                     if t1.getkey("frequency") - fwidth < k < t1.getkey("frequency") + fwidth:
                         doskip = True
                         noskip[abs(k - t1.getkey("frequency"))] = k
@@ -1535,11 +1537,11 @@ class LineID_AT(AT):
                         skip.append(k)
                 if len(noskip) > 1:
                     minval = noskip[min(noskip.keys())]
-                    for i in noskip.values():
+                    for i in list(noskip.values()):
                         if i != minval:
                             skip.append(i)
                 # search though the clusters first
-                for k in peaks.fcenters.keys():
+                for k in list(peaks.fcenters.keys()):
                     if k not in peaks.fcenters or (doskip and k in skip):
                         continue
                     v = peaks.fcenters[k]
@@ -1610,7 +1612,7 @@ class LineID_AT(AT):
                     # check the center frequency first
                     closest = -1.
                     distance = 100000.
-                    for frq in peaks.fcenters.keys():
+                    for frq in list(peaks.fcenters.keys()):
                         if t1.getkey("frequency") - fwidth <= frq <= t1.getkey("frequency") + fwidth:
                             if abs(t1.getkey("frequency") - frq) < distance:
                                 closest = frq
@@ -1813,7 +1815,7 @@ class LineID_AT(AT):
                     # wing 0
                     closest = -1.0
                     distance = 100000.
-                    for frq, val in peaks.fcenters.iteritems():
+                    for frq, val in peaks.fcenters.items():
                         wng = val[1]
                         if t1.getkey("frequency") - fwidth <= wng[0] <= t1.getkey("frequency") + fwidth:
                             if abs(t1.getkey("frequency") - wng[0]) < distance:
@@ -1944,7 +1946,7 @@ class LineID_AT(AT):
 
                     closest = -1.0
                     distance = 100000.
-                    for frq, val in peaks.fcenters.iteritems():
+                    for frq, val in peaks.fcenters.items():
                         wng = val[1]
                         if t1.getkey("frequency") - fwidth <= wng[1] <= t1.getkey("frequency") + fwidth:
                             if abs(t1.getkey("frequency") - wng[1]) < distance:
@@ -2011,34 +2013,34 @@ class LineID_AT(AT):
                         if len(cent["lines"]) >= len(right["lines"]) and len(cent["lines"]) >= len(left["lines"]):
                             if len(cent["lines"]) != 0:
                                 identifications.update(cent["lines"])
-                                for val in cent["lines"].values():
+                                for val in list(cent["lines"].values()):
                                     self.tier1list.append(val)
-                                self.tier1chans.append(cent["lines"].values()[0].getkey("chans"))
-                                frq = [peaks.getfreq(cent["lines"].values()[0].getstart()),
-                                       peaks.getfreq(cent["lines"].values()[0].getend())]
+                                self.tier1chans.append(list(cent["lines"].values())[0].getkey("chans"))
+                                frq = [peaks.getfreq(list(cent["lines"].values())[0].getstart()),
+                                       peaks.getfreq(list(cent["lines"].values())[0].getend())]
                                 self.tier1freq.append([min(frq), max(frq)])
                                 blends += cent["blend"]
                         elif len(left["lines"]) >= len(right["lines"]):
                             identifications.update(left["lines"])
-                            for val in left["lines"].values():
+                            for val in list(left["lines"].values()):
                                 self.tier1list.append(val)
-                            self.tier1chans.append(left["lines"].values()[0].getkey("chans"))
-                            frq = [peaks.getfreq(left["lines"].values()[0].getstart()),
-                                   peaks.getfreq(left["lines"].values()[0].getend())]
+                            self.tier1chans.append(list(left["lines"].values())[0].getkey("chans"))
+                            frq = [peaks.getfreq(list(left["lines"].values())[0].getstart()),
+                                   peaks.getfreq(list(left["lines"].values())[0].getend())]
                             self.tier1freq.append([min(frq), max(frq)])
                             blends += left["blend"]
                         else:
                             identifications.update(right["lines"])
-                            for val in right["lines"].values():
+                            for val in list(right["lines"].values()):
                                 self.tier1list.append(val)
-                            self.tier1chans.append(right["lines"].values()[0].getkey("chans"))
-                            frq = [peaks.getfreq(right["lines"].values()[0].getstart()),
-                                   peaks.getfreq(right["lines"].values()[0].getend())]
+                            self.tier1chans.append(list(right["lines"].values())[0].getkey("chans"))
+                            frq = [peaks.getfreq(list(right["lines"].values())[0].getstart()),
+                                   peaks.getfreq(list(right["lines"].values())[0].getend())]
                             self.tier1freq.append([min(frq), max(frq)])
                             blends += right["blend"]
 
                     chanrange = {}
-                    freqs = identifications.keys()
+                    freqs = list(identifications.keys())
                     chans = []
                     for f in freqs:
                         chans.append(peaks.getchan(f))
@@ -2056,8 +2058,8 @@ class LineID_AT(AT):
                         identifications[f].setkey("freqs", [self.freq[self.chan.index(identifications[f].getstart())],
                                                             self.freq[self.chan.index(identifications[f].getend())]])
                     delcent = []
-                    for f in peaks.fcenters.keys():
-                        for ch, vals in chanrange.iteritems():
+                    for f in list(peaks.fcenters.keys()):
+                        for ch, vals in chanrange.items():
                             if vals[0] <= f <= vals[1]:
                                 delcent.append(f)
                                 break
@@ -2067,7 +2069,7 @@ class LineID_AT(AT):
                             continue
                         if peaks.fsingles[i] == 0:
                             delsingle.append(i)
-                        for ch, vals in chanrange.iteritems():
+                        for ch, vals in chanrange.items():
                             if vals[0] <= peaks.fsingles[i] <= vals[1]:
                                 delsingle.append(i)
                     delsingle.reverse()
@@ -2085,9 +2087,10 @@ class LineID_AT(AT):
                     closest = -1
                     distance = 1000000.
                     for i in range(len(peaks.fsingles)):
-                        seg = peaks.getfsegment(peaks.fsingles[i])
+                        # PJT trial fix for ESO; also recommend to use some < epsilon, instead == 0.0
                         if peaks.fsingles[i] == 0.0:# or haveit:
                             continue
+                        seg = peaks.getfsegment(peaks.fsingles[i])
                         if t1.getkey("frequency") - fwidth < seg[0] < t1.getkey("frequency") + fwidth or\
                            t1.getkey("frequency") - fwidth < seg[1] < t1.getkey("frequency") + fwidth or\
                            seg[0] < t1.getkey("frequency") < seg[1]:
@@ -2117,14 +2120,14 @@ class LineID_AT(AT):
                                 tempid, tblend = self.taghfclines(chfc, shfc, peaks, 0.0, offset,
                                                                   hflines + [t1])
                                 identifications.update(tempid)
-                                for val in tempid.values():
+                                for val in list(tempid.values()):
                                     self.tier1list.append(val)
 
                                 if len(tempid) == 0:
                                     continue
-                                self.tier1chans.append(tempid.values()[0].getkey("chans"))
-                                frq = [peaks.getfreq(tempid.values()[0].getstart()),
-                                       peaks.getfreq(tempid.values()[0].getend())]
+                                self.tier1chans.append(list(tempid.values())[0].getkey("chans"))
+                                frq = [peaks.getfreq(list(tempid.values())[0].getstart()),
+                                       peaks.getfreq(list(tempid.values())[0].getend())]
                                 self.tier1freq.append([min(frq), max(frq)])
                                 peaks.fsingles[closest] = 0.0
                                 blends += tblend
@@ -2134,6 +2137,7 @@ class LineID_AT(AT):
                                 peak = peaks.getspecs()[peaks.getchan(peaks.fsingles[closest])]
                                 maxwidth = width = utils.veltofreq(10.0, peaks.fsingles[closest])
                                 breakpoint = 0
+                                #print('PJT',closest,peaks.singles[closest])
                                 if i > 0:
                                     delta = abs(peaks.getfreqs()[peaks.singles[closest]]
                                                 - peaks.getfreqs()[peaks.singles[closest] - 1])
@@ -2173,7 +2177,7 @@ class LineID_AT(AT):
                                 self.tier1freq.append([min(frq), max(frq)])
                                 peaks.fsingles[closest] = 0.0
                         chanrange = {}
-                        freqs = identifications.keys()
+                        freqs = list(identifications.keys())
                         chans = []
                         for f in freqs:
                             chans.append(peaks.getchan(f))
@@ -2193,12 +2197,12 @@ class LineID_AT(AT):
                     else:
                         break
                 delcent = []
-                freqs = identifications.keys()
+                freqs = list(identifications.keys())
                 chanrange = {}
-                for f in peaks.fcenters.keys():
+                for f in list(peaks.fcenters.keys()):
                     if f in freqs:
                         continue
-                    for ch, vals in chanrange.iteritems():
+                    for ch, vals in chanrange.items():
                         if vals[0] <= f <= vals[1]:
                             delcent.append(f)
                             break
@@ -2208,7 +2212,7 @@ class LineID_AT(AT):
                         continue
                     if peaks.fsingles[i] == 0:
                         delsingle.append(i)
-                    for ch, vals in chanrange.iteritems():
+                    for ch, vals in chanrange.items():
                         if vals[0] <= peaks.fsingles[i] <= vals[1]:
                             delsingle.append(i)
                 delsingle.reverse()
@@ -2223,7 +2227,7 @@ class LineID_AT(AT):
         slen = len(peaks.fsingles)
         # now process anything that is not Tier 1
         # start with the complex sets
-        for freq, v in peaks.fcenters.iteritems():
+        for freq, v in peaks.fcenters.items():
             # central frequency and channel spacing
             parameters = {0: [0, 0, 0, [10000, 0]],
                           1: [0, 0, 0, []],
@@ -2260,8 +2264,9 @@ class LineID_AT(AT):
             for i in [0, 1]:
                 peakw = peaks.getspecs()[peaks.getchan(wings[i])]
                 st = max(0, peaks.getchan(wings[i]) - 1.5 * int(twidth / (delta)))
-                en = min(len(peaks) - 1, peaks.getchan(wings[i]) + 1.5 * \
-                  int(twidth / (delta)))
+                en = min(len(peaks) - 1, peaks.getchan(wings[i]) + 1.5 * int(twidth / (delta)))
+                st = int(st)    # P3 @pjt
+                en = int(en)
                 if st==en:
                     fwidth = abs(peaks.getfreqs()[st]-peaks.getfreqs()[st+1])
 
@@ -2813,7 +2818,7 @@ class LineID_AT(AT):
         badblends = []
         for i, blend in enumerate(blends):
             found = False
-            for ident in identifications.values():
+            for ident in list(identifications.values()):
                 if ident.blend == blend.blend:
                     found = True
             if not found:
@@ -2823,7 +2828,7 @@ class LineID_AT(AT):
             del blends[b]
 
         for b in blends:
-            for line in identifications.values():
+            for line in list(identifications.values()):
                 if b.blend == line.blend:
                     b.setkey("chans", line.getkey("chans"))
                     b.setkey("freqs", line.getkey("freqs"))
@@ -2886,7 +2891,7 @@ class LineID_AT(AT):
                 elif points[1] > spk > sid:
                     points[1] = int((sid + spk) / 2)
             # do the same for the clusters
-            for chan, v in peaks.centers.iteritems():
+            for chan, v in peaks.centers.items():
                 if v[0]:
                     if points[0] < chan < sid:
                         points[0] = int((sid + chan) / 2)
@@ -2918,7 +2923,7 @@ class LineID_AT(AT):
                 elif points[1] > spk > cid:
                     points[1] = int((cid + spk) / 2)
             # do the same for the clusters
-            for chan, v in peaks.centers.iteritems():
+            for chan, v in peaks.centers.items():
                 if v[0]:
                     if chan == cid:
                         break
@@ -2958,24 +2963,25 @@ class LineID_AT(AT):
             otherwise.
 
         """
+        #   @todo   what are these numbers, and that 48.07692308 ???
         fit = [42.96712785, -777.04366254, 3892.90652112]
         for peaks in counts["stats"]:
             count = len(peaks)
             if count < 10:
                 if len(self.freq) < count*48.07692308:
-                    logging.info("Too many peaks in CubeStats for pattern finding to be useful, turning it off.")
+                    logging.info("Too many peaks in CubeStats for pattern finding to be useful, turning it off.[1]")
                     return True
             elif len(self.freq) < fit[0] * count**2 + fit[1] * count + fit[2]:
-                logging.info("Too many peaks in CubeStats for pattern finding to be useful, turning it off.")
+                logging.info("Too many peaks in CubeStats for pattern finding to be useful, turning it off.[2]")
                 return True
         for peaks in counts["specs"]:
             count = len(peaks)
             if count < 10:
                 if len(self.freq) < count*48.07692308:
-                    logging.info("Too many peaks in CubeSpectrum for pattern finding to be useful, turning it off.")
+                    logging.info("Too many peaks in CubeSpectrum for pattern finding to be useful, turning it off.[1]")
                     return True
             elif len(self.freq) < fit[0] * count**2 + fit[1] * count + fit[2]:
-                logging.info("Too many peaks in CubeSpectrum for pattern finding to be useful, turning it off.")
+                logging.info("Too many peaks in CubeSpectrum for pattern finding to be useful, turning it off.[2]")
                 return True
         return False
 
@@ -3078,7 +3084,7 @@ class LineID_AT(AT):
         self.identifylines = self.getkey("identifylines")
         if self.vlsr < -999999.0 and self.identifylines:
             try:
-                self.vlsr = admit.Project.summaryData.get('vlsr')[0].getValue()[0]
+                self.vlsr = float(admit.Project.summaryData.get('vlsr')[0].getValue()[0])    # python3 needs float()
                 logging.info("Set vlsr = %.2f for line identification." % self.vlsr)
             except:
                 logging.info("No vlsr found in summary data and none given as an argument, switching identifylines to False.")
@@ -3101,7 +3107,12 @@ class LineID_AT(AT):
         self._plot_type = admit.util.PlotControl.SVG
 
         # instantiate a plotter for all plots made herein
-        myplot = APlot(ptype=self._plot_type, pmode=self._plot_mode, abspath=self.dir())
+        if self._plot_mode != PlotControl.NOPLOT:
+            noplot = False
+            myplot = APlot(ptype=self._plot_type, pmode=self._plot_mode, abspath=self.dir())
+        else:
+            noplot = True
+   
 
         ############################################################################
         #  Smoothing and continuum (baseline) subtraction of input spectra         #
@@ -3191,11 +3202,12 @@ class LineID_AT(AT):
         maxgap=self.getkey("maxgap") 
         numsigma=self.getkey("numsigma")
         iterate=self.getkey("iterate")
+        edgechannels=self.getkey("edgechannels")
 
         self.dt.tag("segment finder")
         if specbdp is not None:
             logging.info("Detecting segments in CubeSpectrum based data")
-            values = specutil.findsegments(self.specs, method, minchan, maxgap, numsigma, iterate)
+            values = specutil.findsegments(self.specs, method, minchan, maxgap, numsigma, iterate, edgechannels=edgechannels)
             for i, t in enumerate(values):
                 self.specseg.append(self.checkforcesegs(t[0]))
                 self.specs[i].set_noise(t[2])
@@ -3203,7 +3215,7 @@ class LineID_AT(AT):
 
         if statbdp is not None:
             logging.info("Detecting segments in CubeStats based data")
-            values = specutil.findsegments(self.statspec, method, minchan, maxgap, numsigma, iterate)
+            values = specutil.findsegments(self.statspec, method, minchan, maxgap, numsigma, iterate, edgechannels=edgechannels)
             for i, t in enumerate(values):
                 self.statseg.append(self.checkforcesegs(t[0]))
                 self.statspec[i].set_noise(t[2])
@@ -3211,7 +3223,7 @@ class LineID_AT(AT):
 
         if pvbdp is not None:
             logging.info("Detecting segments in PVCorr based data")
-            values = specutil.findsegments([self.pvspec], method, minchan, maxgap, numsigma, iterate,noise=self.pvsigma)
+            values = specutil.findsegments([self.pvspec], method, minchan, maxgap, numsigma, iterate,noise=self.pvsigma, edgechannels=edgechannels)
             self.pvspec.set_noise(self.pvsigma)  # @TODO: why not values[0][2]?
             for t in values:
                 self.pvseg = self.checkforcesegs(t[0])
@@ -3254,65 +3266,81 @@ class LineID_AT(AT):
                 if i == 1:
                     mult = -1.
 #                print("MWP plot cutoff[%d] = %f, contin=%f" % (i, (spec.contin() + mult*(spec.noise() * self.getkey("numsigma")))[0], spec.contin()[0] ) )
-                myplot.segplotter(x=spec.freq(), y=spec.spec(csub=False),
-                                  title="Potential Line Locations", xlab=xlabel,
-                                  ylab=label[i], figname=imbase + "_statspec%i" % i, segments=freqs,
-                                  cutoff=(spec.contin() + mult * (spec.noise() * self.getkey("numsigma"))),
-                                  continuum=spec.contin(), thumbnail=True)
-                imname = myplot.getFigure(figno=myplot.figno, relative=True)
-                thumbnailname = myplot.getThumbnail(figno=myplot.figno, relative=True)
-                image = Image(images={bt.SVG: imname}, thumbnail=thumbnailname,
-                              thumbnailtype=bt.PNG, description=caption[i])
-                llbdp.image.addimage(image, "statspec%i" % i)
+
+                if self._plot_mode == PlotControl.NOPLOT:
+                    imname = "not created"
+                    thumbnailname = "not created"
+                    # leave captions unchanged for now
+                else:
+                    myplot.segplotter(x=spec.freq(), y=spec.spec(csub=False),
+                                      title="Potential Line Locations", xlab=xlabel,
+                                      ylab=label[i], figname=imbase + "_statspec%i" % i, segments=freqs,
+                                      cutoff=(spec.contin() + mult * (spec.noise() * self.getkey("numsigma"))),
+                                      continuum=spec.contin(), thumbnail=True)
+                    imname = myplot.getFigure(figno=myplot.figno, relative=True)
+                    thumbnailname = myplot.getThumbnail(figno=myplot.figno, relative=True)
+                    image = Image(images={bt.SVG: imname}, thumbnail=thumbnailname,
+                                  thumbnailtype=bt.PNG, description=caption[i])
+                    llbdp.image.addimage(image, "statspec%i" % i)
                 self.spec_description.append([llbdp.ra, llbdp.dec, "", xlabel, imname,
                                               thumbnailname, caption[i], self.infile])
 
             for i, spec in enumerate(self.specs):
                 freqs = []
+                _caption = "Potential lines overlaid on input spectrum #%i." % (i)
+                
                 for ch in self.specseg[i]:
                     freqs.append([min(spec.freq()[ch[0]], spec.freq()[ch[1]]),
                                   max(spec.freq()[ch[0]], spec.freq()[ch[1]])])
-                myplot.segplotter(x=spec.freq(), y=spec.spec(csub=False),
-                                  title="Potential Line Locations", xlab=xlabel,
-                                  ylab="Intensity", figname=imbase + "_spec%03d" % i, segments=freqs,
-                                  cutoff=spec.contin() + (spec.noise() * self.getkey("numsigma")),
-                                  continuum=spec.contin(), thumbnail=True)
-                imname = myplot.getFigure(figno=myplot.figno, relative=True)
-                thumbnailname = myplot.getThumbnail(figno=myplot.figno,
-                                                    relative=True)
-                _caption = "Potential lines overlaid on input spectrum #%i." % (i)
-                image = Image(images={bt.SVG: imname}, thumbnail=thumbnailname,
-                              thumbnailtype=bt.PNG, description=_caption)
-                llbdp.image.addimage(image, "spec%03d" % i)
+                if self._plot_mode == PlotControl.NOPLOT:
+                    imname = "not created"
+                    thumbnailname = "not created"
+                else:
+                    myplot.segplotter(x=spec.freq(), y=spec.spec(csub=False),
+                                      title="Potential Line Locations", xlab=xlabel,
+                                      ylab="Intensity", figname=imbase + "_spec%03d" % i, segments=freqs,
+                                      cutoff=spec.contin() + (spec.noise() * self.getkey("numsigma")),
+                                      continuum=spec.contin(), thumbnail=True)
+                    imname = myplot.getFigure(figno=myplot.figno, relative=True)
+                    thumbnailname = myplot.getThumbnail(figno=myplot.figno,
+                                                        relative=True)
+                    image = Image(images={bt.SVG: imname}, thumbnail=thumbnailname,
+                                  thumbnailtype=bt.PNG, description=_caption)
+                    llbdp.image.addimage(image, "spec%03d" % i)
                 self.spec_description.append([llbdp.ra, llbdp.dec, "", xlabel, imname,
                                               thumbnailname, _caption, self.infile])
 
             if self.pvspec is not None:
                 freqs = []
+                _caption = "Potential lines overlaid on Correlation plot from PVCorr_BDP."
+                
                 for ch in self.pvseg:
                     freqs.append([min(self.pvspec.freq()[ch[0]], self.pvspec.freq()[ch[1]]),
                                   max(self.pvspec.freq()[ch[0]], self.pvspec.freq()[ch[1]])])
 
-                myplot.segplotter(x=self.pvspec.freq(), y=self.pvspec.spec(csub=False),
-                                  title="Potential Line Locations", xlab=xlabel,
-                                  ylab="Corr. Coef.", figname=imbase + "_pvspec",
-                                  segments=freqs, cutoff=self.pvspec.noise() * self.getkey("numsigma"),
-                                  thumbnail=True)
-                imname = myplot.getFigure(figno=myplot.figno, relative=True)
-                thumbnailname = myplot.getThumbnail(figno=myplot.figno,
-                                                    relative=True)
-                _caption = "Potential lines overlaid on Correlation plot from PVCorr_BDP."
-                image = Image(images={bt.SVG: imname}, thumbnail=thumbnailname,
-                              thumbnailtype=bt.PNG, description=_caption)
-                llbdp.image.addimage(image, "pvspec")
+                if self._plot_mode == PlotControl.NOPLOT:
+                    imname = "not created"
+                    thumbnailname = "not created"
+                else:
+                    myplot.segplotter(x=self.pvspec.freq(), y=self.pvspec.spec(csub=False),
+                                      title="Potential Line Locations", xlab=xlabel,
+                                      ylab="Corr. Coef.", figname=imbase + "_pvspec",
+                                      segments=freqs, cutoff=self.pvspec.noise() * self.getkey("numsigma"),
+                                      thumbnail=True)
+                    imname = myplot.getFigure(figno=myplot.figno, relative=True)
+                    thumbnailname = myplot.getThumbnail(figno=myplot.figno,
+                                                        relative=True)
+                    image = Image(images={bt.SVG: imname}, thumbnail=thumbnailname,
+                                  thumbnailtype=bt.PNG, description=_caption)
+                    llbdp.image.addimage(image, "pvspec")
                 self.spec_description.append([llbdp.ra, llbdp.dec, "", xlabel,
                                               imname, thumbnailname, _caption,
                                               self.infile])
 
             self._summary["linelist"] = SummaryEntry(llbdp.table.serialize(), "LineID_AT",
-                                                     self.id(True), taskargs)
+                                                     self.id(True), taskargs,noplot=noplot)
             self._summary["spectra"] = [SummaryEntry(self.spec_description, "LineID_AT",
-                                                     self.id(True), taskargs)]
+                                                     self.id(True), taskargs,noplot=noplot)]
 
             self.addoutput(llbdp)
             self.dt.tag("done")
@@ -3323,7 +3351,7 @@ class LineID_AT(AT):
         # do the peak finding
         spnoise = []
         # loop over all of the requested methods
-        for method, margs in self.getkey("method").iteritems():
+        for method, margs in self.getkey("method").items():
             logging.info("Searching for spectral peaks with method: %s" % (method))
             tpeaks[method] = {"stats" : [],
                               "specs" : [],
@@ -3372,7 +3400,7 @@ class LineID_AT(AT):
         for i in range(len(self.statspec)):
             fullstats = set()
             statlist = []
-            for v in tpeaks.values():
+            for v in list(tpeaks.values()):
                 statlist.append(v["stats"][i])
             target = 0   # add everything that is unique
 
@@ -3403,7 +3431,7 @@ class LineID_AT(AT):
             for row in range(len(self.specs)):
                 fullspec = set()
                 speclist = []
-                for v in tpeaks.values():
+                for v in list(tpeaks.values()):
                     speclist.append(v["specs"][row])
                 if "ALL" in mode:
                     target = len(speclist)
@@ -3425,7 +3453,7 @@ class LineID_AT(AT):
         if self.pvspec is not None:
             fullpvc = set()
             pvclist = []
-            for spec, v in tpeaks.iteritems():
+            for spec, v in tpeaks.items():
                 pvclist.append(v["pvc"])
             target = 0   # add everything that is unique
 
@@ -3445,6 +3473,7 @@ class LineID_AT(AT):
                                 break
                     if count >= target:
                         fullpvc.add(point)
+            #print("PJT-pvc:",fullpvc,sorted(fullpvc))
             allpeaks["pvc"] = sorted(fullpvc)
             havesomething = havesomething or len(allpeaks["pvc"]) > 0
 
@@ -3462,57 +3491,74 @@ class LineID_AT(AT):
                 mult = 1.
                 if i == 1:
                     mult = -1.
-                myplot.makespec(x=spec.freq(), y=spec.spec(csub=False), chan=spec.chans(),
-                                cutoff=(spec.contin() + mult * (spec.noise() * self.getkey("numsigma"))),
-                                figname=imbase +"_statspec%i" % i, title="Line ID (vlsr=%.2f)" % self.vlsr,
-                                xlabel=xlabel, lines={}, force=self.force, blends=[],
-                                continuum=spec.contin(), ylabel=label[i],
-                                thumbnail=True, references=line_ref)
-                imname = myplot.getFigure(figno=myplot.figno, relative=True)
-                thumbnailname = myplot.getThumbnail(figno=myplot.figno, relative=True)
+                if self._plot_mode == PlotControl.NOPLOT:
+                    imname = "not created"
+                    thumbnailname = "not created"
+                    # leave captions unchanged for now
+                else:
+                    myplot.makespec(x=spec.freq(), y=spec.spec(csub=False), chan=spec.chans(),
+                                    cutoff=(spec.contin() + mult * (spec.noise() * self.getkey("numsigma"))),
+                                    figname=imbase +"_statspec%i" % i, title="Line ID (vlsr=%.2f)" % self.vlsr,
+                                    xlabel=xlabel, lines={}, force=self.force, blends=[],
+                                    continuum=spec.contin(), ylabel=label[i],
+                                    thumbnail=True, references=line_ref)
+                    imname = myplot.getFigure(figno=myplot.figno, relative=True)
+                    thumbnailname = myplot.getThumbnail(figno=myplot.figno, relative=True)
 
-                image = Image(images={bt.SVG: imname}, thumbnail=thumbnailname,
-                              thumbnailtype=bt.PNG, description=caption[i])
-                llbdp.image.addimage(image, "statspec%i" % i)
+                    image = Image(images={bt.SVG: imname}, thumbnail=thumbnailname,
+                                  thumbnailtype=bt.PNG, description=caption[i])
+                    llbdp.image.addimage(image, "statspec%i" % i)
                 self.spec_description.append([llbdp.ra, llbdp.dec, "", xlabel, imname,
                                               thumbnailname, caption[i], self.infile])
             # cubespec output (1 for each input spectra, there could be many from a single BDP)
             for i, spec in enumerate(self.specs):
-                myplot.makespec(x=spec.freq(), y=spec.spec(csub=False), chan=spec.chans(),
-                                cutoff=spec.contin() + spnoise[i],
-                                figname=imbase +"_spec%03d" % i,
-                                title="Line ID (vlsr=%.2f)" % self.vlsr, xlabel=xlabel,
-                                lines={}, force=self.force, blends=[],
-                                continuum=spec.contin(), thumbnail=True,
-                                references=line_ref)
-                imname = myplot.getFigure(figno=myplot.figno, relative=True)
-                thumbnailname = myplot.getThumbnail(figno=myplot.figno,
-                                                    relative=True)
-                _caption = "Identified lines overlaid on input spectrum #%i." % (i)
-                image = Image(images={bt.SVG: imname},
-                              thumbnail=thumbnailname, thumbnailtype=bt.PNG,
-                              description=_caption)
-                llbdp.image.addimage(image, "spec%03d" % i)
+                _caption = "Identified lines overlaid on input spectrum #%i." % (i)                
+                if self._plot_mode == PlotControl.NOPLOT:
+                    imname = "not created"
+                    thumbnailname = "not created"
+                    # leave captions unchanged for now
+                else:
+                    myplot.makespec(x=spec.freq(), y=spec.spec(csub=False), chan=spec.chans(),
+                                    cutoff=spec.contin() + spnoise[i],
+                                    figname=imbase +"_spec%03d" % i,
+                                    title="Line ID (vlsr=%.2f)" % self.vlsr, xlabel=xlabel,
+                                    lines={}, force=self.force, blends=[],
+                                    continuum=spec.contin(), thumbnail=True,
+                                    references=line_ref)
+                    imname = myplot.getFigure(figno=myplot.figno, relative=True)
+                    thumbnailname = myplot.getThumbnail(figno=myplot.figno,
+                                                        relative=True)
+
+                    image = Image(images={bt.SVG: imname},
+                                  thumbnail=thumbnailname, thumbnailtype=bt.PNG,
+                                  description=_caption)
+                    llbdp.image.addimage(image, "spec%03d" % i)
                 self.spec_description.append([llbdp.ra, llbdp.dec, "", xlabel, imname,
                                               thumbnailname, _caption, self.infile])
 
             if self.pvspec is not None:
-                myplot.makespec(x=self.pvspec.freq(), y=self.pvspec.spec(csub=False), chan=self.pvspec.chans(),
-                                cutoff=self.pvcutoff,
-                                figname=imbase + "_pvspec", title="Line ID (vlsr=%.2f)" % self.vlsr,
-                                xlabel=xlabel, lines={}, force=self.force, blends=[],
-                                continuum=[0.0] * len(self.pvspec), ylabel="Corr. Coeff.",
-                                thumbnail=True, references=line_ref)
-                imname = myplot.getFigure(figno=myplot.figno, relative=True)
-                thumbnailname = myplot.getThumbnail(figno=myplot.figno, relative=True)
-
                 _caption = "Identified lines overlaid on Correlation Coefficient plot from PVCorr_BDP."
-                image = Image(images={bt.SVG: imname}, thumbnail=thumbnailname,
-                              thumbnailtype=bt.PNG, description=_caption)
-                llbdp.image.addimage(image, "pvspec")
+                if self._plot_mode == PlotControl.NOPLOT:
+                    imname = "not created"
+                    thumbnailname = "not created"
+                    # leave captions unchanged for now
+                else:
+                    myplot.makespec(x=self.pvspec.freq(), y=self.pvspec.spec(csub=False), chan=self.pvspec.chans(),
+                                    cutoff=self.pvcutoff,
+                                    figname=imbase + "_pvspec", title="Line ID (vlsr=%.2f)" % self.vlsr,
+                                    xlabel=xlabel, lines={}, force=self.force, blends=[],
+                                    continuum=[0.0] * len(self.pvspec), ylabel="Corr. Coeff.",
+                                    thumbnail=True, references=line_ref)
+                    imname = myplot.getFigure(figno=myplot.figno, relative=True)
+                    thumbnailname = myplot.getThumbnail(figno=myplot.figno, relative=True)
+
+                    image = Image(images={bt.SVG: imname}, thumbnail=thumbnailname,
+                                  thumbnailtype=bt.PNG, description=_caption)
+                    llbdp.image.addimage(image, "pvspec")
                 self.spec_description.append([llbdp.ra, llbdp.dec, "", xlabel, imname,
                                               thumbnailname, _caption, self.infile])
 
+            # PJT @todo   noplot ?
             self._summary["linelist"] = SummaryEntry(llbdp.table.serialize(), "LineID_AT",
                                                      self.id(True), taskargs)
             self._summary["spectra"] = [SummaryEntry(self.spec_description, "LineID_AT",
@@ -3520,7 +3566,7 @@ class LineID_AT(AT):
             self.addoutput(llbdp)
             self.dt.tag("nolines")
             self.dt.end()
-            Peaks.reset()
+            Peaks.reset()  # static
             # no lines detected
             return
 
@@ -3536,6 +3582,7 @@ class LineID_AT(AT):
             else:
                 stpeaks = Peaks(spec=spec)
                 stpeaks.singles = allpeaks["stats"][i]
+                #print("PJT-st",stpeaks.singles)
                 stpeaks.pairs = {}
                 stpeaks.segments = self.statseg[i]
                 peaks["stats"].append(stpeaks)
@@ -3547,12 +3594,14 @@ class LineID_AT(AT):
             else:
                 sppeaks = Peaks(spec=spec)
                 sppeaks.singles = allpeaks["specs"][i]
+                #print("PJT-sp",sppeaks.singles)                
                 sppeaks.pairs = {}
                 sppeaks.segments = self.specseg[i]
                 peaks["specs"].append(sppeaks)
         if self.pvspec is not None:
             pvpeaks = Peaks(spec=self.pvspec)
             pvpeaks.singles = allpeaks["pvc"]
+            #print("PJT-pv",pvpeaks.singles)            
             pvpeaks.segments = self.pvseg
             pvpeaks.pairs = {}
             peaks["pvc"] = pvpeaks
@@ -3594,7 +3643,7 @@ class LineID_AT(AT):
             # if at least 1 line was found, apply the results to the other spectra
             if len(peaks["stats"][i].linelist) > 0:
                 foundsomething = True
-            for k, v in peaks["stats"][i].linelist.iteritems():
+            for k, v in peaks["stats"][i].linelist.items():
                 if v.getstart() <= self.getkey("minchan")/2 and k < peaks["stats"][i].getfreq(v.getstart()):
                     drop.append(k)
                 elif v.getend() >= (len(peaks["stats"][i].spec) - self.getkey("minchan")/2) and \
@@ -3611,7 +3660,7 @@ class LineID_AT(AT):
                 foundsomething = True
             drop = []
 
-            for k, v in peaks["specs"][i].linelist.iteritems():
+            for k, v in peaks["specs"][i].linelist.items():
                 if v.getstart() <= self.getkey("minchan") / 4 and \
                    k < min(peaks["specs"][i].getfreq(v.getstart()),
                            peaks["specs"][i].getfreq(v.getend())):
@@ -3637,9 +3686,9 @@ class LineID_AT(AT):
         while not done and loopcount < 3:
             done = True
             for i, spec in enumerate(peaks["specs"]):
-                for line in spec.linelist.values():
+                for line in list(spec.linelist.values()):
                     for j in range(i + 1, len(peaks["specs"])):
-                        for sline in peaks["specs"][j].linelist.values():
+                        for sline in list(peaks["specs"][j].linelist.values()):
                             lo = False
                             ro = False
                             env = False
@@ -3691,7 +3740,7 @@ class LineID_AT(AT):
                                 sline.setkey(data)
 
                     for stat in peaks["stats"]:
-                        for ll, sline in stat.linelist.iteritems():
+                        for ll, sline in stat.linelist.items():
                             lo = False
                             ro = False
                             env = False
@@ -3742,7 +3791,7 @@ class LineID_AT(AT):
                                        }
                                 sline.setkey(data)
                     if peaks["pvc"] is not None:
-                        for sline in peaks["pvc"].linelist.values():
+                        for sline in list(peaks["pvc"].linelist.values()):
                             lo = False
                             ro = False
                             env = False
@@ -3793,9 +3842,9 @@ class LineID_AT(AT):
                                        }
                                 sline.setkey(data)
             for spec in peaks["stats"]:
-                for line in spec.linelist.values():
+                for line in list(spec.linelist.values()):
                     for j in range(i + 1, len(peaks["specs"])):
-                        for sline in peaks["specs"][j].linelist.values():
+                        for sline in list(peaks["specs"][j].linelist.values()):
                             lo = False
                             ro = False
                             env = False
@@ -3847,7 +3896,7 @@ class LineID_AT(AT):
                                 sline.setkey(data)
 
                     for stat in peaks["specs"]:
-                        for sline in stat.linelist.values():
+                        for sline in list(stat.linelist.values()):
                             lo = False
                             ro = False
                             env = False
@@ -3899,7 +3948,7 @@ class LineID_AT(AT):
                                 sline.setkey(data)
 
                     if peaks["pvc"] is not None:
-                        for sline in peaks["pvc"].linelist.values():
+                        for sline in list(peaks["pvc"].linelist.values()):
                             lo = False
                             ro = False
                             env = False
@@ -3950,7 +3999,7 @@ class LineID_AT(AT):
             ulist = []
             mlist = []
 
-            for v in peaks["stats"][i].linelist.values():
+            for v in list(peaks["stats"][i].linelist.values()):
                 v.setkey("peakrms", float(np.max(self.statspec[i].spec()[v.getstart():v.getend() + 1])))
                 v.setkey("peakintensity", float(v.getkey("peakrms") * self.statspec[i].noise()))
                 if "Ukn" in v.getkey("name"):
@@ -3988,21 +4037,26 @@ class LineID_AT(AT):
             mult = 1.
             if i == 1:
                 mult = -1.
-            myplot.makespec(x=self.statspec[i].freq(), y=self.statspec[i].spec(csub=False),
-                            chan=self.statspec[i].chans(),
-                            cutoff=(self.statspec[i].contin() + mult * (self.statspec[i].noise() *
-                                                                        self.getkey("numsigma"))),
-                            figname=imbase + "_statspec%i" % i, title="Line ID (vlsr=%.2f)" % self.vlsr,
-                            xlabel=xlabel, lines=mlist, force=self.force,
-                            blends=peaks["stats"][i].blends, continuum=self.statspec[i].contin(),
-                            ylabel=label[i], thumbnail=True, references=line_ref)
-            imname = myplot.getFigure(figno=myplot.figno, relative=True)
+            if self._plot_mode == PlotControl.NOPLOT:
+                imname = "not created"
+                thumbnailname = "not created"
+                # leave captions unchanged for now
+            else:
+                myplot.makespec(x=self.statspec[i].freq(), y=self.statspec[i].spec(csub=False),
+                                chan=self.statspec[i].chans(),
+                                cutoff=(self.statspec[i].contin() + mult * (self.statspec[i].noise() *
+                                                                            self.getkey("numsigma"))),
+                                figname=imbase + "_statspec%i" % i, title="Line ID (vlsr=%.2f)" % self.vlsr,
+                                xlabel=xlabel, lines=mlist, force=self.force,
+                                blends=peaks["stats"][i].blends, continuum=self.statspec[i].contin(),
+                                ylabel=label[i], thumbnail=True, references=line_ref)
+                imname = myplot.getFigure(figno=myplot.figno, relative=True)
 
-            thumbnailname = myplot.getThumbnail(figno=myplot.figno, relative=True)
-
-            image = Image(images={bt.SVG: imname}, thumbnail=thumbnailname,
-                          thumbnailtype=bt.PNG, description=caption[i])
-            llbdp.image.addimage(image, "statspec%i" % i)
+                thumbnailname = myplot.getThumbnail(figno=myplot.figno, relative=True)
+                
+                image = Image(images={bt.SVG: imname}, thumbnail=thumbnailname,
+                              thumbnailtype=bt.PNG, description=caption[i])
+                llbdp.image.addimage(image, "statspec%i" % i)
             self.spec_description.append([llbdp.ra, llbdp.dec, "", xlabel, imname, thumbnailname,
                                           caption[i], self.infile])
 
@@ -4010,7 +4064,7 @@ class LineID_AT(AT):
             ulist = []
             mlist = []
 
-            for v in peaks["specs"][i].linelist.values():
+            for v in list(peaks["specs"][i].linelist.values()):
                 v.setkey("peakintensity", float(np.max(self.specs[i].spec()[v.getstart():v.getend() + 1])))
                 v.setkey("peakrms", float(v.getkey("peakintensity") / self.specs[i].noise()))
 
@@ -4046,29 +4100,34 @@ class LineID_AT(AT):
 
             mlist += ulist
             xlabel = "%s Frequency (GHz)" % (t)
-            myplot.makespec(x=self.specs[i].freq(), y=self.specs[i].spec(csub=False),
-                            chan=self.specs[i].chans(),
-                            cutoff=self.specs[i].contin() + (self.specs[i].noise() *
-                                                             self.getkey("numsigma")),
-                            figname=imbase + "_spec%03d" % i,
-                            title="Line ID (vlsr=%.2f)" % self.vlsr, xlabel=xlabel, lines=mlist,
-                            force=self.force, blends=peaks["specs"][i].blends,
-                            continuum=self.specs[i].contin(), thumbnail=True, references=line_ref)
-            imname = myplot.getFigure(figno=myplot.figno, relative=True)
-            thumbnailname = myplot.getThumbnail(figno=myplot.figno,
-                                                relative=True)
-            _caption = "Identified lines overlaid on input spectrum #%i." % (i)
-
-            image = Image(images={bt.SVG: imname}, thumbnail=thumbnailname,
-                          thumbnailtype=bt.PNG, description=_caption)
-            llbdp.image.addimage(image, "spec%03d" % i)
+            _caption = "Identified lines overlaid on input spectrum #%i." % (i)            
+            if self._plot_mode == PlotControl.NOPLOT:
+                imname = "not created"
+                thumbnailname = "not created"
+                # leave captions unchanged for now
+            else:
+                myplot.makespec(x=self.specs[i].freq(), y=self.specs[i].spec(csub=False),
+                                chan=self.specs[i].chans(),
+                                cutoff=self.specs[i].contin() + (self.specs[i].noise() *
+                                                                 self.getkey("numsigma")),
+                                figname=imbase + "_spec%03d" % i,
+                                title="Line ID (vlsr=%.2f)" % self.vlsr, xlabel=xlabel, lines=mlist,
+                                force=self.force, blends=peaks["specs"][i].blends,
+                                continuum=self.specs[i].contin(), thumbnail=True, references=line_ref)
+                imname = myplot.getFigure(figno=myplot.figno, relative=True)
+                thumbnailname = myplot.getThumbnail(figno=myplot.figno,
+                                                    relative=True)
+                
+                image = Image(images={bt.SVG: imname}, thumbnail=thumbnailname,
+                              thumbnailtype=bt.PNG, description=_caption)
+                llbdp.image.addimage(image, "spec%03d" % i)
             self.spec_description.append([llbdp.ra, llbdp.dec, "", xlabel, imname, thumbnailname,
                                           _caption, self.infile])
 
         if self.pvspec is not None:
             ulist = []
             mlist = []
-            for v in peaks["pvc"].linelist.values():
+            for v in list(peaks["pvc"].linelist.values()):
                 v.setkey("peakintensity", float(np.max(self.pvspec.spec()[v.getstart():v.getend()+1])))
                 v.setkey("peakrms", float(v.getkey("peakintensity") / self.pvspec.noise()))
                 if "Ukn" in v.getkey("name"):
@@ -4104,26 +4163,31 @@ class LineID_AT(AT):
 
 
             xlabel = "%s Frequency (GHz)" % (t)
-            myplot.makespec(x=self.pvspec.freq(), y=self.pvspec.spec(csub=False), chan=self.pvspec.chans(),
-                            cutoff=self.pvspec.noise() * self.getkey("numsigma"),
-                            figname=imbase + "_pvspec", title="Line ID (vlsr=%.2f)" % self.vlsr,
-                            xlabel=xlabel, lines=mlist, force=self.force, blends=peaks["pvc"].blends,
-                            continuum=[0.0] * len(self.pvspec), ylabel="Correlation",
-                            thumbnail=True, references=line_ref)
-            imname = myplot.getFigure(figno=myplot.figno, relative=True)
-            thumbnailname = myplot.getThumbnail(figno=myplot.figno, relative=True)
             _caption = "Identified lines overlaid on correlation coefficient plot from PVCorr_BDP."
-
-            image = Image(images={bt.SVG: imname}, thumbnail=thumbnailname,
-                          thumbnailtype=bt.PNG, description=_caption)
-            llbdp.image.addimage(image, "pvspec")
+            if self._plot_mode == PlotControl.NOPLOT:
+                imname = "not created"
+                thumbnailname = "not created"
+                # leave captions unchanged for now
+            else:
+                myplot.makespec(x=self.pvspec.freq(), y=self.pvspec.spec(csub=False), chan=self.pvspec.chans(),
+                                cutoff=self.pvspec.noise() * self.getkey("numsigma"),
+                                figname=imbase + "_pvspec", title="Line ID (vlsr=%.2f)" % self.vlsr,
+                                xlabel=xlabel, lines=mlist, force=self.force, blends=peaks["pvc"].blends,
+                                continuum=[0.0] * len(self.pvspec), ylabel="Correlation",
+                                thumbnail=True, references=line_ref)
+                imname = myplot.getFigure(figno=myplot.figno, relative=True)
+                thumbnailname = myplot.getThumbnail(figno=myplot.figno, relative=True)
+                
+                image = Image(images={bt.SVG: imname}, thumbnail=thumbnailname,
+                              thumbnailtype=bt.PNG, description=_caption)
+                llbdp.image.addimage(image, "pvspec")
             self.spec_description.append([llbdp.ra, llbdp.dec, "", xlabel, imname, thumbnailname,
                                           _caption, self.infile])
 
         llist = []
         # merge the results into a single list
         for s in range(len(self.statspec)):
-            keylist = peaks["stats"][s].linelist.keys()
+            keylist = list(peaks["stats"][s].linelist.keys())
             keylist.sort()
             for key in keylist:
 
@@ -4159,7 +4223,7 @@ class LineID_AT(AT):
                     llist.append(item)
         for ps in peaks["specs"]:
             blendcheck = {}
-            for freq, v in ps.linelist.iteritems():
+            for freq, v in ps.linelist.items():
                 place = False
                 for i in range(len(llist)):
                     if (v.getkey("frequency") == llist[i].getkey("frequency") and \
@@ -4201,7 +4265,7 @@ class LineID_AT(AT):
                             bqn = ""
                             frq = 0.0
                             bls = blend.getkey("linestrength")
-                            for j in ps.linelist.keys():
+                            for j in list(ps.linelist.keys()):
                                 if ps.linelist[j].getkey("blend") == blend.getkey("blend") and \
                                    ps.linelist[j].getkey("linestrength") > bls:
                                     bqn = ps.linelist[j].getkey("transition")
@@ -4237,7 +4301,7 @@ class LineID_AT(AT):
                             bqn = ""
                             bls = blend.getkey("linestrength")
                             # get the strongest one in the blend
-                            for j in ps.linelist.keys():
+                            for j in list(ps.linelist.keys()):
                                 if ps.linelist[j].getkey("blend") == blend.getkey("blend") and \
                                    ps.linelist[j].getkey("linestrength") > bls:
                                     bqn = ps.linelist[j].getkey("transition")
@@ -4264,7 +4328,7 @@ class LineID_AT(AT):
                     llist.append(blend)
         if peaks["pvc"] is not None:
             blendcheck = {}
-            for freq, v in peaks["pvc"].linelist.iteritems():
+            for freq, v in peaks["pvc"].linelist.items():
                 place = False
                 for i in range(len(llist)):
                     if (v.getkey("frequency") == llist[i].getkey("frequency") and \
@@ -4308,7 +4372,7 @@ class LineID_AT(AT):
                             bqn = ""
                             bls = blend.getkey("linestrength")
                             # get the strongest one in the blend
-                            for j in peaks["pvc"].linelist.keys():
+                            for j in list(peaks["pvc"].linelist.keys()):
                                 if peaks["pvc"].linelist[j].getkey("blend") == blend.getkey("blend") and \
                                    peaks["pvc"].linelist[j].getkey("linestrength") > bls:
                                     bqn = peaks["pvc"].linelist[j].getkey("transition")
@@ -4341,7 +4405,7 @@ class LineID_AT(AT):
                             bqn = ""
                             bls = blend.getkey("linestrength")
                             # get the strongest one in the blend
-                            for j in peaks["pvc"].linelist.keys():
+                            for j in list(peaks["pvc"].linelist.keys()):
                                 if peaks["pvc"].linelist[j].getkey("blend") == blend.getkey("blend") and \
                                    peaks["pvc"].linelist[j].getkey("linestrength") > bls:
                                     bqn = peaks["pvc"].linelist[j].getkey("transition")
@@ -4394,6 +4458,7 @@ class LineID_AT(AT):
         #mlist[0]
         mlist.sort(key=lambda x: float(x.getkey("frequency")))
         duplicate_lines = []
+        coverage = np.zeros(len(self.freq))
         for m in mlist:
             addon = ""
             logging.log(logging.INFO, " Found line: " + m.getkey("formula") + " " + m.getkey("transition") +
@@ -4407,18 +4472,28 @@ class LineID_AT(AT):
             llbdp.addRow(m)
             logging.regression("LINEID: %s %.5f  %d %d" % (m.getkey("formula"), m.getkey("frequency"),
                                                            m.getstart(), m.getend()))
-        # Need to adjust plot DPI = 72 for SVG; stick to PNG for now...
-        myplot._plot_type = admit.util.PlotControl.PNG
-        myplot._plot_mode = admit.util.PlotControl.NONE
-        myplot.summaryspec(self.statspec, self.specs, self.pvspec, imbase + "_summary", llist, force=self.force)
-        imname = myplot.getFigure(figno=myplot.figno, relative=True)
-        thumbnailname = myplot.getThumbnail(figno=myplot.figno, relative=True)
+            coverage[m.getstart() : m.getend() + 1] = 1.0
+        fcoverage = coverage.sum() / len(self.freq)
+        logging.log(logging.INFO, " Line Coverage %d / %d = %g" % (int(coverage.sum()),len(self.freq),fcoverage))
+        # PJT @todo the line coverage fraction should be added to the summary
+
         _caption = "Identified lines overlaid on Signal/Noise plot of all spectra."
+        # Need to adjust plot DPI = 72 for SVG; stick to PNG for now...
+        if self._plot_mode == PlotControl.NOPLOT:
+            imname = "not created"
+            thumbnailname = "not created"
+            # leave captions unchanged for now
+        else:
+            myplot._plot_type = admit.util.PlotControl.PNG
+            myplot.summaryspec(self.statspec, self.specs, self.pvspec, imbase + "_summary", llist, force=self.force)
+            imname = myplot.getFigure(figno=myplot.figno, relative=True)
+            thumbnailname = myplot.getThumbnail(figno=myplot.figno, relative=True)
 
-        image = Image(images={bt.PNG: imname}, thumbnail=thumbnailname,
-                      thumbnailtype=bt.PNG, description=_caption)
 
-        llbdp.image.addimage(image, "summary")
+            image = Image(images={bt.PNG: imname}, thumbnail=thumbnailname,
+                          thumbnailtype=bt.PNG, description=_caption)
+
+            llbdp.image.addimage(image, "summary")
         self.spec_description.append([llbdp.ra, llbdp.dec, "", "Signal/Noise", imname,
                                       thumbnailname, _caption, self.infile])
 
@@ -4430,7 +4505,7 @@ class LineID_AT(AT):
         self._summary["spectra"] = [SummaryEntry(self.spec_description, "LineID_AT",
                                                  self.id(True), taskargs)]
         self.addoutput(llbdp)
-        Peaks.reset()
+        Peaks.reset()      # static
         self.dt.tag("done")
         self.dt.end()
 
@@ -4483,7 +4558,7 @@ class Peaks(object):
 
         fcenters : dict
 
-        singles : list
+        singles : list   - needs to be int ?
 
         fsingles : list
 
@@ -4503,9 +4578,11 @@ class Peaks(object):
             Whether or not the offsets have been converted to frequency.
             Internal use only should not be set manually.
     """
-    __slots__ = ["centers", "offsets", "singles", "pairs", "spec",
-                 "offsetdone", "fcenters", "fsingles", "linelist",
+    __slots__ = ["centers", "singles", "pairs", "spec",
+                 "fcenters", "fsingles", "linelist",
                  "blends", "segments", "fsegments", "counts"]
+
+    # these are the static member data
     offsets = set()
     offsetdone = False
 
@@ -4524,19 +4601,19 @@ class Peaks(object):
         self.segments = []
         self.fsegments = []
         #self.chans = []
-        for kw, arg in kwargs.iteritems():
+        for kw, arg in kwargs.items():
             setattr(self, kw, arg)
 
     def __str__(self):
-        print "CENTERS", self.centers
-        print "FCENTERS", self.fcenters
-        print "SINGLES", self.singles
-        print "FSINGLES", self.fsingles
-        print "PAIRS", self.pairs
-        print "LINELIST", self.linelist
-        print "OFFSETS", self.offsets
-        print "SEGMENTS", self.segments
-        print "FSEGMENTS", self.fsegments
+        print("CENTERS", self.centers)
+        print("FCENTERS", self.fcenters)
+        print("SINGLES", self.singles)
+        print("FSINGLES", self.fsingles)
+        print("PAIRS", self.pairs)
+        print("LINELIST", self.linelist)
+        print("OFFSETS", self.offsets)
+        print("SEGMENTS", self.segments)
+        print("FSEGMENTS", self.fsegments)
         return ""
 
     @staticmethod
@@ -4580,7 +4657,7 @@ class Peaks(object):
         """
         remove = set()
         for center in self.fcenters:
-            for freq, v in data.linelist.iteritems():
+            for freq, v in data.linelist.items():
                 if center - tol / 2.0 < freq < center + tol / 2.0:
                     remove.add(center)
                     self.linelist[center] = v
@@ -4588,7 +4665,7 @@ class Peaks(object):
             del self.fcenters[rem]
         remove = set()
         for single in self.fsingles:
-            for freq, v in data.linelist.iteritems():
+            for freq, v in data.linelist.items():
                 if single - tol / 2.0 < freq < single + tol / 2.0:
                     remove.add(single)
                     self.linelist[single] = v
@@ -4612,7 +4689,7 @@ class Peaks(object):
         mpattern = []
 
         p1 = copy.deepcopy(self.pairs)
-        for o in self.pairs.keys():
+        for o in list(self.pairs.keys()):
             isnew = True
             for pattern in mpattern:
                 if pattern - tol / 2.0 < o < pattern + tol / 2.0:
@@ -4750,6 +4827,7 @@ class Peaks(object):
                         self.centers[p2] = (True, [p1, item2[1]])
                         Peaks.offsets.add(diff)
                         break
+                # @todo PJT  how can this be done, should the index not be integer?
                 if not found and not p2 in self.centers:
                     self.centers[(p2 + p1) / 2.0] = (False, [p1, p2])
                     Peaks.offsets.add(diff / 2.0)
@@ -4788,11 +4866,11 @@ class Peaks(object):
         retpattern = {"stats" : {},
                       "specs" : {}}
         stat = pattern["stats"]
-        for freq, wings in stat.iteritems():
+        for freq, wings in stat.items():
             stat[freq] = self.pairsort(wings)
         retpattern["stats"] = stat
         spec = pattern["specs"]
-        for freq, wings in spec.iteritems():
+        for freq, wings in spec.items():
             spec[freq] = self.pairsort(wings)
         retpattern["specs"] = spec
         return retpattern
@@ -4842,7 +4920,7 @@ class Peaks(object):
         for single in self.singles:
             self.fsingles.append(self.getfreq(single))
 
-        for wings in self.centers.values():
+        for wings in list(self.centers.values()):
             v1 = [self.getfreq(wings[1][0]), self.getfreq(wings[1][1])]
             v1.sort()
             self.fcenters[self.getfreq(abs(wings[1][0] + wings[1][1]) / 2.0)] = \
@@ -4862,7 +4940,7 @@ class Peaks(object):
 
         """
         drop = []
-        for f, line in self.linelist.iteritems():
+        for f, line in self.linelist.items():
             low = line.getstart()
             hi = line.getend()
             flow = False

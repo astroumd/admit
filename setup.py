@@ -23,7 +23,7 @@ def aversion():
 class OverrideInstall(install):
     def run(self):
         log.info("Running ADMIT OverrideInstall")
-        mode = 0755
+        mode = 0o755
         install.run(self)    # insure that we run what normally gets installed
                              # then overriding with our private magic ..
         # add the execution bit... .since we are abusing the system and placing

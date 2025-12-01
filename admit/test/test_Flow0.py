@@ -27,13 +27,13 @@ if __name__ == '__main__':
     else:
         a = admit.Admit()
 
-    print 'Flow11:  new admit?',a.new
+    print('Flow11:  new admit?',a.new)
     if not a.new:
-        print 'LEN:',len(a)
-        print "a[0]._keys:",a[0]._keys
-        print "a[1]._keys:",a[1]._keys
+        print('LEN:',len(a))
+        print("a[0]._keys:",a[0]._keys)
+        print("a[1]._keys:",a[1]._keys)
         a.run()
-        print "run done"
+        print("run done")
         a.write()
         sys.exit(0)
 
@@ -42,7 +42,7 @@ if __name__ == '__main__':
     a1.setkey('file','Flow11-0.dat')
     a1.setkey('touch',True)
     a1.setkey('exist',False)
-    print "a1._keys:",a1._keys
+    print("a1._keys:",a1._keys)
 
     a2 = Flow11_AT()
     i2 = a.addtask(a2, [(i1,0)])
@@ -57,8 +57,8 @@ if __name__ == '__main__':
 
     # 
     a.run()
-    print "a1.len2=",a1.len2()
-    print "a2.len2=",a2.len2()
+    print("a1.len2=",a1.len2())
+    print("a2.len2=",a2.len2())
     #
     a.write()
     #
@@ -66,4 +66,4 @@ if __name__ == '__main__':
     #print "a1=",a1
     #print "a.fm[0]=",a.fm[0]
 
-    print "Final waving from ",a.dir()
+    print("Final waving from ",a.dir())

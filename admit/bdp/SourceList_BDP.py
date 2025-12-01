@@ -7,8 +7,8 @@
 """
 
 # ADMIT imports
-from Table_BDP import Table_BDP
-from Image_BDP import Image_BDP
+from .Table_BDP import Table_BDP
+from .Image_BDP import Image_BDP
 
 # system imports
 import numpy as np

@@ -55,14 +55,14 @@ else:
     i4 = a.add(admit.AT_flow21("flow4d"),   [(i2,0),(i3,0)])
     #
     if True:
-        print "LEN: ",len(a)
+        print("LEN: ",len(a))
         for i in range(len(a)):
-            print "LEN(%d): %s" % (i,a[i].len2())
+            print("LEN(%d): %s" % (i,a[i].len2()))
             a[i].set('touch=1')
     #
     a.run()
     if True:
-        print "All done.  Now lets try running again, now 4c and 4d should be re-created"
+        print("All done.  Now lets try running again, now 4c and 4d should be re-created")
         a[i3].set('touch=1')
         a.run()
 

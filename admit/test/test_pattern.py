@@ -69,19 +69,19 @@ class Peaks(object):
         self.segments = []
         self.fsegments = []
         #self.chans = []
-        for kw, arg in kwargs.iteritems():
+        for kw, arg in kwargs.items():
             setattr(self, kw, arg)
 
     def __str__(self):
-        print "CENTERS", self.centers
-        print "FCENTERS", self.fcenters
-        print "SINGLES", self.singles
-        print "FSINGLES", self.fsingles
-        print "PAIRS", self.pairs
-        print "LINELIST", self.linelist
-        print "OFFSETS", self.offsets
-        print "SEGMENTS", self.segments
-        print "FSEGMENTS", self.fsegments
+        print("CENTERS", self.centers)
+        print("FCENTERS", self.fcenters)
+        print("SINGLES", self.singles)
+        print("FSINGLES", self.fsingles)
+        print("PAIRS", self.pairs)
+        print("LINELIST", self.linelist)
+        print("OFFSETS", self.offsets)
+        print("SEGMENTS", self.segments)
+        print("FSEGMENTS", self.fsegments)
         return ""
 
     @staticmethod
@@ -125,7 +125,7 @@ class Peaks(object):
         """
         remove = set()
         for center in self.fcenters:
-            for freq, v in data.linelist.iteritems():
+            for freq, v in data.linelist.items():
                 if center - tol / 2.0 < freq < center + tol / 2.0:
                     remove.add(center)
                     self.linelist[center] = v
@@ -133,7 +133,7 @@ class Peaks(object):
             del self.fcenters[rem]
         remove = set()
         for single in self.fsingles:
-            for freq, v in data.linelist.iteritems():
+            for freq, v in data.linelist.items():
                 if single - tol / 2.0 < freq < single + tol / 2.0:
                     remove.add(single)
                     self.linelist[single] = v
@@ -156,7 +156,7 @@ class Peaks(object):
         """
         mpattern = []
         p1 = copy.deepcopy(self.pairs)
-        for o in self.pairs.keys():
+        for o in list(self.pairs.keys()):
             isnew = True
             for pattern in mpattern:
                 if pattern - tol / 2.0 < o < pattern + tol / 2.0:
@@ -320,11 +320,11 @@ class Peaks(object):
         retpattern = {"stats" : {},
                       "specs" : {}}
         stat = pattern["stats"]
-        for freq, wings in stat.iteritems():
+        for freq, wings in stat.items():
             stat[freq] = self.pairsort(wings)
         retpattern["stats"] = stat
         spec = pattern["specs"]
-        for freq, wings in spec.iteritems():
+        for freq, wings in spec.items():
             spec[freq] = self.pairsort(wings)
         retpattern["specs"] = spec
         return retpattern
@@ -377,7 +377,7 @@ class Peaks(object):
             #print "\n\nSINGLE",single,self.getfreq(single),"\n\n"
             self.fsingles.append(self.getfreq(single))
 
-        for wings in self.centers.values():
+        for wings in list(self.centers.values()):
             v1 = [self.getfreq(wings[1][0]), self.getfreq(wings[1][1])]
             v1.sort()
             self.fcenters[self.getfreq(abs(wings[1][0] + wings[1][1]) / 2.0)] = \
@@ -397,7 +397,7 @@ class Peaks(object):
 
         """
         drop = []
-        for f, line in self.linelist.iteritems():
+        for f, line in self.linelist.items():
             low = line.getstart()
             hi = line.getend()
             flow = False
@@ -616,7 +616,7 @@ def findpatterns(spec, points, segments):
     #self.dt.tag("P2")
     # get the actual peak points rather then just indexes
     clens = {}
-    for k, v in clusters.iteritems():
+    for k, v in clusters.items():
         tl = []
         for i in v:
             tl.append([points[i[0]], points[i[1]]])
@@ -660,7 +660,7 @@ def findpatterns(spec, points, segments):
     # remove any that appear multiple times
     counts = {}
     multi = {}
-    for k, v in clusters.iteritems():
+    for k, v in clusters.items():
         for i in v:
             if i[0] in counts:
                 multi[i[0]].append(i)
@@ -672,7 +672,7 @@ def findpatterns(spec, points, segments):
             else:
                 counts[i[1]] = 1
                 multi[i[1]] = [i]
-    for k, v in multi.iteritems():
+    for k, v in multi.items():
         ratios = {}
         r = []
         if len(v) > 1:
@@ -682,9 +682,9 @@ def findpatterns(spec, points, segments):
                 r.append(temp)
                 ratios[tuple(i)] = temp
             best = min(r, key=lambda x: abs(x - 1.0))
-            for k1, v1 in ratios.iteritems():
+            for k1, v1 in ratios.items():
                 if best != v1:
-                    for k2 in clusters.keys():
+                    for k2 in list(clusters.keys()):
                         try:
                             clusters[k2].remove(list(k1))
                         except ValueError:
@@ -692,14 +692,14 @@ def findpatterns(spec, points, segments):
     remove = []
     newcounts = {}
     counts = set()
-    for k, v in clusters.iteritems():
+    for k, v in clusters.items():
         #newcounts[k] = len(v)
         counts.add(len(v))
     if len(counts) > 0:
         counts = sorted(counts)
         counts.reverse()
         counts = counts[0:min(2, len(counts))]
-    for k, v in clusters.iteritems():
+    for k, v in clusters.items():
         if not len(v) in counts:
             remove.append(k)
             continue
@@ -724,7 +724,7 @@ def plot(x, res, nruns):
     f = plt.figure(figsize=(21,14))
 
     ax = f.add_subplot(111)
-    keys = res.keys()
+    keys = list(res.keys())
     keys.sort()
     for k in keys:
         ax.plot(x,res[k],label='%s chans' % (str(k)),linewidth=2)
@@ -765,11 +765,11 @@ def run(nchan, lwidth, inten):
     """
     # set up the dict to collect the results, key is the number of Gaussians to inject
     pats = {5: None, 10: None, 15:None, 20:None, 25:None, 30:None, 40:None, 50:None, 60:None, 70:None, 80:None, 90:None, 100:None}
-    nl = pats.keys()
+    nl = list(pats.keys())
     nl.sort()
     # for each of the number of Gaussians
     for nlines in nl:
-        print "    ",nlines
+        print("    ",nlines)
         # generate frequency axis
         rms = 1.0
         freq = np.arange(nchan, dtype=np.float64)
@@ -839,21 +839,21 @@ def generate(lwidth=1.5, peak=8.0, seed=45, seed2=65, nruns=100):
     np.random.seed(seed2)
     # dict to store the results, key is the number of channels in the spectra
     chans = {500: None, 1000: None, 2000: None, 4000: None, 8000: None}
-    ch = chans.keys()
+    ch = list(chans.keys())
     ch.sort()
     # loop over each number of channels
     for nchan in ch:
-        print "Running %i channels" % nchan
+        print("Running %i channels" % nchan)
         res = {5: 0, 10: 0, 15:0, 20:0, 25:0, 30:0, 40:0, 50:0, 60:0, 70:0, 80:0, 90:0, 100:0}
         # loop over for the number of requested runs
         for i in range(nruns):
-            print "  Run: ",i
+            print("  Run: ",i)
             p = run(nchan, lwidth, peak)
             # if at least one pattern was found the increment the counter
-            for n in res.keys():
+            for n in list(res.keys()):
                 if len(p[n].pairs) > 0:
                     res[n] += 1
-        ke = res.keys()
+        ke = list(res.keys())
         ke.sort()
         y = []
         for i in ke:

@@ -161,8 +161,8 @@ class ProjectManager():
           # Embed project ID in tasks to indicate project ownership.
           for tid in project.fm: project.fm[tid].setProject(pid)
         else:
-          print "PM.addProject(): Project", baseDir, \
-                "out of date; not added."
+          print("PM.addProject(): Project", baseDir, \
+                "out of date; not added.")
           pid = -1
 
         return pid
@@ -194,7 +194,7 @@ class ProjectManager():
             self._projects.pop(pid)
             return True
         else:
-            print "PM.removeProject: Unknown project ID", pid
+            print("PM.removeProject: Unknown project ID", pid)
             return False
 
 
@@ -336,7 +336,7 @@ class ProjectManager():
         baseDir = os.path.dirname(baseDir[:-1])
         py.write("\n# Managed projects.\n"
                  "pm = %s.getManager()\n" % proj)
-        pids = self._baseDirs.keys()
+        pids = list(self._baseDirs.keys())
         pids.sort()
         for pid in pids:
           pdir = self[pid].dir()[:-1]

@@ -77,10 +77,10 @@ class Flow1N_AT(AT):
 
     def run(self):
         filename = self._bdp_in[0].filename
-        print "Flow1N_AT.run():  Input: ",filename
+        print("Flow1N_AT.run():  Input: ",filename)
 
         if len(self._bdp_in) > 1:
-            print "Warning: Flow1N found %d input BDP's" % len(self._bdp_in)
+            print("Warning: Flow1N found %d input BDP's" % len(self._bdp_in))
 
         exist = self.getkey('exist')
         if exist:
@@ -100,7 +100,7 @@ class Flow1N_AT(AT):
         # that creates between 0 and n BDP outs
 
         # bdps will be the list of BDPs in the loop below
-        bdps = range(n)
+        bdps = list(range(n))
 
         subdir = self.getkey('subdir')
 

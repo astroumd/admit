@@ -44,7 +44,7 @@ if __name__ == '__main__':
     touch = True
     exist = True
 
-    print "Flow11_many:"
+    print("Flow11_many:")
 
     #  pick where admit will do its work
     if len(sys.argv) > 1:
@@ -54,9 +54,9 @@ if __name__ == '__main__':
         # use the current directory
         a = admit.Admit()
 
-    print "a.new: ",a.new
+    print("a.new: ",a.new)
 
-    i = range(n+1)                           # dummy array to hold the task ID's
+    i = list(range(n+1))                           # dummy array to hold the task ID's
 
     i[0] = a.addtask( File_AT() )            # first task: File_AT bootstrap
     a[i[0]].setkey('file','Flow11-0.dat')
@@ -72,9 +72,9 @@ if __name__ == '__main__':
         jprev = j
         # a.run()
         #
-    print "RUN"
+    print("RUN")
     a.run()
     #
-    print "WRITE"
+    print("WRITE")
     a.write()
-    print 'Flow11:  done!'
+    print('Flow11:  done!')

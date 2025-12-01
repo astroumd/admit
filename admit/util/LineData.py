@@ -170,7 +170,7 @@ class LineData(Line):
 
         """
         if isinstance(name, dict):
-            for k, v in name.iteritems():
+            for k, v in name.items():
                 if k == "freqs" or k == "chans":
                     v.sort()
                     name[k] = v

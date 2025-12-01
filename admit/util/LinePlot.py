@@ -7,8 +7,8 @@ This module defines the LinePlot class.
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-import PlotControl
-import APlot
+from . import PlotControl
+from . import APlot
 
 class LinePlot(object):
   """
@@ -100,7 +100,7 @@ class LinePlot(object):
 
     if not names: names = llbdp.getSpectraNames()
     for name in names:
-      print name, "spectrum..."
+      print(name, "spectrum...")
       ftype = "Sky" if llbdp.veltype == 'vlsr' else "Rest"
       label = "Peak/Noise"    if name == 'CubeStats_0' else \
               "Minimum/Noise" if name == 'CubeStats_1' else \

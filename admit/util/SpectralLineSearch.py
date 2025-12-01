@@ -6,9 +6,24 @@
     This module defines the SpectralLineSearch class.
 """
 # system imports
-import urllib2
+try: #python3
+    from urllib.request import urlopen
+    from urllib.error import URLError
+except: #python2
+    from urllib2 import urlopen
+    from urllib2 import URLError
 import random
 
+try:
+    from taskinit import tbtool as tbtool
+    from slsearch import slsearch    
+except:
+    try:
+        from casatools import table as tbtool
+        from casatasks import slsearch as slsearch
+    except:
+        print("WARNING: No CASA; SpectralLineSearch cannot function.")  
+        
 # admit imports
 from admit.util import Splatalogue
 from admit.util import logging
@@ -623,9 +638,9 @@ class SpectralLineSearch(object):
 
         """
         try:
-            response = urllib2.urlopen('http://www.cv.nrao.edu', timeout=10)
+            response = urlopen('http://www.cv.nrao.edu', timeout=10)
             return True
-        except urllib2.URLError:
+        except URLError:
             logging.error("Cannot reach splatalogue server, please check your internet connection.")
             raise Exception("Cannot reach splatalogue server, please check your internet connection.")
 
@@ -708,12 +723,6 @@ class SpectralLineSearch(object):
             A list of LineData objects, with each containing the data for a single transition.
 
         """
-        try:
-            from slsearch import slsearch
-            import taskinit
-        except:
-            logging.info("WARNING: No CASA, slsearch is not available, no line identificaiton possible.")
-            raise
         if "outfile" not in self.sls_kw:
             # @todo should really use tempfile, or $$; this is an accident in waiting
             # also, in the same namespace if a seed is the same, the accident is guarenteed; see genspec.py)
@@ -725,7 +734,7 @@ class SpectralLineSearch(object):
         #print flname
         slsearch(**self.sls_kw)
         # open the table and get the contents
-        tb = taskinit.tbtool()
+        tb = tbtool()
         tb.open(self.sls_kw["outfile"])
         numrows = tb.nrows()
         possible = []

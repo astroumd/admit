@@ -84,7 +84,7 @@ class File_AT(AT):
         filename = self.getkey('file')
         logging.info("file=%s" % filename)
         if len(filename) == 0:
-            raise Exception,'File_AT: no file= given'
+            raise Exception('File_AT: no file= given')
 
         exist = self.getkey('exist')
         if exist:

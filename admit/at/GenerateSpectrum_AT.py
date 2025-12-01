@@ -207,13 +207,13 @@ class GenerateSpectrum_AT(AT):
         df = self.getkey("delta") / 1000.0      # channel width (in GHz)
         nspectra = self.getkey("nspectra")
         taskargs = " contin=%f freq=%f delta=%f nspectra=%f " % (contin,f0,df,nspectra)
-        spec = range(nspectra)
+        spec = list(range(nspectra))
         dt.tag("start")
         if self.getkey("file") != "":
-            print "READING spectrum from",self.getkey("file") 
+            print("READING spectrum from",self.getkey("file")) 
             (freq, spec[0]) = getspec(self.getkey("file"))
             nchan = len(freq)
-            print "Spectrum %d chans from %f to %f: min/max = %f %f" % (nchan, freq.min(), freq.max(), spec[0].min(), spec[0].max())
+            print("Spectrum %d chans from %f to %f: min/max = %f %f" % (nchan, freq.min(), freq.max(), spec[0].min(), spec[0].max()))
             # @todo nspectra>1 not tested
             for i in range(1,nspectra):
                 spec[i] = deepcopy(spec[0])

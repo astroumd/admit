@@ -38,7 +38,7 @@
 <!ATTLIST _taskid type (INT) #REQUIRED>
 <!ELEMENT _enabled		(#PCDATA)>
 <!ATTLIST _enabled type (BOOL) #REQUIRED>
-<!ELEMENT _keys	(numsigma,force,tier1width,online,recomblevel,references,csub,identifylines,iterate,segment,allowexotics,minchan,pattern,smooth,recalcnoise,vlsr,maxgap,reject,method,mode)>
+<!ELEMENT _keys	(numsigma,force,tier1width,online,recomblevel,references,csub,identifylines,iterate,segment,allowexotics,minchan,pattern,edgechannels,smooth,recalcnoise,vlsr,maxgap,reject,method,mode)>
 <!ATTLIST _keys type (DICT) #REQUIRED>
 <!ELEMENT numsigma		(#PCDATA)>
 <!ATTLIST numsigma type (FLOAT) #REQUIRED>
@@ -84,6 +84,8 @@
 <!ATTLIST identifylines type (BOOL) #REQUIRED>
 <!ELEMENT iterate		(#PCDATA)>
 <!ATTLIST iterate type (BOOL) #REQUIRED>
+<!ELEMENT edgechannels		(#PCDATA)>
+<!ATTLIST edgechannels type (INT) #REQUIRED>
 <!ELEMENT segment		(#PCDATA)>
 <!ATTLIST segment type (STRING) #REQUIRED>
 <!ELEMENT vlsr		(#PCDATA)>

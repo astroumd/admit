@@ -9,7 +9,7 @@ import math
 try:
   import scipy.signal
 except:
-  print "WARNING: No scipy; Filter2D utility cannot function."
+  print("WARNING: No scipy; Filter2D utility cannot function.")
 
 class Filter2D(object):
     """ This class defines and runs 2D spectral filters. The currently available
@@ -101,7 +101,7 @@ class Filter2D(object):
                               "deriv"       : None}
         self.method = self.checkmethod(method)
 
-        for k, v in keyval.iteritems():
+        for k, v in keyval.items():
             try:
                 a = getattr(self, method + "_args")[k]
             except:

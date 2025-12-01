@@ -138,7 +138,7 @@ class SpectrumIngest(object):
         #    raise Exception("The frequency column must be specified (i.e. freq=1)")
         if self.speccol < 0:
             raise Exception("The spectral column must be specified (i.e. spec=1)")
-        print self.velcol
+        print(self.velcol)
         if self.velcol >= 0:
             if self.restfreq is not None:
                 if not isinstance(self.restfreq, float) and not isinstance(self.restfreq, int):
@@ -146,7 +146,7 @@ class SpectrumIngest(object):
             else:
                 raise Exception("Restfreq must be specified.")
             if self.vlsr is None:
-                print "vlsr was not specified, assuming it is 0.0"
+                print("vlsr was not specified, assuming it is 0.0")
                 self.vlsr = 0.0
             elif not isinstance(self.vlsr, float) and not isinstance(self.vlsr, int):
                 raise Exception("vlsr must be a float")
@@ -201,16 +201,16 @@ class SpectrumIngest(object):
 
         # if the was no channel column the generate it
         if len(chan) == 0:
-            chan = range(len(spec))
+            chan = list(range(len(spec)))
 
         # report what was found
-        print "Imported %i lines from file %s" % (len(spec), file)
+        print("Imported %i lines from file %s" % (len(spec), file))
         if blank > 0:
-            print "Skipped %i blank lines from file %s" % (blank, file)
+            print("Skipped %i blank lines from file %s" % (blank, file))
         if skipped > 0:
-            print "Skipped %i lines with too few columns from file %s" % (skipped, file)
+            print("Skipped %i lines with too few columns from file %s" % (skipped, file))
         if comments > 0:
-            print "Skipped %i commented lines from file %s" % (comments, file)
+            print("Skipped %i commented lines from file %s" % (comments, file))
         if self.length == 0:
             self.length = len(spec)
         else:

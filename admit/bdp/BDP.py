@@ -96,14 +96,14 @@ class BDP(object):
         self.setkey(keyval)
 
     def __str__(self):
-        print bt.format.BOLD + bt.color.GREEN + "\nBDP :" + bt.format.END + \
-              bt.format.BOLD + self._type + bt.format.END
-        for i, j in self.__dict__.iteritems():
+        print((bt.format.BOLD + bt.color.GREEN + "\nBDP :" + bt.format.END + \
+              bt.format.BOLD + self._type + bt.format.END))
+        for i, j in self.__dict__.items():
             if isinstance(j, (Line, Image, MultiImage, Table)):
-                print bt.format.BOLD + i + ": "
-                print j
+                print((bt.format.BOLD + i + ": "))
+                print(j)
                 continue
-            print bt.format.BOLD + i + ": " + bt.format.END + str(j)
+            print((bt.format.BOLD + i + ": " + bt.format.END + str(j)))
         return "\n"
 
     def getfiles(self):
@@ -124,12 +124,14 @@ class BDP(object):
               derived classes should implement these; see e.g. File_AT.
         """
         files = []
+        # PJT @todo review this change for multiImage
         for i in self.__dict__:
             if isinstance(getattr(self, i), Image):
-                #print getattr(self, i).images
                 for key in getattr(self, i).images:
                     files.append(getattr(self, i).images[key])
-                #files.append(getattr(self, i).fileName)
+            if isinstance(getattr(self, i), MultiImage):
+                for key in getattr(self, i).mimages:
+                    files.append(getattr(self, i).mimages[key])  
         return files
 
     def show(self):
@@ -185,7 +187,7 @@ class BDP(object):
             None
         """
         if _debug:
-            print "UPDATE: %s" % self.xmlFile
+            print(("UPDATE: %s" % self.xmlFile))
         self._updated = new_state
 
     def report(self):
@@ -199,8 +201,8 @@ class BDP(object):
             -------
             None
         """
-        print "===report==="
-        print "BDP::%s" % self.xmlFile
+        print("===report===")
+        print(("BDP::%s" % self.xmlFile))
 
     def setkey(self, name="", key={}):
         """ Sets keyword value(s).
@@ -292,7 +294,7 @@ class BDP(object):
 
         """
         if _debug:
-            print "BDP::get %s" % (key)
+            print(("BDP::get %s" % (key)))
         return getattr(self, key, None)
 
     def write(self, xmlFile=None):
@@ -324,6 +326,7 @@ class BDP(object):
 
         #Return a pretty-printed XML string for the Element.
         rough_string = et.tostring(root, 'utf-8')
+        rough_string=rough_string.decode(encoding='utf-8', errors='strict')
 
         temp = rough_string.replace(">", ">\n")
         temp = temp.replace("</", "\n</")
@@ -398,18 +401,18 @@ class BDP(object):
         """
         try:
             if bdp.get("_type") != self._type:
-                print "BDP types are not the same: " + bdp.get("_type") + " vs " +self._type
+                print(("BDP types are not the same: " + bdp.get("_type") + " vs " +self._type))
                 return False
             for i in self.__dict__:
-                if isinstance(i, (types.TypeType, types.ClassType)):
+                if isinstance(i, type):
                     if not(isinstance(i, Image) or isinstance(i, Line) or isinstance(i.Table)):
                         continue
                     if not getattr(self, i).isequal(getattr(bdp, i)):
-                        print "Attribute %s does not match" % (i)
+                        print(("Attribute %s does not match" % (i)))
                         return False
 
                 elif cmp(getattr(self, i), getattr(bdp, i)) != 0:
-                    print "Attribute %s does not match" % (i)
+                    print(("Attribute %s does not match" % (i)))
                     return False
         except:
             return False

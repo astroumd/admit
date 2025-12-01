@@ -14,8 +14,8 @@ import textwrap
 import ast
 
 # ADMIT imports
-from UtilBase import UtilBase
-import bdp_types as bt
+from .UtilBase import UtilBase
+from . import bdp_types as bt
 
 
 class Table(UtilBase):
@@ -60,14 +60,14 @@ class Table(UtilBase):
         UtilBase.__init__(self, **keyval)
 
     def __str__(self):
-        print bt.format.BOLD + bt.color.GREEN + "Table :" + bt.format.END
+        print(bt.format.BOLD + bt.color.GREEN + "Table :" + bt.format.END)
         if len(self.data.shape) < 3:
             self.exportTable("/dev/stdout")
         else:
             for plane in range(self.data.shape[2]):
-                print bt.format.BOLD + "Plane : " + str(plane) + bt.format.END
+                print(bt.format.BOLD + "Plane : " + str(plane) + bt.format.END)
                 self.exportTable("/dev/stdout", plane=plane)
-                print "\n"
+                print("\n")
         return "\n"
 
     def _jsondict(self,prefix=False):
@@ -259,7 +259,7 @@ class Table(UtilBase):
                     line += str(self.data[i][j][plane]) + "\t"
                 f.write(line + "\n")
         else:
-            print "Cannot write out this table at this time. len(data.shape) = %d" % len(self.data.shape)
+            print("Cannot write out this table at this time. len(data.shape) = %d" % len(self.data.shape))
         f.close()
 
     # these methods allow for the addition of columns, rows, and planes to existing tables
@@ -552,12 +552,12 @@ class Table(UtilBase):
         # check for empty column header list
         if not self.columns:
            errmsg = "Can't make a dictionary -- Table has no column headers defined"
-           raise Exception, errmsg
+           raise Exception(errmsg)
 
         # check for duplicates
         if len(self.columns) != len(set(self.columns)):
            errmsg = "Can't make a dictionary -- Table has duplicate column headers"
-           raise Exception, errmsg
+           raise Exception(errmsg)
 
         try:
             x = dict()
@@ -565,7 +565,7 @@ class Table(UtilBase):
                  #check first for empty column header
                  if not self.columns[i]:
                      errmsg = "Can't make a dictionary -- Table has empty column header %d" % i
-                     raise Exception, errmsg
+                     raise Exception(errmsg)
                  x[self.columns[i]] = self.data[row][i]
             return x
         except IndexError:
@@ -611,7 +611,7 @@ class Table(UtilBase):
             return copy.deepcopy(self.data)
         return copy.deepcopy(self.data.T[pln].T)
 
-    def next(self):
+    def __next__(self):
         """ Method to get the next row from a table
 
             Parameters

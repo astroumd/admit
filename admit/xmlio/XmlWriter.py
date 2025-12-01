@@ -78,7 +78,7 @@ class XmlWriter(object):
             field = et.SubElement(root, item)
             if attr._type.upper() == bt.MULTIIMAGE:
                 field.set("type", bt.MULTIIMAGE)
-                for k, v in attr.mimages.iteritems():
+                for k, v in attr.mimages.items():
                     self.write(v, bt.IMG, btype, field, v._type)
                 return
             field.set("type", attr._type.upper())
@@ -106,7 +106,7 @@ class XmlWriter(object):
             nd = []
             st = []
             field = et.SubElement(root, item)
-            for k, v in attr.iteritems():
+            for k, v in attr.items():
                 if isinstance(v, np.ndarray):
                     nd.append(k)
                     attr[k] = np.ndarray.tolist(v)
@@ -150,7 +150,7 @@ class XmlWriter(object):
             for l in tlist:
                 tt += l + "\n"
             field.text = tt
-        elif isinstance(attr, long):
+        elif isinstance(attr, int):
             if btype[item] != bt.LONG:
                 raise Exception("Improper type for data member %s in %s, it is a %s, but must be a %s" % (item, typ, "LONG", btype[item]))
             field = et.SubElement(root, item)

@@ -5,6 +5,12 @@
 
    This module defines the LineCube_AT class.
 """
+
+# system imports
+import os
+import math
+
+
 # ADMIT imports
 from admit.AT import AT
 from admit.Summary import SummaryEntry
@@ -16,6 +22,7 @@ from admit.util.Line import Line
 from admit.util.Image import Image
 import admit.util.Table
 import admit.util.utils as utils
+import admit.util.PlotControl as PlotControl
 from admit.util.AdmitLogging import AdmitLogging as logging
 
 
@@ -25,11 +32,13 @@ try:
     from imrebin import imrebin
     from casa import imhead
 except:
-    print "WARNING: No CASA; LineCube task cannot function."
-
-# system imports
-import os
-import math
+    try:
+        import casatasks as casa
+        from casatasks import imsubimage
+        from casatasks import imrebin
+        from casatasks import imhead
+    except:
+        print("WARNING: No CASA; LineCube task cannot function.")
 
 # @todo
 # - use CoordSys tool and setrestfrequency to set the restfreq per linecube
@@ -101,7 +110,7 @@ class LineCube_AT(AT):
                 "fpad"     : -1.0,   # optional fractional linesegment width padding
                 }
         AT.__init__(self, keys, keyval)
-        self._version = "1.0.3"
+        self._version = "1.2.2"
         self.set_bdp_in([(Image_BDP,     1, bt.REQUIRED),
                          (LineList_BDP,  1, bt.REQUIRED)])
         self.set_bdp_out([(LineCube_BDP, 0)])
@@ -204,7 +213,7 @@ class LineCube_AT(AT):
             uid1.append(row.getkey("uid"))
         uid2 = set(uid1)
         if len(uid1) != len(uid2):
-            print "LineList:",uid1
+            print("LineList:",uid1)
             logging.warning("There are duplicate names in the LineList")
             #raise Exception,"There are duplicate names in the LineList"
 
@@ -275,9 +284,9 @@ class LineCube_AT(AT):
                               % (pad, end, nchan - 1))
                         end = nchan - 1
                 elif pad < 0:
-                    mid = (start + end) / 2
-                    start = mid + pad / 2
-                    end = mid - pad / 2 - 1
+                    mid = (start + end) // 2
+                    start = mid + pad // 2
+                    end = mid - pad // 2 - 1
                     if start < 0:
                         logging.warning("pad=%d too large, start=%d resetting to 0"
                               % (pad, start))

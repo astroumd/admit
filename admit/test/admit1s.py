@@ -237,13 +237,13 @@ admit.utils.assert_files([file,pb,cont])                # this will halt the scr
 #------------------------------------------------------- start of script -----------------------------------------------
 
 #  announce version
-print 'ADMIT1s: Version ',version,'loglevel ',loglevel
+print('ADMIT1s: Version ',version,'loglevel ',loglevel)
 
 #  do the work in a proper ".admit" directory
 adir = admit.utils.admit_dir(file,out)
 #  dirty method, it really should check if adir is an admit directory
 if doClean and adir != file:
-    print "Removing previous results from ",adir
+    print("Removing previous results from ",adir)
     os.system('rm -rf %s' % adir)
     create=True
 else:
@@ -255,27 +255,27 @@ if admit0:
 # parse apar file(s) first, overwriting local apar variables
 for ap1 in ['admit1s.apar', file+".apar", apar]:         # loop over 3 possible apar files, set parameters
     if ap1 != "" and os.path.isfile(ap1):
-        print "Found parameter file ",ap1
-        execfile(ap1)
+        print("Found parameter file ",ap1)
+        exec(compile(open(ap1, "rb").read(), ap1, 'exec'))
     else:
-        print "Skipping ",ap1
+        print("Skipping ",ap1)
 
 # open admit
 a = admit.Project(adir,name='Testing ADMIT1s style pipeline - version %s' % version,create=create,loglevel=loglevel)
 
 if a.new:
-    print "Starting a new ADMIT using",file
+    print("Starting a new ADMIT using",file)
     cmd = 'cp -a %s %s' % (sys.argv[0],adir)               # copy the script into the admit directory (@todo is that righ one?)
     os.system(cmd)
     a.set(admit_dir=adir)                                  # why was this again?
     #
     for ap in ['admit1s.apar', file+".apar", apar]:         # loop over 3 possible apar files, backup copy
         if ap != "" and os.path.isfile(ap):
-            print "Found parameter file ",ap
+            print("Found parameter file ",ap)
             os.system('cp %s %s' % (ap,adir))
 else:
-    print "All done, we just read an existing admit.xml and it should do nothing"
-    print "Use admit0.py to re-run inside of your admit directory"
+    print("All done, we just read an existing admit.xml and it should do nothing")
+    print("Use admit0.py to re-run inside of your admit directory")
     #
     a.fm.diagram(a.dir()+'admit.dot')
     a.show()
@@ -348,7 +348,7 @@ if cont != '':
     cslist = (sfind2,0)
     a.run()
     ncs = len(a[cslist[0]][0])
-    print "N Cont sources in ingested contmap :",ncs
+    print("N Cont sources in ingested contmap :",ncs)
     if ncs == 0:
         cslist = ()
 else:
@@ -398,7 +398,7 @@ if lineSEG:
     a.run()
 
     nsegments = len(a[lstab1[0]][0])
-    print "Found %d segments in LineSegment" % nsegments
+    print("Found %d segments in LineSegment" % nsegments)
     
     if stop == 'linesegments':  a.exit(1)    
 else:
@@ -407,7 +407,7 @@ else:
 
 # ContinuumSub 
 if (len(contsub)>0 and contsub[0]==None) or nsegments == 0:
-    print "No ContinuumSub needed"
+    print("No ContinuumSub needed")
 else:
     bdp_in = [bandcube1]
     if len(contsub) == 0:
@@ -430,7 +430,7 @@ else:
         cslist = (sfind2,0)
         a.run()
         ncs = len(a[cslist[0]][0])
-        print "N Cont sources in contmap :",ncs
+        print("N Cont sources in contmap :",ncs)
         if ncs == 0:
             cslist = ()
 
@@ -465,7 +465,7 @@ else:
         a[moment1b].setkey('pad',pad)
     else:
         # @todo   cubesum needs 
-        print "No test maps produced since no segments were found"
+        print("No test maps produced since no segments were found")
 
 
     if stop == 'contsub':  a.exit(1)    
@@ -473,8 +473,8 @@ else:
 
 a.run()
 source = a.summaryData.get('object')[0].getValue()[0]
-print "OBJECT = ", source
+print("OBJECT = ", source)
 
 if admit0:
-    print "RE-RUN: ",run_admit0
+    print("RE-RUN: ",run_admit0)
     os.system(run_admit0)

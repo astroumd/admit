@@ -11,8 +11,13 @@
 
     Dependencies for python requests and astropy modules have been removed.
 """
-import urllib
-import urllib2
+try: #python3
+    from urllib.request import urlopen
+    from urllib.parse import urlencode
+except: #python2
+    from urllib2 import urlopen
+    from urllib import urlencode
+
 import json
 import re
 
@@ -669,9 +674,9 @@ class Splatalogue(object):
             return data_payload
 
         #Need to pass True so that the sid[] list is handled correctly
-        urlparams = urllib.urlencode(data_payload, True)
+        urlparams = urlencode(data_payload, True)
 
-        response = urllib2.urlopen(self.QUERY_URL + '?%s' % urlparams, timeout=self.TIMEOUT)
+        response = urlopen(self.QUERY_URL + '?%s' % urlparams, timeout=self.TIMEOUT)
 
         self.response = response
 

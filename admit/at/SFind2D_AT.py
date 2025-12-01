@@ -5,6 +5,13 @@
 
    This module defines the SFind2D_AT class.
 """
+
+
+import numpy as np
+import numpy.ma as ma
+from copy import deepcopy
+import types
+
 from admit.AT import AT
 from admit.Summary import SummaryEntry
 from admit.util import APlot
@@ -13,22 +20,22 @@ from admit.bdp.SourceList_BDP import SourceList_BDP
 import admit.util.casautil as casautil
 import admit.util.Image as Image
 import admit.util.Line as Line
+import admit.util.PlotControl as PlotControl
 import admit.util.ImPlot as ImPlot
 from admit.bdp.Image_BDP import Image_BDP
 from admit.bdp.CubeStats_BDP import CubeStats_BDP
 import admit.util.utils as utils
 from admit.util.AdmitLogging import AdmitLogging as logging
 
-import numpy as np
-import numpy.ma as ma
-from copy import deepcopy
-
-import types
 try:
     import casa
-    import taskinit
+    from taskinit import iatool as iatool
 except:
-    print "WARNING: No CASA; SFind2D task cannot function."
+    try:
+        import casatasks as casa
+        from casatools import image         as iatool
+    except:
+        print("WARNING: No CASA; SFind2D task cannot function.")
 
 class SFind2D_AT(AT):
     """
@@ -153,7 +160,7 @@ class SFind2D_AT(AT):
                }
 
         AT.__init__(self,keys,keyval)
-        self._version = "1.1.1"
+        self._version = "1.2.2"
         self.set_bdp_in([(Image_BDP,2,bt.OPTIONAL),
                          (CubeStats_BDP,1,bt.OPTIONAL)])
         self.set_bdp_out([(SourceList_BDP, 1)])
@@ -221,16 +228,16 @@ class SFind2D_AT(AT):
 
         # check if there is a 2nd image (which will be a PB)
         for i in range(len(self._bdp_in)):
-            print 'BDP',i,type(self._bdp_in[i])
+            print('BDP',i,type(self._bdp_in[i]))
 
         if self._bdp_in[2] != None:
             bdpin_pb  = self._bdp_in[1]            
             bdpin_cst = self._bdp_in[2]
-            print "Need to process PB"
+            print("Need to process PB")
         else:
             bdpin_pb  = None
             bdpin_cst = self._bdp_in[1]
-            print "No PB given"
+            print("No PB given")
             
 
         # get the output bdp basename
@@ -238,7 +245,7 @@ class SFind2D_AT(AT):
 
         # make sure it's a 2D map
         if not casautil.mapdim(self.dir(infile),2):
-            raise Exception,"Input map dimension not 2: %s" % infile
+            raise Exception("Input map dimension not 2: %s" % infile)
 
         # arguments for imstat call if required
         args = {"imagename" : self.dir(infile)}
@@ -290,7 +297,7 @@ class SFind2D_AT(AT):
         slbdp = SourceList_BDP(slbase)
 
         # connect to casa image and call casa ia.findsources tool
-        ia = taskinit.iatool()
+        ia = iatool()
         ia.open(self.dir(infile))
 
         # findsources() cannot deal with  'Jy/beam.km/s' ???
@@ -319,7 +326,7 @@ class SFind2D_AT(AT):
             logging.debug("%s" % str(atab['component0']['shape']))
             logging.info("Right Ascen.  Declination   X(pix)   Y(pix)      Peak       Flux    Major   Minor    PA    SNR")
             funits = atab['component0']['flux']['unit']
-            if atab['component0']['shape'].has_key('majoraxis'):
+            if 'majoraxis' in atab['component0']['shape']:
                 sunits = atab['component0']['shape']['majoraxis']['unit']
                 aunits = atab['component0']['shape']['positionangle']['unit']
             else:
@@ -333,7 +340,7 @@ class SFind2D_AT(AT):
             if ds9:
                 # @todo variable name
                 regname = self.mkext(infile,'ds9.reg')
-                fp9 = open(self.dir(regname),"w!")
+                fp9 = open(self.dir(regname),"w")     # this was "w!" for python2 ?
             sn0 = -1.0
             for i in range(nsources):
                 c = "component%d" % i
@@ -348,7 +355,7 @@ class SFind2D_AT(AT):
                 dec = rd['string'][1][:12]
                 flux = atab[c]['flux']['value'][0]
                 sumflux = sumflux + flux
-                if atab[c]['shape'].has_key('majoraxis'):
+                if 'majoraxis' in atab[c]['shape']:
                     smajor = atab[c]['shape']['majoraxis']['value']
                     sminor = atab[c]['shape']['minoraxis']['value']
                     sangle = atab[c]['shape']['positionangle']['value']
@@ -356,7 +363,7 @@ class SFind2D_AT(AT):
                     smajor = 0.0
                     sminor = 0.0
                     sangle = 0.0
-                peakstr = ia.pixelvalue([xpos,ypos,0,0])
+                peakstr = ia.pixelvalue([int(xpos),int(ypos),0,0])
                 if len(peakstr) == 0:
                     logging.warning("Problem with source %d @ %d,%d" % (i,xpos,ypos))
                     continue
@@ -394,48 +401,56 @@ class SFind2D_AT(AT):
         logging.info(" Restoring Beam: Major axis: %10.3g %s , Minor axis: %10.3g %s , PA: %5.1f %s" % (beammaj, beamunit, beammin, beamunit, beamang, angunit))
         # form into a xml table
         
+        slbdp.table.description="Table of source locations and sizes (not deconvolved)"
         # output is a table_bdp
         self.addoutput(slbdp)
 
-        # instantiate a plotter for all plots made herein
-        myplot = APlot(ptype=self._plot_type,pmode=self._plot_mode,abspath=self.dir())
 
-        # make output png with circles marking sources found
-        if mpl:
-            circles=[]
-            nx = data.shape[1]             # data[] array was already flipud(rot90)'d
-            ny = data.shape[0]             # 
-            for (x,y) in zip(xtab,ytab):
-                circles.append([x,y,1])
-            # @todo variable name
-            if logscale:
-                logging.warning("LogScaling applied")
-                data = data/sigma
-                data = np.where(data<0,-np.log10(1-data),+np.log10(1+data))
-            if nsources == 0:
-                title = "SFind2D: 0 sources above S/N=%.1f" % (nsigma)
-            elif nsources == 1:
-                title = "SFind2D: 1 source (%.1f < S/N < %.1f)" % (nsigma,sn0)
-            else:
-                title = "SFind2D: %d sources (%.1f < S/N < %.1f)" % (nsources,nsigma,sn0)
-            myplot.map1(data,title,slbase,thumbnail=True,circles=circles,
-                        zoom=self.getkey("zoom"))
+        if self._plot_mode == PlotControl.NOPLOT:
+            figname = "not created"
+            thumbname = "not created"
+            imcaption = "not created"
+            noplot = True
+        else:
+            # instantiate a plotter for all plots made herein
+            myplot = APlot(ptype=self._plot_type,pmode=self._plot_mode,abspath=self.dir())
 
-        #---------------------------------------------------------
-        # Get the figure and thumbmail names and create a caption
-        #---------------------------------------------------------
-        imname = myplot.getFigure(figno=myplot.figno,relative=True)
-        thumbnailname = myplot.getThumbnail(figno=myplot.figno,relative=True)
-        caption = "Image of input map with sources found by SFind2D overlayed in green."
-        slbdp.table.description="Table of source locations and sizes (not deconvolved)"
+            # make output png with circles marking sources found
+            if mpl:
+                circles=[]
+                nx = data.shape[1]             # data[] array was already flipud(rot90)'d
+                ny = data.shape[0]             # 
+                for (x,y) in zip(xtab,ytab):
+                    circles.append([x,y,1])
+                # @todo variable name
+                if logscale:
+                    logging.warning("LogScaling applied")
+                    data = data/sigma
+                    data = np.where(data<0,-np.log10(1-data),+np.log10(1+data))
+                if nsources == 0:
+                    title = "SFind2D: 0 sources above S/N=%.1f" % (nsigma)
+                elif nsources == 1:
+                    title = "SFind2D: 1 source (%.1f < S/N < %.1f)" % (nsigma,sn0)
+                else:
+                    title = "SFind2D: %d sources (%.1f < S/N < %.1f)" % (nsources,nsigma,sn0)
+                myplot.map1(data,title,slbase,thumbnail=True,circles=circles,
+                            zoom=self.getkey("zoom"))
+
+            #---------------------------------------------------------
+            # Get the figure and thumbmail names and create a caption
+            #---------------------------------------------------------
+            figname = myplot.getFigure(figno=myplot.figno,relative=True)
+            thumbname = myplot.getThumbnail(figno=myplot.figno,relative=True)
+            imcaption = "Image of input map with sources found by SFind2D overlayed in green."
  
-        #---------------------------------------------------------
-        # Add finder image to the BDP
-        #---------------------------------------------------------
-        image = Image(images={bt.PNG: imname}, 
-                      thumbnail=thumbnailname, 
-                      thumbnailtype=bt.PNG, description=caption)
-        slbdp.image.addimage(image, "finderimage")
+            #---------------------------------------------------------
+            # Add finder image to the BDP
+            #---------------------------------------------------------
+            image = Image(images={bt.PNG: figname}, 
+                          thumbnail=thumbname, 
+                          thumbnailtype=bt.PNG, description=imcaption)
+            slbdp.image.addimage(image, "finderimage")
+            noplot=False
 
         #-------------------------------------------------------------
         # Create the summary entry for the table and image
@@ -443,7 +458,7 @@ class SFind2D_AT(AT):
         self._summary["sources"] = SummaryEntry([slbdp.table.serialize(),
                                                  slbdp.image.serialize()],
                                                 "SFind2D_AT", 
-                                                self.id(True), taskargs)
+                                                self.id(True), taskargs, noplot=noplot)
         
         dt.tag("done")
         dt.end()

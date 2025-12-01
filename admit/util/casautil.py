@@ -12,14 +12,20 @@ import numpy.ma as ma
 
 try:
   import casa
-  import taskinit
+  from taskinit import iatool as iatool
+  from taskinit import tbtool as tbtool
+  from imview import imview as casa_imview
 except:
-  print "WARNING: No CASA; casautil can't function"
+  try:
+    import casatasks as casa
+    from casatools import image         as iatool
+    from casatools import table         as tbtool
+    from casaviewer import imview as casa_imview 
+  except:
+    print("WARNING: No CASA; casautil can't function")
 
-# imview was left out of the casa namespace in CASA5
-from imview import imview as casa_imview
 
-import PlotControl
+from . import PlotControl
 
 def iscasa(file):
     """is a file a casa image
@@ -74,22 +80,21 @@ def implot(rasterfile, figname, contourfile=None, plottype=PlotControl.PNG,
     #can't support this until imview out= is fixed! (see below)
     #orientation=PlotControl.LANDSCAPE 
 
-
     if plotmode == PlotControl.NOPLOT:  return
 
     if contourfile==None and rasterfile==None:
-       raise Exception, "You must provide rasterfile and/or contourfile"
+       raise Exception("You must provide rasterfile and/or contourfile")
 
     if not PlotControl.isSupportedType(plottype):
-       raise Exception, "Unrecognized plot type %d. See util.PlotControl" % plottype
+       raise Exception("Unrecognized plot type %d. See util.PlotControl" % plottype)
     if plottype == PlotControl.SVG or plottype == PlotControl.GIF:
-       raise Exception, "CASA viewer does not support SVG and GIF format :-("
+       raise Exception("CASA viewer does not support SVG and GIF format :-(")
 
     if plottype == PlotControl.JPG:
-       raise Exception, "CASA viewer claims to support JPG but doens't :-("
+       raise Exception("CASA viewer claims to support JPG but doens't :-(")
 
     if plottype != PlotControl.PNG:
-       raise Exception, "Thumbnails not supported (by matplotlib) for types other than PNG"
+       raise Exception("Thumbnails not supported (by matplotlib) for types other than PNG")
 
 
     DEFAULT_SCALING = -1  # scaling power cycles.
@@ -120,7 +125,7 @@ def implot(rasterfile, figname, contourfile=None, plottype=PlotControl.PNG,
     axes = {'x':'x','y':'y','z':'z'}
 
     # work around this axis labeling problem?
-    ia = taskinit.iatool()
+    ia = iatool()
     ia.open(rasterfile)
     h = ia.summary()
     ia.close()
@@ -131,12 +136,11 @@ def implot(rasterfile, figname, contourfile=None, plottype=PlotControl.PNG,
     # this complained about 'dimensions of axes must be strings (x is not)'
     # axes = { 'x' : h['axisnames'][0],  'y' : h['axisnames'][1] , 'z' : 'z' }
 
-    
     casa_imview(raster=raster, contour=contour, out=figname, axes=axes,
                 zoom=zoom)
 
-    #of = PlotControl.mkext(plottype,dot=False)
-    #casa.viewer(outfile=outfile, infile=imagename, gui=False, plottype=of)
+      #of = PlotControl.mkext(plottype,dot=False)
+      #casa.viewer(outfile=outfile, infile=imagename, gui=False, plottype=of)
     if plotmode == PlotControl.INTERACTIVE or plotmode==PlotControl.SHOW_AT_END:
         casa_imview(raster=raster, contour=contour,axes=axes)
 
@@ -162,7 +166,7 @@ def getdata(imgname, chans=[], zeromask=False):
        array 
            data in a masked numpy array
     """
-    ia = taskinit.iatool()    
+    ia = iatool()    
     ia.open(imgname)
     if len(chans) == 0:
         d = ia.getchunk(blc=[0,0,0,0],trc=[-1,-1,-1,0],getmask=False).squeeze()
@@ -184,7 +188,7 @@ def getdata(imgname, chans=[], zeromask=False):
             (x,y,z) = ma.where(~m)
             d[x,y,z] = 0.0
         else:
-            raise Exception,"getdata: cannot handle data of dimension %d" % ndim
+            raise Exception("getdata: cannot handle data of dimension %d" % ndim)
     dm = ma.masked_array(d,mask=~m)
     return dm
 
@@ -210,7 +214,7 @@ def getdata1(imgname):
        array 
           data in a 1D numpy array
     """
-    ia = taskinit.iatool()
+    ia = iatool()
     ia.open(imgname)
     d = ia.getchunk(blc=[0,0,0,0],trc=[-1,-1,0,0],getmask=False)
     m = ia.getchunk(blc=[0,0,0,0],trc=[-1,-1,0,0],getmask=True)
@@ -243,7 +247,7 @@ def getdata_raw(imgname):
        array 
            data in a 2D numpy array
     """
-    tb = taskinit.tbtool()
+    tb = tbtool()
     tb.open(imgname)
     data=tb.getcol('map')
     tb.close()
@@ -271,18 +275,18 @@ def putdata_raw(imgname, data, clone=None):
            for output. It needs to be an absolute filename.
   
     """
-    ia = taskinit.iatool()    
+    ia = iatool()    
     if clone != None:
         ia.fromimage(infile=clone,outfile=imgname,overwrite=True) 
         ia.close()
     # @todo this seems circumvent to have to borrow the odd dimensions (nx,ny,1,1,1) shape was seen
     if type(data) == type([]):
         # @todo since this needs to extend the axes, the single plane clone and replace data doesn't work here
-        raise Exception,"Not Implemented Yet"
+        raise Exception("Not Implemented Yet")
         bigim = ia.imageconcat(outfile=imgname, infiles=infiles, axis=2, relax=T, tempclose=F, overwrite=T)
         bigim.close()
     else:
-        tb = taskinit.tbtool()
+        tb = tbtool()
         tb.open(imgname,nomodify=False)
         d = tb.getcol('map')
         pdata = ma.getdata(data).reshape(d.shape)
@@ -306,7 +310,7 @@ def mapdim(imgname, dim=None):
      dim : integer (or None)
 
      """
-     ia = taskinit.iatool()     
+     ia = iatool()     
      ia.open(imgname)
      s = ia.summary()
      shape = s['shape']
@@ -374,6 +378,6 @@ def parse_robust(robust):
               rkey['fence'] = robust[1]
       else:
           raise Exception("Unknown algorithm in robust=%s" % robust)
-      print "ROBUST:",rkey
+      print("ROBUST:",rkey)
       return rkey
 

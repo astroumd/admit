@@ -13,9 +13,12 @@
 #      3. it handles *.pb.fits as well as *.pb.fits.gz files that should mirror the *.pbcor.fits files
 #
 #   SCRIPT usage
-#      aap.py -d dir1  [-c] [-n] [-r] [-s] [-v]
+#
+#      aap.py -d dir1  [-c] [-n] [-i] [-r] [-s] [-v]
+#          -d dir directory within which are ALMA fits files
 #          -c     check files to see if there are orphans we may not have encoded for ADMIT processing
 #          -n     dry-run, prints out the commands as they would run (old style ADMIT)
+#          -i     ingest only ADMIT run
 #          -r     remove all CASA images/tables after the ADMIT run
 #          -s     single mode, only one default run per image/cube
 #          -v     verbose
@@ -31,12 +34,13 @@
 #   @todo ...
 #
 
-_version = "9-sep-2020 PJT"
+_version = "1-dec-2025 PJT"
 
 import os, sys
 import argparse as ap
 import glob
 import datetime
+import shutil
 
 #   decipher the python environment (yuck)
 try:
@@ -47,10 +51,9 @@ except:
     try:
         import casatasks    # pre-release now does this????
         is_admit3 = True
-        print("Good fake news: running ADMIT3")
+        print("Good news: running ADMIT3")
     except:
-        print("Bad fake news: your python doesn't know casa or casatasks")
-
+        print("Bad news: your python doesn't know casa or casatasks")
 
 def version():
     """
@@ -95,9 +98,8 @@ def casa_cleanup(admitname):
     files =  glob.glob("%s/*/table.info" % admitname) + glob.glob("%s/*/*/table.info" % admitname) + glob.glob("%s/*/*/*/table.info" % admitname)    
     for f in files:
         dat = f.replace("table.info","")
-        cmd = "rm -rf %s" % dat
-        print("CLEANUP: %s" % cmd)
-        os.system(cmd)
+        print("CLEANUP: %s" % dat)
+        shutil.rmtree(dat)
 
 def find_pbcor(dirname, mfs=False, cube=False, verbose=False):
     """
@@ -120,12 +122,9 @@ def find_pbcor(dirname, mfs=False, cube=False, verbose=False):
             pbcor.append(p2)
     return pbcor
 
-def runa1(pbcorname,pbname=None,label=None,apars=[],dryrun=False,cleanup=False):
+def runa1(pbcorname,pbname=None,label=None,apars=[],dryrun=False,ingest=False,cleanup=False):
     """
-        the runa1 recipe, with optional extra args
-        $ADMIT/admit/test/admit2.py --pb fname.pb.fits.gz --basename x --out fname.<label>.admit --apar fname.<label>.apar   fname.pbcor.fits
-    e.g.   runa1(fname, "native.5sigma", ["numsigma=5"])
-           runa1(fname, "binned16.3sigma", ["insmooth=-16","numsigma=5"])
+           runa1(fname, "binned16.3sigma", ["insmooth=[-16]","numsigma=5"])
     """
     r = '$ADMIT/admit/test/admit1.py'
     r = r + ' --pb %s' % pbname
@@ -147,6 +146,8 @@ def runa1(pbcorname,pbname=None,label=None,apars=[],dryrun=False,cleanup=False):
     else:
         outname =  pbcorname.replace('.fits','') + '.%s.admit' % label
     r = r + ' --out %s' % outname
+    if ingest:
+        r = r + ' --stop ingest'
     r = r + ' %s' % pbcorname
     r = r + ' > %s.log 2>&1' % outname
     print(r)
@@ -155,12 +156,12 @@ def runa1(pbcorname,pbname=None,label=None,apars=[],dryrun=False,cleanup=False):
         if cleanup:
             casa_cleanup(outname)
 
-def runa2(pbcorname,pbname=None,label=None,apars=[],dryrun=False,cleanup=False):
+def runa2(pbcorname,pbname=None,label=None,apars=[],dryrun=False,ingest=False,cleanup=False):
     """
         the runa2 recipe, with optional extra args
         $ADMIT/admit/test/admit2.py --pb fname.pb.fits.gz --basename x --out fname.<label>.admit --apar fname.<label>.apar   fname.pbcor.fits
     e.g.   runa1(fname, "native.5sigma", ["numsigma=5"])
-           runa1(fname, "binned16.3sigma", ["insmooth=-16","numsigma=5"])
+           runa1(fname, "binned16.3sigma", ["insmooth=[-16]","numsigma=5"])
 
            pbcorname = basename.pbcor.fits
            outname   = basename.pbcor.admit      or basename.pbcor.<label>.admit
@@ -186,6 +187,8 @@ def runa2(pbcorname,pbname=None,label=None,apars=[],dryrun=False,cleanup=False):
     else:
         outname =  pbcorname.replace('.fits','') + '.%s.admit' % label
     r = r + ' --out %s' % outname
+    if ingest:
+        r = r + ' --stop ingest'
     r = r + ' %s' % pbcorname
     r = r + ' > %s.log 2>&1' % outname
     print(r)
@@ -194,29 +197,22 @@ def runa2(pbcorname,pbname=None,label=None,apars=[],dryrun=False,cleanup=False):
         if cleanup:
             casa_cleanup(outname)        
 
-def run_admit(recipe, pbcor, madmitname, dryrun=False, verbose=False, single=False, cleanup=False):
+def run_admit(recipe, pbcor, madmitname, dryrun=False, ingest=False, verbose=False, single=False, cleanup=False):
     """
-         based on a full pbcor file run an ADMIT recipe 
-    """ 
-    idx = pbcor.find('.pbcor.fits')
-    pb = glob.glob(pbcor[:idx] + '.pb.fits*')
-    if len(pb) == 0:
-        print("Warning: no matching pb found for %s" % pbcor)
+         based on a full pbcor file run an ADMIT recipe, and figure out the pb name
+    """
+    pb = find_pb(pbcor)
+    if pb == None:
+        print("Warning: no pb found for pbcor=%s" % pbcor)
         return
-    pb = pb[0]
-    if verbose:
-        print(pbcor)
-        print(pb)
+    pbcorpath = os.path.abspath(pbcor)
+    pbpath    = os.path.abspath(pb)
+    pbcorname = splitall(pbcor)[-1]
+    pbname    = splitall(pb)[-1]
+
     #  pbcor and pb are filenames relative to the dirname
     #  e.g. PID/S/G/M/product/member.uid___A001_X133f_X1a2.Tile_004_SMC_SWBar_sci.spw22.cube.I.pbcor.fits
-    #                 product/member.uid___A001_X133f_X1a2.Tile_004_SMC_SWBar_sci.spw22.cube.I.pbcor.fits
-    pbname = splitall(pb)[-1]
-    d = splitall(pbcor)
-    pbcorname = d[-1]
-    pbcorpath = os.path.abspath(pbcor)
-    pbpath = os.path.abspath(pb)
-    pdir = '/'.join(d[:-1])
-    adir = '/'.join(d[:-2]) + '/admit'
+
     adir = madmitname
     if verbose:
         print(adir)
@@ -232,25 +228,62 @@ def run_admit(recipe, pbcor, madmitname, dryrun=False, verbose=False, single=Fal
     if recipe == 'runa2':
         os.system('listfitsa %s' % pbcorname)
         if single:
-            runa2(pbcorname,pbname,dryrun=dryrun,cleanup=cleanup)
+            runa2(pbcorname,pbname,dryrun=dryrun,ingest=ingest,cleanup=cleanup)
         else:
             # @todo   add some smoothing?   go from 5ppx to 10ppx ?
             # @todo   LGM's default is numsigma=6
-            runa2(pbcorname,pbname,"5sigma",["numsigma=5"],dryrun=dryrun,cleanup=cleanup)
-            runa2(pbcorname,pbname,"3sigma",["numsigma=3"],dryrun=dryrun,cleanup=cleanup)
+            # runa2(pbcorname,pbname,"5sigma",["numsigma=5"],dryrun=dryrun,cleanup=cleanup)
+            runa2(pbcorname,pbname,"5sigma",["numsigma=5"],dryrun=dryrun,ingest=ingest,cleanup=cleanup)
     elif recipe == 'runa1':
         os.system('listfitsa %s' % pbcorname)
         if single:
             runa1(pbcorname,pbname,dryrun=dryrun,cleanup=cleanup)
         else:
             #  @todo   LineID's default is numsigma=5
-            #runa1(pbcorname,pbname,"native.5sigma",["numsigma=5"],dryrun=dryrun,cleanup=cleanup)
-            #runa1(pbcorname,pbname,"binned4.3sigma",["insmooth=[-4]","numsigma=3"],dryrun=dryrun,cleanup=cleanup)
-            runa1(pbcorname,pbname,"native.3sigma",["numsigma=3"],dryrun=dryrun,cleanup=cleanup)
-            runa1(pbcorname,pbname,"binned16.3sigma",["insmooth=[-16]","numsigma=3"],dryrun=dryrun,cleanup=cleanup)
+            # runa1(pbcorname,pbname,"native.5sigma",["numsigma=5"],dryrun=dryrun,cleanup=cleanup)
+            # runa1(pbcorname,pbname,"binned4.3sigma",["insmooth=[-4]","numsigma=3"],dryrun=dryrun,cleanup=cleanup)
+            runa1(pbcorname,pbname,"native.5sigma",["numsigma=5"],dryrun=dryrun,ingest=ingest,cleanup=cleanup)
+            runa1(pbcorname,pbname,"binned16.5sigma",["insmooth=[-16]","numsigma=5"],dryrun=dryrun,ingest=ingest,cleanup=cleanup)
             
     if not dryrun:
         os.chdir(cwd)
+
+_pbnames = [
+    ['.pbcor.fits',                   '.pb.fits'],
+    ['.pbcor.fits',                   '.pb.fits.gz'],
+    ['.tt0.pbcor.fits',               '.pb.tt0.fits'],
+    ['.image.pbcor.fits',             '.pb.fits'],
+    ['.image.tt0.pbcor.fits',         '.pb.tt0.fits'],
+    ['.image.tt0.manual.pbcor.fits',  '.tt0.manual.pb.fits'],
+    ['.image.manual.pbcor.fits',      '.manual.pb.fits'],
+    ['.manual.pbcor.fits',            '.pb.fits'],
+]
+
+
+def find_pb(pbcor, guess=None):
+    """ find the matching 'pb' file that belongs to an ALMA 'pbcor' file
+        This has a long and checkered history. See the _pbnames[] rules.
+
+        pbcor     full name of the pbcor file
+        guess     if given, a guess to match againts the patterns we know about
+     
+    
+    """
+    def match(b1, guess):
+        # print("Checking %s" % b1)
+        if guess == None:
+            return os.path.exists(b1)
+        return b1 == guess
+
+    for pb in _pbnames:
+        b1 = pbcor.replace(pb[0], pb[1])
+        if match(b1,guess): return b1
+
+    print("Warning: no match found for %s" % pbcor)
+    if True:
+        return "None"
+    return None
+       
 
 def alma_names(dirname):
     """
@@ -265,32 +298,45 @@ def alma_names(dirname):
     npbcors = len(pbcors)
     print("Found %d pbcor in %d fits files" % (npbcors,nfiles))
     for pbcor in pbcors:
-        pb = pbcor.replace('.pbcor.fits','.pb.fits.gz')
-        try:
-            i1=files.index(pb)
+        pb = find_pb(pbcor)
+        if pb != None:
             files.remove(pbcor)
             files.remove(pb)
-        except:
-            print("missing %s" % pb)
-        mask = pb.replace('.pb.','.mask.')
-        try:
-            i1=files.index(mask)
-            files.remove(mask)
-        except:
-            print("missing %s" % mask)
+            mask = pb.replace('.pb.','.mask.')
+            try:
+                i1=files.index(mask)
+                files.remove(mask)
+            except:
+                print("missing %s" % mask)
+            
+        if False:
+            pb = pbcor.replace('.pbcor.fits','.pb.fits.gz')
+            try:
+                i1=files.index(pb)
+                files.remove(pbcor)
+                files.remove(pb)
+            except:
+                print("missing %s" % pb)
+            mask = pb.replace('.pb.','.mask.')
+            try:
+                i1=files.index(mask)
+                files.remove(mask)
+            except:
+                print("missing %s" % mask)
+                
     for f in files:
         print("orphan  %s" % f)
     if len(files)==0:
         print("Hurray, no orphan files")
     os.chdir(cwd)
 
-def compute_admit(dirname, madmitname=None, verbose=False, dryrun=False, single=False, cleanup=False):
+def compute_admit(dirname, madmitname=None, verbose=False, ingest=False, dryrun=False, single=False, cleanup=False):
     """
     do it all
     """
     # @todo    if dirname contains the whole P/S/G/M name, store that too
     if madmitname == None:
-        prefix=dirname.split('/')
+        prefix=dirname.strip('/').split('/')
         # try some unique name that name-completes but also parses fast by the human eye and filebrowsers
         madmitname = os.path.abspath('./madmit_'+datetime.datetime.now().strftime('%Y%m%d_%H%M%S.%f'))
         madmitname = os.path.abspath(prefix[-1]+"_"+prefix[-2]+"_"+datetime.datetime.now().strftime('%Y%m%d_%H%M%S.%f'))
@@ -304,13 +350,13 @@ def compute_admit(dirname, madmitname=None, verbose=False, dryrun=False, single=
     if len(p1) + len(p2) == 0:
         return None
 
-    # the cheap continuum maps
+    # the cheap continuum maps go first
     for p in p2:
-        run_admit('runa2', p, madmitname, verbose=verbose, dryrun=dryrun, single=single, cleanup=cleanup)
+        run_admit('runa2', p, madmitname, verbose=verbose, dryrun=dryrun, ingest=ingest, single=single, cleanup=cleanup)
 
-    # the expensive cubes
+    # the expensive cubes come last
     for p in p1:
-        run_admit('runa1', p, madmitname, verbose=verbose, dryrun=dryrun, single=single, cleanup=cleanup)
+        run_admit('runa1', p, madmitname, verbose=verbose, dryrun=dryrun, ingest=ingest, single=single, cleanup=cleanup)
 
     return madmitname
 
@@ -329,6 +375,9 @@ if __name__ == "__main__":
     parser.add_argument('-n', '--dryrun', action = "store_true", default = False,
                         help = 'Dryrun mode')
     
+    parser.add_argument('-i', '--ingest', action = "store_true", default = False,
+                        help = 'Ingest only mode.')
+
     parser.add_argument('-r', '--cleanup', action = "store_true", default = False,
                         help = 'Cleanup CASA images after run')
 
@@ -350,6 +399,7 @@ if __name__ == "__main__":
     do_names = args['checknames']
     verbose = args['verbose']
     dryrun = args['dryrun']
+    ingest = args['ingest']
     single = args['single']
     cleanup = args['cleanup']
     print(single)
@@ -357,7 +407,7 @@ if __name__ == "__main__":
     if do_names:
         alma_names(dirname)
     else:
-        madmitname = compute_admit(dirname,verbose=verbose,dryrun=dryrun,single=single,cleanup=cleanup)
+        madmitname = compute_admit(dirname,verbose=verbose,dryrun=dryrun,ingest=ingest,single=single,cleanup=cleanup)
 
 # - end
     

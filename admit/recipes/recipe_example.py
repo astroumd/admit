@@ -55,7 +55,7 @@ def _run(argv):
     with _ so that the method is not listed in the sphinx-generated 
     documentation.
     """
-    print "ARGV=",argv
+    print("ARGV=",argv)
 
     if ( not admit.recipeutils._processargs(argv,REQARGS,OPTARGS,KEYS,KEYDESC,__doc__)): return
 
@@ -64,8 +64,8 @@ def _run(argv):
     # consistency downstream
     argv = list(argv)
 
-    print KEYS
-    print argv
+    print(KEYS)
+    print(argv)
 
 if __name__ == "__main__":
 

@@ -7,7 +7,7 @@
    This module defines the PVSlice_BDP class.
 """
 
-from Image_BDP import Image_BDP
+from .Image_BDP import Image_BDP
 import admit.util.bdp_types as bt
 
 #@ todo   This used to be LineImage, instead of Image.  

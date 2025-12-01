@@ -128,7 +128,7 @@ class PeakDetect(object):
                 self.x = x.astype(float)
         self.spec = np.atleast_1d(spec).astype('float64')
         # set any other arguments that were given
-        for k, v, in kwarg.iteritems():
+        for k, v, in kwarg.items():
             # ingore any attributes we don't have
             if hasattr(self, k):
                 if type(getattr(self, k)) != type(v):

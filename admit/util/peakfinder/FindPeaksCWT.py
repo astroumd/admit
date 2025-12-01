@@ -12,7 +12,7 @@ import numpy as np
 try:
   from scipy.signal import find_peaks_cwt
 except:
-  print "WARNING: No scipy; FindPeaksCWT utility cannot function."
+  print("WARNING: No scipy; FindPeaksCWT utility cannot function.")
 
 class FindPeaksCWT(object):
     """ FindPeaksCWT
@@ -82,19 +82,19 @@ class FindPeaksCWT(object):
     noise_perc = 10.
 
     def __init__(self,spec,x=None,**kwargs):
-        if type(spec) == types.ListType:
+        if type(spec) == list:
             self.spec = np.array(spec,dtype=float)
         else:
             self.spec = spec.astype(float)
         if x == None:
             self.x = np.arange(float(spec.shape[0]))
         else:
-            if type(x) == types.ListType:
+            if type(x) == list:
                 self.spec = np.array(x,dtype=float)
             else:
                 self.x = x.astype(float)
 
-        for k,v, in kwargs.iteritems():
+        for k,v, in kwargs.items():
             # ingore any attributes we don't have
             if hasattr(self,k):
                 setattr(self,k,v)

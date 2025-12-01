@@ -28,6 +28,6 @@ for i in range(1,n+1):
 a.run()
 
 if False:
-    print "And again"
+    print("And again")
     a.run()
 

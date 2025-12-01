@@ -8,7 +8,7 @@
 """
 
 # get the main BDP base class
-from BDP import BDP
+from .BDP import BDP
 
 # get the multiimage base class
 from admit.util.MultiImage import MultiImage

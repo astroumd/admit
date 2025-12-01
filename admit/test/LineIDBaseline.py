@@ -100,7 +100,7 @@ nchan = [1000, 500, 2000, 1000, 1000, 4000, 1000, 1000, 1000, 2100, 4000, 800, 4
 
 
 projdir = "%s/%s" % (args['dir'][0], date)
-print "##################  PROJECTDIR = %s  ################" % projdir
+print("##################  PROJECTDIR = %s  ################" % projdir)
 
 admit.util.utils.rmdir(projdir)
 
@@ -118,7 +118,7 @@ for i in range(len(transitions)):
     a[lineid1].setkey('numsigma',2.0)
     a[lineid1].setkey('minchan',5)
     a[lineid1].setkey('maxgap',3)    # 20 for the SB outflows
-    print "################## RUNNING TRANSITION %d ######################### " % i
+    print("################## RUNNING TRANSITION %d ######################### " % i)
 
     # keep run() inside loop so that failures won't
     # prevent us seeing output from previous tasks in the flow

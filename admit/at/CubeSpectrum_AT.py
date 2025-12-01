@@ -5,6 +5,11 @@
 
    This module defines the CubeSpectrum_AT class.
 """
+from copy import deepcopy
+import numpy as np
+import numpy.ma as ma
+import os
+
 from admit.AT import AT
 import admit.util.bdp_types as bt
 from admit.bdp.Image_BDP        import Image_BDP
@@ -20,18 +25,18 @@ import admit.util.Table as Table
 import admit.util.Image as Image
 from admit.util import APlot
 import admit.util.utils as utils
+import admit.util.PlotControl as PlotControl
 from admit.util.AdmitLogging import AdmitLogging as logging
 
-from copy import deepcopy
-import numpy as np
-import numpy.ma as ma
-import os
-
 try:
-  import taskinit
+  from taskinit import iatool as iatool
   import casa
 except:
-  print "WARNING: No CASA; CubeSpectrum task cannot function."
+  try:
+    import casatasks as casa
+    from casatools import image         as iatool
+  except:
+    print("WARNING: No CASA; CubeSpectrum task cannot function.")
 
 class CubeSpectrum_AT(AT):
     """ Define one (or more) spectra through a cube.
@@ -136,7 +141,7 @@ class CubeSpectrum_AT(AT):
                 "xaxis"   : "",    # currently still ignored
         }
         AT.__init__(self,keys,keyval)
-        self._version       = "1.1.0"
+        self._version       = "1.2.5"
         self.set_bdp_in( [(Image_BDP,       1,bt.REQUIRED),     # 0: cube: SpwCube or LineCube allowed
                           (CubeStats_BDP,   1,bt.OPTIONAL),     # 1: stats, uses maxpos
                           (Moment_BDP,      1,bt.OPTIONAL),     # 2: map, uses the max in this image as pos=
@@ -180,12 +185,12 @@ class CubeSpectrum_AT(AT):
         self.spec_description = []   # for summary()
 
         # get the tools
-        ia = taskinit.iatool()
+        ia = iatool()
 
         if self._bdp_in[1] != None:                                      # check if CubeStats_BDP
             #print "BDP[1] type: ",self._bdp_in[1]._type
             if self._bdp_in[1]._type != bt.CUBESTATS_BDP:
-                raise Exception,"bdp_in[1] not a CubeStats_BDP, should never happen"
+                raise Exception("bdp_in[1] not a CubeStats_BDP, should never happen")
             # a table (cubestats)
             b1s = self._bdp_in[1]
             pos.append(b1s.maxpos[0])
@@ -198,7 +203,7 @@ class CubeSpectrum_AT(AT):
         if self._bdp_in[2] != None:                                      # check if Moment_BDP (probably from CubeSum)
             # print "BDP[2] type: ",self._bdp_in[2]._type
             if self._bdp_in[2]._type != bt.MOMENT_BDP:
-                raise Exception,"bdp_in[2] not a Moment_BDP, should never happen"
+                raise Exception("bdp_in[2] not a Moment_BDP, should never happen")
             b1m = self._bdp_in[2]
             fim = b1m.getimagefile(bt.CASA)
             pos1,maxval = self.maxpos_im(self.dir(fim))     # compute maxpos, since it is not in bdp (yet)
@@ -250,7 +255,7 @@ class CubeSpectrum_AT(AT):
 
         # exhausted all sources where pos[] can be set; if still zero, bail out
         if len(pos) == 0:
-            raise Exception,"No positions found from input BDP's or pos="
+            raise Exception("No positions found from input BDP's or pos=")
 
         # convert this regular list to a list of tuples with duplicates removed
         # sadly the order is lost.
@@ -263,18 +268,19 @@ class CubeSpectrum_AT(AT):
         b2 = CubeSpectrum_BDP(bdp_name)
         self.addoutput(b2)
 
-        imval  = range(npos)                             # spectra, one for each pos (placeholder)
-        planes = range(npos)                             # labels for the tables (placeholder)
+        imval  = list(range(npos))                             # spectra, one for each pos (placeholder)
+        planes = list(range(npos))                             # labels for the tables (placeholder)
         images = {}                                      # png's accumulated
 
+        noplot = True
         for i in range(npos):                            # loop over pos, they can have mixed types now
             sd = []
-            caption = "Spectrum"
+            imcaption = "Spectrum"
             xpos = pos[i][0]
             ypos = pos[i][1]
             if type(xpos) != type(ypos):
-                print "POS:",xpos,ypos
-                raise Exception,"position pair not of the same type"
+                print("POS:",xpos,ypos)
+                raise Exception("position pair not of the same type")
             if type(xpos)==int:
                 # for integers, boxes are allowed, even multiple
                 box = '%d,%d,%d,%d' % (xpos,ypos,xpos,ypos)
@@ -282,7 +288,7 @@ class CubeSpectrum_AT(AT):
                 cbox = '(%d,%d,%d,%d)' % (xpos,ypos,xpos,ypos)
                 # use extend here, not append, we want individual values in a list
                 sd.extend([xpos,ypos,cbox])
-                caption = "Average Spectrum at %s" % cbox
+                imcaption = "Average Spectrum at %s" % cbox
                 if False:
                     # this will fail on 3D cubes (see CAS-7648)
                     imval[i] = casa.imval(self.dir(fin),box=box)
@@ -291,17 +297,17 @@ class CubeSpectrum_AT(AT):
                     # another approach is the ia.getprofile(), see CubeStats, this will
                     # also integrate over regions, imval will not (!!!)
                     region = 'centerbox[[%dpix,%dpix],[1pix,1pix]]' % (xpos,ypos)
-                    caption = "Average Spectrum at %s" % region
+                    imcaption = "Average Spectrum at %s" % region
                     imval[i] = casa.imval(self.dir(fin),region=region)
             elif type(xpos)==str:
                 # this is tricky, to stay under 1 pixel , or you get a 2x2 back.
                 region = 'centerbox[[%s,%s],[1pix,1pix]]' % (xpos,ypos)
-                caption = "Average Spectrum at %s" % region
+                imcaption = "Average Spectrum at %s" % region
                 sd.extend([xpos,ypos,region])
                 imval[i] = casa.imval(self.dir(fin),region=region)
             else:
-                print "Data type: ",type(xpos)
-                raise Exception,"Data type for region not handled"
+                print("Data type: ",type(xpos))
+                raise Exception("Data type for region not handled")
             dt.tag("imval")
 
             flux  = imval[i]['data']
@@ -354,14 +360,23 @@ class CubeSpectrum_AT(AT):
             else:
                 title = '%s %d @ %s,%s' % (bdp_name,i,xpos,ypos)       # or use box, once we allow non-points
 
-            myplot = APlot(ptype=self._plot_type,pmode=self._plot_mode, abspath=self.dir())
-            ylab  = 'Flux (%s)' % unit
-            p1 = "%s_%d" % (bdp_name,i)
-            myplot.plotter(x,y,title,p1,xlab=xlab,ylab=ylab,thumbnail=True)
-            # Why not use p1 as the key?
-            ii = images["pos%d" % i] = myplot.getFigure(figno=myplot.figno,relative=True)
-            thumbname = myplot.getThumbnail(figno=myplot.figno,relative=True)
-            sd.extend([ii, thumbname, caption, fin])
+            
+            if self._plot_mode == PlotControl.NOPLOT:
+                figname   = "not created"
+                thumbname = "not created"
+                imcaption = "not created"
+                noplot = True
+            else:
+                myplot = APlot(ptype=self._plot_type,pmode=self._plot_mode, abspath=self.dir())
+                ylab  = 'Flux (%s)' % unit
+                p1 = "%s_%d" % (bdp_name,i)
+                myplot.plotter(x,y,title,p1,xlab=xlab,ylab=ylab,thumbnail=True)
+                # Why not use p1 as the key?
+                figname = images["pos%d" % i] = myplot.getFigure(figno=myplot.figno,relative=True)
+                thumbname = myplot.getThumbnail(figno=myplot.figno,relative=True)
+                noplot = False
+                
+            sd.extend([figname, thumbname, imcaption, fin])
             self.spec_description.append(sd)
 
         logging.regression("CSP: %s" % str(smax))
@@ -374,18 +389,29 @@ class CubeSpectrum_AT(AT):
 
         if True:
             #       @todo     only first plane due to limitation in exportTable()
-            islash = bdp_name.find('/')
-            if islash < 0:
-                tabname = self.dir("testCubeSpectrum.tab")
+            ndim =  len(table.data.shape)
+            if ndim > 2:
+                nspec = table.data.shape[2]
             else:
-                tabname = self.dir(bdp_name[:islash] + "/testCubeSpectrum.tab")
-            table.exportTable(tabname,cols=["frequency" ,"flux"])
+                nspec = 1
+            logging.info("Writing %d testCubeSpectrum tables" % nspec)
+            for ispec in range(nspec):
+                islash = bdp_name.find('/')
+                if islash < 0:
+                    tabname = self.dir("testCubeSpectrum_%d.tab" % ispec)
+                else:
+                    tabname = self.dir(bdp_name[:islash] + "/testCubeSpectrum_%d.tab" % ispec)
+                table.exportTable(tabname,ispec,cols=["frequency" ,"flux"])
         dt.tag("done")
         # For a single spectrum this is
         # SummaryEntry([[data for spec1]], "CubeSpectrum_AT",taskid)
         # For multiple spectra this is
         # SummaryEntry([[data for spec1],[data for spec2],...], "CubeSpectrum_AT",taskid)
-        self._summary["spectra"] = SummaryEntry(self.spec_description,"CubeSpectrum_AT",self.id(True))
+
+        # @todo if range(npos) is [] don't create a summary entry
+        # so that check against None in Summary.py does the right thing,
+        # although len(npos) == 0 is trapped earlier so perhaps not necessary
+        self._summary["spectra"] = SummaryEntry(self.spec_description,"CubeSpectrum_AT",self.id(True),noplot=noplot)
         taskargs = "pos="+str(pos)
         taskargs += '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; <span style="background-color:white">&nbsp;' + fin.split('/')[0] + '&nbsp;</span>'
         for v in self._summary:
@@ -409,14 +435,17 @@ class CubeSpectrum_AT(AT):
         """
         # 2D images don't store maxpos/maxval yet, so we need to grab them
         # imstat on a 512^2 image is about 0.032 sec
-        # ia.getchunk is about 0.008, about 4x faster.
+        # ia.getchunk is about 0.008, about 4x faster. (but this was without grabbing mask)
         # we're going to assume 2D images fit in memory and always use getchunk
         # @todo  review the use of the new casautil.getdata() style routines
         if True:
-            ia = taskinit.iatool()
+            ia = iatool()
             ia.open(im)
             plane = ia.getchunk(blc=[0,0,0,-1],trc=[-1,-1,-1,-1],dropdeg=True)
-            v = ma.masked_invalid(plane)
+            mask  = ia.getchunk(blc=[0,0,0,-1],trc=[-1,-1,-1,-1],dropdeg=True, getmask=True)
+            #v = ma.masked_invalid(plane)
+            v=ma.masked_where(mask == False,plane)
+
             ia.close()
             mp = np.unravel_index(v.argmax(), v.shape)
             maxval = v[mp[0],mp[1]]
@@ -425,7 +454,6 @@ class CubeSpectrum_AT(AT):
             imstat0 = casa.imstat(im)
             maxpos = imstat0["maxpos"][:2].tolist()
             maxval = imstat0["max"][0]
-        #print "MAXPOS_IM:::",maxpos,maxval,type(maxpos[0])
         return (maxpos,maxval)
 
     def summary(self):

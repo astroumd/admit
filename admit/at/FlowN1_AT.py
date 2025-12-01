@@ -66,11 +66,11 @@ class FlowN1_AT(AT):
 
     def run(self):
         n = len(self._bdp_in)
-        print "FlowN1_AT.run():  Found %d input bdps with the following filenames:" % n
+        print("FlowN1_AT.run():  Found %d input bdps with the following filenames:" % n)
 
         exist = self.getkey('exist')
         for i in range(n):
-            print "bdp_in[%d]: %s" % (i,self._bdp_in[i].filename)
+            print("bdp_in[%d]: %s" % (i,self._bdp_in[i].filename))
             if exist: self._bdp_in[i].checkfiles()
                                       
         # grab essential parameters

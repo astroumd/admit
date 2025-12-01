@@ -52,7 +52,7 @@ def rejecto2(data, f=1.5):
     """
     d = np.abs(data - np.median(data))
     mdev = np.median(d)
-    s = d/mdev if mdev else 0.
+    s = d/mdev if mdev else 0.0
     return data[s<f]
 
 def mystats(data):
@@ -85,9 +85,14 @@ def robust(data,f=1.5):
     else:
         d = np.sort(data).compressed()
     n= len(d)
-    n1 = n/4
-    n2 = n/2
-    n3 = (3*n)/4
+    if n == 0:
+        # should have never gotten here
+        print('PJT-robust unexpected array with no data')
+        # return a fully masked array, and hold your breath
+        return ma.masked_outside(np.arange(1), 1.0, 2.0)
+    n1 = n//4
+    n2 = n//2
+    n3 = (3*n)//4
     q1 = d[n1]
     q2 = d[n2]
     q3 = d[n3]
@@ -147,15 +152,15 @@ if __name__ == "__main__":
     f = 1.5
     if False:
         a = np.random.normal(0.0,1.0,n)     # gaussian
-        print "normal(0.0,1.0,%d)" % n
+        print("normal(0.0,1.0,%d)" % n)
     else:
         a = np.random.random(n)             # uniform
-        print "random(%d)" % n
+        print("random(%d)" % n)
     a1 = rejecto1(a,f)
-    print "rejecto1: ",len(a1)
+    print("rejecto1: ",len(a1))
     a2 = rejecto2(a,f)
-    print "rejecto2: ",len(a2)
-    print "mystats:",mystats(a)
+    print("rejecto2: ",len(a2))
+    print("mystats:",mystats(a))
     ar = robust(a,f)
     #print "robust: ",len(ar),ar
-    print "robust: len=",len(ar)
+    print("robust: len=",len(ar))

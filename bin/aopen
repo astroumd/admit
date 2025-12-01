@@ -18,6 +18,7 @@
 
 unsetenv LD_LIBRARY_PATH
 
+
 if (-e /usr/bin/nemo) then
    set n = /usr/bin/nemo
 else if (-e /usr/bin/nautilus) then

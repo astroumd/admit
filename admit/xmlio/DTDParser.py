@@ -56,12 +56,12 @@ class DTDParser(object):
         #pp.pprint(self.entities)
         for i in self.entities:
             if not self.entities[i]["found"]:
-                print self.xmlFile
+                print(self.xmlFile)
                 logging.info(str(i) + " not found")
                 return False
             for a in self.entities[i]["attrib"]:
                 if not self.entities[i]["attrib"][a]["found"]:
-                    print "2",self.xmlFile
+                    print("2",self.xmlFile)
                     logging.info(str(i) + " " + str(a) + " not found")
                     return False
         return True

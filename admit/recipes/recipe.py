@@ -36,20 +36,20 @@ def recipe(*args,**kwargs):
     """
     scriptsdir = admit.util.utils.admit_root() + os.sep + "admit" + os.sep + "scripts"
     mod = "admit.scripts."
-    print args
-    print kwargs
+    print(args)
+    print(kwargs)
     try:
           therecipe = importlib.import_module(mod+args[0])
-          print therecipe
+          print(therecipe)
     except:
-       print "Recipe %s not found. Available recipes are:" % args[0]
+       print("Recipe %s not found. Available recipes are:" % args[0])
        flist = []
        pattern = '*.py'
        for filename in os.listdir(scriptsdir):
            if fnmatch.fnmatch(filename, pattern) and filename != 'recipe.py' and filename !='__init__.py':
                flist.append(os.path.splitext(filename)[0])
        for name in flist:
-          print "     %s" % name
+          print("     %s" % name)
        return
 
     if hasattr(therecipe,'KEYS'):

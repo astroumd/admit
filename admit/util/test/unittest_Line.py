@@ -19,7 +19,7 @@ class TestLine(unittest.TestCase):
         pass
 
     def test_AAAwhoami(self):
-        print "\n==== %s ====" % self.testName
+        print("\n==== %s ====" % self.testName)
 
     # test Line.setupperenergy() and line.getupperenergy()
     def test_upperenergy(self):
@@ -28,7 +28,7 @@ class TestLine(unittest.TestCase):
         self.line.setupperenergy(12)
         ret = self.line.getupperenergy()
         if(self.verbose):
-            print "\nUpper Energy:", ret
+            print("\nUpper Energy:", ret)
 
         self.assertEqual(12.0, ret)
 
@@ -36,7 +36,7 @@ class TestLine(unittest.TestCase):
         self.line.setupperenergy(13.5)
         ret = self.line.getupperenergy()
         if(self.verbose):
-            print "\nUpper Energy:", ret
+            print("\nUpper Energy:", ret)
 
         self.assertEqual(13.5, ret)
 
@@ -47,7 +47,7 @@ class TestLine(unittest.TestCase):
         self.line.setlowerenergy(2)
         ret = self.line.getlowerenergy()
         if(self.verbose):
-            print "\nLower Energy:", ret
+            print("\nLower Energy:", ret)
 
         self.assertEqual(2.0, ret)
 
@@ -55,7 +55,7 @@ class TestLine(unittest.TestCase):
         self.line.setlowerenergy(3.8)
         ret = self.line.getlowerenergy()
         if(self.verbose):
-            print "\nLower Energy:", ret
+            print("\nLower Energy:", ret)
 
         self.assertEqual(3.8, ret)
 
@@ -67,21 +67,21 @@ class TestLine(unittest.TestCase):
         ret = self.line.name
         str = 'Carbon monoxide'
         if(self.verbose):
-            print "\nLine name:", ret
+            print("\nLine name:", ret)
 
         self.assertEqual(str, ret)
 
         ret = self.line.uid
         str = 'CO-115.271'
         if(self.verbose):
-            print "\nLine uid:", ret
+            print("\nLine uid:", ret)
 
         self.assertEqual(str, ret)
 
         ret = self.line.formula
         str = 'CO'
         if(self.verbose):
-            print "\nLine Formula:", ret
+            print("\nLine Formula:", ret)
 
         self.assertEqual(str, ret)
 
@@ -94,7 +94,7 @@ class TestLine(unittest.TestCase):
         ret = self.line.isequal(line)
 
         if(self.verbose):
-            print "\nIs this line equal:", ret
+            print("\nIs this line equal:", ret)
 
         self.assertEqual(ret, False)
 

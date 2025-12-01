@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+#  we keep a __main__ for testing
 """
   **APlot** --- Standardized plot generator.
   ------------------------------------------
@@ -6,15 +7,15 @@
   This module defines the APlot class.
 """
 
-from AbstractPlot import AbstractPlot
+from .AbstractPlot import AbstractPlot
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from   matplotlib.widgets import RadioButtons
-import PlotControl
+from . import PlotControl
 import numpy.ma as ma
-import utils
+from . import utils
 from admit.util.AdmitLogging import AdmitLogging as logging
 # import mpld3      # needs matplotlib 1.3
 
@@ -60,7 +61,7 @@ class APlot(AbstractPlot):
             elif line=='axis equal':
                 plt.axis('equal')
             else:
-                print "Skipping unknown APlot command: %s" % line
+                print("Skipping unknown APlot command: %s" % line)
 
     #@todo how is this actually used?  a plot instance must know when
     # to call final() ?!?
@@ -139,14 +140,20 @@ class APlot(AbstractPlot):
 
         fig = plt.figure(APlot.figno)
         ax1 = fig.add_subplot(1,1,1)
-        if color==None and size==None:
+        # PJT fix this
+        if True:
             ax1.scatter(x,y)
-        elif color==None:
-            ax1.scatter(x,y,s=size)
-        elif size==None:
-            ax1.scatter(x,y,c=color)
         else:
-            ax1.scatter(x,y,c=color,s=size)
+            print("PJT",type(color))
+            if color==None:
+                if size==None:
+                    ax1.scatter(x,y)
+                else:
+                    ax1.scatter(x,y,s=size)
+            elif size==None:
+                ax1.scatter(x,y,c=color)
+            else:
+                ax1.scatter(x,y,c=color,s=size)
         if title:    ax1.set_title(title)
         if xlab:     ax1.set_xlabel(xlab)
         if ylab:     ax1.set_ylabel(ylab)
@@ -482,7 +489,7 @@ class APlot(AbstractPlot):
             ax1.plot([x[0],x[-1]],[cutoff,cutoff],'g-',label='Cutoff level')
         ylim = ax1.get_ylim()[1]/3.0
         if neg:
-            ylim = ax1.get_ylim()[0]/2.
+            ylim = ax1.get_ylim()[0]/2.0
         yseg = ylim/15.0
         ncol = 0
         if continuum is not None:
@@ -627,7 +634,7 @@ class APlot(AbstractPlot):
                 s = gauss[1]    # std
                 a = max(h[0])   # match peak value in histogram
             else:
-                print "bad gauss estimator"
+                print("bad gauss estimator")
                 s = -1.0
             #print "PJT: GaussPlot(%g,%g,%g)" % (m,s,a)
             d = s/10.0
@@ -712,7 +719,7 @@ class APlot(AbstractPlot):
 
         ax1.tick_params(axis='both',color='white',width=1)
 #   Note this (inadvertently) can change the axis order if m0>m1 or n0>n1!
-        zoom = data[m0:m1,n0:n1]
+        zoom = data[int(m0):int(m1),int(n0):int(n1)]
 #        logging.info("data[0,0] %g data[m1,n1] %g zoom[0,0] %g zoom[m1,n1] %g" % (data[0,0],data[m1-1,n1-1],zoom[0,0],zoom[m1-1,n1-1]))
 #        print("Zoom==data? %s " % np.array_equal(zoom,data) )
 #        zoom = data
@@ -792,11 +799,12 @@ class APlot(AbstractPlot):
         #
         # Determines frequency delta in the presence of masked values.
         def findDelta(freq):
-          for i in range(len(freq)-1):
-            if not freq.mask[i] and not freq.mask[i+1]:
-              return freq.mask[i+1]-freq.mask[i]
-
-          return 0.0
+            for i in range(len(freq)-1):
+                if not freq.mask[i] and not freq.mask[i+1]:
+                    #return freq.mask[i+1]-freq.mask[i]       @todo PJT why?
+                    return freq[i+1]-freq[i]
+            # never a clean interval, @todo what about e.g. all odd channels masked ?
+            return 0.0
         #
         for i in range(len(stat)):
             mult = 1.
@@ -859,7 +867,9 @@ class APlot(AbstractPlot):
                 ax1.plot([min(frqs), max(frqs)], [pk*.92, pk*.92], 'k-')
                 ax1.plot([min(frqs), max(frqs)], [place-step/2.0,place-step/2.0], 'k-')
 
-            ax1.text(l.getkey("frequency"),0.0,l.getkey("uid") + extra,withdash=True,rotation='vertical',dashdirection=1,dashlength=size[1]*0.7,dashrotation=90)
+            # PJT
+            #ax1.text(l.getkey("frequency"),0.0,l.getkey("uid") + extra,withdash=True,rotation='vertical',dashdirection=1,dashlength=size[1]*0.7,dashrotation=90)
+            ax1.text(l.getkey("frequency"),0.0,l.getkey("uid") + extra,rotation='vertical')
             if l.getfstart() != 0 and l.getfend() != 0:
                 if first:
                     ax1.add_patch(patches.Rectangle((l.getfstart(), ylim[0]), l.getfend() - l.getfstart(), ylim[1] - ylim[0], alpha=0.1, ec='none', fc='blue', label="Channel Range"))
@@ -868,6 +878,7 @@ class APlot(AbstractPlot):
                     ax1.add_patch(patches.Rectangle((l.getfstart(), ylim[0]), l.getfend() - l.getfstart(), ylim[1] - ylim[0], alpha=0.1, ec='none', fc='blue'))
         first = True
         for l in force:
+            # PJT
             ax1.text(l.getkey("frequency"),0.0,l.getkey("uid"),withdash=True,rotation='vertical',dashdirection=1,dashlength=size[1]*0.7,dashrotation=90,color='green')
             if l.getfstart() != 0 and l.getfend() != 0:
                 if first:
@@ -1029,10 +1040,10 @@ class APlot(AbstractPlot):
         maxlab = 500
         tickcolor = 'g'
         if chan is None:
-          chan = range(len(x))
+          chan = list(range(len(x)))
           tickcolor = 'r'
-        locstride = (len(chan)+maxloc-1)/maxloc
-        labstride = (locstride*maxloc)/maxlab
+        locstride = (len(chan)+maxloc-1)//maxloc
+        labstride = (locstride*maxloc)//maxlab
         matplotlib.ticker.Locator.MAXTICKS = 2*(maxloc+1)
 
         # Preliminary tick formatting.
@@ -1073,9 +1084,9 @@ class APlot(AbstractPlot):
         guides = []
         for i in range(len(minors)):
           minors[i].tick2On = False
-          if i%(labstride/locstride):
+          if i%(labstride//locstride):
             # Shorten unlabeled minor ticks.
-            minors[i].tick1line.set_markersize(msize/2)
+            minors[i].tick1line.set_markersize(msize//2)
         for i in range(0,len(x),labstride):
           # Draw guide lines from labeled minor ticks.
           guides += ax1.plot([x[i], x[i]], [ymin, cutoff[i]],
@@ -1117,7 +1128,7 @@ class APlot(AbstractPlot):
         first = True
         seglines = []
         axtexts = []
-        if isinstance(lines,dict): lines = lines.values()
+        if isinstance(lines,dict): lines = list(lines.values())
         for l in lines:
             extra = ""
             # label
@@ -1132,7 +1143,9 @@ class APlot(AbstractPlot):
                 seglines += ax1.plot([min(frqs), max(frqs)], [pk*.92, pk*.92], 'k-')
                 seglines += ax1.plot([min(frqs), max(frqs)], [place-step/2.0,place-step/2.0], 'k-')
 
-            axtexts.append(ax1.text(l.getkey("frequency"),pk*.85,l.getkey("uid")+extra,withdash=True,rotation='vertical',dashdirection=1,dashlength=50,dashrotation=90))
+            # PJT
+            #axtexts.append(ax1.text(l.getkey("frequency"),pk*.85,l.getkey("uid")+extra,withdash=True,rotation='vertical',dashdirection=1,dashlength=50,dashrotation=90))
+            axtexts.append(ax1.text(l.getkey("frequency"),pk*.85,l.getkey("uid")+extra,rotation='vertical'))            
             # black tickmark
             seglines += ax1.plot([l.getkey("frequency"),l.getkey("frequency")],[place-step/2.0,place+step/2.0],'k-')
             # red segment
@@ -1146,6 +1159,7 @@ class APlot(AbstractPlot):
 
         first = True
         for l in force:
+            # PJT
             axtexts.append(ax1.text(l.getkey("frequency"),pk*.85,l.getkey("uid"),withdash=True,rotation='vertical',dashdirection=1,dashlength=50,dashrotation=90,color='green'))
             # green tickmark
             seglines += ax1.plot([l.getkey("frequency"),l.getkey("frequency")],[place-step/2.0,place+step/2.0],'g-')
@@ -1161,11 +1175,13 @@ class APlot(AbstractPlot):
             # done
 
         # Add references
-        for f in references.keys():
+        for f in list(references.keys()):
             if f<fmin or f>fmax: continue
             r = references[f]
             seglines += ax1.plot([f,f],[2.0*place-step,2.0*place+step],'k-')
-            axtexts.append(ax1.text(f,2.0*place+step,r,withdash=True,rotation='vertical',dashdirection=1,dashlength=50,dashrotation=45))
+            # PJT
+            #axtexts.append(ax1.text(f,2.0*place+step,r,withdash=True,rotation='vertical',dashdirection=1,dashlength=50,dashrotation=45))
+            axtexts.append(ax1.text(f,2.0*place+step,r,rotation='vertical'))
 
         # Put a legend below current axis.
         ax1.legend(loc="lower center", bbox_to_anchor=(0.5,-0.14),
@@ -1294,7 +1310,7 @@ class APlot(AbstractPlot):
             ax1.plot(x,yi)
         ax1.plot([xlim[0],xlim[1]],[noise,noise],'-')
         height = abs(ylim[0]-ylim[1])/2.0
-        inc = height/20.
+        inc = height/20.0
         if segments:
             for s in segments:
                 ax1.plot([s[0],s[1]],[height,height])
@@ -1316,13 +1332,13 @@ class APlot(AbstractPlot):
 
 
 if __name__ == "__main__":
-    import PlotControl
+    from . import PlotControl
     x = np.arange(0,1,0.1)
     psize = x*200 # vary the point size for scatter plot
     y = x*x
     z = y-x
 
-    print "a1"
+    print("a1")
     a1 = APlot(pmode=PlotControl.INTERACTIVE,ptype=PlotControl.PNG,figno=10,abspath="/tmp")
     #a1.backend('agg')
     a1.plotter(x,[y],figname="figone")
@@ -1330,7 +1346,7 @@ if __name__ == "__main__":
     a1.plotter(x,[y,z])
     a1.show()
 
-    print "a2"
+    print("a2")
     a2 = APlot(pmode=PlotControl.INTERACTIVE,ptype=PlotControl.PNG,figno=20)
     a2.backend('agg')
     #a2.histogram([x,y])
@@ -1340,12 +1356,12 @@ if __name__ == "__main__":
     a2.scatter(y,x,figname="scatter",color='red',size=psize, cmds=['grid'])
     a2.show()
 
-    print "a3"
+    print("a3")
     a3 = APlot(pmode=PlotControl.BATCH,ptype=PlotControl.PNG,figno=29)
     a3.histogram([x,y],figname="histo")
     a3.plotter(x,[y],figname="plot")
     a3.show()
-    print "A3 plotmode: %d" % a3.plotmode
-    print "Abs,AP figno %d,%d" % (AbstractPlot.figno, APlot.figno)
+    print("A3 plotmode: %d" % a3.plotmode)
+    print("Abs,AP figno %d,%d" % (AbstractPlot.figno, APlot.figno))
     if a3.plotmode == PlotControl.BATCH:
-       print "BATCH"
+       print("BATCH")

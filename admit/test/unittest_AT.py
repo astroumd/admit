@@ -79,14 +79,14 @@ class TestAT(unittest.TestCase):
 #         print "Done"
 
     def test_AAAwhoami(self):
-        print "==== %s ====" % self.testName
+        print("==== %s ====" % self.testName)
 
     # test input bdp
     def test_input(self):
         at = AT({'alias': 'a'})
         bdpin = len(at._bdp_in)
         if(self.verbose):
-            print "\nAT Class number of BDP in:", bdpin
+            print("\nAT Class number of BDP in:", bdpin)
 
         self.assertEqual(bdpin, 0)  ## should have no input bdp
 
@@ -95,7 +95,7 @@ class TestAT(unittest.TestCase):
         at = AT({'alias': 'b'})
         bdpout = len(at)
         if(self.verbose):
-            print "\nAT Class number of BDP out:", bdpout
+            print("\nAT Class number of BDP out:", bdpout)
  
         self.assertEqual(bdpout, 0)  ## should have no output bdp
  
@@ -104,13 +104,13 @@ class TestAT(unittest.TestCase):
         at = AT({'alias': 'c'})
         tuple = at.len2() # bdp_in and bdp_out tuple
         if(self.verbose):
-            print "\nAT Class (bdp_in, bdp_out):", tuple
+            print("\nAT Class (bdp_in, bdp_out):", tuple)
  
         self.assertEqual(tuple, (0,0))  ## should be (0,0)
  
     def test_version(self):
         at = AT({'alias': 'd'})
-        print "\nAT Class Version:", at._version
+        print("\nAT Class Version:", at._version)
  
     # test setlogginglevel and getlogginglevel methods
     def test_logginglevel(self):
@@ -127,7 +127,7 @@ class TestAT(unittest.TestCase):
         level = at.getlogginglevel()
  
         if(self.verbose):
-            print "\nAT Class logging level", level
+            print("\nAT Class logging level", level)
  
         self.assertEqual(level, 50)
  
@@ -137,7 +137,7 @@ class TestAT(unittest.TestCase):
         at.seteffectivelevel(40)
         level = at.geteffectivelevel()
         if(self.verbose):
-            print "\nAT Class effective logging level", level
+            print("\nAT Class effective logging level", level)
  
         self.assertEqual(level, 40)
 
@@ -147,7 +147,7 @@ class TestAT(unittest.TestCase):
         at.setloggername(name)
         ret = at.getloggername()
         if(self.verbose):
-            print "\nAT Class Logger Name:", name
+            print("\nAT Class Logger Name:", name)
 
         self.assertEqual(ret, name)
 
@@ -155,7 +155,7 @@ class TestAT(unittest.TestCase):
         at = AT({'alias': 'g'})
         basedir = at.baseDir("/tmp/")
         if(self.verbose):
-            print "\nAT Class base directory", basedir
+            print("\nAT Class base directory", basedir)
  
         self.assertEqual(basedir, "/tmp/")
  
@@ -164,7 +164,7 @@ class TestAT(unittest.TestCase):
         basedir = at.baseDir("/tmp/")
         fullpath = at.dir("test.test")
         if(self.verbose):
-            print "\nAT Fullpath:", fullpath
+            print("\nAT Fullpath:", fullpath)
  
         self.assertEqual(fullpath, "/tmp/test.test")
  
@@ -183,7 +183,7 @@ class TestAT(unittest.TestCase):
         at.enabled(False)
         after = at._enabled
         if(self.verbose):
-            print "\nAT Class state _enabled", after
+            print("\nAT Class state _enabled", after)
  
         self.assertEqual(after, False)
 
@@ -192,14 +192,14 @@ class TestAT(unittest.TestCase):
         at = AT({'alias': 'n'})
         state = at.isstale()
         if(self.verbose):
-            print "\nAT Class state", state
+            print("\nAT Class state", state)
  
         self.assertTrue(state)  # should be True
 
         at.markUpToDate()
         state = at.isstale()
         if(self.verbose):
-            print "\nAT Class state", state  # should be False
+            print("\nAT Class state", state)  # should be False
  
         self.assertFalse(state)
  
@@ -208,7 +208,7 @@ class TestAT(unittest.TestCase):
         at.markChanged()
         state = at._stale
         if(self.verbose):
-            print "\nAT Class state _stale", state
+            print("\nAT Class state _stale", state)
  
         self.assertEqual(state, True)
  
@@ -220,21 +220,21 @@ class TestAT(unittest.TestCase):
         # get the taskid before adding project id
         tid = at._taskid
         if(self.verbose):
-            print "\nAT Class taskid (before):", at._taskid
+            print("\nAT Class taskid (before):", at._taskid)
  
         # now set the project id
         pid = 2
         at.setProject(pid)
         pid = at.getProject()
         if(self.verbose):
-            print "\nAT Class project", pid
+            print("\nAT Class project", pid)
  
         self.assertEqual(pid, 2)
  
         # now strip out the project id from _taskid
         taskid = at.id(True)
         if(self.verbose):
-            print "\nAT Class taskid (after):", taskid
+            print("\nAT Class taskid (after):", taskid)
  
         self.assertEqual(taskid, tid)
  
@@ -277,7 +277,7 @@ class TestAT(unittest.TestCase):
         # test getkey()
         ret = at.getkey(key)
         if(self.verbose):
-            print "\n test key:", ret
+            print("\n test key:", ret)
 
         self.assertEqual(ret, "TEST")
  
@@ -286,7 +286,7 @@ class TestAT(unittest.TestCase):
  
         ret = at.getkey(key)
         if(self.verbose):
-            print "\n alias key:", ret
+            print("\n alias key:", ret)
  
         self.assertEqual(ret, "TEST2")
 
@@ -324,7 +324,7 @@ class TestAT(unittest.TestCase):
         bdp = BDP()
         ret = at.checktype(bdp)
     
-        self.assertEquals(ret, None) # should be None without raising an exception
+        self.assertEqual(ret, None) # should be None without raising an exception
     
     # test set_bdp_in, addinput, clearinput, set_bdp_out
     # addoutput, clearoutput, __contains__, __iter__, __getitem__
@@ -336,14 +336,14 @@ class TestAT(unittest.TestCase):
         at.set_bdp_in([(BDP,1, bt.REQUIRED)])
         bdpin = len(at._bdp_in)
         if(self.verbose):
-            print "\nAT Class number of BDP input:", bdpin
+            print("\nAT Class number of BDP input:", bdpin)
 
         self.assertEqual(bdpin, 1)  ## should have one input bdp
  
         at.clearinput()
         bdpin = at._bdp_in[0]
         if(self.verbose):
-            print "\nAT Class BDP input:", bdpin
+            print("\nAT Class BDP input:", bdpin)
  
         self.assertEqual(bdpin, None)
  
@@ -356,7 +356,7 @@ class TestAT(unittest.TestCase):
         at.set_bdp_out([(BDP,1)])  # set_bdp_out
         bdpout = len(at._bdp_out)
         if(self.verbose):
-            print "\nAT Class number of BDP output:", bdpout
+            print("\nAT Class number of BDP output:", bdpout)
  
         self.assertEqual(bdpout, 1)  ## should have one output bdp
 
@@ -364,7 +364,7 @@ class TestAT(unittest.TestCase):
         at.clearoutput()
         bdpout = at._bdp_out[0]
         if(self.verbose):
-            print "\nAT Class BDP output:", bdpout
+            print("\nAT Class BDP output:", bdpout)
  
         self.assertEqual(bdpout, None)
 
@@ -387,7 +387,7 @@ class TestAT(unittest.TestCase):
         for b in at._bdp_out:
             counter += 1
             if(self.verbose):
-                print "Output BDP:", b
+                print("Output BDP:", b)
 
         self.assertEqual(counter, 1)
 

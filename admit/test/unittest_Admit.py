@@ -88,7 +88,7 @@ class TestAdmit(unittest.TestCase):
 
     # print unit test name
     def test_AAAwhoami(self):
-        print "==== %s ====\n" % self.testName
+        print("==== %s ====\n" % self.testName)
 
     # test __str__, __len__
     def test_case1(self):
@@ -97,7 +97,7 @@ class TestAdmit(unittest.TestCase):
         # to get the number of tasks
         ret = self.p.__len__()  # should be 0
         if(self.verbose):
-            print "The number of tasks:", ret
+            print("The number of tasks:", ret)
 
         self.assertEqual(ret, 0)
 
@@ -107,7 +107,7 @@ class TestAdmit(unittest.TestCase):
         self.p.setlogginglevel(logging.ERROR)
         ret = self.p.getlogginglevel()  # logging.ERROR value is 40
         if(self.verbose):
-            print ret
+            print(ret)
 
         # logging shutdown
         self.p.__del__()
@@ -123,8 +123,8 @@ class TestAdmit(unittest.TestCase):
         self.p.mkdir(dir)
         after = os.path.exists(dir)
         if(self.verbose):
-            print "\nDirectory exists:", before
-            print "After mkdir:", after
+            print("\nDirectory exists:", before)
+            print("After mkdir:", after)
 
         self.assertEqual(before, False)
         self.assertEqual(after, True)
@@ -152,7 +152,7 @@ class TestAdmit(unittest.TestCase):
         # to get the AT with task_id = 0
         at = self.p.__getitem__(0)
         if(self.verbose):
-            print at
+            print(at)
 
         # check class type - should be the first task (File_AT)
         type = isinstance(at, admit.File_AT)
@@ -162,7 +162,7 @@ class TestAdmit(unittest.TestCase):
         # to get the AT with task_id = 1
         at = self.p.__getitem__(1)
         if(self.verbose):
-            print at
+            print(at)
 
         # check class type - should be the second task (Flow11_AT)
         type = isinstance(at, admit.Flow11_AT)
@@ -175,14 +175,14 @@ class TestAdmit(unittest.TestCase):
         type = isinstance(fm, admit.Flow)
 
         if(self.verbose):
-            print "getFlow() returned FM:", type
+            print("getFlow() returned FM:", type)
 
         self.assertTrue(type)
 
         mg = self.p.getManager()
 
         if(self.verbose):
-            print "getManager() returned Manager:", type
+            print("getManager() returned Manager:", type)
 
         type = isinstance(mg, admit.Manager)
 
@@ -202,19 +202,19 @@ class TestAdmit(unittest.TestCase):
 
         tasks = self.p.findtask(lambda at: at.id() < 100)
         if(self.verbose):
-            print "Found tasks:", tasks
+            print("Found tasks:", tasks)
 
         # check class type of the first task (File_AT)
         type = isinstance(tasks[0], admit.File_AT)
         if(self.verbose):
-            print "AT id:", tasks[0].id()
+            print("AT id:", tasks[0].id())
 
         self.assertTrue(type)
 
         # check class type of second task (Flow11_AT)
         type = isinstance(tasks[1], admit.Flow11_AT)
         if(self.verbose):
-            print "AT id:", tasks[1].id()
+            print("AT id:", tasks[1].id())
 
         self.assertTrue(type)
 
@@ -225,7 +225,7 @@ class TestAdmit(unittest.TestCase):
 
         ret = self.p.dir()
         if(self.verbose):
-            print "Base Directory:", ret
+            print("Base Directory:", ret)
 
         self.assertEqual(baseDir, ret)
 
@@ -243,7 +243,7 @@ class TestAdmit(unittest.TestCase):
         self.p.userdata()
         ret = self.p.get('admit_unit_test')
         if(self.verbose):
-            print "User Data:", ret
+            print("User Data:", ret)
 
         self.assertEqual(ret, val)
 
@@ -262,10 +262,10 @@ class TestAdmit(unittest.TestCase):
         name = '/tmp/test_script.%s' % os.getpid()
         self.p.script(name)
         if(self.verbose):
-            print "===== Script Created ====="
+            print("===== Script Created =====")
             cmd = "cat %s" % name
             os.system(cmd)
-            print "===== End ====="
+            print("===== End =====")
 
         # cleanup
         if os.path.exists(name):
@@ -286,10 +286,10 @@ class TestAdmit(unittest.TestCase):
         name = '/tmp/test_showsetkeys.%s' % os.getpid()
         self.p.showsetkey(name)
         if(self.verbose):
-            print "===== Keys ====="
+            print("===== Keys =====")
             cmd = "cat %s" % name
             os.system(cmd)
-            print "===== End ====="
+            print("===== End =====")
 
         # cleanup
         if os.path.exists(name):
@@ -306,7 +306,7 @@ class TestAdmit(unittest.TestCase):
         # try to get the value of 'file' - should be None because it is not in user data
         ret = self.p.get('file')
         if(self.verbose):
-            print "User Data:", ret
+            print("User Data:", ret)
 
         self.assertEqual(ret, None)
 
@@ -321,14 +321,14 @@ class TestAdmit(unittest.TestCase):
         self.p.set(**userdata)
         ret = self.p.get('admit_unit_test')
         if(self.verbose):
-            print "User Data:", ret
+            print("User Data:", ret)
 
         self.assertEqual(ret, val)
 
         # has()
         ret = self.p.has('admit_unit_test')
         if(self.verbose):
-            print "User Data:", ret
+            print("User Data:", ret)
 
         self.assertTrue(ret)
 
@@ -355,9 +355,9 @@ class TestAdmit(unittest.TestCase):
         outdir = self.p.dir()
         if(self.verbose):
             if len(ret):
-                print "Found BDPs in", outdir
+                print("Found BDPs in", outdir)
             else:
-                print "No BDPs Found in", outdir
+                print("No BDPs Found in", outdir)
 
         self.assertTrue(len(ret) == 0)
 
@@ -369,9 +369,9 @@ class TestAdmit(unittest.TestCase):
         outdir = self.p.dir()
         if(self.verbose):
             if len(ret):
-                print "Found files in", outdir, ret
+                print("Found files in", outdir, ret)
             else:
-                print "No file Found in", outdir
+                print("No file Found in", outdir)
 
         self.assertTrue(len(ret) >= 0)
 
@@ -384,8 +384,8 @@ class TestAdmit(unittest.TestCase):
         self.p.setdir(dir)
         after = os.path.exists(dir)
         if(self.verbose):
-            print "\nDirectory exists:", before
-            print "After setdir:", after
+            print("\nDirectory exists:", before)
+            print("After setdir:", after)
 
         self.assertEqual(before, False)
         self.assertEqual(after, True)
@@ -407,10 +407,10 @@ class TestAdmit(unittest.TestCase):
 
         except OSError:
             if(self.verbose):
-                print "\nCannot get current work directory."
+                print("\nCannot get current work directory.")
 
         if(self.verbose):
-            print "\nCurrent Directory:", cwd1
+            print("\nCurrent Directory:", cwd1)
 
         cwd2 = self.p.currDir
         self.assertEqual(cwd1, cwd2)
@@ -423,7 +423,7 @@ class TestAdmit(unittest.TestCase):
         task1._stale = False
         tid1 = self.p.addtask(task1)
         if(self.verbose):
-            print "Task1 state:", task1._stale
+            print("Task1 state:", task1._stale)
 
         # add another task
         task2 = admit.Flow11_AT()
@@ -431,17 +431,17 @@ class TestAdmit(unittest.TestCase):
         task2._stale = False
         tid2 = self.p.addtask(task2, [(tid1,0)])
         if(self.verbose):
-            print "Task2 state:",task2._stale
+            print("Task2 state:",task2._stale)
 
         # mark - only the second task state will be changed
         self.p._markstalefrom(tid1)
 
         if(self.verbose):
-            print "===== Task Ids =====", tid1, tid2
+            print("===== Task Ids =====", tid1, tid2)
 
         if(self.verbose):
-            print "Task1 state after marking:", task1._stale
-            print "Task2 state after marking:", task2._stale
+            print("Task1 state after marking:", task1._stale)
+            print("Task2 state after marking:", task2._stale)
 
         self.assertEqual(task1._stale, False)
         self.assertEqual(task2._stale, True)

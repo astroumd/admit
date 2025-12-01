@@ -94,7 +94,7 @@ class IntegTestSegVsID(unittest.TestCase):
         loglevel = 50               # 10=DEBUG, 15=TIMING 20=INFO 30=WARNING 40=ERROR 50=FATAL
         self.outdir = tempfile.mkdtemp()
         self.admitdir = "%s/%s" % (self.outdir, date)
-        print "##################  %s Project directory = %s  ################" % (self.__class__.__name__,self.admitdir)
+        print("##################  %s Project directory = %s  ################" % (self.__class__.__name__,self.admitdir))
 
         admit.util.utils.rmdir(self.outdir)
 
@@ -118,7 +118,7 @@ class IntegTestSegVsID(unittest.TestCase):
             pass
 
     def runTest(self):
-        print "####  %s ####"% self.testName
+        print("####  %s ####"% self.testName)
         try:
             for i in range(len(self.transitions)):
                 spec = self.a.addtask(admit.GenerateSpectrum_AT(seed=self.seed[i], nchan=self.nchan[i], contin=self.contin[i], delta=self.delta[i], freq=self.freq[i], transitions=self.transitions[i], alias="test_%i" % (i)))
@@ -141,7 +141,7 @@ class IntegTestSegVsID(unittest.TestCase):
                 self.a[lineid1].setkey('maxgap',maxgap)
                 self.a[lineid1].setkey('identifylines',False)    
 
-                print "################## RUNNING TRANSITION %d: %s ######################### " % (i, self.transitions[i][0][0])
+                print("################## RUNNING TRANSITION %d: %s ######################### " % (i, self.transitions[i][0][0]))
 
                 self.a.run()
                
@@ -156,7 +156,7 @@ class IntegTestSegVsID(unittest.TestCase):
                     rowL = linetable.getRowAsDict(rowindex)
                     self.assertEqual(rowS,rowL,"Values for row %d of segment table and line table do not match" % rowindex)
             self.success = "OK"
-        except Exception, e:
+        except Exception as e:
             m = "exception=%s, file=%s, lineno=%s" % ( sys.exc_info()[0].__name__, os.path.basename(sys.exc_info()[2].tb_frame.f_code.co_filename), sys.exc_info()[2].tb_lineno)
             self.success = "FAILED"
             traceback.print_exc()

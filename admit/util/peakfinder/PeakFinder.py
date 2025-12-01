@@ -67,7 +67,7 @@ class PeakFinder(object):
                 self.x = np.array(x, dtype=float)
             else:
                 self.x = x.astype(float)
-        for k, v, in kwarg.iteritems():
+        for k, v, in kwarg.items():
             # ingore any attributes we don't have
             if hasattr(self, k):
                 if type(getattr(self, k)) != type(v):

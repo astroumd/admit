@@ -28,7 +28,7 @@ class TestMultiflow1(unittest.TestCase):
         os.system(cmd)
 
     def test_AAAwhoami(self):
-        print "==== %s ====\n" % self.testName
+        print("==== %s ====\n" % self.testName)
 
     def test_multiflow(self):
 
@@ -53,31 +53,31 @@ class TestMultiflow1(unittest.TestCase):
         # Note they must be completely up-to-date for this to succeed.
         pid1 = mflow.pm.addProject(self.outputDir+"/p1")
         pid2 = mflow.pm.addProject(self.outputDir+"/p2")
-        print "Parent project p1 ID = ", pid1
-        print "Parent project p2 ID = ", pid2
+        print("Parent project p1 ID = ", pid1)
+        print("Parent project p2 ID = ", pid2)
 
         # Find some ATs to link into the multiflow.
         # Here searching is done by alias name.
         stuples = []
         for pid in [pid1, pid2]:
             alias = "at" + mflow.pm[pid].baseDir[-2]
-            print "Looking for alias", alias, "..."
+            print("Looking for alias", alias, "...")
             ats = mflow.pm.findTaskAlias(pid, alias)
-            print "Result:", ats
+            print("Result:", ats)
             self.assertEqual(len(ats), 1, "Found wrong number of matches")
             self.assertEqual(ats[0]._alias, alias, "Alias mismatch")
             self.assertNotEqual(ats[0].getProject(), 0, "Null project ID")
-            print alias, "belongs to project ", \
-                  mflow.pm.getProjectDir(ats[0].getProject())
+            print(alias, "belongs to project ", \
+                  mflow.pm.getProjectDir(ats[0].getProject()))
 
             # Add task to the multiflow (must be a root task---no stuples).
             tid = mflow.addtask(ats[0])
-            print "tid=%d stale=%s" % (tid, mflow[tid].isstale())
+            print("tid=%d stale=%s" % (tid, mflow[tid].isstale()))
             self.assertNotEqual(tid, -1, "mflow.addtask(" + alias + ") failed")
             stuples.append((tid, 0))
 
         # Combine output from the two newly linked tasks.
-        print "stuples =", stuples
+        print("stuples =", stuples)
         tid = mflow.addtask(admit.FlowN1_AT(file="FlowN1.dat", touch=True), stuples)
         self.assertNotEqual(tid, -1, "mflow.addtask(FlowN1) failed")
 

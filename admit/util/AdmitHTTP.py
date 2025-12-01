@@ -10,12 +10,19 @@
 
 import os
 import posixpath
-import urllib
+try: #python3
+    from urllib.parse import unquote
+except: #python2
+    from urllib import unquote
 import sys
 import json
 import socket
-import BaseHTTPServer
-from SimpleHTTPServer import SimpleHTTPRequestHandler
+try:   #python3
+    import http.server as BaseHTTPServer 
+    from http.server import SimpleHTTPRequestHandler
+except: #python2
+    import BaseHTTPServer
+    from SimpleHTTPServer import SimpleHTTPRequestHandler
 
 __all__ = ["AdmitHTTPServer", "AdmitHTTPRequestHandler"]
 
@@ -99,7 +106,7 @@ class AdmitHTTPRequestHandler(SimpleHTTPRequestHandler):
 
     def handle_error(self, request, client_address):
         if self.is_broken_pipe_error():
-            print "- Broken pipe from %s\n" % str(client_address)
+            print("- Broken pipe from %s\n" % str(client_address))
             return
 
     """Override base class log message method to bypass logging."""
@@ -119,9 +126,9 @@ class AdmitHTTPRequestHandler(SimpleHTTPRequestHandler):
         # abandon query parameters
         path = path.split('?',1)[0]
         path = path.split('#',1)[0]
-        path = posixpath.normpath(urllib.unquote(path))
+        path = posixpath.normpath(unquote(path))
         words = path.split('/')
-        words = filter(None, words)
+        words = [_f for _f in words if _f]
         # Always use document root!
         path = self._documentRoot
         for word in words:
@@ -159,12 +166,12 @@ class AdmitHTTPRequestHandler(SimpleHTTPRequestHandler):
             #print "GOT JSON: %d \n %s" % (len(data), data)
             #command = data["command"]
             #print "command = %s" % command
-            print "User agent: %s " % self.headers['user-agent']
+            print("User agent: %s " % self.headers['user-agent'])
             data["firefox"] = self.isFirefox()
             self._postCallbackFn(data)
             self.send_response(200)
-        except Exception, e:
-            print "Problem with server/browser connection: ", e
+        except Exception as e:
+            print("Problem with server/browser connection: ", e)
             # This is almost certainly the firefox bug, try sending 200
             # instead of 400
             #print "sending 200 anyway"

@@ -162,7 +162,7 @@ class ADMITSegmentFinder(object):
         #print "PJT line_segment: ",spec.min(),spec.max(),cutoff,self.minchan,self.maxgap,self.abs
         s = []            # accumulate segments
         n = len(spec)
-        w = range(n)      # @todo   use masking operations, so no loops are needed. this now should work though.
+        w = list(range(n))      # @todo   use masking operations, so no loops are needed. this now should work though.
         if True:
             # here's the old one
             w1 = [-1] * n
@@ -369,7 +369,7 @@ class ADMITSegmentFinder(object):
         rmax = data2.max() + 0.1 #  + 0.05*(data2.max()-data2.min())
         segp.append([self.freq[0], self.freq[n - 1], cutoff, cutoff])
         segp.append([self.freq[0], self.freq[n - 1], dmean, dmean])
-        for (l, s) in zip(range(nlines), segments):
+        for (l, s) in zip(list(range(nlines)), segments):
             ch0 = s[0]
             ch1 = s[1]
             sum0 = sum(data2[ch0:ch1+1])

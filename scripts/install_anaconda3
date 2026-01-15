@@ -1,0 +1,119 @@
+#! /usr/bin/env bash
+#
+# install anaconda3, plus a sourceable python_start.$SHELL script
+#
+# See also https://repo.anaconda.com/archive for old versions
+#
+# 18-mar-2024  NEMO/PJT original, written for NEMO
+# 14-oct-2024  NEMO/PJT - older ones now fail on newer linux versions
+#  6-jan-2025  NEMO/PJT - add 2024.10-1
+# 25-sep-2025  NEMO/PJT - add 2025.06-1 and ensure realpath is used
+
+#--HELP
+# default parameters
+    url=https://repo.anaconda.com/archive/Anaconda3-%s-%s-%s.sh
+                   # anaconda3 versions available:
+version=2020.07    # 3.8.3
+version=2020.11    # 3.8.5
+version=2021.04    # 3.8.8  now failing on U22+
+version=2021.11    # 3.9.8  now failing on U22+ - sphinx not working?
+version=2022.05    # 3.9.12 sphinx?
+version=2022.10    # 3.9.13 sphinx
+version=2023.03-0  # 3.10.9
+version=2023.03-1  # 3.10.14  ok 
+version=2023.07-2  # 3.11.4
+version=2023.09-0  # 3.11.5
+version=2024.02-1  # 3.11.7
+version=2024.06-1  # 3.12.4
+version=2024.10-1  # 3.12.7   6.6G
+version=2025.06-0  # 3.13.5   7.1G
+version=2025.06-1  # 3.13.5   7.0G
+
+  dir=$(pwd)/anaconda3       # where anaconda will be located (use absolute path)
+ wget=wget                   # use wgetc is you have my cashing version (wget=curl is also allowed)
+   os=$(uname -s)            # Handles Linux or Darwin, sorry no Windows
+  cpu=$(uname -m)            # Handles Linux or Darwin, sorry no Windows
+  dry=0                      # dry run?
+
+# At the conclusion of the install, sourceable python_start.[c]sh scripts
+# are placed in the root directory (dir=) of anaconda3
+    
+#--HELP
+
+# some help?    
+ if [ "$1" == "--help" ] || [ "$1" == "-h" ]; then
+    set +x
+    awk 'BEGIN{s=0} {if ($1=="#--HELP") s=1-s;  else if(s) print $0; }' $0
+    exit 0
+fi
+   
+# override parameters
+for arg in "$@"; do
+  export "$arg"
+done
+
+
+if [ "$os" = "Darwin" ]; then
+    os=MacOSX
+fi
+
+mc3=$(printf $url $version $os $cpu)
+msh=$(basename $mc3)
+
+if [ $dry = 1 ]; then
+    echo $mc3
+    exit 0
+fi
+
+if [ -d $dir ]; then
+    echo "$dir already exists"
+    echo "Remove this directory, or use a new dir="
+    exit 1
+fi
+
+if [ ! -e $msh ]; then
+    if [ $wget = "curl" ]; then
+	# curl $mc3 -o $msh
+	curl -OL $mc3
+    else
+	$wget $mc3 
+    fi
+fi
+
+if [ ! -e $msh ]; then
+    echo "File $msh not found. Wrong version=$version ?"
+    exit 0
+fi
+
+# ensure we have an absolute directory
+dir=$(realpath $dir)
+
+echo "Using $msh"
+bash $msh -b -p $dir
+
+export PATH="$dir/bin:$PATH"
+conda update -y conda
+pip3 install --upgrade pip
+
+#    ensure we have a bash kernel in jupyter notebooks
+pip install bash_kernel
+python -m bash_kernel.install
+
+#    remember how we started
+echo $mc3 > $dir/README.pjt
+
+#    write sourceable shell startup recipes
+echo "set path = ($dir/bin "'$path); rehash'  > $dir/python_start.csh
+echo "export PATH=${dir}/bin:"'$PATH'         > $dir/python_start.sh
+
+#    keep copy of script
+cp $0 $dir
+python --version                                                > $dir/VERSION.pjt
+echo "Used install_anaconda3 with version=$version on $(date)" >> $dir/VERSION.pjt
+
+pip freeze > $dir/freeze.log
+echo "Created python_start files for $version in $dir ; no modifications were made to your HOME startup files!"
+python --version
+echo "typically you would need to "
+echo "      source $dir/python_start.sh"
+echo "to add this python to your shell environment. A csh version also exists"

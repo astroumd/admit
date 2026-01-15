@@ -156,6 +156,7 @@ data:
 testdata: data
 	@mkdir -p testdata
 	-@for f in $(DATA); do\
+	(cd testdata; $(WGET) $(FTP)/$$f); done
 
 # a much quicker one minute verson of testdata + bench on test0.fits
 RLOG = "REGRESSION : MOM0FLUX: x.CO_115.27120 27240.3 25534.1 35.0141 2790.42 2790.42 58.6513"

@@ -11,11 +11,11 @@ PY = 2.7
 #
 GITROOT = https://github.com/astroumd/admit.git
 
-# locally at UMD:  /local/ftp/pub/admit/testdata
+# locally at UMD:  /local/ftp/pub/admit/testdata -> now at: /n/ftp
 FTP = ftp://ftp.astro.umd.edu/pub/admit/testdata
 
 # sample testdata needed for a mininum integration and regression test
-DATA = test0.fits test253_spw3.fits test253_cont.fits
+DATA = test0.fits test0.py test253_spw3.fits test253_cont.fits
 
 # use wget1 or wgetc if you want caching
 WGET = wget

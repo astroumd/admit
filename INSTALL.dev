@@ -1,13 +1,13 @@
 
 
-For developers:  (only CASA 4.6 and above are supported)
+For developers:
 
 To grab the git based source code
 
   git clone https://github.com/astroumd/admit.git
 
 
-CASA requirements:
+CASA requirements:  (for modular CASA, see bottom of this file)
     Without CASA you can currently do very little with ADMIT (although a version of
     ADMIT does exist that works with some of the Radio Astro Tools).
     See below for CASA6 comments.
@@ -174,5 +174,37 @@ CASA6
 
 As of March 2020 ADMIT was converted to use python3 instead of python2. This in
 order to be able to take advantage of CASA6, which uses python3. This work is
-ongoing and taking place in a branch called "python3". Contact Peter if you want
-to know more.
+ongoing and taking place in a branch called "python3". 
+
+Dec 2025:    python3 merged into master. Old master is now "python2" branch.
+
+modular CASA
+------------
+
+The following snippet of shell code installs modular CASA for python 3.12. Do this
+in a clean directory. This version can run vanilla python scripts without the need
+for the monolithic casa
+
+      # admit
+      rm -rf admit
+      git clone https://github.com/astroumd/admit
+      
+      # python - you can also use your own python+venv
+      rm -rf anaconda3       
+      admit/scripts/install_anaconda3 version=2024.10-1
+      source anaconda3/python_start.sh
+
+      # install admit and modular casa
+      pip install -e admit
+      bash admit/scripts/install_wheel
+
+      # testing
+      cd admit
+      make testdata
+      cd testdata
+      ipython test0.py    # note via python there's a shared lib conflict with sqlite3
+
+
+Notes:
+
+1. the install_wheel probably installs more than we need. 

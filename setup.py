@@ -38,13 +38,14 @@ class OverrideInstall(install):
 # also 'xmlio/dtd/admit.dtd' is not found, this required another attention
 setup(
     name = "admit",
-    version = aversion(),
+    #version = aversion(),     # has 'import admit' issue
+    version = "1.1.0",
     author = "Peter Teuben",
     author_email = "teuben@gmail.com",
     description = ("A test setup.py for ADMIT."),
     license = "BSD",
     keywords = "example documentation tutorial",
-    url = "http://admit.astro.umd.edu/wiki/index.php/ADMIT",
+    url = "http://admit.astro.umd.edu/",
     scripts=['bin/admit','bin/casarun','bin/admit_root','bin/admit_root.py',
              'bin/runa1','bin/runa2','bin/runa4','bin/admit_recipe','bin/admit_export','bin/admit_pipeline'],
     # packages=['admit', 'admit/at', 'admit/bdp','admit/gui', 'admit/util','admit/xmlio','etc'],

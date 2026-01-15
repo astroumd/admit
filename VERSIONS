@@ -6,3 +6,4 @@
 1.0.4   Stale added back on master
 1.0.6   Merged in CASA 5.0 (pre-release) requirements
 1.0.7   Deal with fits.gz files and missing RESTFREQ cases
+1.1.0   Continue in merged python3 branch on master

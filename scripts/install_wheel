@@ -1,3 +1,5 @@
+# https://casadocs.readthedocs.io/en/stable/notebooks/introduction.html#Modular-Packages
+
 pip3.12 install casaconfig==1.4.0
 pip3.12 install casatools==6.7.2.42
 pip3.12 install casatasks==6.7.2.42
@@ -11,8 +13,9 @@ pip3.12 install casalogger==1.0.23
 pip3.12 install casafeather==0.0.27
 pip3.12 install casampi==0.5.9
 
+pip3.12 show casatasks
+pip3.12 install casatasks==99999
 
-# pip3.12 show casatasks
-$a --basename x $im
+#$a --basename x $im
 
-$ADMIT/admit/test/admit1.py --basename x test0.fits
+#$ADMIT/admit/test/admit1.py --basename x test0.fits

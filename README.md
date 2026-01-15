@@ -1,12 +1,10 @@
 #  ADMIT = ALMA Data Mining Toolkit 
 
 
-
 Installation notes are in the INSTALL file in this
 directory. Developers should also look in INSTALL.dev
 
-Optional components are described in opt/README.
-
+Optional components are described in opt/README
 
 
 ## LATEST News (CASA 6.x)
